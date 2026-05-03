@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Building2, MapPin, FileText, Edit3, Save, X, AlertCircle } from "lucide-react";
+import { ArrowLeft, Building2, MapPin, FileText, Edit3, Save, X, AlertCircle, User, Mail, Calendar } from "lucide-react";
 import { apiClient } from "@/lib/api";
 import { toast } from "sonner";
 
@@ -137,35 +137,28 @@ function BusinessDetailsPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading business details...</p>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading business details...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-4xl mx-auto px-4 py-6">
+    <div className="min-h-screen bg-background">
+      {/* Dashboard-style Header */}
+      <div className="border-b border-border bg-card">
+        <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => navigate({ to: "/dashboard" })}
-                className="flex items-center gap-2"
-              >
-                <ArrowLeft size={16} />
-                Back to Dashboard
-              </Button>
+             
+              <div className="h-6 w-px bg-border" />
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Business Details</h1>
-                <p className="text-sm text-gray-600 mt-1">
-                  Manage your business information and profile
+                <h1 className="text-2xl font-semibold tracking-tight">Business Profile</h1>
+                <p className="text-sm text-muted-foreground">
+                  Manage your business information and settings
                 </p>
               </div>
             </div>
@@ -173,217 +166,248 @@ function BusinessDetailsPage() {
             {!isEditing && businessProfile?.business_setup_completed && (
               <Button onClick={handleEdit} className="flex items-center gap-2">
                 <Edit3 size={16} />
-                Edit Details
+                Edit Profile
               </Button>
             )}
           </div>
         </div>
       </div>
 
-      {/* Content */}
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        {error && (
-          <div className="mb-6 flex items-start gap-3 rounded-lg bg-red-50 border border-red-200 p-4">
-            <AlertCircle size={18} className="text-red-600 mt-0.5 flex-shrink-0" />
-            <p className="text-sm text-red-700">{error}</p>
-          </div>
-        )}
+      {/* Main Content */}
+      <div className="container mx-auto px-6 py-8">
+        <div className="max-w-4xl mx-auto">
+          {error && (
+            <div className="mb-6 flex items-start gap-3 rounded-lg bg-destructive/10 border border-destructive/20 p-4">
+              <AlertCircle size={18} className="text-destructive mt-0.5 flex-shrink-0" />
+              <p className="text-sm text-destructive">{error}</p>
+            </div>
+          )}
 
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
-          <div className="p-8">
-            {!businessProfile?.business_setup_completed ? (
-              // No business profile setup
-              <div className="text-center py-12">
-                <Building2 size={48} className="text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  No Business Profile Found
-                </h3>
-                <p className="text-gray-600 mb-6">
-                  Complete your business setup to access all features
-                </p>
-                <Button
-                  onClick={() => navigate({ to: "/onboarding" })}
-                  className="flex items-center gap-2"
-                >
-                  <Building2 size={16} />
-                  Complete Business Setup
-                </Button>
+          {!businessProfile?.business_setup_completed ? (
+            // Empty State
+            <div className="rounded-lg border border-border bg-card p-12 text-center">
+              <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-muted">
+                <Building2 size={32} className="text-muted-foreground" />
               </div>
-            ) : isEditing ? (
-              // Edit mode
-              <div className="space-y-6">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-xl font-semibold text-gray-900">Edit Business Information</h2>
-                  <div className="flex items-center gap-3">
-                    <Button
-                      variant="outline"
-                      onClick={handleCancel}
-                      disabled={isSaving}
-                      className="flex items-center gap-2"
-                    >
-                      <X size={16} />
-                      Cancel
-                    </Button>
-                    <Button
-                      onClick={handleSave}
-                      disabled={isSaving}
-                      className="flex items-center gap-2"
-                    >
-                      <Save size={16} />
-                      {isSaving ? "Saving..." : "Save Changes"}
-                    </Button>
+              <h3 className="mb-2 text-xl font-semibold">No Business Profile Found</h3>
+              <p className="mb-6 text-muted-foreground">
+                Complete your business setup to unlock all platform features
+              </p>
+              <Button
+                onClick={() => navigate({ to: "/onboarding" })}
+                className="flex items-center gap-2"
+              >
+                <Building2 size={16} />
+                Complete Business Setup
+              </Button>
+            </div>
+          ) : (
+            <div className="grid gap-6">
+              {/* Profile Header Card */}
+              <div className="rounded-lg border border-border bg-card p-6">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+                      <Building2 size={24} className="text-primary" />
+                    </div>
+                    <div>
+                      <h2 className="text-2xl font-semibold">
+                        {businessProfile.business_name || "Business Name"}
+                      </h2>
+                      <p className="text-muted-foreground">
+                        {businessProfile.business_type} • {businessProfile.business_location}
+                      </p>
+                    </div>
                   </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-900 mb-2">
-                      Business Name
-                    </label>
-                    <input
-                      type="text"
-                      name="business_name"
-                      value={editForm.business_name}
-                      onChange={handleInputChange}
-                      className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm focus:border-purple-500 focus:ring-2 focus:ring-purple-200 outline-none"
-                      placeholder="Enter business name"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-900 mb-2">
-                      Business Type
-                    </label>
-                    <select
-                      name="business_type"
-                      value={editForm.business_type}
-                      onChange={handleInputChange}
-                      className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm focus:border-purple-500 focus:ring-2 focus:ring-purple-200 outline-none"
-                    >
-                      <option value="">Select business type</option>
-                      {businessTypes.map((type) => (
-                        <option key={type} value={type}>
-                          {type}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-semibold text-gray-900 mb-2">
-                      Location
-                    </label>
-                    <input
-                      type="text"
-                      name="business_location"
-                      value={editForm.business_location}
-                      onChange={handleInputChange}
-                      className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm focus:border-purple-500 focus:ring-2 focus:ring-purple-200 outline-none"
-                      placeholder="Enter business location"
-                    />
-                  </div>
-
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-semibold text-gray-900 mb-2">
-                      Business Description
-                    </label>
-                    <textarea
-                      name="business_description"
-                      value={editForm.business_description}
-                      onChange={handleInputChange}
-                      rows={6}
-                      className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm focus:border-purple-500 focus:ring-2 focus:ring-purple-200 outline-none resize-none"
-                      placeholder="Describe your business, services, and goals..."
-                    />
-                    <p className="text-xs text-gray-500 mt-1">
-                      {editForm.business_description.length}/2000 characters (minimum 20)
-                    </p>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              // View mode
-              <div className="space-y-8">
-                <div>
-                  <h2 className="text-xl font-semibold text-gray-900 mb-6">Business Information</h2>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div className="space-y-6">
-                      <div>
-                        <div className="flex items-center gap-2 mb-2">
-                          <Building2 size={18} className="text-gray-500" />
-                          <label className="text-sm font-medium text-gray-700">Business Name</label>
-                        </div>
-                        <p className="text-lg font-semibold text-gray-900">
-                          {businessProfile.business_name || "Not specified"}
-                        </p>
+                  {isEditing && (
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleCancel}
+                        disabled={isSaving}
+                      >
+                        <X size={16} className="mr-1" />
+                        Cancel
+                      </Button>
+                      <Button
+                        size="sm"
+                        onClick={handleSave}
+                        disabled={isSaving}
+                      >
+                        <Save size={16} className="mr-1" />
+                        {isSaving ? "Saving..." : "Save Changes"}
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {isEditing ? (
+                // Edit Form
+                <div className="rounded-lg border border-border bg-card p-6">
+                  <h3 className="mb-6 text-lg font-semibold">Edit Business Information</h3>
+                  
+                  <div className="grid gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Business Name</label>
+                        <input
+                          type="text"
+                          name="business_name"
+                          value={editForm.business_name}
+                          onChange={handleInputChange}
+                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                          placeholder="Enter business name"
+                        />
                       </div>
 
-                      <div>
-                        <div className="flex items-center gap-2 mb-2">
-                          <Building2 size={18} className="text-gray-500" />
-                          <label className="text-sm font-medium text-gray-700">Business Type</label>
-                        </div>
-                        <p className="text-gray-900">
-                          {businessProfile.business_type || "Not specified"}
-                        </p>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Business Type</label>
+                        <select
+                          name="business_type"
+                          value={editForm.business_type}
+                          onChange={handleInputChange}
+                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          <option value="">Select business type</option>
+                          {businessTypes.map((type) => (
+                            <option key={type} value={type}>
+                              {type}
+                            </option>
+                          ))}
+                        </select>
                       </div>
                     </div>
 
-                    <div className="space-y-6">
-                      <div>
-                        <div className="flex items-center gap-2 mb-2">
-                          <MapPin size={18} className="text-gray-500" />
-                          <label className="text-sm font-medium text-gray-700">Location</label>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Location</label>
+                      <input
+                        type="text"
+                        name="business_location"
+                        value={editForm.business_location}
+                        onChange={handleInputChange}
+                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                        placeholder="Enter business location"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Business Description</label>
+                      <textarea
+                        name="business_description"
+                        value={editForm.business_description}
+                        onChange={handleInputChange}
+                        rows={6}
+                        className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-none"
+                        placeholder="Describe your business, services, and goals..."
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        {editForm.business_description.length}/2000 characters (minimum 20)
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                // View Mode
+                <div className="grid gap-6">
+                  {/* Business Information */}
+                  <div className="rounded-lg border border-border bg-card p-6">
+                    <h3 className="mb-4 text-lg font-semibold">Business Information</h3>
+                    
+                    <div className="grid gap-6 md:grid-cols-2">
+                      <div className="space-y-4">
+                        <div className="flex items-start gap-3">
+                          <Building2 size={18} className="mt-0.5 text-muted-foreground" />
+                          <div>
+                            <p className="text-sm font-medium text-muted-foreground">Business Name</p>
+                            <p className="text-base font-medium">
+                              {businessProfile.business_name || "Not specified"}
+                            </p>
+                          </div>
                         </div>
-                        <p className="text-gray-900">
-                          {businessProfile.business_location || "Not specified"}
-                        </p>
+
+                        <div className="flex items-start gap-3">
+                          <User size={18} className="mt-0.5 text-muted-foreground" />
+                          <div>
+                            <p className="text-sm font-medium text-muted-foreground">Business Type</p>
+                            <p className="text-base">
+                              {businessProfile.business_type || "Not specified"}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="space-y-4">
+                        <div className="flex items-start gap-3">
+                          <MapPin size={18} className="mt-0.5 text-muted-foreground" />
+                          <div>
+                            <p className="text-sm font-medium text-muted-foreground">Location</p>
+                            <p className="text-base">
+                              {businessProfile.business_location || "Not specified"}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-start gap-3">
+                          <Calendar size={18} className="mt-0.5 text-muted-foreground" />
+                          <div>
+                            <p className="text-sm font-medium text-muted-foreground">Status</p>
+                            <div className="flex items-center gap-2">
+                              <div className="h-2 w-2 rounded-full bg-green-500"></div>
+                              <p className="text-base">Profile Complete</p>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
 
-                  <div className="mt-8">
-                    <div className="flex items-center gap-2 mb-3">
-                      <FileText size={18} className="text-gray-500" />
-                      <label className="text-sm font-medium text-gray-700">Business Description</label>
+                  {/* Business Description */}
+                  <div className="rounded-lg border border-border bg-card p-6">
+                    <div className="mb-4 flex items-center gap-2">
+                      <FileText size={18} className="text-muted-foreground" />
+                      <h3 className="text-lg font-semibold">Business Description</h3>
                     </div>
-                    <div className="bg-gray-50 rounded-lg p-4">
-                      <p className="text-gray-900 leading-relaxed whitespace-pre-wrap">
+                    <div className="rounded-md bg-muted/50 p-4">
+                      <p className="text-sm leading-relaxed whitespace-pre-wrap">
                         {businessProfile.business_description || "No description provided"}
                       </p>
                     </div>
                   </div>
-                </div>
 
-                {/* Future Features */}
-                <div className="border-t border-gray-200 pt-8">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Additional Options</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="p-4 border border-gray-200 rounded-lg bg-gray-50">
-                      <h4 className="font-medium text-gray-900 mb-2">📄 PDF Upload</h4>
-                      <p className="text-sm text-gray-600 mb-3">
-                        Upload business documents and brochures
-                      </p>
-                      <Button variant="outline" size="sm" disabled>
-                        Coming Soon
-                      </Button>
-                    </div>
-                    
-                    <div className="p-4 border border-gray-200 rounded-lg bg-gray-50">
-                      <h4 className="font-medium text-gray-900 mb-2">🎤 Voice Input</h4>
-                      <p className="text-sm text-gray-600 mb-3">
-                        Record voice descriptions of your business
-                      </p>
-                      <Button variant="outline" size="sm" disabled>
-                        Coming Soon
-                      </Button>
+                  {/* Future Features */}
+                  <div className="rounded-lg border border-border bg-card p-6">
+                    <h3 className="mb-4 text-lg font-semibold">Additional Features</h3>
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div className="rounded-md border border-dashed border-border p-4 text-center">
+                        <div className="mb-2 text-2xl">📄</div>
+                        <h4 className="mb-1 font-medium">Document Upload</h4>
+                        <p className="mb-3 text-sm text-muted-foreground">
+                          Upload business documents and brochures
+                        </p>
+                        <Button variant="outline" size="sm" disabled>
+                          Coming Soon
+                        </Button>
+                      </div>
+                      
+                      <div className="rounded-md border border-dashed border-border p-4 text-center">
+                        <div className="mb-2 text-2xl">🎤</div>
+                        <h4 className="mb-1 font-medium">Voice Input</h4>
+                        <p className="mb-3 text-sm text-muted-foreground">
+                          Record voice descriptions of your business
+                        </p>
+                        <Button variant="outline" size="sm" disabled>
+                          Coming Soon
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>

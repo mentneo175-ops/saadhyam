@@ -109,12 +109,12 @@ Thumbs.db
 .env.example.local
 
 
-# AI Models
-Backend/ai_models/
-*.safetensors
-*.bin
-*.pt
-checkpoint-*/
+# # AI Models
+# Backend/ai_models/
+# *.safetensors
+# *.bin
+# *.pt
+# checkpoint-*/
 
 # HuggingFace cache
 huggingface_cache/

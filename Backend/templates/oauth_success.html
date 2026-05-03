@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instagram Connected Successfully</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .container {
+            text-align: center;
+            padding: 2rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        .success-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+        h1 {
+            margin: 0 0 1rem 0;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+        p {
+            margin: 0 0 1.5rem 0;
+            opacity: 0.9;
+        }
+        .close-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+        .close-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="success-icon">✅</div>
+        <h1>Instagram Connected Successfully!</h1>
+        <p>Your Instagram Business account has been connected to Saadhyam AI.</p>
+        <p>You can now close this window and return to your dashboard.</p>
+        <button class="close-btn" onclick="closeWindow()">Close Window</button>
+    </div>
+
+    <script>
+        // Notify parent window of success
+        if (window.opener) {
+            window.opener.postMessage({
+                type: 'INSTAGRAM_OAUTH_SUCCESS',
+                message: 'Instagram connected successfully'
+            }, window.location.origin);
+        }
+
+        // Auto-close after 3 seconds
+        setTimeout(() => {
+            closeWindow();
+        }, 3000);
+
+        function closeWindow() {
+            if (window.opener) {
+                window.close();
+            } else {
+                // If not opened as popup, redirect to dashboard
+                window.location.href = '/dashboard/settings';
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,52 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: saadhyam_postgres
+    environment:
+      POSTGRES_USER: saadhyam_user
+      POSTGRES_PASSWORD: saadhyam_password
+      POSTGRES_DB: saadhyam_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - saadhyam_network
+
+  redis:
+    image: redis:7-alpine
+    container_name: saadhyam_redis
+    ports:
+      - "6379:6379"
+    networks:
+      - saadhyam_network
+    command: redis-server --appendonly yes
+
+  backend:
+    build: .
+    container_name: saadhyam_backend
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql://saadhyam_user:saadhyam_password@postgres:5432/saadhyam_db
+      REDIS_URL: redis://redis:6379
+      SECRET_KEY: saadhyam-secret-change-in-production
+      ALGORITHM: HS256
+      ACCESS_TOKEN_EXPIRE_MINUTES: 60
+      DEBUG: "False"
+      ENVIRONMENT: production
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - saadhyam_network
+    command: uvicorn main:app --host 0.0.0.0 --port 8000
+
+volumes:
+  postgres_data:
+
+networks:
+  saadhyam_network:
+    driver: bridge

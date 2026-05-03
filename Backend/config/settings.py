@@ -1,0 +1,72 @@
+import os
+import json
+from pydantic_settings import BaseSettings
+from pydantic import field_validator
+from typing import List
+
+
+class Settings(BaseSettings):
+    """Application settings loaded from environment variables."""
+
+    # Database
+    DATABASE_URL: str = "postgresql://user:password@localhost/saadhyam"
+
+    # Redis
+    REDIS_URL: str = "redis://localhost:6379"
+
+    # JWT
+    SECRET_KEY: str = "your-super-secret-key-change-in-production"
+    ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 10080  # 7 days
+
+    # Server
+    DEBUG: bool = True
+    ENVIRONMENT: str = "development"
+    BACKEND_URL: str = "http://localhost:8000"
+
+    # CORS - Parse from JSON string in .env or use defaults
+    CORS_ORIGINS: List[str] = [
+        "http://localhost:3000",
+        "http://localhost:5173",
+        "http://localhost:8080",
+        "http://localhost:8081",
+    ]
+
+    # Instagram API Configuration
+    INSTAGRAM_APP_ID: str = "your_instagram_app_id"
+    INSTAGRAM_APP_SECRET: str = "your_instagram_app_secret"
+    INSTAGRAM_REDIRECT_URI: str = "http://localhost:8000/auth/instagram/callback"
+    INSTAGRAM_GRAPH_API_VERSION: str = "v19.0"
+
+    # Cloudinary Configuration
+    CLOUDINARY_CLOUD_NAME: str = "di16qmtbf"
+    CLOUDINARY_API_KEY: str = "679832578499241"
+    CLOUDINARY_API_SECRET: str = "ZuKhUD-ZGuFhdiwIyF1xWbl8m54"
+
+    # Token Encryption Key
+    ENCRYPTION_KEY: str = "your-32-char-encryption-key-here"
+
+    # Celery Configuration
+    CELERY_BROKER_URL: str = "redis://localhost:6379/0"
+    CELERY_RESULT_BACKEND: str = "redis://localhost:6379/1"
+    CELERY_TASK_SERIALIZER: str = "json"
+    CELERY_ACCEPT_CONTENT: str = "json"
+    CELERY_RESULT_SERIALIZER: str = "json"
+    CELERY_TIMEZONE: str = "UTC"
+
+    @field_validator("CORS_ORIGINS", mode="before")
+    @classmethod
+    def parse_cors_origins(cls, v):
+        if isinstance(v, str):
+            try:
+                return json.loads(v)
+            except json.JSONDecodeError:
+                return [v]
+        return v
+
+    class Config:
+        env_file = ".env"
+        case_sensitive = True
+
+
+settings = Settings()

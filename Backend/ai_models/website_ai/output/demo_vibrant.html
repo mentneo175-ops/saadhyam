@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Demo Business | Vibrant</title>
+  <style>
+    :root { --bg:#fff8ee; --surface:#ffffff; --ink:#18150f; --muted:#665b4a; --pink:#ff5e7a; --orange:#ff8a3d; --yellow:#ffbf35; --line:#f0dcc0; }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family: "Trebuchet MS", "Avenir Next", system-ui, sans-serif; color:var(--ink); background: linear-gradient(180deg, #fff6e8 0%, #fffdf9 100%); }
+    .shell { width:min(1180px, calc(100% - 30px)); margin:0 auto; }
+    header { padding: 56px 0 28px; }
+    .hero { display:grid; grid-template-columns: 1fr .85fr; gap: 18px; align-items:stretch; }
+    .poster, .floating, .block, .faq-card { background:var(--surface); border:1px solid var(--line); border-radius: 32px; box-shadow: 0 18px 55px rgba(255,138,61,.12); }
+    .poster { padding: 32px; background: linear-gradient(135deg, #fff 0%, #fff6e8 50%, #ffe7ee 100%); }
+    .tag { display:inline-block; padding: 10px 14px; border-radius:999px; background: rgba(255,94,122,.12); color:#c93350; font-weight:800; text-transform:uppercase; letter-spacing:.08em; font-size:.74rem; }
+    h1 { margin: 18px 0 12px; font-size: clamp(3rem, 8vw, 6rem); line-height:.9; letter-spacing:-.06em; }
+    .lead { max-width: 58ch; color:var(--muted); font-size:1.05rem; }
+    .cta { display:inline-block; margin-top: 22px; padding: 14px 18px; border-radius: 999px; background: linear-gradient(90deg, var(--pink), var(--orange)); color:#fff; text-decoration:none; font-weight:800; }
+    .floating { padding: 24px; display:grid; gap:14px; background: linear-gradient(135deg, #fff 0%, #fff4df 100%); }
+    .chip { padding: 16px; border-radius: 22px; background:#fff; border:1px solid var(--line); }
+    main { padding: 18px 0 72px; }
+    section { margin-top: 18px; }
+    h2 { margin:0 0 14px; font-size: 1.65rem; }
+    .services { display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+    .block { padding: 22px; min-height: 160px; }
+    .block:nth-child(3n+1) { background: linear-gradient(135deg, #fff 0%, #fff0e9 100%); }
+    .block:nth-child(3n+2) { background: linear-gradient(135deg, #fff 0%, #f9ffe8 100%); }
+    .block:nth-child(3n) { background: linear-gradient(135deg, #fff 0%, #eef8ff 100%); }
+    .block h3 { margin:0 0 8px; }
+    .faq-grid { display:grid; gap:12px; }
+    .faq-card { padding: 18px 20px; }
+    summary { cursor:pointer; font-weight:800; }
+    details p { margin-top: 10px; color:var(--muted); }
+    .contact { margin-top: 18px; padding: 26px; border-radius: 32px; background: linear-gradient(135deg, var(--pink), var(--orange)); color:#fff; }
+    @media (max-width: 900px) { .hero, .services { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="shell hero">
+      <div class="poster">
+        <span class="tag">Demo</span>
+        <h1>A refined web presence for Demo Business</h1>
+        <p class="lead">Demo Business provides exemplary services tailored to its customers.</p>
+        <a class="cta" href="#contact">Request a custom quote</a>
+      </div>
+      <aside class="floating">
+        <div class="chip"><strong>Brand vibe</strong><p>clean and modern</p></div>
+        <div class="chip"><strong>Audience</strong><p>general customers</p></div>
+        <div class="chip"><strong>CTA</strong><p>Contact Demo Business to learn more.</p></div>
+      </aside>
+    </div>
+  </header>
+  <main class="shell">
+      <section>
+        <h2>Overview</h2>
+        <p>Demo Business provides exemplary services tailored to its customers.</p>
+      </section>
+      <section id="contact" class="contact">
+        <h2>Contact</h2>
+        <p>Contact Demo Business to learn more. Tone: friendly and professional.</p>
+      </section>
+      <section>
+        <h2>Services</h2>
+        <div class="services">
+          <article class="block">
+            <h3>Service A</h3>
+            <p>High-quality offering to help customers.</p>
+          </article>
+          <article class="block">
+            <h3>Service B</h3>
+            <p>Professional support for every need.</p>
+          </article>
+          <article class="block">
+            <h3>Service C</h3>
+            <p>Reliable delivery and excellent results.</p>
+          </article>
+        </div>
+      </section>
+      <section>
+        <h2>FAQ</h2>
+        <div class="faq-grid">
+          <details class="faq-card">
+            <summary>What is Demo Business?</summary>
+            <p>A demo provider of quality services.</p>
+          </details>
+          <details class="faq-card">
+            <summary>How do I get started?</summary>
+            <p>Contact us via the form or phone.</p>
+          </details>
+          <details class="faq-card">
+            <summary>Is support available?</summary>
+            <p>Yes — we provide friendly support.</p>
+          </details>
+        </div>
+      </section>
+  </main>
+</body>
+</html>

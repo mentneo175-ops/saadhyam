@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>apex global hospitals | Premium</title>
+  <style>
+    :root {
+      --bg: #f8f3ed;
+      --surface: #fffaf4;
+      --ink: #1d1a17;
+      --muted: #645a50;
+      --accent: #8c5b2e;
+      --accent-2: #d7b07a;
+      --line: #e8dac8;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      color: var(--ink);
+      background: linear-gradient(180deg, #f7efe7 0%, #fbf7f2 100%);
+    }
+
+    .shell {
+      width: min(1140px, calc(100% - 32px));
+      margin: 0 auto;
+    }
+
+    header {
+      padding: 72px 0 34px;
+    }
+
+    .intro {
+      display: grid;
+      grid-template-columns: .95fr 1.05fr;
+      gap: 22px;
+      align-items: end;
+    }
+
+    .left,
+    .right,
+    .panel,
+    .faq {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 30px;
+      box-shadow: 0 20px 60px rgba(29, 26, 23, .08);
+    }
+
+    .left {
+      padding: 30px;
+    }
+
+    .label {
+      text-transform: uppercase;
+      letter-spacing: .2em;
+      font-size: .72rem;
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    h1 {
+      margin: 18px 0 14px;
+      font-size: clamp(3rem, 8vw, 6.2rem);
+      line-height: .92;
+      letter-spacing: -.05em;
+    }
+
+    .lead {
+      color: var(--muted);
+      font-size: 1.08rem;
+      max-width: 38ch;
+    }
+
+    .right {
+      padding: 22px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .right .stat {
+      padding: 18px;
+      border-radius: 22px;
+      background: linear-gradient(135deg, #fff, #f8efe5);
+      border: 1px solid var(--line);
+    }
+
+    .right .stat strong {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 1rem;
+    }
+
+    main {
+      padding: 14px 0 76px;
+    }
+
+    .panel {
+      padding: 26px;
+    }
+
+    .services {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .service {
+      padding: 22px;
+      border-radius: 22px;
+      background: #fff;
+      border: 1px solid var(--line);
+    }
+
+    .service h3 {
+      margin: 0 0 10px;
+      font-size: 1.2rem;
+    }
+
+    .faq-grid {
+      display: grid;
+      gap: 12px;
+    }
+
+    .faq {
+      padding: 18px 20px;
+    }
+
+    summary {
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    details p {
+      color: var(--muted);
+      margin: 10px 0 0;
+    }
+
+    .contact {
+      margin-top: 18px;
+      padding: 28px;
+      border-radius: 30px;
+      background: linear-gradient(135deg, var(--ink), var(--accent));
+      color: #fff;
+    }
+
+    .btn {
+      display: inline-block;
+      margin-top: 18px;
+      padding: 14px 20px;
+      border-radius: 999px;
+      text-decoration: none;
+      background: #fff;
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    @media (max-width: 900px) {
+
+      .intro,
+      .services {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+  <script src="/static/editor.js" defer></script>
+</head>
+
+<body data-theme="premium">
+  <header>
+    <div class="shell intro">
+      <div class="left">
+        <div class="label">hospital / premium experience</div>
+        <h1>A sharper digital identity for apex global hospitals</h1>
+        <p class="lead">apex global hospitals is a hospital built for customers looking for a reliable, modern brand experience. The brand feels professional, engaging, and trustworthy and reflects modern business.</p>
+        <a class="btn" href="#contact">Book a discovery call</a>
+      </div>
+      <div class="right">
+        <div class="stat">
+          <strong>Branding</strong>
+          <p>Crafted for speed, clarity, and trust.</p>
+        </div>
+        <div class="stat">
+          <strong>Audience</strong>
+          <p>customers looking for a reliable, modern brand experience</p>
+        </div>
+        <div class="stat">
+          <strong>Touchpoint</strong>
+          <p>professional, engaging, and trustworthy</p>
+        </div>
+      </div>
+    </div>
+  </header>
+  <main class="shell">
+    <section id="contact" class="contact">
+      <div class="label" style="color:#f1d3b4;">Contact</div>
+      <p>Contact apex global hospitals to schedule a consultation or request a quote. The presentation leans into modern business cues.</p>
+      <a class="btn" href="#top">Book a discovery call</a>
+    </section>
+    <section class="panel">
+      <div class="label">Signature services</div>
+      <div class="services">
+        <article class="service">
+          <h3>Core service three</h3>
+          <p>Tailored core service three for customers looking for a reliable, modern brand experience.</p>
+        </article>
+        <article class="service">
+          <h3>Core service one</h3>
+          <p>Tailored core service one for customers looking for a reliable, modern brand experience.</p>
+        </article>
+        <article class="service">
+          <h3>Core service four</h3>
+          <p>Tailored core service four for customers looking for a reliable, modern brand experience.</p>
+        </article>
+        <article class="service">
+          <h3>Core service two</h3>
+          <p>Tailored core service two for customers looking for a reliable, modern brand experience.</p>
+        </article>
+      </div>
+    </section>
+    <section class="panel">
+      <div class="label">FAQ</div>
+      <div class="faq-grid">
+        <details class="faq">
+          <summary>What makes apex global hospitals different?</summary>
+          <p>It blends modern business with a professional, engaging, and trustworthy customer experience.</p>
+        </details>
+        <details class="faq">
+          <summary>How do I get started?</summary>
+          <p>Choose a service, reach out, and we will guide you through the next step.</p>
+        </details>
+        <details class="faq">
+          <summary>Who is this for?</summary>
+          <p>It is designed for customers looking for a reliable, modern brand experience.</p>
+        </details>
+      </div>
+    </section>
+    <section class="panel">
+      <div class="label">Overview</div>
+      <p>apex global hospitals is a hospital built for customers looking for a reliable, modern brand experience. The brand feels professional, engaging, and trustworthy and reflects modern business.</p>
+    </section>
+  </main>
+</body>
+
+</html>

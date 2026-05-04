@@ -414,7 +414,114 @@ async def generate_website_content(
 ):
     """Generate website content"""
     try:
-        content = f"Generated {request.section} content based on: {request.business_info}\n\nThis is professional, SEO-optimized content for your website."
+        # Create section-specific prompts
+        section_prompts = {
+            "about": f"Write a professional 'About Us' section for a website. Business details: {request.business_info}. Make it engaging and highlight the company's mission, values, and what makes them unique.",
+            "services": f"Write a detailed 'Services' section for a website. Business details: {request.business_info}. List and describe the main services offered with benefits for customers.",
+            "faq": f"Create a comprehensive FAQ section with 5-7 common questions and answers. Business details: {request.business_info}. Make it helpful and address typical customer concerns.",
+            "contact": f"Write a welcoming 'Contact Us' page content. Business details: {request.business_info}. Include a friendly message encouraging customers to reach out and explain how they can contact the business."
+        }
+        
+        prompt = section_prompts.get(request.section, f"Write professional website content for the {request.section} section. Business: {request.business_info}")
+        
+        # Use the review reply AI model for generation (it's already loaded)
+        try:
+            from ai_models.review_reply_ai.generator import generate_reply
+            
+            # Generate content using the AI model
+            generated_text = generate_reply(
+                review_text=prompt,
+                rating=5,
+                tone="professional"
+            )
+            
+            content = generated_text.strip()
+            
+        except Exception as ai_error:
+            logger.warning(f"AI generation failed, using template: {ai_error}")
+            # Fallback to template-based generation
+            templates = {
+                "about": f"""About Us
+
+{request.business_info}
+
+Our Mission
+We are dedicated to providing exceptional service and creating memorable experiences for our customers. With years of expertise in our field, we combine passion with professionalism to deliver outstanding results.
+
+Why Choose Us
+• Expert team with extensive experience
+• Customer-focused approach
+• Quality service guaranteed
+• Competitive pricing
+• Trusted by hundreds of satisfied customers
+
+We look forward to serving you and exceeding your expectations.""",
+                
+                "services": f"""Our Services
+
+{request.business_info}
+
+What We Offer
+We provide a comprehensive range of services designed to meet your needs:
+
+• Premium Service Packages - Tailored solutions for every requirement
+• Expert Consultation - Professional guidance from experienced specialists
+• Quality Assurance - Guaranteed satisfaction with every service
+• Flexible Scheduling - Convenient booking options to fit your lifestyle
+• Ongoing Support - Dedicated customer care and follow-up
+
+Each service is delivered with attention to detail and a commitment to excellence. Contact us to learn more about how we can help you.""",
+                
+                "faq": f"""Frequently Asked Questions
+
+About {request.business_info}
+
+Q: What services do you offer?
+A: We provide a wide range of professional services tailored to meet your specific needs. Contact us for detailed information about our offerings.
+
+Q: How can I book an appointment?
+A: You can easily book through our website, call us directly, or send us a message. We'll respond promptly to confirm your booking.
+
+Q: What are your operating hours?
+A: We're open to serve you at convenient times. Please contact us for our current schedule and availability.
+
+Q: Do you offer custom packages?
+A: Yes! We understand every customer is unique. We're happy to create customized service packages based on your requirements.
+
+Q: What payment methods do you accept?
+A: We accept various payment methods including cash, cards, and digital payments for your convenience.
+
+Q: How far in advance should I book?
+A: We recommend booking as early as possible to secure your preferred time slot, though we also accommodate last-minute requests when available.
+
+Have more questions? Feel free to contact us anytime!""",
+                
+                "contact": f"""Get In Touch
+
+{request.business_info}
+
+We'd Love to Hear From You!
+Whether you have questions about our services, want to book an appointment, or just want to say hello, we're here to help.
+
+Contact Information
+📧 Email: info@business.com
+📱 Phone: +91 XXXXX XXXXX
+📍 Location: [Your Location]
+
+Business Hours
+Monday - Saturday: 9:00 AM - 7:00 PM
+Sunday: By Appointment
+
+Why Contact Us?
+• Quick response to all inquiries
+• Friendly and professional staff
+• Flexible scheduling options
+• Free consultation available
+
+Send us a message and we'll get back to you as soon as possible. We look forward to serving you!"""
+            }
+            
+            content = templates.get(request.section, f"Professional {request.section} content for: {request.business_info}\n\nThis is SEO-optimized, engaging content tailored for your website.")
 
         return WebsiteContentResponse(success=True, content=content)
     except Exception as e:

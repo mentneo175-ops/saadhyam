@@ -1,0 +1,79 @@
+:root {
+  --website-ai-bg: oklch(0.99 0.005 300);
+  --website-ai-foreground: oklch(0.18 0.03 280);
+  --website-ai-card: oklch(1 0 0);
+  --website-ai-muted: oklch(0.965 0.01 290);
+  --website-ai-border: oklch(0.92 0.01 290);
+  --website-ai-primary: oklch(0.55 0.24 295);
+  --website-ai-secondary: oklch(0.68 0.22 350);
+  --website-ai-accent: oklch(0.78 0.16 65);
+  --website-ai-gradient: linear-gradient(
+    135deg,
+    oklch(0.55 0.24 295) 0%,
+    oklch(0.68 0.22 350) 50%,
+    oklch(0.78 0.16 65) 100%
+  );
+  --website-ai-font: "Inter", "Segoe UI", Arial, sans-serif;
+}
+
+body {
+  font-family: var(--website-ai-font) !important;
+  color: var(--website-ai-foreground) !important;
+}
+
+.website-ai-ui {
+  background: var(--website-ai-gradient) !important;
+  color: var(--website-ai-foreground) !important;
+}
+
+.website-ai-ui .card,
+.website-ai-ui .template-card,
+.website-ai-ui .template-info {
+  background: var(--website-ai-card) !important;
+  border-color: var(--website-ai-border) !important;
+}
+
+.btn,
+.hero-btn,
+.gallery-link {
+  background: var(--website-ai-gradient) !important;
+  color: white !important;
+  border: none !important;
+}
+
+.btn-primary {
+  background: var(--website-ai-primary) !important;
+  color: white !important;
+}
+
+.btn-secondary {
+  background: transparent !important;
+  color: var(--website-ai-primary) !important;
+  border: 2px solid var(--website-ai-primary) !important;
+}
+
+.overlay-btn {
+  background: white !important;
+  color: var(--website-ai-primary) !important;
+}
+
+.overlay-btn:hover {
+  background: var(--website-ai-primary) !important;
+  color: white !important;
+}
+
+.hero-left {
+  background: var(--website-ai-gradient) !important;
+}
+
+.hero-tag,
+.hero-badge {
+  background: color-mix(in oklab, white 20%, transparent) !important;
+}
+
+.nav-links a:hover,
+.hero-btn:hover,
+.btn:hover,
+.gallery-link:hover {
+  filter: brightness(1.05);
+}

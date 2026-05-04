@@ -39,25 +39,40 @@ else:
     # For PostgreSQL, try to connect, fallback to SQLite if fails
     logger.info("🔄 Attempting to connect to PostgreSQL...")
     try:
-        # Test connection
+        # For asyncpg, we need to handle SSL differently
+        # Extract connection params
+        import ssl
+        
+        # Test connection with psycopg2 first (sync)
+        sync_url = DATABASE_URL.replace("postgresql+asyncpg", "postgresql")
+        
+        # Add SSL context for psycopg2
         test_engine = create_engine(
-            DATABASE_URL.replace("postgresql+asyncpg", "postgresql"),
+            sync_url,
             echo=False,
             pool_pre_ping=True,
-            connect_args={"connect_timeout": 5}
+            connect_args={
+                "connect_timeout": 10,
+                "sslmode": "require"
+            }
         )
-        with test_engine.connect() as conn:
-            conn.execute(text("SELECT 1"))
-        logger.info("✅ PostgreSQL connection successful")
         
-        # Use async engine for PostgreSQL
+        with test_engine.connect() as conn:
+            result = conn.execute(text("SELECT 1"))
+            logger.info("✅ PostgreSQL connection successful")
+        
+        # Use async engine for PostgreSQL with SSL
         async_engine = create_async_engine(
             DATABASE_URL,
             echo=False,
             future=True,
             pool_pre_ping=True,
             pool_size=20,
-            max_overflow=0
+            max_overflow=0,
+            connect_args={
+                "ssl": True,
+                "server_settings": {"jit": "off"}
+            }
         )
         
         # Sync engine for sync operations
@@ -67,9 +82,13 @@ else:
             echo=False,
             pool_pre_ping=True,
             pool_size=10,
-            max_overflow=0
+            max_overflow=0,
+            connect_args={
+                "sslmode": "require"
+            }
         )
         IS_SQLITE = False
+        test_engine.dispose()
         
     except Exception as e:
         logger.warning(f"⚠️  PostgreSQL connection failed: {e}")
@@ -85,15 +104,6 @@ else:
         )
         async_engine = None
         logger.info("✅ Using SQLite as fallback database")
-        sync_engine = create_engine(
-            DATABASE_URL,
-            echo=False,
-            connect_args={"check_same_thread": False}
-        )
-        async_engine = None
-        logger.info("✅ Using SQLite as fallback database")
-        
-        test_engine.dispose()
 
 # Session factories
 if not IS_SQLITE:

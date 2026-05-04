@@ -5,8 +5,10 @@ Full Backend with all services
 
 import logging
 from contextlib import asynccontextmanager
+from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from config.database import init_db, close_db
 from migrations.add_name_column import migrate_add_name_column
 
@@ -91,6 +93,23 @@ try:
 except Exception as e:
     logging.warning(f"Profile router not available: {e}")
     profile_available = False
+
+try:
+    from routes.assistant import router as assistant_router
+    assistant_available = True
+except Exception as e:
+    logging.warning(f"Assistant router not available: {e}")
+    assistant_available = False
+
+try:
+    from ai_models.website_ai.app.api.v1.routes import generation as website_ai_generation
+    from ai_models.website_ai.app.api.v1.routes import jobs as website_ai_jobs
+    from ai_models.website_ai.app.routes import website as website_ai_website
+    from ai_models.website_ai.app.routes import api as website_ai_api
+    website_ai_available = True
+except Exception as e:
+    logging.warning(f"Website AI router not available: {e}")
+    website_ai_available = False
 
 # Configure logging
 logging.basicConfig(
@@ -189,6 +208,15 @@ app = FastAPI(
     lifespan=lifespan
 )
 
+# Website AI static files
+BASE_DIR = Path(__file__).resolve().parent
+WEBSITE_AI_STATIC = BASE_DIR / "ai_models" / "website_ai" / "app" / "static"
+WEBSITE_AI_OUTPUT = BASE_DIR / "ai_models" / "website_ai" / "output"
+WEBSITE_AI_STATIC.mkdir(parents=True, exist_ok=True)
+WEBSITE_AI_OUTPUT.mkdir(parents=True, exist_ok=True)
+app.mount("/website-ai/static", StaticFiles(directory=str(WEBSITE_AI_STATIC)), name="website_ai_static")
+app.mount("/website-ai/output", StaticFiles(directory=str(WEBSITE_AI_OUTPUT)), name="website_ai_output")
+
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
@@ -222,6 +250,29 @@ if business_available:
 if profile_available:
     app.include_router(profile_router)
     logging.info("✅ Profile router included in app")
+if assistant_available:
+    app.include_router(assistant_router)
+if website_ai_available:
+    app.include_router(
+        website_ai_generation.router,
+        prefix="/api/v1/website-ai",
+        tags=["website-ai"],
+    )
+    app.include_router(
+        website_ai_jobs.router,
+        prefix="/api/v1/website-ai",
+        tags=["website-ai"],
+    )
+    app.include_router(
+        website_ai_website.router,
+        prefix="/website-ai",
+        tags=["website-ai-legacy"],
+    )
+    app.include_router(
+        website_ai_api.router,
+        prefix="/website-ai",
+        tags=["website-ai-legacy"],
+    )
 
 
 # ============ Health Check Routes ============

@@ -92,7 +92,7 @@ def load_model():
         logger.info("🚀 INITIALIZING BUSINESS ANALYSIS MODEL SERVER")
         logger.info("=" * 80)
         
-        base_model_name = "mistralai/Mistral-7B-Instruct-v0.2"
+        base_model_name = "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
         
         # ============ Check GPU Availability ============
         logger.info("🔍 Checking GPU availability...")
@@ -208,16 +208,20 @@ def load_model():
         
         logger.info("✅ Base model loaded")
         
-        # ============ Load LoRA Adapter ============
+        # ============ Load LoRA Adapter (Optional) ============
         adapter_path = os.path.abspath("./ai_models/business_analysis/adapter")
         
-        if not os.path.exists(adapter_path):
-            raise RuntimeError(f"❌ LoRA adapter not found at {adapter_path}")
-        
-        logger.info("🔧 Loading Business Analysis LoRA adapter...")
-        logger.info(f"   Adapter path: {adapter_path}")
-        _model = PeftModel.from_pretrained(_model, adapter_path)
-        logger.info("✅ LoRA adapter loaded")
+        if os.path.exists(adapter_path):
+            logger.info("🔧 Loading Business Analysis LoRA adapter...")
+            logger.info(f"   Adapter path: {adapter_path}")
+            try:
+                _model = PeftModel.from_pretrained(_model, adapter_path)
+                logger.info("✅ LoRA adapter loaded")
+            except Exception as adapter_error:
+                logger.warning(f"⚠️  Could not load LoRA adapter: {adapter_error}")
+                logger.info("   Continuing with base model only")
+        else:
+            logger.info("ℹ️  No LoRA adapter found, using base model only")
         
         # ============ Model Setup ============
         _model.eval()
@@ -228,7 +232,7 @@ def load_model():
         logger.info("=" * 80)
         logger.info("🎉 MODEL LOADED SUCCESSFULLY")
         logger.info("=" * 80)
-        logger.info(f"   Model: Mistral-7B-Instruct-v0.2")
+        logger.info(f"   Model: TinyLlama-1.1B-Chat-v1.0")
         logger.info(f"   Quantization: {_load_config['quantization']}")
         logger.info(f"   CPU Offload: {_load_config['cpu_offload']}")
         logger.info(f"   Device Map: {_load_config['device_map']}")
@@ -288,9 +292,10 @@ def analyze_business(description: str) -> Dict[str, Any]:
             }
         
         # ============ Build Prompt ============
-        prompt = f"""[INST] You are a business analyst. Analyze the following business description and return ONLY valid JSON with no additional text.
-
-Return exactly this JSON structure:
+        prompt = f"""<|system|>
+You are a business analyst. Analyze the business description and return ONLY valid JSON with no additional text.</s>
+<|user|>
+Analyze this business and return exactly this JSON structure:
 {{
     "business_score": <number 1-10>,
     "ai_visibility_score": <number 0-100>,
@@ -305,7 +310,8 @@ Return exactly this JSON structure:
 Business Description:
 {description}
 
-Return ONLY the JSON object, no other text. [/INST]"""
+Return ONLY the JSON object, no other text.</s>
+<|assistant|>"""
         
         logger.info("🔤 Tokenizing input...")
         inputs = tokenizer(
@@ -505,7 +511,7 @@ async def model_info():
     
     return {
         "model_loaded": True,
-        "model_name": "Mistral-7B-Instruct-v0.2",
+        "model_name": "TinyLlama-1.1B-Chat-v1.0",
         "quantization": "4-bit NF4" if gpu_available else "None (CPU mode)",
         "cpu_offload": gpu_available,
         "device_map": "auto (GPU + CPU)" if gpu_available else "cpu",

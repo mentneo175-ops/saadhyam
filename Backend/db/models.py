@@ -71,3 +71,13 @@ class BusinessAnalysis(Base):
     
     def __repr__(self):
         return f"<BusinessAnalysis(id={self.id}, user_id={self.user_id}, business_score={self.business_score}, ai_visibility_score={self.ai_visibility_score})>"
+
+
+# Website AI models (optional)
+try:
+    from ai_models.website_ai.app.db.models.job import Job
+    from ai_models.website_ai.app.db.models.website import Website
+    from ai_models.website_ai.app.db.models.content import ContentEdit
+    from ai_models.website_ai.app.db.models.theme_config import ThemeConfig
+except Exception:
+    pass

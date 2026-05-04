@@ -1,5 +1,6 @@
 import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
 import { AuthProvider } from "@/lib/AuthContext";
+import AssistantWidget from "@/components/AssistantWidget";
 
 import appCss from "../styles.css?url";
 
@@ -72,6 +73,7 @@ function RootComponent() {
   return (
     <AuthProvider>
       <Outlet />
+      <AssistantWidget />
     </AuthProvider>
   );
 }

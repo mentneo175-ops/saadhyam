@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Website AI Generator - Create & Edit Your Business Website</title>
+    <link rel="stylesheet" href="/website-ai/static/theme-adapter.css">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 50px;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .gallery-link {
+            display: inline-block;
+            margin-top: 12px;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .gallery-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 18px;
+            font-weight: 600;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            width: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f0f9ff;
+            border-left: 4px solid #667eea;
+            border-radius: 10px;
+            display: none;
+        }
+
+        .result.success {
+            display: block;
+            background: #f0fdf4;
+            border-left-color: #10b981;
+        }
+
+        .result.error {
+            display: block;
+            background: #fef2f2;
+            border-left-color: #ef4444;
+        }
+
+        .result a {
+            color: #667eea;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .result a:hover {
+            text-decoration: underline;
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .feature {
+            text-align: center;
+            color: white;
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+
+        .feature h3 {
+            margin-bottom: 10px;
+        }
+
+        .feature p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body class="website-ai-ui">
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Website AI Generator</h1>
+            <p>Create beautiful business websites with 6 unique templates and inline editing</p>
+        </div>
+
+        <div class="features">
+            <div class="feature">
+                <div class="feature-icon">🎨</div>
+                <h3>6 Unique Templates</h3>
+                <p>Completely different layouts - not just color variations</p>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">✏️</div>
+                <h3>Inline Editing</h3>
+                <p>Edit content directly on the page with live preview</p>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">👁️</div>
+                <h3>Live Previews</h3>
+                <p>See each template with demo data before choosing</p>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">⚡</div>
+                <h3>Instant Generation</h3>
+                <p>AI-powered content generation in seconds</p>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2 style="margin-bottom: 30px;">Generate Your Website</h2>
+            <form id="generateForm">
+                <div class="form-group">
+                    <label for="businessName">Business Name *</label>
+                    <input type="text" id="businessName" name="business_name" placeholder="e.g., Tech Innovators"
+                        required>
+                </div>
+
+                <div class="form-group">
+                    <label for="businessType">Business Type *</label>
+                    <input type="text" id="businessType" name="business_type"
+                        placeholder="e.g., technology, consulting, creative agency" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="theme">Template Theme (Optional)</label>
+                    <select id="theme" name="theme">
+                        <option value="">Random (Surprise Me!)</option>
+                        <option value="hero-split">Hero Split - Full Screen Layout</option>
+                        <option value="card-masonry">Card Masonry - Dark Creative</option>
+                        <option value="timeline-vertical">Timeline Vertical - Elegant Story</option>
+                        <option value="magazine-grid">Magazine Grid - Bold Editorial</option>
+                        <option value="bento-box">Bento Box - Apple Style</option>
+                        <option value="parallax-scroll">Parallax Scroll - Futuristic</option>
+                    </select>
+                    <a href="/website-ai/templates" class="gallery-link">
+                        🎨 Browse Template Gallery with Live Previews →
+                    </a>
+                </div>
+
+                <button type="submit" class="btn" id="generateBtn">
+                    ✨ Generate Website with Inline Editing
+                </button>
+            </form>
+
+            <div id="result" class="result"></div>
+        </div>
+
+        <div class="card">
+            <h2 style="margin-bottom: 20px;">Template Highlights</h2>
+            <ul style="line-height: 2; color: #555;">
+                <li><strong>Hero Split:</strong> Full-screen split layout perfect for SaaS and tech startups</li>
+                <li><strong>Card Masonry:</strong> Dark theme with masonry grid for creative agencies</li>
+                <li><strong>Timeline Vertical:</strong> Elegant timeline with sidebar for professional services</li>
+                <li><strong>Magazine Grid:</strong> Bold editorial style for media and content sites</li>
+                <li><strong>Bento Box:</strong> Apple-inspired grid for product showcases</li>
+                <li><strong>Parallax Scroll:</strong> Futuristic scrolling for innovative tech companies</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('generateForm');
+        const resultDiv = document.getElementById('result');
+        const generateBtn = document.getElementById('generateBtn');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = new FormData(form);
+            const data = {
+                business_name: formData.get('business_name'),
+                business_type: formData.get('business_type'),
+                theme: formData.get('theme') || null
+            };
+
+            generateBtn.disabled = true;
+            generateBtn.textContent = '⏳ Generating...';
+            resultDiv.className = 'result';
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = 'Generating your website with AI...';
+
+            try {
+                const response = await fetch('/generate-website', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (!response.ok) {
+                    throw new Error('Generation failed');
+                }
+
+                const result = await response.json();
+
+                resultDiv.className = 'result success';
+                resultDiv.innerHTML = `
+          <h3>✅ Website Generated Successfully!</h3>
+          <p><strong>Theme:</strong> ${result.theme}</p>
+          <p><strong>View & Edit:</strong> <a href="${result.url}" target="_blank">Open Your Website →</a></p>
+          <p style="margin-top: 15px; font-size: 14px; color: #666;">
+            💡 <strong>Tip:</strong> Click the "Edit Mode" button in the top-right corner to start editing!
+          </p>
+        `;
+
+                generateBtn.textContent = '✨ Generate Another Website';
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `
+          <h3>❌ Generation Failed</h3>
+          <p>There was an error generating your website. Please try again.</p>
+        `;
+                generateBtn.textContent = '✨ Generate Website with Inline Editing';
+            } finally {
+                generateBtn.disabled = false;
+            }
+        });
+    </script>
+</body>
+
+</html>

@@ -43,6 +43,12 @@ class Settings(BaseSettings):
     CLOUDINARY_API_KEY: str = "679832578499241"
     CLOUDINARY_API_SECRET: str = "ZuKhUD-ZGuFhdiwIyF1xWbl8m54"
 
+    # DeepSeek API
+    DEEPSEEK_API_KEY: str = ""
+
+    # Groq API
+    GROQ_API_KEY: str = ""
+
     # Token Encryption Key
     ENCRYPTION_KEY: str = "your-32-char-encryption-key-here"
 
@@ -53,6 +59,15 @@ class Settings(BaseSettings):
     CELERY_ACCEPT_CONTENT: str = "json"
     CELERY_RESULT_SERIALIZER: str = "json"
     CELERY_TIMEZONE: str = "UTC"
+
+    # Website AI settings
+    WEBSITE_AI_USE_FAKE_LLM: bool = True
+    WEBSITE_AI_MODEL_ID: str = "mistralai/Mistral-7B-Instruct-v0.2"
+    WEBSITE_AI_MAX_TOKENS: int = 900
+    WEBSITE_AI_TEMPERATURE: float = 0.7
+    WEBSITE_AI_STORAGE_TYPE: str = "local"
+    WEBSITE_AI_LOCAL_STORAGE_PATH: str = "./Backend/ai_models/website_ai/output"
+    WEBSITE_AI_DEFAULT_THEME: str = "hero-split"
 
     @field_validator("CORS_ORIGINS", mode="before")
     @classmethod

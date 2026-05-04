@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>apex global hospitals | Dark</title>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --surface: #11182e;
+      --ink: #eef2ff;
+      --muted: #a7b0cc;
+      --accent: #7c8cff;
+      --accent-2: #42e8c1;
+      --line: rgba(255, 255, 255, .08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background: radial-gradient(circle at top, #162047 0, #0b1020 44%, #070b16 100%);
+    }
+
+    .shell {
+      width: min(1160px, calc(100% - 32px));
+      margin: 0 auto;
+    }
+
+    header {
+      padding: 58px 0 28px;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.1fr .9fr;
+      gap: 18px;
+    }
+
+    .hero-panel,
+    .side-panel,
+    .card,
+    .faq-card {
+      background: rgba(17, 24, 46, .85);
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      box-shadow: 0 24px 70px rgba(0, 0, 0, .35);
+      backdrop-filter: blur(12px);
+    }
+
+    .hero-panel {
+      padding: 32px;
+    }
+
+    .eyebrow {
+      color: var(--accent-2);
+      text-transform: uppercase;
+      letter-spacing: .18em;
+      font-size: .74rem;
+      font-weight: 800;
+    }
+
+    h1 {
+      margin: 16px 0 12px;
+      font-size: clamp(3rem, 8vw, 6rem);
+      line-height: .92;
+      letter-spacing: -.06em;
+    }
+
+    .lead {
+      color: var(--muted);
+      max-width: 56ch;
+      font-size: 1.06rem;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 22px;
+    }
+
+    .btn {
+      padding: 13px 18px;
+      border-radius: 999px;
+      text-decoration: none;
+      font-weight: 700;
+    }
+
+    .btn.primary {
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      color: #061018;
+    }
+
+    .btn.secondary {
+      border: 1px solid var(--line);
+      color: var(--ink);
+      background: rgba(255, 255, 255, .03);
+    }
+
+    .side-panel {
+      padding: 22px;
+      display: grid;
+      gap: 14px;
+      align-content: space-between;
+    }
+
+    .signal {
+      padding: 16px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, rgba(124, 140, 255, .12), rgba(66, 232, 193, .1));
+      border: 1px solid var(--line);
+    }
+
+    main {
+      padding: 18px 0 72px;
+    }
+
+    section {
+      margin-top: 18px;
+    }
+
+    h2 {
+      margin: 0 0 14px;
+      font-size: 1.6rem;
+    }
+
+    .services {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .card {
+      padding: 22px;
+      min-height: 162px;
+    }
+
+    .card h3 {
+      margin: 0 0 10px;
+    }
+
+    .faq-grid {
+      display: grid;
+      gap: 12px;
+    }
+
+    .faq-card {
+      padding: 18px 20px;
+    }
+
+    summary {
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    details p {
+      margin-top: 10px;
+      color: var(--muted);
+    }
+
+    .contact {
+      margin-top: 18px;
+      padding: 26px;
+      border-radius: 28px;
+      background: linear-gradient(135deg, rgba(124, 140, 255, .2), rgba(66, 232, 193, .16));
+      border: 1px solid var(--line);
+    }
+
+    @media (max-width: 900px) {
+
+      .hero,
+      .services {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+  <script src="/static/editor.js" defer></script>
+</head>
+
+<body data-theme="dark">
+  <header>
+    <div class="shell hero">
+      <div class="hero-panel">
+        <span class="eyebrow">hospital</span>
+        <h1>apex global hospitals for modern customers</h1>
+        <p class="lead">apex global hospitals is a hospital built for customers looking for a reliable, modern brand experience. The brand feels professional, engaging, and trustworthy and reflects modern business.</p>
+        <div class="actions">
+          <a class="btn primary" href="#contact">Request a custom quote</a>
+          <a class="btn secondary" href="#services">Discover services</a>
+        </div>
+      </div>
+      <aside class="side-panel">
+        <div class="signal"><strong>Style</strong>
+          <p>modern business</p>
+        </div>
+        <div class="signal"><strong>Audience</strong>
+          <p>customers looking for a reliable, modern brand experience</p>
+        </div>
+        <div class="signal"><strong>Contact</strong>
+          <p>Contact apex global hospitals to schedule a consultation or request a quote.</p>
+        </div>
+      </aside>
+    </div>
+  </header>
+  <main class="shell">
+    <section id="contact" class="contact">
+      <h2>Contact</h2>
+      <p>Contact apex global hospitals to schedule a consultation or request a quote. The voice stays professional, engaging, and trustworthy.</p>
+    </section>
+    <section>
+      <h2>Overview</h2>
+      <p>apex global hospitals is a hospital built for customers looking for a reliable, modern brand experience. The brand feels professional, engaging, and trustworthy and reflects modern business.</p>
+    </section>
+    <section>
+      <h2>FAQ</h2>
+      <div class="faq-grid">
+        <details class="faq-card">
+          <summary>What makes apex global hospitals different?</summary>
+          <p>It blends modern business with a professional, engaging, and trustworthy customer experience.</p>
+        </details>
+        <details class="faq-card">
+          <summary>How do I get started?</summary>
+          <p>Choose a service, reach out, and we will guide you through the next step.</p>
+        </details>
+        <details class="faq-card">
+          <summary>Who is this for?</summary>
+          <p>It is designed for customers looking for a reliable, modern brand experience.</p>
+        </details>
+      </div>
+    </section>
+    <section id="services">
+      <h2>Services</h2>
+      <div class="services">
+        <article class="card">
+          <h3>Core service two</h3>
+          <p>Tailored core service two for customers looking for a reliable, modern brand experience.</p>
+        </article>
+        <article class="card">
+          <h3>Core service four</h3>
+          <p>Tailored core service four for customers looking for a reliable, modern brand experience.</p>
+        </article>
+        <article class="card">
+          <h3>Core service three</h3>
+          <p>Tailored core service three for customers looking for a reliable, modern brand experience.</p>
+        </article>
+        <article class="card">
+          <h3>Core service one</h3>
+          <p>Tailored core service one for customers looking for a reliable, modern brand experience.</p>
+        </article>
+      </div>
+    </section>
+  </main>
+</body>
+
+</html>

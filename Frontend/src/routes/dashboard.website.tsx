@@ -647,7 +647,7 @@ function WebsiteAIPage() {
       />
 
       
-        <div className="grid lg:grid-cols-2 gap-4 h-[600px]">
+        <div className="grid lg:grid-cols-[400px_1fr] gap-4 h-[600px]">
           {/* Full Website Generation */}
           <div className="bg-card rounded-2xl border border-border/60 shadow-sm p-4 space-y-4 h-full flex flex-col">
             <div>

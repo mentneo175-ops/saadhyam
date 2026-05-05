@@ -16,6 +16,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
+import { Route as WebsiteWebsiteIdRouteImport } from './routes/website.$websiteId'
 import { Route as DashboardWhatsappSalesRouteImport } from './routes/dashboard.whatsapp-sales'
 import { Route as DashboardWebsiteRouteImport } from './routes/dashboard.website'
 import { Route as DashboardSettingsRouteImport } from './routes/dashboard.settings'
@@ -69,6 +70,11 @@ const DashboardIndexRoute = DashboardIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => DashboardRoute,
+} as any)
+const WebsiteWebsiteIdRoute = WebsiteWebsiteIdRouteImport.update({
+  id: '/website/$websiteId',
+  path: '/website/$websiteId',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardWhatsappSalesRoute = DashboardWhatsappSalesRouteImport.update({
   id: '/whatsapp-sales',
@@ -188,6 +194,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/website': typeof DashboardWebsiteRoute
   '/dashboard/whatsapp-sales': typeof DashboardWhatsappSalesRoute
+  '/website/$websiteId': typeof WebsiteWebsiteIdRoute
   '/dashboard/': typeof DashboardIndexRoute
 }
 export interface FileRoutesByTo {
@@ -214,6 +221,7 @@ export interface FileRoutesByTo {
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/website': typeof DashboardWebsiteRoute
   '/dashboard/whatsapp-sales': typeof DashboardWhatsappSalesRoute
+  '/website/$websiteId': typeof WebsiteWebsiteIdRoute
   '/dashboard': typeof DashboardIndexRoute
 }
 export interface FileRoutesById {
@@ -242,6 +250,7 @@ export interface FileRoutesById {
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/website': typeof DashboardWebsiteRoute
   '/dashboard/whatsapp-sales': typeof DashboardWhatsappSalesRoute
+  '/website/$websiteId': typeof WebsiteWebsiteIdRoute
   '/dashboard/': typeof DashboardIndexRoute
 }
 export interface FileRouteTypes {
@@ -271,6 +280,7 @@ export interface FileRouteTypes {
     | '/dashboard/settings'
     | '/dashboard/website'
     | '/dashboard/whatsapp-sales'
+    | '/website/$websiteId'
     | '/dashboard/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -297,6 +307,7 @@ export interface FileRouteTypes {
     | '/dashboard/settings'
     | '/dashboard/website'
     | '/dashboard/whatsapp-sales'
+    | '/website/$websiteId'
     | '/dashboard'
   id:
     | '__root__'
@@ -324,6 +335,7 @@ export interface FileRouteTypes {
     | '/dashboard/settings'
     | '/dashboard/website'
     | '/dashboard/whatsapp-sales'
+    | '/website/$websiteId'
     | '/dashboard/'
   fileRoutesById: FileRoutesById
 }
@@ -334,6 +346,7 @@ export interface RootRouteChildren {
   OnboardingRoute: typeof OnboardingRoute
   SignupRoute: typeof SignupRoute
   VerifyRoute: typeof VerifyRoute
+  WebsiteWebsiteIdRoute: typeof WebsiteWebsiteIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -386,6 +399,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/dashboard/'
       preLoaderRoute: typeof DashboardIndexRouteImport
       parentRoute: typeof DashboardRoute
+    }
+    '/website/$websiteId': {
+      id: '/website/$websiteId'
+      path: '/website/$websiteId'
+      fullPath: '/website/$websiteId'
+      preLoaderRoute: typeof WebsiteWebsiteIdRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/dashboard/whatsapp-sales': {
       id: '/dashboard/whatsapp-sales'
@@ -571,6 +591,7 @@ const rootRouteChildren: RootRouteChildren = {
   OnboardingRoute: OnboardingRoute,
   SignupRoute: SignupRoute,
   VerifyRoute: VerifyRoute,
+  WebsiteWebsiteIdRoute: WebsiteWebsiteIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

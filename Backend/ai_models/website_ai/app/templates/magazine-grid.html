@@ -293,6 +293,360 @@
             line-height: 1.7;
         }
 
+        /* Stats Section */
+        .stats-section {
+            padding: 100px 60px;
+            background: white;
+        }
+
+        .stats-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .stats-title {
+            font-size: 56px;
+            font-weight: 900;
+            margin-bottom: 60px;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: -2px;
+        }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 40px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 40px 20px;
+            border: 3px solid #1a1a1a;
+            background: #f8f8f8;
+        }
+
+        .stat-num {
+            font-size: 48px;
+            font-weight: 900;
+            color: #ff6b6b;
+            margin-bottom: 10px;
+        }
+
+        .stat-text {
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: 700;
+            color: #666;
+        }
+
+        /* Team Section */
+        .team-section {
+            padding: 100px 60px;
+            background: #f8f8f8;
+        }
+
+        .team-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .team-title {
+            font-size: 56px;
+            font-weight: 900;
+            margin-bottom: 60px;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: -2px;
+        }
+
+        .team-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 40px;
+        }
+
+        .team-box {
+            background: white;
+            border: 3px solid #1a1a1a;
+            padding: 40px 20px;
+            text-align: center;
+        }
+
+        .team-initial {
+            width: 80px;
+            height: 80px;
+            background: #ff6b6b;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: 900;
+            margin: 0 auto 20px;
+        }
+
+        .team-box h4 {
+            font-size: 20px;
+            font-weight: 900;
+            margin-bottom: 8px;
+        }
+
+        .team-box p {
+            font-size: 14px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Testimonials Section */
+        .testimonials-section {
+            padding: 100px 60px;
+            background: white;
+        }
+
+        .testimonials-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .testimonials-title {
+            font-size: 56px;
+            font-weight: 900;
+            margin-bottom: 60px;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: -2px;
+        }
+
+        .testimonials-row {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 40px;
+        }
+
+        .testimonial-card {
+            background: #f8f8f8;
+            border: 3px solid #1a1a1a;
+            padding: 40px;
+        }
+
+        .testimonial-content {
+            font-size: 18px;
+            line-height: 1.7;
+            margin-bottom: 30px;
+            font-style: italic;
+        }
+
+        .testimonial-footer {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .testimonial-avatar {
+            width: 50px;
+            height: 50px;
+            background: #ff6b6b;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+        }
+
+        .testimonial-info strong {
+            display: block;
+            font-weight: 900;
+            margin-bottom: 4px;
+        }
+
+        .testimonial-info span {
+            font-size: 14px;
+            color: #666;
+        }
+
+        /* Pricing Section */
+        .pricing-section {
+            padding: 100px 60px;
+            background: #f8f8f8;
+        }
+
+        .pricing-container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .pricing-title {
+            font-size: 56px;
+            font-weight: 900;
+            margin-bottom: 60px;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: -2px;
+        }
+
+        .pricing-row {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 40px;
+        }
+
+        .price-box {
+            background: white;
+            border: 3px solid #1a1a1a;
+            padding: 50px 40px;
+            text-align: center;
+            position: relative;
+        }
+
+        .price-box.featured {
+            background: #1a1a1a;
+            color: white;
+        }
+
+        .price-box h3 {
+            font-size: 24px;
+            font-weight: 900;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+        }
+
+        .price-value {
+            font-size: 48px;
+            font-weight: 900;
+            color: #ff6b6b;
+            margin-bottom: 30px;
+        }
+
+        .price-value span {
+            font-size: 18px;
+            color: #666;
+        }
+
+        .price-box.featured .price-value span {
+            color: #ccc;
+        }
+
+        .price-list {
+            list-style: none;
+            margin-bottom: 40px;
+        }
+
+        .price-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .price-box.featured .price-list li {
+            border-bottom-color: #333;
+        }
+
+        .price-button {
+            display: inline-block;
+            padding: 16px 40px;
+            background: #ff6b6b;
+            color: white;
+            text-decoration: none;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .price-button:hover {
+            background: #1a1a1a;
+        }
+
+        /* CTA Banner */
+        .cta-banner {
+            padding: 100px 60px;
+            background: #1a1a1a;
+            color: white;
+            text-align: center;
+        }
+
+        .cta-content h2 {
+            font-size: 56px;
+            font-weight: 900;
+            margin-bottom: 30px;
+            text-transform: uppercase;
+            letter-spacing: -2px;
+        }
+
+        .cta-content p {
+            font-size: 20px;
+            max-width: 700px;
+            margin: 0 auto 40px;
+            line-height: 1.7;
+        }
+
+        /* Footer Section */
+        .footer-section {
+            background: #f8f8f8;
+            padding: 80px 60px 40px;
+            border-top: 3px solid #1a1a1a;
+        }
+
+        .footer-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .footer-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        .footer-block h3 {
+            font-size: 20px;
+            font-weight: 900;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+        }
+
+        .footer-block p {
+            font-size: 14px;
+            line-height: 1.7;
+            color: #666;
+        }
+
+        .footer-block ul {
+            list-style: none;
+        }
+
+        .footer-block ul li {
+            margin-bottom: 8px;
+        }
+
+        .footer-block ul li a {
+            color: #666;
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.3s;
+        }
+
+        .footer-block ul li a:hover {
+            color: #ff6b6b;
+        }
+
+        .footer-copyright {
+            text-align: center;
+            padding-top: 40px;
+            border-top: 1px solid #ddd;
+        }
+
+        .footer-copyright p {
+            font-size: 14px;
+            color: #666;
+        }
+
         @media (max-width: 1024px) {
             .hero-magazine {
                 grid-template-columns: 1fr;
@@ -317,15 +671,75 @@
                 grid-template-columns: 1fr;
             }
 
-            .stats-row,
-            .team-row,
-            .testimonials-row,
+            .stats-row {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .team-row {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .testimonials-row {
+                grid-template-columns: 1fr;
+            }
+
             .pricing-row {
                 grid-template-columns: 1fr;
             }
 
             .footer-row {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .stats-row,
+            .team-row,
+            .footer-row {
                 grid-template-columns: 1fr;
+            }
+
+            .header {
+                padding: 20px 30px;
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            .brand {
+                font-size: 32px;
+            }
+
+            .hero-main,
+            .hero-sidebar {
+                padding: 60px 30px;
+            }
+
+            .hero-content h1 {
+                font-size: 48px;
+            }
+
+            .stats-section,
+            .team-section,
+            .testimonials-section,
+            .pricing-section,
+            .faq-section,
+            .contact-section,
+            .cta-banner,
+            .footer-section {
+                padding: 60px 30px;
+            }
+
+            .stats-title,
+            .team-title,
+            .testimonials-title,
+            .pricing-title,
+            .faq-title {
+                font-size: 36px;
+            }
+
+            .contact-section h2,
+            .cta-content h2 {
+                font-size: 42px;
             }
         }
     </style>

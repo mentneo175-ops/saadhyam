@@ -36,6 +36,10 @@ celery_app.conf.update(
     task_acks_late=True,  # Acknowledge task after completion
     task_reject_on_worker_lost=True,
     result_expires=3600,  # Results expire after 1 hour
+    # Windows-specific configurations
+    worker_pool="solo",  # Use solo pool for Windows compatibility
+    worker_concurrency=1,  # Single worker process
+    worker_disable_rate_limits=True,  # Disable rate limits for Windows
 )
 
 # Periodic tasks (Celery Beat)

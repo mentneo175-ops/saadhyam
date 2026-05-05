@@ -39,7 +39,7 @@ class Settings(BaseSettings):
     S3_SECRET_KEY: Optional[str] = None
     S3_BUCKET_NAME: str = "website-generator"
     S3_REGION: str = "us-east-1"
-    LOCAL_STORAGE_PATH: str = Field(default="./Backend/ai_models/website_ai/output", validation_alias="WEBSITE_AI_LOCAL_STORAGE_PATH")
+    LOCAL_STORAGE_PATH: str = Field(default="website_ai_output", validation_alias="WEBSITE_AI_LOCAL_STORAGE_PATH")
 
     # AI/LLM
     AI_MODEL_ID: str = Field(default="mistralai/Mistral-7B-Instruct-v0.2", validation_alias="WEBSITE_AI_MODEL_ID")

@@ -95,6 +95,14 @@ except Exception as e:
     profile_available = False
 
 try:
+    from routes.website_serving import router as website_serving_router
+    website_serving_available = True
+    logging.info("✅ Website serving router imported successfully")
+except Exception as e:
+    logging.warning(f"Website serving router not available: {e}")
+    website_serving_available = False
+
+try:
     from routes.assistant import router as assistant_router
     assistant_available = True
 except Exception as e:
@@ -208,12 +216,15 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# Website AI static files
+# Website AI static files - Simple direct mapping
 BASE_DIR = Path(__file__).resolve().parent
 WEBSITE_AI_STATIC = BASE_DIR / "ai_models" / "website_ai" / "app" / "static"
-WEBSITE_AI_OUTPUT = BASE_DIR / "ai_models" / "website_ai" / "output"
+
+# Create a simple output directory that matches the URL structure
+WEBSITE_AI_OUTPUT = BASE_DIR / "website_ai_output"  # Simple path
 WEBSITE_AI_STATIC.mkdir(parents=True, exist_ok=True)
 WEBSITE_AI_OUTPUT.mkdir(parents=True, exist_ok=True)
+
 app.mount("/website-ai/static", StaticFiles(directory=str(WEBSITE_AI_STATIC)), name="website_ai_static")
 app.mount("/website-ai/output", StaticFiles(directory=str(WEBSITE_AI_OUTPUT)), name="website_ai_output")
 
@@ -252,6 +263,9 @@ if profile_available:
     logging.info("✅ Profile router included in app")
 if assistant_available:
     app.include_router(assistant_router)
+if website_serving_available:
+    app.include_router(website_serving_router)
+    logging.info("✅ Website serving router included in app")
 if website_ai_available:
     app.include_router(
         website_ai_generation.router,

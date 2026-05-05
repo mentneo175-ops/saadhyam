@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Image Generation Console</title>
+    <meta name="description" content="Test the image generation microservice with Stable Diffusion or FLUX." />
+    <link rel="stylesheet" href="/assets/styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="hero">
+        <div class="hero__copy">
+          <p class="eyebrow">Image Generation Microservice</p>
+          <h1>Generate marketing images from a structured prompt.</h1>
+          <p class="lede">
+            Switch between FLUX and Stable Diffusion, tune the brief, and preview the returned asset instantly.
+          </p>
+          <div class="hero__stats">
+            <div><span>2</span><small>Model choices</small></div>
+            <div><span>1</span><small>FastAPI endpoint</small></div>
+            <div><span>PNG</span><small>Saved output</small></div>
+          </div>
+        </div>
+        <div class="hero__panel">
+          <div class="panel__chip">Live test console</div>
+          <p>Use the form to send a campaign brief to Mistral first, then render the generated image below.</p>
+          <div class="panel__mini">
+            <span>Mistral brief</span>
+            <span>Prompt handoff</span>
+            <span>Image preview</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="workspace">
+        <form id="generatorForm" class="card form-card">
+          <div class="card__header">
+            <h2>Generation Settings</h2>
+            <p>Fill the fields below. They are sent to Mistral, which returns the image prompt used by FLUX or Stable Diffusion.</p>
+          </div>
+
+          <label>
+            <span>Campaign brief for Mistral</span>
+            <textarea id="prompt" name="prompt" rows="4" placeholder="luxury salon promotion with warm lighting and premium finish" required></textarea>
+          </label>
+
+          <div class="grid two-up">
+            <label>
+              <span>Business Type</span>
+              <input id="business_type" name="business_type" type="text" placeholder="salon" required />
+            </label>
+            <label>
+              <span>Model</span>
+              <select id="model" name="model">
+                <option value="flux">FLUX</option>
+                <option value="sd">Stable Diffusion</option>
+              </select>
+            </label>
+          </div>
+
+          <label class="toggle-field">
+            <span>Content Creator (Mistral Adapter)</span>
+            <input id="use_content_creator" name="use_content_creator" type="checkbox" checked />
+          </label>
+
+          <div class="grid three-up">
+            <label>
+              <span>Use Case</span>
+              <select id="use_case" name="use_case">
+                <option value="poster">poster</option>
+                <option value="product">product</option>
+                <option value="banner">banner</option>
+              </select>
+            </label>
+            <label>
+              <span>Style</span>
+              <select id="style" name="style">
+                <option value="modern">modern</option>
+                <option value="premium">premium</option>
+                <option value="vibrant">vibrant</option>
+              </select>
+            </label>
+            <label>
+              <span>Filename Preview</span>
+              <input id="filenamePreview" type="text" value="salon_timestamp.png" disabled />
+            </label>
+          </div>
+
+          <div class="actions">
+            <button id="submitButton" type="submit">Generate image</button>
+            <button id="sampleButton" type="button" class="secondary">Load sample</button>
+          </div>
+
+          <div class="status-row">
+            <div id="status" class="status status--idle">Idle</div>
+            <div id="apiHint" class="hint">API target: http://127.0.0.1:8000</div>
+          </div>
+        </form>
+
+        <aside class="card output-card">
+          <div class="card__header">
+            <h2>Response</h2>
+            <p>The generated file path and image will appear here.</p>
+          </div>
+
+          <div class="response-box">
+            <div>
+              <span class="response-label">Model used</span>
+              <strong id="responseModel">-</strong>
+            </div>
+            <div>
+              <span class="response-label">Image path</span>
+              <code id="responsePath">Waiting for generation...</code>
+            </div>
+            <div>
+              <span class="response-label">Image URL</span>
+              <code id="responseUrl">/image/{filename}</code>
+            </div>
+            <div>
+              <span class="response-label">Generated prompt</span>
+              <code id="generatedPrompt">-</code>
+            </div>
+            <div>
+              <span class="response-label">Generated caption</span>
+              <code id="generatedCaption">-</code>
+            </div>
+          </div>
+
+          <div class="preview-frame" id="previewFrame">
+            <div class="preview-placeholder">
+              <span>Preview</span>
+              <p>Your generated image will render here after the API responds.</p>
+            </div>
+            <img id="previewImage" alt="Generated preview" hidden />
+          </div>
+
+          <div class="payload-box">
+            <span>Payload sent to API</span>
+            <pre id="payloadPreview">{}</pre>
+          </div>
+        </aside>
+      </section>
+    </main>
+
+    <script src="/assets/app.js"></script>
+  </body>
+</html>

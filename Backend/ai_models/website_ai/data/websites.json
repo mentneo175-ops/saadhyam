@@ -154,6 +154,82 @@
       "html_file": "wefrgthryt_parallax-scroll.html",
       "created_at": "2026-05-05T11:19:24.708279",
       "updated_at": "2026-05-05T11:19:24.708279"
+    },
+    {
+      "id": "359e0c46",
+      "business_name": "saikiran",
+      "business_type": "saikiran",
+      "description": "saikiran,sanjay,surya,arya",
+      "services": [
+        "saikiram"
+      ],
+      "target_audience": "saikiran",
+      "tone": "saikiran",
+      "branding_style": "saikiran",
+      "contact_email": "saikiaran@gmail.com",
+      "contact_phone": "8789578973",
+      "website_url": "saikiran@hotstar.com",
+      "theme": "magazine-grid",
+      "html_file": "saikiran_magazine-grid.html",
+      "created_at": "2026-05-05T13:05:21.219027",
+      "updated_at": "2026-05-05T13:05:21.219027"
+    },
+    {
+      "id": "dbd32bbf",
+      "business_name": "saikiran",
+      "business_type": "saikiran",
+      "description": "saikiran,sanjay,surya,arya",
+      "services": [
+        "saikiram"
+      ],
+      "target_audience": "saikiran",
+      "tone": "saikiran",
+      "branding_style": "saikiran",
+      "contact_email": "saikiaran@gmail.com",
+      "contact_phone": "8789578973",
+      "website_url": "saikiran@hotstar.com",
+      "theme": "parallax-scroll",
+      "html_file": "saikiran_parallax-scroll.html",
+      "created_at": "2026-05-05T13:05:32.373236",
+      "updated_at": "2026-05-05T13:05:32.373236"
+    },
+    {
+      "id": "76132e34",
+      "business_name": "saikiran",
+      "business_type": "saikiran",
+      "description": "saikiran,sanjay,surya,arya",
+      "services": [
+        "saikiram"
+      ],
+      "target_audience": "saikiran",
+      "tone": "saikiran",
+      "branding_style": "saikiran",
+      "contact_email": "saikiaran@gmail.com",
+      "contact_phone": "8789578973",
+      "website_url": "saikiran@hotstar.com",
+      "theme": "timeline-vertical",
+      "html_file": "saikiran_timeline-vertical.html",
+      "created_at": "2026-05-05T13:06:08.617335",
+      "updated_at": "2026-05-05T13:06:08.617335"
+    },
+    {
+      "id": "29af6ce1",
+      "business_name": "saikiran",
+      "business_type": "saikiran",
+      "description": "saikiran,sanjay,surya,arya",
+      "services": [
+        "saikiram"
+      ],
+      "target_audience": "saikiran",
+      "tone": "saikiran",
+      "branding_style": "saikiran",
+      "contact_email": "saikiaran@gmail.com",
+      "contact_phone": "8789578973",
+      "website_url": "saikiran@hotstar.com",
+      "theme": "bento-box",
+      "html_file": "saikiran_bento-box.html",
+      "created_at": "2026-05-05T13:06:38.343930",
+      "updated_at": "2026-05-05T13:06:38.343930"
     }
   ]
 }

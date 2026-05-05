@@ -102,6 +102,20 @@ except Exception as e:
     assistant_available = False
 
 try:
+    from routes.content_creator import router as content_creator_router
+    content_creator_available = True
+except Exception as e:
+    logging.warning(f"Content Creator router not available: {e}")
+    content_creator_available = False
+
+try:
+    from routes.image_generator import router as image_generator_router
+    image_generator_available = True
+except Exception as e:
+    logging.warning(f"Image Generator router not available: {e}")
+    image_generator_available = False
+
+try:
     from ai_models.website_ai.app.api.v1.routes import generation as website_ai_generation
     from ai_models.website_ai.app.api.v1.routes import jobs as website_ai_jobs
     from ai_models.website_ai.app.routes import website as website_ai_website
@@ -217,6 +231,11 @@ WEBSITE_AI_OUTPUT.mkdir(parents=True, exist_ok=True)
 app.mount("/website-ai/static", StaticFiles(directory=str(WEBSITE_AI_STATIC)), name="website_ai_static")
 app.mount("/website-ai/output", StaticFiles(directory=str(WEBSITE_AI_OUTPUT)), name="website_ai_output")
 
+# Content Creator / Image Generator output directory
+OUTPUT_IMAGES_DIR = BASE_DIR / "output" / "images"
+OUTPUT_IMAGES_DIR.mkdir(parents=True, exist_ok=True)
+app.mount("/output", StaticFiles(directory=str(BASE_DIR / "output")), name="output")
+
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
@@ -252,6 +271,10 @@ if profile_available:
     logging.info("✅ Profile router included in app")
 if assistant_available:
     app.include_router(assistant_router)
+if content_creator_available:
+    app.include_router(content_creator_router)
+if image_generator_available:
+    app.include_router(image_generator_router)
 if website_ai_available:
     app.include_router(
         website_ai_generation.router,
@@ -337,9 +360,8 @@ if __name__ == "__main__":
     import uvicorn
     
     uvicorn.run(
-        "main:app",
+        app,
         host="0.0.0.0",
         port=8000,
-        reload=False,
         log_level="info"
     )

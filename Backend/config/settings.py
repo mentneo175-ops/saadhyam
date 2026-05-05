@@ -69,6 +69,10 @@ class Settings(BaseSettings):
     WEBSITE_AI_LOCAL_STORAGE_PATH: str = "./Backend/ai_models/website_ai/output"
     WEBSITE_AI_DEFAULT_THEME: str = "hero-split"
 
+    # HuggingFace Configuration (for FLUX Image Generation)
+    HUGGINGFACE_TOKEN: str = ""
+    HF_TOKEN: str = ""
+
     @field_validator("CORS_ORIGINS", mode="before")
     @classmethod
     def parse_cors_origins(cls, v):

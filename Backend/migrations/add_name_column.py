@@ -7,7 +7,7 @@ Handles both SQLite and PostgreSQL.
 import os
 import logging
 from sqlalchemy import text, inspect
-from config.database import sync_engine, IS_SQLITE
+from config.database import sync_engine
 
 logger = logging.getLogger(__name__)
 
@@ -25,20 +25,11 @@ def migrate_add_name_column():
                 logger.info("✅ 'name' column already exists in users table")
                 return
             
-            # Add the column
+            # Add the column (same syntax works for both SQLite and PostgreSQL)
             logger.info("🔄 Adding 'name' column to users table...")
-            
-            if IS_SQLITE:
-                # SQLite syntax
-                connection.execute(
-                    text("ALTER TABLE users ADD COLUMN name VARCHAR(255) NULL")
-                )
-            else:
-                # PostgreSQL syntax
-                connection.execute(
-                    text("ALTER TABLE users ADD COLUMN name VARCHAR(255) NULL")
-                )
-            
+            connection.execute(
+                text("ALTER TABLE users ADD COLUMN name VARCHAR(255) NULL")
+            )
             connection.commit()
             logger.info("✅ Successfully added 'name' column to users table")
             

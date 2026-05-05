@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ data.business_name }} | Parallax Scroll Layout</title>
+    <title>wdefrgte | Parallax Scroll Layout</title>
     <link rel="stylesheet" href="/website-ai/static/theme-adapter.css">
     <style>
         * {
@@ -486,7 +486,7 @@
 <body data-theme="parallax-scroll">
     <header class="fixed-header">
         <div class="header-inner">
-            <div class="logo">{{ data.business_name }}</div>
+            <div class="logo">wdefrgte</div>
             <nav>
                 <ul class="nav-menu">
                     <li><a href="#about">About</a></li>
@@ -504,10 +504,10 @@
     <section class="parallax-hero">
         <div class="parallax-bg"></div>
         <div class="hero-content">
-            <span class="hero-label">{{ data.business_type }}</span>
-            <h1>{{ theme_state.headline }}</h1>
-            <p>{{ content.about }}</p>
-            <a href="#services" class="hero-cta">{{ theme_state.cta_line }}</a>
+            <span class="hero-label">ertgyh</span>
+            <h1>A sharper digital identity for wdefrgte</h1>
+            <p>wdefrgte is a ertgyh built for customers looking for a reliable, modern brand experience. The brand feels professional, engaging, and trustworthy and reflects modern business.</p>
+            <a href="#services" class="hero-cta">Request a custom quote</a>
         </div>
     </section>
 
@@ -515,13 +515,26 @@
         <div class="section-content">
             <h2 class="section-title">Our Services</h2>
             <div class="service-grid">
-                {% for service in content.services %}
                 <div class="service-card">
-                    <div class="service-number">{{ '%02d' % loop.index }}</div>
-                    <h3>{{ service.name }}</h3>
-                    <p>{{ service.description }}</p>
+                    <div class="service-number">01</div>
+                    <h3>Core service three</h3>
+                    <p>Tailored core service three for customers looking for a reliable, modern brand experience.</p>
                 </div>
-                {% endfor %}
+                <div class="service-card">
+                    <div class="service-number">02</div>
+                    <h3>Core service four</h3>
+                    <p>Tailored core service four for customers looking for a reliable, modern brand experience.</p>
+                </div>
+                <div class="service-card">
+                    <div class="service-number">03</div>
+                    <h3>Core service one</h3>
+                    <p>Tailored core service one for customers looking for a reliable, modern brand experience.</p>
+                </div>
+                <div class="service-card">
+                    <div class="service-number">04</div>
+                    <h3>Core service two</h3>
+                    <p>Tailored core service two for customers looking for a reliable, modern brand experience.</p>
+                </div>
             </div>
         </div>
     </section>
@@ -529,8 +542,8 @@
     <section id="about" class="scroll-section about-section">
         <div class="section-content">
             <div class="about-card">
-                <h2>About {{ data.business_name }}</h2>
-                <p>{{ content.about }}</p>
+                <h2>About wdefrgte</h2>
+                <p>wdefrgte is a ertgyh built for customers looking for a reliable, modern brand experience. The brand feels professional, engaging, and trustworthy and reflects modern business.</p>
             </div>
         </div>
     </section>
@@ -592,7 +605,7 @@
             <h2 class="section-title">Client Reviews</h2>
             <div class="testimonials-grid">
                 <div class="testimonial-card">
-                    <p class="testimonial-text">"{{ data.business_name }} delivered a premium experience from start to finish."</p>
+                    <p class="testimonial-text">"wdefrgte delivered a premium experience from start to finish."</p>
                     <div class="testimonial-footer">
                         <div class="author-avatar">AM</div>
                         <div>
@@ -642,12 +655,18 @@
         <div class="section-content">
             <h2 class="section-title">FAQ</h2>
             <div class="faq-container">
-                {% for item in content.faq %}
                 <details class="faq-item">
-                    <summary>{{ item.question }}</summary>
-                    <p>{{ item.answer }}</p>
+                    <summary>What makes wdefrgte different?</summary>
+                    <p>It blends modern business with a professional, engaging, and trustworthy customer experience.</p>
                 </details>
-                {% endfor %}
+                <details class="faq-item">
+                    <summary>How do I get started?</summary>
+                    <p>Choose a service, reach out, and we will guide you through the next step.</p>
+                </details>
+                <details class="faq-item">
+                    <summary>Who is this for?</summary>
+                    <p>It is designed for customers looking for a reliable, modern brand experience.</p>
+                </details>
             </div>
         </div>
     </section>
@@ -656,7 +675,7 @@
         <div class="section-content">
             <div class="contact-section">
                 <h2>Ready to Start?</h2>
-                <p>{{ content.contact }}</p>
+                <p>Contact wdefrgte to schedule a consultation or request a quote.</p>
             </div>
         </div>
     </section>

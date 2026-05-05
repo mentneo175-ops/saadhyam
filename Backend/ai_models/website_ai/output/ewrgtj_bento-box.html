@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ data.business_name }} | Bento Box Layout</title>
+    <title>ewrgtj | Bento Box Layout</title>
     <link rel="stylesheet" href="/website-ai/static/theme-adapter.css">
     <style>
         * {
@@ -324,13 +324,9 @@
 <body data-theme="bento-box">
     <nav class="nav">
         <div class="nav-content">
-            <div class="nav-logo">{{ data.business_name }}</div>
+            <div class="nav-logo">ewrgtj</div>
             <ul class="nav-links">
-                <li><a href="#about">About</a></li>
                 <li><a href="#services">Services</a></li>
-                <li><a href="#team">Team</a></li>
-                <li><a href="#reviews">Reviews</a></li>
-                <li><a href="#pricing">Pricing</a></li>
                 <li><a href="#faq">FAQ</a></li>
                 <li><a href="#contact">Contact</a></li>
             </ul>
@@ -338,181 +334,64 @@
     </nav>
 
     <section class="hero">
-        <span class="hero-tag">{{ data.business_type }}</span>
-        <h1>{{ theme_state.headline }}</h1>
-        <p>{{ content.about }}</p>
-        <a href="#services" class="hero-cta">{{ theme_state.cta_line }}</a>
-    </section>
-
-    <section id="about" class="about-section">
-        <div class="about-card">
-            <h2>About {{ data.business_name }}</h2>
-            <p>{{ content.about }}</p>
-        </div>
+        <span class="hero-tag">ewahstryjt</span>
+        <h1>ewrgtj for modern customers</h1>
+        <p>ewrgtj is a ewahstryjt built for customers looking for a reliable, modern brand experience. The brand feels professional, engaging, and trustworthy and reflects modern business.</p>
+        <a href="#services" class="hero-cta">See the full experience</a>
     </section>
 
     <div id="services" class="bento-container">
         <div class="bento-grid">
-            {% for service in content.services %}
-            {% if loop.index == 1 %}
             <div class="bento-item bento-large">
                 <div>
-                    <div class="bento-icon">{{ loop.index }}</div>
-                    <h3>{{ service.name }}</h3>
-                    <p>{{ service.description }}</p>
+                    <div class="bento-icon">1</div>
+                    <h3>Core service two</h3>
+                    <p>Tailored core service two for customers looking for a reliable, modern brand experience.</p>
                 </div>
             </div>
-
-            <section class="stats-section">
-                <div class="stats-container">
-                    <h2 class="stats-title">Our Impact</h2>
-                    <div class="stats-row">
-                        <div class="stat-item">
-                            <div class="stat-num">750+</div>
-                            <div class="stat-text">Projects Delivered</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-num">99%</div>
-                            <div class="stat-text">Client Satisfaction</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-num">15+</div>
-                            <div class="stat-text">Years Experience</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-num">24/7</div>
-                            <div class="stat-text">Support Available</div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <section id="team" class="team-section">
-                <div class="team-container">
-                    <h2 class="team-title">Meet The Team</h2>
-                    <div class="team-row">
-                        <div class="team-box">
-                            <div class="team-initial">JD</div>
-                            <h4>John Doe</h4>
-                            <p>CEO & Founder</p>
-                        </div>
-                        <div class="team-box">
-                            <div class="team-initial">JS</div>
-                            <h4>Jane Smith</h4>
-                            <p>Creative Director</p>
-                        </div>
-                        <div class="team-box">
-                            <div class="team-initial">MB</div>
-                            <h4>Mike Brown</h4>
-                            <p>Lead Developer</p>
-                        </div>
-                        <div class="team-box">
-                            <div class="team-initial">SD</div>
-                            <h4>Sarah Davis</h4>
-                            <p>Marketing Head</p>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <section id="reviews" class="testimonials-section">
-                <div class="testimonials-container">
-                    <h2 class="testimonials-title">Client Reviews</h2>
-                    <div class="testimonials-row">
-                        <div class="testimonial-card">
-                            <p class="testimonial-content">"{{ data.business_name }} delivered a premium experience from start to finish. We loved the attention to detail."</p>
-                            <div class="testimonial-footer">
-                                <div class="testimonial-avatar">AM</div>
-                                <div class="testimonial-info">
-                                    <strong>Alex Martinez</strong>
-                                    <span>Founder, Studio Lane</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="testimonial-card">
-                            <p class="testimonial-content">"The team translated our vision into a polished brand story. Professional, quick, and thoughtful."</p>
-                            <div class="testimonial-footer">
-                                <div class="testimonial-avatar">LW</div>
-                                <div class="testimonial-info">
-                                    <strong>Lisa Wang</strong>
-                                    <span>Director, Oak & Co.</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <section id="pricing" class="pricing-section">
-                <div class="pricing-container">
-                    <h2 class="pricing-title">Pricing Plans</h2>
-                    <div class="pricing-row">
-                        <div class="price-box">
-                            <h3>Starter</h3>
-                            <div class="price-value">$99<span>/mo</span></div>
-                            <ul class="price-list">
-                                <li>5 Projects</li>
-                                <li>Basic Support</li>
-                                <li>1 GB Storage</li>
-                                <li>Email Support</li>
-                            </ul>
-                            <a href="#contact" class="price-button">Get Started</a>
-                        </div>
-                        <div class="price-box featured">
-                            <h3>Professional</h3>
-                            <div class="price-value">$299<span>/mo</span></div>
-                            <ul class="price-list">
-                                <li>Unlimited Projects</li>
-                                <li>Priority Support</li>
-                                <li>50 GB Storage</li>
-                                <li>24/7 Support</li>
-                            </ul>
-                            <a href="#contact" class="price-button">Book a Demo</a>
-                        </div>
-                    </div>
-                </div>
-            </section>
-            {% elif loop.index == 2 %}
             <div class="bento-item bento-medium">
                 <div>
-                    <div class="bento-icon">{{ loop.index }}</div>
-                    <h3>{{ service.name }}</h3>
-                    <p>{{ service.description }}</p>
+                    <div class="bento-icon">2</div>
+                    <h3>Core service one</h3>
+                    <p>Tailored core service one for customers looking for a reliable, modern brand experience.</p>
                 </div>
             </div>
-            {% elif loop.index <= 4 %} <div class="bento-item bento-wide">
+ <div class="bento-item bento-wide">
                 <div>
-                    <div class="bento-icon">{{ loop.index }}</div>
-                    <h3>{{ service.name }}</h3>
-                    <p>{{ service.description }}</p>
+                    <div class="bento-icon">3</div>
+                    <h3>Core service four</h3>
+                    <p>Tailored core service four for customers looking for a reliable, modern brand experience.</p>
                 </div>
         </div>
-        {% else %}
-        <div class="bento-item bento-small">
-            <div>
-                <div class="bento-icon">{{ loop.index }}</div>
-                <h3>{{ service.name }}</h3>
-                <p>{{ service.description }}</p>
-            </div>
+ <div class="bento-item bento-wide">
+                <div>
+                    <div class="bento-icon">4</div>
+                    <h3>Core service three</h3>
+                    <p>Tailored core service three for customers looking for a reliable, modern brand experience.</p>
+                </div>
         </div>
-        {% endif %}
-        {% endfor %}
     </div>
     </div>
 
     <section id="faq" class="faq-section">
         <h2 class="faq-title">Frequently Asked Questions</h2>
-        {% for item in content.faq %}
         <details class="faq-item">
-            <summary>{{ item.question }}</summary>
-            <p>{{ item.answer }}</p>
+            <summary>What makes ewrgtj different?</summary>
+            <p>It blends modern business with a professional, engaging, and trustworthy customer experience.</p>
         </details>
-        {% endfor %}
+        <details class="faq-item">
+            <summary>How do I get started?</summary>
+            <p>Choose a service, reach out, and we will guide you through the next step.</p>
+        </details>
+        <details class="faq-item">
+            <summary>Who is this for?</summary>
+            <p>It is designed for customers looking for a reliable, modern brand experience.</p>
+        </details>
     </section>
 
     <section id="contact" class="contact-section">
         <h2>Get in Touch</h2>
-        <p>{{ content.contact }}</p>
+        <p>Contact ewrgtj to schedule a consultation or request a quote.</p>
     </section>
 </body>
 

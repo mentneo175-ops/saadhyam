@@ -1,0 +1,602 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>luxury spa | Magazine Grid Layout</title>
+    <link rel="stylesheet" href="/website-ai/static/theme-adapter.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background: white;
+            color: #1a1a1a;
+            line-height: 1.6;
+        }
+
+        /* Top bar */
+        .top-bar {
+            background: #1a1a1a;
+            color: white;
+            padding: 12px 0;
+            font-size: 13px;
+            text-align: center;
+            letter-spacing: 1px;
+        }
+
+        /* Header */
+        .header {
+            border-bottom: 3px solid #1a1a1a;
+            padding: 40px 60px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .brand {
+            font-size: 48px;
+            font-weight: 900;
+            letter-spacing: -2px;
+            text-transform: uppercase;
+        }
+
+        .header-nav {
+            display: flex;
+            gap: 40px;
+            list-style: none;
+        }
+
+        .header-nav a {
+            color: #1a1a1a;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: color 0.3s;
+        }
+
+        .header-nav a:hover {
+            color: #ff6b6b;
+        }
+
+        /* Hero magazine style */
+        .hero-magazine {
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr;
+            gap: 0;
+            border-bottom: 3px solid #1a1a1a;
+        }
+
+        .hero-main {
+            padding: 80px 60px;
+            background: #ff6b6b;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-main::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 500px;
+            height: 500px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-kicker {
+            font-size: 16px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin-bottom: 30px;
+            opacity: 0.9;
+        }
+
+        .hero-content h1 {
+            font-size: 68px;
+            font-weight: 900;
+            line-height: 0.95;
+            margin-bottom: 30px;
+            letter-spacing: -3px;
+        }
+
+        .hero-content p {
+            font-size: 20px;
+            line-height: 1.6;
+            margin-bottom: 40px;
+            max-width: 500px;
+        }
+
+        .hero-btn {
+            display: inline-block;
+            padding: 16px 40px;
+            background: white;
+            color: #ff6b6b;
+            text-decoration: none;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .hero-btn:hover {
+            background: #1a1a1a;
+            color: white;
+        }
+
+        .hero-sidebar {
+            background: #f8f8f8;
+            padding: 80px 40px;
+            border-left: 3px solid #1a1a1a;
+        }
+
+        .sidebar-stat {
+            margin-bottom: 50px;
+        }
+
+        .stat-number {
+            font-size: 56px;
+            font-weight: 900;
+            color: #ff6b6b;
+            line-height: 1;
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: 700;
+            color: #666;
+        }
+
+        /* Magazine grid */
+        .magazine-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 0;
+        }
+
+        .grid-item {
+            border-right: 3px solid #1a1a1a;
+            border-bottom: 3px solid #1a1a1a;
+            padding: 60px 40px;
+            min-height: 350px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .grid-item:nth-child(3n) {
+            border-right: none;
+        }
+
+        .grid-item-large {
+            grid-column: span 6;
+            background: #1a1a1a;
+            color: white;
+        }
+
+        .grid-item-medium {
+            grid-column: span 4;
+        }
+
+        .grid-item-small {
+            grid-column: span 3;
+        }
+
+        .item-number {
+            font-size: 24px;
+            font-weight: 900;
+            color: #ff6b6b;
+            margin-bottom: 20px;
+        }
+
+        .grid-item h3 {
+            font-size: 28px;
+            font-weight: 900;
+            margin-bottom: 16px;
+            line-height: 1.2;
+        }
+
+        .grid-item p {
+            font-size: 16px;
+            line-height: 1.7;
+            color: #666;
+        }
+
+        .grid-item-large p {
+            color: #ccc;
+        }
+
+        /* FAQ section */
+        .faq-section {
+            padding: 100px 60px;
+            background: #f8f8f8;
+        }
+
+        .faq-title {
+            font-size: 56px;
+            font-weight: 900;
+            margin-bottom: 60px;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: -2px;
+        }
+
+        .faq-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .faq-item {
+            background: white;
+            border: 3px solid #1a1a1a;
+            padding: 40px;
+        }
+
+        .faq-item summary {
+            font-size: 22px;
+            font-weight: 900;
+            cursor: pointer;
+            list-style: none;
+            text-transform: uppercase;
+            letter-spacing: -1px;
+        }
+
+        .faq-item p {
+            margin-top: 20px;
+            font-size: 16px;
+            color: #666;
+            line-height: 1.8;
+        }
+
+        /* Contact section */
+        .contact-section {
+            background: #ff6b6b;
+            color: white;
+            padding: 100px 60px;
+            text-align: center;
+        }
+
+        .contact-section h2 {
+            font-size: 64px;
+            font-weight: 900;
+            margin-bottom: 30px;
+            text-transform: uppercase;
+            letter-spacing: -2px;
+        }
+
+        .contact-section p {
+            font-size: 20px;
+            max-width: 700px;
+            margin: 0 auto 40px;
+            line-height: 1.7;
+        }
+
+        @media (max-width: 1024px) {
+            .hero-magazine {
+                grid-template-columns: 1fr;
+            }
+
+            .hero-sidebar {
+                border-left: none;
+                border-top: 3px solid #1a1a1a;
+            }
+
+            .magazine-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .grid-item-large,
+            .grid-item-medium,
+            .grid-item-small {
+                grid-column: span 1;
+            }
+
+            .faq-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-row,
+            .team-row,
+            .testimonials-row,
+            .pricing-row {
+                grid-template-columns: 1fr;
+            }
+
+            .footer-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+    <script src="/website-ai/static/editor.js" defer></script>
+</head>
+
+<body data-theme="magazine-grid">
+    <div class="top-bar">spa • PROFESSIONAL SERVICES</div>
+
+    <header class="header">
+        <div class="brand">luxury spa</div>
+        <nav>
+            <ul class="header-nav">
+                <li><a href="#services">Services</a></li>
+                <li><a href="#faq">FAQ</a></li>
+                <li><a href="#contact">Contact</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <section class="hero-magazine">
+        <div class="hero-main">
+            <div class="hero-content">
+                <div class="hero-kicker">spa</div>
+                <h1>Designed to make luxury spa stand out</h1>
+                <p>luxury spa is a spa built for style-conscious clients, professionals, and event guests. The brand feels warm, polished, and confident and reflects premium beauty and wellness.</p>
+                <a href="#services" class="hero-btn">Book a discovery call</a>
+            </div>
+        </div>
+        <div class="hero-sidebar">
+            <div class="sidebar-stat">
+                <div class="stat-number">100%</div>
+                <div class="stat-label">Quality</div>
+            </div>
+            <div class="sidebar-stat">
+                <div class="stat-number">24/7</div>
+                <div class="stat-label">Support</div>
+            </div>
+            <div class="sidebar-stat">
+                <div class="stat-number">∞</div>
+                <div class="stat-label">Possibilities</div>
+            </div>
+        </div>
+    </section>
+
+    <section id="services" class="magazine-grid">
+        <div
+            class="grid-item grid-item-large">
+            <div>
+                <div class="item-number">01</div>
+                <h3>Express refresh</h3>
+                <p>Tailored express refresh for style-conscious clients, professionals, and event guests.</p>
+            </div>
+        </div>
+        <div
+            class="grid-item grid-item-medium">
+            <div>
+                <div class="item-number">02</div>
+                <h3>Event-ready looks</h3>
+                <p>Tailored event-ready looks for style-conscious clients, professionals, and event guests.</p>
+            </div>
+        </div>
+        <div
+            class="grid-item grid-item-medium">
+            <div>
+                <div class="item-number">03</div>
+                <h3>Personalized consultations</h3>
+                <p>Tailored personalized consultations for style-conscious clients, professionals, and event guests.</p>
+            </div>
+        </div>
+        <div
+            class="grid-item grid-item-small">
+            <div>
+                <div class="item-number">04</div>
+                <h3>Signature styling</h3>
+                <p>Tailored signature styling for style-conscious clients, professionals, and event guests.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats-section">
+        <div class="stats-container">
+            <h2 class="stats-title">Our Impact</h2>
+            <div class="stats-row">
+                <div class="stat-item">
+                    <div class="stat-num">750+</div>
+                    <div class="stat-text">Projects Delivered</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-num">99%</div>
+                    <div class="stat-text">Client Satisfaction</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-num">15+</div>
+                    <div class="stat-text">Years Experience</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-num">24/7</div>
+                    <div class="stat-text">Support Available</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Team Section -->
+    <section class="team-section">
+        <div class="team-container">
+            <h2 class="team-title">Meet The Team</h2>
+            <div class="team-row">
+                <div class="team-box">
+                    <div class="team-initial">JD</div>
+                    <h4>John Doe</h4>
+                    <p>CEO & Founder</p>
+                </div>
+                <div class="team-box">
+                    <div class="team-initial">JS</div>
+                    <h4>Jane Smith</h4>
+                    <p>Creative Director</p>
+                </div>
+                <div class="team-box">
+                    <div class="team-initial">MB</div>
+                    <h4>Mike Brown</h4>
+                    <p>Lead Developer</p>
+                </div>
+                <div class="team-box">
+                    <div class="team-initial">SD</div>
+                    <h4>Sarah Davis</h4>
+                    <p>Marketing Head</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section class="testimonials-section">
+        <div class="testimonials-container">
+            <h2 class="testimonials-title">Client Reviews</h2>
+            <div class="testimonials-row">
+                <div class="testimonial-card">
+                    <p class="testimonial-content">"luxury spa transformed our digital presence. Their
+                        creativity
+                        and technical expertise are outstanding. Highly recommended!"</p>
+                    <div class="testimonial-footer">
+                        <div class="testimonial-avatar">AM</div>
+                        <div class="testimonial-info">
+                            <strong>Alex Martinez</strong>
+                            <span>CEO, Tech Innovations</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial-card">
+                    <p class="testimonial-content">"Working with this team has been incredible. They delivered beyond
+                        our
+                        expectations and on time. True professionals!"</p>
+                    <div class="testimonial-footer">
+                        <div class="testimonial-avatar">LW</div>
+                        <div class="testimonial-info">
+                            <strong>Lisa Wang</strong>
+                            <span>Founder, Creative Labs</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section class="pricing-section">
+        <div class="pricing-container">
+            <h2 class="pricing-title">Pricing Plans</h2>
+            <div class="pricing-row">
+                <div class="price-box">
+                    <h3>Starter</h3>
+                    <div class="price-value">$99<span>/mo</span></div>
+                    <ul class="price-list">
+                        <li>5 Projects</li>
+                        <li>Basic Support</li>
+                        <li>1 GB Storage</li>
+                        <li>Email Support</li>
+                    </ul>
+                    <a href="#contact" class="price-button">Get Started</a>
+                </div>
+                <div class="price-box featured">
+                    <h3>Professional</h3>
+                    <div class="price-value">$299<span>/mo</span></div>
+                    <ul class="price-list">
+                        <li>Unlimited Projects</li>
+                        <li>Priority Support</li>
+                        <li>50 GB Storage</li>
+                        <li>24/7 Support</li>
+                    </ul>
+                    <a href="#contact" class="price-button">Get Started</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-banner">
+        <div class="cta-content">
+            <h2>Ready to Transform Your Business?</h2>
+            <p>Join hundreds of satisfied clients and take your business to the next level.</p>
+            <a href="#contact" class="hero-btn">Book a discovery call</a>
+        </div>
+    </section>
+
+    <section id="faq" class="faq-section">
+        <h2 class="faq-title">FAQ</h2>
+        <div class="faq-grid">
+            <details class="faq-item">
+                <summary>What makes luxury spa different?</summary>
+                <p>It blends premium beauty and wellness with a warm, polished, and confident customer experience.</p>
+            </details>
+            <details class="faq-item">
+                <summary>How do I get started?</summary>
+                <p>Choose a service, reach out, and we will guide you through the next step.</p>
+            </details>
+            <details class="faq-item">
+                <summary>Who is this for?</summary>
+                <p>It is designed for style-conscious clients, professionals, and event guests.</p>
+            </details>
+        </div>
+    </section>
+
+    <section id="contact" class="contact-section">
+        <h2>Let's Talk</h2>
+        <p>Contact luxury spa to schedule a consultation or request a quote.</p>
+        <p style="margin-top: 20px;">Email: hello@luxuryspa.com</p>
+        <p>Phone: +1 (555) 987-6543</p>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer-section">
+        <div class="footer-container">
+            <div class="footer-row">
+                <div class="footer-block">
+                    <h3>luxury spa</h3>
+                    <p>luxury spa is a spa built for style-conscious clients, professionals, and event guests. The brand feels warm,...</p>
+                </div>
+                <div class="footer-block">
+                    <h3>Services</h3>
+                    <ul>
+                        <li><a href="#services">Express refresh</a></li>
+                        <li><a href="#services">Event-ready looks</a></li>
+                        <li><a href="#services">Personalized consultations</a></li>
+                        <li><a href="#services">Signature styling</a></li>
+                    </ul>
+                </div>
+                <div class="footer-block">
+                    <h3>Company</h3>
+                    <ul>
+                        <li><a href="#services">Services</a></li>
+                        <li><a href="#faq">FAQ</a></li>
+                        <li><a href="#contact">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="footer-block">
+                    <h3>Legal</h3>
+                    <ul>
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Terms of Service</a></li>
+                        <li><a href="#">Cookie Policy</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-copyright">
+                <p>&copy; 2024 luxury spa. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+</body>
+
+</html>

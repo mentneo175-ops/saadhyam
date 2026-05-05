@@ -140,7 +140,7 @@ def load_model():
                 base_model_name,
                 quantization_config=bnb_config,
                 device_map="auto",  # Auto-distribute across GPU/CPU
-                dtype=torch.float16,
+                torch_dtype=torch.float16,
                 offload_folder="offload",  # Disk offload for temporary storage
                 max_memory={0: "3.0GB", "cpu": "20GB"},  # Conservative GPU allocation
                 low_cpu_mem_usage=True  # Minimize CPU memory during loading
@@ -191,7 +191,7 @@ def load_model():
                 base_cpu_model = AutoModelForCausalLM.from_pretrained(
                     base_model_name,
                     device_map={"": "cpu"},
-                    dtype=torch.float32,
+                    torch_dtype=torch.float32,
                     low_cpu_mem_usage=True
                 )
                 _model = torch.quantization.quantize_dynamic(

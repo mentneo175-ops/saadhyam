@@ -1,11 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { Button } from "@/components/ui/button";
-import { Sparkles, Copy, RefreshCcw, Globe, FileText, Phone, Download, Eye } from "lucide-react";
+import { Sparkles, Copy, RefreshCcw, Globe, FileText, Mail, Phone, Download, Eye } from "lucide-react";
 import { useState } from "react";
 import { apiClient } from "@/lib/api";
-
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 export const Route = createFileRoute("/dashboard/website")({
   head: () => ({ meta: [{ title: "Website AI — Saadhyam AI" }] }),
@@ -42,25 +40,11 @@ function WebsiteAIPage() {
     business_type: "",
     description: "",
     services: "",
-    target_audience: "",
-    tone: "",
-    branding_style: "",
     contact_email: "",
     contact_phone: "",
-    website_url: "",
   });
-  const [websiteRecordId, setWebsiteRecordId] = useState<string | null>(null);
-  const [websitePreviewUrl, setWebsitePreviewUrl] = useState<string | null>(null);
+  const [jobId, setJobId] = useState<string | null>(null);
   const [websiteStatus, setWebsiteStatus] = useState<string>("");
-  const canGenerateWebsite = Boolean(
-    websiteData.business_name.trim() &&
-    websiteData.business_type.trim() &&
-    websiteData.description.trim() &&
-    websiteData.services.trim() &&
-    websiteData.target_audience.trim() &&
-    websiteData.tone.trim() &&
-    websiteData.branding_style.trim()
-  );
 
   const handleGenerate = async () => {
     setIsGenerating(true);
@@ -80,11 +64,10 @@ function WebsiteAIPage() {
   const handleGenerateWebsite = async () => {
     setIsGenerating(true);
     setWebsiteStatus("Starting generation...");
-    setWebsitePreviewUrl(null);
-    setWebsiteRecordId(null);
     try {
       const servicesArray = websiteData.services.split(",").map(s => s.trim()).filter(s => s);
-      const response = await fetch(`${API_URL}/website-ai/api/websites?theme=${selectedTemplate}`, {
+      
+      const response = await fetch("http://localhost:8000/api/v1/website-ai/generate", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -95,38 +78,54 @@ function WebsiteAIPage() {
           business_type: websiteData.business_type,
           description: websiteData.description,
           services: servicesArray,
-          target_audience: websiteData.target_audience,
-          tone: websiteData.tone,
-          branding_style: websiteData.branding_style,
           contact_email: websiteData.contact_email,
           contact_phone: websiteData.contact_phone,
-          website_url: websiteData.website_url,
+          theme: selectedTemplate,
         }),
       });
 
       const data = await response.json();
-      if (!response.ok) {
-        const detail = data?.detail;
-        const message = typeof detail === "string"
-          ? detail
-          : JSON.stringify(detail || data || "Website generation failed.");
-        setWebsiteStatus(`❌ ${message}`);
-        return;
+      
+      if (data.job_id) {
+        setJobId(data.job_id);
+        setWebsiteStatus(`Generation started! Job ID: ${data.job_id}`);
+        // Poll for status
+        pollJobStatus(data.job_id);
       }
-
-      setWebsiteRecordId(data.id || null);
-      if (data.html_file) {
-        const previewUrl = `${API_URL}/website-ai/output/${data.html_file}`;
-        setWebsitePreviewUrl(previewUrl);
-        window.open(previewUrl, "_blank", "noopener,noreferrer");
-      }
-      setWebsiteStatus(`✅ Website generated successfully! Website ID: ${data.id}`);
     } catch (error) {
       console.error("Website generation error:", error);
       setWebsiteStatus("Generation failed. Please try again.");
     } finally {
       setIsGenerating(false);
     }
+  };
+
+  const pollJobStatus = async (jobId: string) => {
+    const checkStatus = async () => {
+      try {
+        const response = await fetch(`http://localhost:8000/api/v1/website-ai/jobs/${jobId}`, {
+          headers: {
+            "Authorization": `Bearer ${apiClient.getToken()}`,
+          },
+        });
+        const data = await response.json();
+        
+        setWebsiteStatus(`Status: ${data.status} - Progress: ${data.progress}%`);
+        
+        if (data.status === "completed") {
+          setWebsiteStatus(`✅ Website generated successfully! Website ID: ${data.website_id}`);
+        } else if (data.status === "failed") {
+          setWebsiteStatus(`❌ Generation failed: ${data.error_message}`);
+        } else {
+          // Continue polling
+          setTimeout(checkStatus, 2000);
+        }
+      } catch (error) {
+        console.error("Status check error:", error);
+      }
+    };
+    
+    checkStatus();
   };
 
   return (
@@ -264,7 +263,7 @@ function WebsiteAIPage() {
               </div>
             </div>
 
-            <div className="space-y-3 max-h-[360px] overflow-y-auto pr-1">
+            <div className="space-y-3">
               <p className="text-sm font-semibold">Business Details</p>
               <input
                 type="text"
@@ -295,27 +294,6 @@ function WebsiteAIPage() {
                 className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm focus:border-primary focus:ring-2 focus:ring-primary/15 outline-none"
               />
               <input
-                type="text"
-                placeholder="Target Audience"
-                value={websiteData.target_audience}
-                onChange={(e) => setWebsiteData({...websiteData, target_audience: e.target.value})}
-                className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm focus:border-primary focus:ring-2 focus:ring-primary/15 outline-none"
-              />
-              <input
-                type="text"
-                placeholder="Tone (e.g., warm, modern)"
-                value={websiteData.tone}
-                onChange={(e) => setWebsiteData({...websiteData, tone: e.target.value})}
-                className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm focus:border-primary focus:ring-2 focus:ring-primary/15 outline-none"
-              />
-              <input
-                type="text"
-                placeholder="Branding Style"
-                value={websiteData.branding_style}
-                onChange={(e) => setWebsiteData({...websiteData, branding_style: e.target.value})}
-                className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm focus:border-primary focus:ring-2 focus:ring-primary/15 outline-none"
-              />
-              <input
                 type="email"
                 placeholder="Contact Email"
                 value={websiteData.contact_email}
@@ -329,13 +307,6 @@ function WebsiteAIPage() {
                 onChange={(e) => setWebsiteData({...websiteData, contact_phone: e.target.value})}
                 className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm focus:border-primary focus:ring-2 focus:ring-primary/15 outline-none"
               />
-              <input
-                type="url"
-                placeholder="Website URL (optional)"
-                value={websiteData.website_url}
-                onChange={(e) => setWebsiteData({...websiteData, website_url: e.target.value})}
-                className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm focus:border-primary focus:ring-2 focus:ring-primary/15 outline-none"
-              />
             </div>
 
             <Button
@@ -343,7 +314,7 @@ function WebsiteAIPage() {
               className="w-full"
               size="lg"
               onClick={handleGenerateWebsite}
-              disabled={isGenerating || !canGenerateWebsite}
+              disabled={isGenerating || !websiteData.business_name || !websiteData.business_type}
             >
               {isGenerating ? (
                 <>
@@ -360,9 +331,9 @@ function WebsiteAIPage() {
           <div className="bg-card rounded-2xl border border-border/60 shadow-sm p-4 flex flex-col">
             <div className="flex items-center justify-between mb-3">
               <p className="text-sm font-semibold">Generation Status</p>
-              {websiteRecordId && (
+              {jobId && (
                 <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-1 rounded-full bg-primary/10 text-primary">
-                  <Sparkles size={10} /> Ready
+                  <Sparkles size={10} /> Processing
                 </span>
               )}
             </div>
@@ -372,12 +343,9 @@ function WebsiteAIPage() {
                 {websiteStatus || "Fill in the business details and click 'Generate Full Website' to create your complete website with the selected template."}
               </p>
               
-              {websiteRecordId && (
+              {jobId && (
                 <div className="mt-4 p-3 bg-background/50 rounded-lg">
-                  <p className="text-xs font-mono text-muted-foreground">Website ID: {websiteRecordId}</p>
-                  {websitePreviewUrl && (
-                    <p className="text-xs text-muted-foreground mt-1">Preview: {websitePreviewUrl}</p>
-                  )}
+                  <p className="text-xs font-mono text-muted-foreground">Job ID: {jobId}</p>
                 </div>
               )}
             </div>
@@ -387,12 +355,7 @@ function WebsiteAIPage() {
                 variant="outline"
                 size="sm"
                 className="flex-1"
-                disabled={!websitePreviewUrl}
-                onClick={() => {
-                  if (websitePreviewUrl) {
-                    window.open(websitePreviewUrl, "_blank", "noopener,noreferrer");
-                  }
-                }}
+                disabled={!jobId}
               >
                 <Eye size={13} /> View Website
               </Button>
@@ -400,12 +363,7 @@ function WebsiteAIPage() {
                 variant="outline" 
                 size="sm" 
                 className="flex-1"
-                disabled={!websitePreviewUrl}
-                onClick={() => {
-                  if (websitePreviewUrl) {
-                    window.open(websitePreviewUrl, "_blank", "noopener,noreferrer");
-                  }
-                }}
+                disabled={!jobId}
               >
                 <Download size={13} /> Download
               </Button>

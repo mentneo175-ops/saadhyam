@@ -1,235 +1,39 @@
 {
-  "websites": [
-    {
-      "id": "5db38e5b",
-      "business_name": "Demo Studio",
-      "business_type": "design studio",
-      "description": "A boutique design studio focused on brand identity and web design.",
-      "services": [
-        "Brand identity",
-        "UI/UX design",
-        "Web design"
-      ],
-      "target_audience": "founders and marketing teams",
-      "tone": "bold and modern",
-      "branding_style": "minimal premium",
-      "contact_email": null,
-      "contact_phone": null,
-      "website_url": null,
-      "theme": "card-masonry",
-      "html_file": "demo-studio_card-masonry.html",
-      "created_at": "2026-05-05T10:23:16.336765",
-      "updated_at": "2026-05-05T10:23:16.336765"
-    },
-    {
-      "id": "8cae214f",
-      "business_name": "luxury spa",
-      "business_type": "spa",
-      "description": "having all the services which have haircut spa beauty sevrices",
-      "services": [
-        "spa",
-        "facial"
-      ],
-      "target_audience": "all",
-      "tone": "friendly",
-      "branding_style": "modern",
-      "contact_email": "spa@gmail.com",
-      "contact_phone": "89547534443",
-      "website_url": "",
-      "theme": "magazine-grid",
-      "html_file": "luxury-spa_magazine-grid.html",
-      "created_at": "2026-05-05T10:46:07.301579",
-      "updated_at": "2026-05-05T10:46:07.301579"
-    },
-    {
-      "id": "b36f66ea",
-      "business_name": "ewrethytgd",
-      "business_type": "ewrsthjythrgewfq",
-      "description": "wertyuke gewgrt t hqtrherweth ergtheyrh",
-      "services": [
-        "fjerhvhjare"
-      ],
-      "target_audience": "kjebrfvrf",
-      "tone": "ubryfub",
-      "branding_style": "ybfwyubyuwbab",
-      "contact_email": "jwbe@gmail.com",
-      "contact_phone": "yegy7frg37q8hf",
-      "website_url": "wdrtyiuytf",
-      "theme": "magazine-grid",
-      "html_file": "ewrethytgd_magazine-grid.html",
-      "created_at": "2026-05-05T10:50:33.529405",
-      "updated_at": "2026-05-05T10:50:33.529405"
-    },
-    {
-      "id": "a3a0fff2",
-      "business_name": "ewrgtj",
-      "business_type": "ewahstryjt",
-      "description": "efwgher    treh 4retertgef",
-      "services": [
-        "erwe tytr egt rhytrew"
-      ],
-      "target_audience": "ewrgtheyuyht   treytyt 54 h5yjuyt",
-      "tone": "g 4th5yu6y5ehtgr",
-      "branding_style": "5 4tyjurthg",
-      "contact_email": "wtrhyujtyrht fde",
-      "contact_phone": "we rgthyjw43t4",
-      "website_url": " rgt ye",
-      "theme": "bento-box",
-      "html_file": "ewrgtj_bento-box.html",
-      "created_at": "2026-05-05T10:51:38.029476",
-      "updated_at": "2026-05-05T10:51:38.029476"
-    },
-    {
-      "id": "44ed080f",
-      "business_name": "wdefrgte",
-      "business_type": "ertgyh",
-      "description": "rgthyjuki wefgtrhew retygfadwq gbfvddght efrtytnrbevceds",
-      "services": [
-        "swde rtytgbfvdcs"
-      ],
-      "target_audience": "fgthyuj",
-      "tone": "fgthyjuioujh",
-      "branding_style": "regtyujikjh",
-      "contact_email": "wefr@gmail.com",
-      "contact_phone": "defrgthyuji",
-      "website_url": "wgehtryjuky",
-      "theme": "hero-split",
-      "html_file": "wdefrgte_hero-split.html",
-      "created_at": "2026-05-05T11:15:39.790127",
-      "updated_at": "2026-05-05T11:15:39.790127"
-    },
-    {
-      "id": "09bf02c9",
-      "business_name": "wdefrgte",
-      "business_type": "ertgyh",
-      "description": "rgthyjuki wefgtrhew retygfadwq gbfvddght efrtytnrbevceds",
-      "services": [
-        "swde rtytgbfvdcs"
-      ],
-      "target_audience": "fgthyuj",
-      "tone": "fgthyjuioujh",
-      "branding_style": "regtyujikjh",
-      "contact_email": "wefr@gmail.com",
-      "contact_phone": "defrgthyuji",
-      "website_url": "wgehtryjuky",
-      "theme": "magazine-grid",
-      "html_file": "wdefrgte_magazine-grid.html",
-      "created_at": "2026-05-05T11:16:07.198934",
-      "updated_at": "2026-05-05T11:16:07.198934"
-    },
-    {
-      "id": "225527cf",
-      "business_name": "wdefrgte",
-      "business_type": "ertgyh",
-      "description": "rgthyjuki wefgtrhew retygfadwq gbfvddght efrtytnrbevceds",
-      "services": [
-        "swde rtytgbfvdcs"
-      ],
-      "target_audience": "fgthyuj",
-      "tone": "fgthyjuioujh",
-      "branding_style": "regtyujikjh",
-      "contact_email": "wefr@gmail.com",
-      "contact_phone": "defrgthyuji",
-      "website_url": "wgehtryjuky",
-      "theme": "parallax-scroll",
-      "html_file": "wdefrgte_parallax-scroll.html",
-      "created_at": "2026-05-05T11:16:24.194732",
-      "updated_at": "2026-05-05T11:16:24.194732"
-    },
-    {
-      "id": "24690739",
-      "business_name": "wefrgthryt",
-      "business_type": "qwfegrhtjyu",
-      "description": "erthyukiuergthyjut rhty 5yjrthergwf gwethwrytuyrt",
-      "services": [
-        "efwrthyju ytwjyetuy"
-      ],
-      "target_audience": "ef rgtyuiyutre",
-      "tone": "4t5y6ytreg",
-      "branding_style": "thryuyiuthgf",
-      "contact_email": "rgthyjuyhrgr@gmail.com",
-      "contact_phone": "wergthry yrtergt",
-      "website_url": "ewrtdhfjhgthrf",
-      "theme": "parallax-scroll",
-      "html_file": "wefrgthryt_parallax-scroll.html",
-      "created_at": "2026-05-05T11:19:24.708279",
-      "updated_at": "2026-05-05T11:19:24.708279"
-    },
-    {
-      "id": "359e0c46",
-      "business_name": "saikiran",
-      "business_type": "saikiran",
-      "description": "saikiran,sanjay,surya,arya",
-      "services": [
-        "saikiram"
-      ],
-      "target_audience": "saikiran",
-      "tone": "saikiran",
-      "branding_style": "saikiran",
-      "contact_email": "saikiaran@gmail.com",
-      "contact_phone": "8789578973",
-      "website_url": "saikiran@hotstar.com",
-      "theme": "magazine-grid",
-      "html_file": "saikiran_magazine-grid.html",
-      "created_at": "2026-05-05T13:05:21.219027",
-      "updated_at": "2026-05-05T13:05:21.219027"
-    },
-    {
-      "id": "dbd32bbf",
-      "business_name": "saikiran",
-      "business_type": "saikiran",
-      "description": "saikiran,sanjay,surya,arya",
-      "services": [
-        "saikiram"
-      ],
-      "target_audience": "saikiran",
-      "tone": "saikiran",
-      "branding_style": "saikiran",
-      "contact_email": "saikiaran@gmail.com",
-      "contact_phone": "8789578973",
-      "website_url": "saikiran@hotstar.com",
-      "theme": "parallax-scroll",
-      "html_file": "saikiran_parallax-scroll.html",
-      "created_at": "2026-05-05T13:05:32.373236",
-      "updated_at": "2026-05-05T13:05:32.373236"
-    },
-    {
-      "id": "76132e34",
-      "business_name": "saikiran",
-      "business_type": "saikiran",
-      "description": "saikiran,sanjay,surya,arya",
-      "services": [
-        "saikiram"
-      ],
-      "target_audience": "saikiran",
-      "tone": "saikiran",
-      "branding_style": "saikiran",
-      "contact_email": "saikiaran@gmail.com",
-      "contact_phone": "8789578973",
-      "website_url": "saikiran@hotstar.com",
+  "websites": [],
+  "content": {
+    "demo": {
+      "website_id": "demo",
+      "content": {
+        "headline": "Designed to make asald stand out",
+        "about": "",
+        "eyebrow": "",
+        "services": [],
+        "faq": [
+          {
+            "question": "What makes asald different?",
+            "answer": "It blends modern business with a professional, engaging, and trustworthy customer experience."
+          },
+          {
+            "question": "How do I get started?",
+            "answer": "Choose a service, reach out, and we will guide you through the next step."
+          },
+          {
+            "question": "Who is this for?",
+            "answer": "It is designed for customers looking for a reliable, modern brand experience."
+          }
+        ],
+        "sections": {
+          "Our Impact": "\n                \n                    750+\n                    Projects Delivered\n                \n                \n                    99%\n                    Client Satisfaction\n                \n                \n                    15+\n                    Years Experience\n                \n                \n                    24/7\n                    Support Available\n                \n            ",
+          "Meet The Team": "\n                \n                    JD\n                    John Doe\n                    CEO & Founder\n                \n                \n                    JS\n                    Jane Smith\n                    Creative Director\n                \n                \n                    MB\n                    Mike Brown\n                    Lead Developer\n                \n                \n                    SD\n                    Sarah Davis\n                    Marketing Head\n                \n            ",
+          "Client Reviews": "\n                \n                    \"asald transformed our digital presence. Their\n                        creativity\n                        and technical expertise are outstanding. Highly recommended!\"\n                    \n                        AM\n                        \n                            Alex Martinez\n                            CEO, Tech Innovations\n                        \n                    \n                \n                \n                    \"Working with this team has been incredible. They delivered beyond\n                        our\n                        expectations and on time. True professionals!\"\n                    \n                        LW\n                        \n                            Lisa Wang\n                            Founder, Creative Labs\n                        \n                    \n                \n            ",
+          "Pricing Plans": "\n                \n                    Starter\n                    $99/mo\n                    \n                        5 Projects\n                        Basic Support\n                        1 GB Storage\n                        Email Support\n                    \n                    Get Started\n                \n                \n                    Professional\n                    $299/mo\n                    \n                        Unlimited Projects\n                        Priority Support\n                        50 GB Storage\n                        24/7 Support\n                    \n                    Get Started\n                \n            ",
+          "Ready to Transform Your Business?": "Join hundreds of satisfied clients and take your business to the next level.",
+          "FAQ": "\n            \n                What makes asald different?\n                It blends modern business with a professional, engaging, and trustworthy customer experience.\n            \n            \n                How do I get started?\n                Choose a service, reach out, and we will guide you through the next step.\n            \n            \n                Who is this for?\n                It is designed for customers looking for a reliable, modern brand experience.\n            \n        ",
+          "Let's Talk": "Contact asald to schedule a consultation or request a quote."
+        }
+      },
       "theme": "timeline-vertical",
-      "html_file": "saikiran_timeline-vertical.html",
-      "created_at": "2026-05-05T13:06:08.617335",
-      "updated_at": "2026-05-05T13:06:08.617335"
-    },
-    {
-      "id": "29af6ce1",
-      "business_name": "saikiran",
-      "business_type": "saikiran",
-      "description": "saikiran,sanjay,surya,arya",
-      "services": [
-        "saikiram"
-      ],
-      "target_audience": "saikiran",
-      "tone": "saikiran",
-      "branding_style": "saikiran",
-      "contact_email": "saikiaran@gmail.com",
-      "contact_phone": "8789578973",
-      "website_url": "saikiran@hotstar.com",
-      "theme": "bento-box",
-      "html_file": "saikiran_bento-box.html",
-      "created_at": "2026-05-05T13:06:38.343930",
-      "updated_at": "2026-05-05T13:06:38.343930"
+      "updated_at": "2026-05-05T14:33:17.301470"
     }
-  ]
+  }
 }

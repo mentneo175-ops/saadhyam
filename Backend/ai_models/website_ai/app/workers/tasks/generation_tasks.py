@@ -13,6 +13,7 @@ from ai_models.website_ai.app.workers.celery_app import celery_app
 from ai_models.website_ai.app.db.session import get_db_context
 from ai_models.website_ai.app.db.models.job import Job
 from ai_models.website_ai.app.db.models.website import Website
+from ai_models.website_ai.app.db.models.content import ContentEdit  # Import to register with SQLAlchemy
 from ai_models.website_ai.app.core.services.generation_service import GenerationService
 from ai_models.website_ai.app.core.services.storage_service import StorageService
 from ai_models.website_ai.app.utils.logger import get_logger
@@ -118,22 +119,12 @@ def generate_website_task(
                 theme_config=theme_config
             )
 
-            # Step 3: Save to storage (80% progress)
-            logger.info(f"Job {job_id}: Saving to storage")
+            # Step 3: Save to storage using new website ID system (80% progress)
+            logger.info(f"Job {job_id}: Saving to storage with website ID")
             job.progress = 80
             db.commit()
 
-            file_path, s3_key = storage_service.save_html(
-                html=html,
-                business_name=business_data["business_name"],
-                theme=theme
-            )
-
-            # Step 4: Save to database (90% progress)
-            logger.info(f"Job {job_id}: Saving to database")
-            job.progress = 90
-            db.commit()
-
+            # Create website record first to get the ID
             website = Website(
                 business_name=business_data["business_name"],
                 business_type=business_data["business_type"],
@@ -146,28 +137,46 @@ def generate_website_task(
                 contact_phone=business_data.get("contact_phone"),
                 website_url=business_data.get("website_url"),
                 theme=theme,
-                html_file_path=file_path,
-                s3_key=s3_key,
                 status="active"
             )
             db.add(website)
-            db.flush()
+            db.flush()  # Get the ID without committing
+            
+            website_id_str = uuid_to_string(website.id)
+            logger.info(f"✅ Created website record with ID: {website_id_str}")
 
-            # Update job with result
+            # Save files using the new website ID-based system
+            file_path, s3_key = storage_service.save_website_files(
+                website_id=website_id_str,
+                html=html
+            )
+
+            # Step 4: Update database with file paths (90% progress)
+            logger.info(f"Job {job_id}: Updating database with file paths")
+            job.progress = 90
+            db.commit()
+
+            # Update website record with file paths
+            website.html_file_path = file_path
+            website.s3_key = s3_key
+
+            # Update job with result using new URL system
             job.status = "completed"
             job.progress = 100
             job.completed_at = datetime.utcnow()
             job.website_id = website.id
             job.result_data = {
-                "website_id": str(website.id),
+                "website_id": website_id_str,
                 "html_file_path": file_path,
                 "s3_key": s3_key,
                 "theme": theme,
-                "preview_url": storage_service.get_public_url(s3_key or file_path)
+                "preview_url": storage_service.get_website_url(website_id_str),
+                "html_url": storage_service.get_website_url(website_id_str)
             }
             db.commit()
 
-            logger.info(f"Job {job_id} completed successfully. Website ID: {website.id}")
+            logger.info(f"✅ Job {job_id} completed successfully. Website ID: {website_id_str}")
+            logger.info(f"🌐 Website URL: {storage_service.get_website_url(website_id_str)}")
 
             return job.result_data
 
@@ -228,7 +237,7 @@ def regenerate_website_task(website_id: str, theme: str = None) -> Dict[str, Any
         # Use new theme or existing
         new_theme = theme or website.theme
 
-        # Generate new website
+        # Generate new website using new storage system
         generation_service = GenerationService(db)
         storage_service = StorageService()
 
@@ -239,10 +248,10 @@ def regenerate_website_task(website_id: str, theme: str = None) -> Dict[str, Any
             business_data=business_data
         )
 
-        file_path, s3_key = storage_service.save_html(
-            html=html,
-            business_name=business_data["business_name"],
-            theme=new_theme
+        website_id_str = uuid_to_string(website.id)
+        file_path, s3_key = storage_service.save_website_files(
+            website_id=website_id_str,
+            html=html
         )
 
         # Update website record
@@ -252,13 +261,14 @@ def regenerate_website_task(website_id: str, theme: str = None) -> Dict[str, Any
         website.updated_at = datetime.utcnow()
         db.commit()
 
-        logger.info(f"Website {website_id} regenerated successfully")
+        logger.info(f"✅ Website {website_id_str} regenerated successfully")
 
         return {
-            "website_id": str(website.id),
+            "website_id": website_id_str,
             "html_file_path": file_path,
             "s3_key": s3_key,
             "theme": new_theme,
-            "preview_url": storage_service.get_public_url(s3_key or file_path)
+            "preview_url": storage_service.get_website_url(website_id_str),
+            "html_url": storage_service.get_website_url(website_id_str)
         }
 

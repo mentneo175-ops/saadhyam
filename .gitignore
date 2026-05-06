@@ -118,3 +118,5 @@ Thumbs.db
 
 # HuggingFace cache
 huggingface_cache/
+
+output/images/

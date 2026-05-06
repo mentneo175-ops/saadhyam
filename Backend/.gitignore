@@ -225,3 +225,4 @@ dist/
 .coverage
 htmlcov/
 
+output/images/

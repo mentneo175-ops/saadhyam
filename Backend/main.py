@@ -9,8 +9,28 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from dotenv import load_dotenv
+
+# Load environment variables first
+load_dotenv()
+
 from config.database import init_db, close_db
 from migrations.add_name_column import migrate_add_name_column
+
+# Initialize Firebase Service
+try:
+    from services.firebase_service import firebase_service
+    firebase_initialized = firebase_service.is_firebase_available()
+    if firebase_initialized:
+        logging.info("✅ Firebase service initialized successfully")
+    else:
+        logging.error("❌ Firebase service failed to initialize")
+        logging.error("❌ Google OAuth authentication will NOT work")
+        logging.error("❌ Please check Firebase configuration in FIREBASE_SETUP.md")
+except Exception as e:
+    logging.error(f"❌ Failed to initialize Firebase service: {e}")
+    logging.error("❌ Google OAuth authentication will NOT work")
+    firebase_initialized = False
 
 # Import routers - only include those that are working
 try:
@@ -149,6 +169,19 @@ async def lifespan(app: FastAPI):
     # Startup
     logger.info("=" * 60)
     logger.info("🚀 Starting Saadhyam AI Backend")
+    logger.info("=" * 60)
+    
+    # Check Firebase status
+    logger.info("🔥 Firebase Authentication Status:")
+    if firebase_initialized:
+        logger.info("   ✅ Firebase Admin SDK: INITIALIZED")
+        logger.info("   ✅ Google OAuth: AVAILABLE")
+        logger.info("   ✅ Real Firebase tokens: ACCEPTED")
+        logger.info("   ❌ Mock/Demo tokens: REJECTED")
+    else:
+        logger.error("   ❌ Firebase Admin SDK: NOT INITIALIZED")
+        logger.error("   ❌ Google OAuth: NOT AVAILABLE")
+        logger.error("   ❌ Please check FIREBASE_SETUP.md for configuration")
     logger.info("=" * 60)
     
     try:

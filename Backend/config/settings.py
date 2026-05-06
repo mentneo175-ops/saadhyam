@@ -73,6 +73,10 @@ class Settings(BaseSettings):
     HUGGINGFACE_TOKEN: str = ""
     HF_TOKEN: str = ""
 
+    # Firebase Configuration (Optional - for Google OAuth)
+    GOOGLE_APPLICATION_CREDENTIALS: str = ""
+    FIREBASE_PROJECT_ID: str = ""
+
     @field_validator("CORS_ORIGINS", mode="before")
     @classmethod
     def parse_cors_origins(cls, v):

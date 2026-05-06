@@ -56,7 +56,11 @@ async def upload_and_post(
         accounts = instagram_crud.get_user_social_accounts(db, current_user.id)
         instagram_accounts = [acc for acc in accounts if acc.platform == "instagram"]
         
+        logger.info(f"🔍 Instagram posting attempt by User ID: {current_user.id} ({current_user.email})")
+        logger.info(f"🔍 Found {len(instagram_accounts)} Instagram accounts for this user")
+        
         if not instagram_accounts:
+            logger.warning(f"❌ User {current_user.id} ({current_user.email}) has no Instagram account connected")
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="No Instagram account connected. Please connect your Instagram account first."
@@ -64,6 +68,7 @@ async def upload_and_post(
         
         # Use the first Instagram account
         account = instagram_accounts[0]
+        logger.info(f"📱 Using Instagram account: @{account.ig_username} (IG User ID: {account.ig_user_id})")
         
         # Validate image file
         if not image.content_type or not image.content_type.startswith("image/"):

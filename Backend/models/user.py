@@ -12,7 +12,15 @@ class User(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String(255), unique=True, index=True, nullable=False)
-    hashed_password = Column(String(255), nullable=False)
+    
+    # Firebase Authentication Fields
+    firebase_uid = Column(String(255), unique=True, index=True, nullable=True)
+    auth_provider = Column(String(50), default="email", nullable=False)  # 'email', 'google', or 'both'
+    profile_picture = Column(String(500), nullable=True)
+    
+    # Legacy password field (nullable for Firebase users)
+    hashed_password = Column(String(255), nullable=True)
+    
     name = Column(String(255), nullable=True)  # User's full name
     
     # Business Profile Fields
@@ -36,4 +44,4 @@ class User(Base):
     )
 
     def __repr__(self):
-        return f"<User(id={self.id}, email='{self.email}', name='{self.name}', business='{self.business_name}')>"
+        return f"<User(id={self.id}, email='{self.email}', name='{self.name}', business='{self.business_name}', provider='{self.auth_provider}')>"

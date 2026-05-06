@@ -55,6 +55,9 @@ function ContentStudio() {
   const [generatedImageUrl, setGeneratedImageUrl] = useState("");
   const [imageLoading, setImageLoading] = useState(false);
   const [promptGenerating, setPromptGenerating] = useState(false);
+  
+  // Instagram posting states
+  const [instagramLoading, setInstagramLoading] = useState(false);
 
   const handleGenerate = async () => {
     if (!prompt.trim()) {
@@ -235,6 +238,143 @@ function ContentStudio() {
     }
   };
 
+  const handlePostToInstagram = async (type: 'image' | 'both') => {
+    if (instagramLoading) return;
+
+    try {
+      setInstagramLoading(true);
+
+      // Check Instagram connection first
+      try {
+        const status = await apiClient.getInstagramStatus();
+        if (!status.is_connected) {
+          toast.error("Instagram not connected. Please connect your Instagram account in Settings first.", {
+            action: {
+              label: "Go to Settings",
+              onClick: () => window.location.href = "/dashboard/settings"
+            }
+          });
+          return;
+        }
+      } catch (error) {
+        toast.error("Unable to check Instagram connection. Please try again.");
+        return;
+      }
+
+      // Must have generated image for Instagram posting
+      if (!generatedImageUrl) {
+        toast.error("No image to post. Please generate an image first.");
+        return;
+      }
+
+      let caption = "";
+      if (type === 'both' && output) {
+        caption = output;
+      }
+
+      // Convert image URL to File (same as Instagram dashboard)
+      let imageFile: File;
+      try {
+        console.log("🖼️ Converting image URL to File:", generatedImageUrl);
+        const response = await fetch(generatedImageUrl);
+        if (!response.ok) throw new Error("Failed to fetch image");
+        
+        const blob = await response.blob();
+        imageFile = new File([blob], `saadhyam-content-${Date.now()}.png`, { 
+          type: blob.type || 'image/png' 
+        });
+        console.log("✅ Image converted to File:", imageFile.name, imageFile.size, "bytes");
+      } catch (error) {
+        console.error("❌ Error converting image to file:", error);
+        toast.error("Failed to prepare image for posting");
+        return;
+      }
+
+      // Post to Instagram using the same method as Instagram dashboard
+      console.log("🚀 Posting to Instagram...");
+      console.log(`📝 Caption: ${caption}`);
+      console.log(`🖼️ Image: ${imageFile.name} (${imageFile.size} bytes)`);
+
+      const formData = new FormData();
+      formData.append("image", imageFile);
+      formData.append("caption", caption);
+
+      const response = await fetch("http://localhost:8000/instagram/upload-and-post", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("saadhyam_token")}`,
+        },
+        body: formData,
+      });
+
+      console.log(`📥 Response status: ${response.status}`);
+      
+      const data = await response.json();
+      console.log("📥 Response data:", data);
+
+      if (response.ok) {
+        console.log("✅ Post successful, showing success toast");
+        
+        // Always show a basic success message first (same as Instagram dashboard)
+        toast.success("🎉 Posted to Instagram successfully!", {
+          duration: 4000,
+        });
+        
+        // Then show detailed message if available
+        if (data && data.message) {
+          setTimeout(() => {
+            toast.success(data.message, {
+              duration: 6000,
+              description: data.details ? 
+                `Posted to ${data.details.account} • ${data.details.posted_at}` : 
+                data.post?.instagram_post_id ? 
+                  `Post ID: ${data.post.instagram_post_id}` : 
+                  "Your post is now live on Instagram!"
+            });
+          }, 500);
+        }
+        
+        console.log("Post successful:", data);
+        
+        // Show Instagram URL if available
+        if (data.post?.instagram_url) {
+          console.log("📱 Showing Instagram link toast");
+          setTimeout(() => {
+            toast.info("View your post on Instagram", {
+              duration: 8000,
+              description: "Click to open Instagram",
+              action: {
+                label: "Open Instagram",
+                onClick: () => window.open(data.post.instagram_url, '_blank')
+              }
+            });
+          }, 2000);
+        }
+
+        // Clear the generated content after successful post
+        setTimeout(() => {
+          setOutput("");
+          setGeneratedImageUrl("");
+          setImagePrompt("");
+          setNote("");
+          setIsAIGenerated(false);
+        }, 3000);
+
+      } else {
+        console.log("❌ Post failed, showing error toast");
+        const errorMessage = data.detail || data.message || "Failed to post to Instagram";
+        toast.error(errorMessage);
+        console.error("Post failed:", data);
+      }
+
+    } catch (error: any) {
+      console.error("❌ Network error during post:", error);
+      toast.error("Network error: Failed to post to Instagram");
+    } finally {
+      setInstagramLoading(false);
+    }
+  };
+
   return (
     <div className="p-4 md:p-6 lg:p-8">
       <PageHeader
@@ -348,7 +488,12 @@ function ContentStudio() {
 
           {/* Image Generation Section */}
           <div className="pt-5 border-t border-border/40">
-            <p className="text-sm font-semibold mb-3">Generate Image from Prompt</p>
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-sm font-semibold">Generate Image from Prompt</p>
+              <span className="text-xs text-muted-foreground bg-blue-50 dark:bg-blue-950/20 px-2 py-1 rounded-full">
+                Required for Instagram
+              </span>
+            </div>
             
             <div className="space-y-3">
               <div>
@@ -496,6 +641,23 @@ function ContentStudio() {
                   >
                     <RefreshCcw size={13} /> Regenerate
                   </Button>
+                  <Button
+                    variant="hero"
+                    size="sm"
+                    className="flex-1"
+                    disabled={instagramLoading}
+                    onClick={() => handlePostToInstagram('image')}
+                  >
+                    {instagramLoading ? (
+                      <>
+                        <Loader2 size={13} className="animate-spin" /> Posting...
+                      </>
+                    ) : (
+                      <>
+                        <Instagram size={13} /> Post to Instagram
+                      </>
+                    )}
+                  </Button>
                 </div>
               </div>
             ) : output ? (
@@ -515,7 +677,7 @@ function ContentStudio() {
                   Your generated content will appear here...
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  Generate content or image to see results
+                  Generate content and image to post to Instagram
                 </p>
               </div>
             )}
@@ -542,8 +704,8 @@ function ContentStudio() {
               >
                 <RefreshCcw size={13} /> Regenerate
               </Button>
-              <Button variant="hero" size="sm" className="flex-1" disabled={!output}>
-                Use it →
+              <Button variant="outline" size="sm" className="flex-1" disabled>
+                <Instagram size={13} /> Need Image to Post
               </Button>
             </div>
           )}
@@ -564,8 +726,22 @@ function ContentStudio() {
                 >
                   <Copy size={13} /> Copy Text
                 </Button>
-                <Button variant="hero" size="sm" className="flex-1">
-                  Use Both →
+                <Button 
+                  variant="hero" 
+                  size="sm" 
+                  className="flex-1"
+                  disabled={instagramLoading}
+                  onClick={() => handlePostToInstagram('both')}
+                >
+                  {instagramLoading ? (
+                    <>
+                      <Loader2 size={13} className="animate-spin" /> Posting...
+                    </>
+                  ) : (
+                    <>
+                      <Instagram size={13} /> Post Both to Instagram
+                    </>
+                  )}
                 </Button>
               </div>
             </div>

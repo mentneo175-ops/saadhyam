@@ -1,10 +1,12 @@
 /**
- * useAuth Hook - Manages authentication state and operations
- * Provides login, register, logout, and user state
+ * useAuth Hook - Manages both Firebase Google OAuth and email/password authentication
+ * Provides Google sign-in, email login/register, logout, and user state
  */
 
 import { useState, useCallback, useEffect } from "react";
-import { apiClient, User, LoginRequest, RegisterRequest, ApiError } from "@/lib/api";
+import { apiClient, User, ApiError } from "@/lib/api";
+import { signInWithGoogle, signOutFromFirebase, auth } from "@/lib/firebase";
+import { onAuthStateChanged } from "firebase/auth";
 
 interface UseAuthReturn {
   user: User | null;
@@ -12,8 +14,9 @@ interface UseAuthReturn {
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
-  login: (credentials: LoginRequest) => Promise<void>;
-  register: (credentials: RegisterRequest) => Promise<void>;
+  loginWithGoogle: () => Promise<void>;
+  loginWithEmail: (email: string, password: string) => Promise<void>;
+  registerWithEmail: (email: string, password: string, name?: string) => Promise<void>;
   logout: () => Promise<void>;
   clearError: () => void;
 }
@@ -35,13 +38,58 @@ export function useAuth(): UseAuthReturn {
       setUser(storedUser);
       setToken(storedToken);
     }
-  }, []);
 
-  const login = useCallback(async (credentials: LoginRequest) => {
+    // Listen to Firebase auth state changes
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      if (!firebaseUser && user) {
+        // Firebase user signed out, clear local state
+        setUser(null);
+        setToken(null);
+        apiClient.clearAuth();
+      }
+    });
+
+    return () => unsubscribe();
+  }, [user]);
+
+  const loginWithGoogle = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const { user: newUser, token: newToken } = await apiClient.login(credentials);
+      // Check if Firebase is configured
+      if (!auth) {
+        throw new Error('Firebase not configured. Please set up your Firebase environment variables in Frontend/.env');
+      }
+
+      // Sign in with Google via Firebase
+      const { idToken } = await signInWithGoogle();
+      
+      // Send Firebase token to backend
+      const { user: newUser, token: newToken } = await apiClient.googleAuth(idToken);
+      
+      setUser(newUser);
+      setToken(newToken);
+    } catch (err) {
+      const message =
+        err instanceof ApiError
+          ? err.data?.detail || "Google sign-in failed"
+          : err instanceof Error
+            ? err.message
+            : "Google sign-in failed";
+      setError(message);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const loginWithEmail = useCallback(async (email: string, password: string) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      // Login with email/password via backend
+      const { user: newUser, token: newToken } = await apiClient.login(email, password);
+      
       setUser(newUser);
       setToken(newToken);
     } catch (err) {
@@ -58,11 +106,13 @@ export function useAuth(): UseAuthReturn {
     }
   }, []);
 
-  const register = useCallback(async (credentials: RegisterRequest) => {
+  const registerWithEmail = useCallback(async (email: string, password: string, name?: string) => {
     setIsLoading(true);
     setError(null);
     try {
-      const { user: newUser, token: newToken } = await apiClient.register(credentials);
+      // Register with email/password via backend
+      const { user: newUser, token: newToken } = await apiClient.register(email, password, name);
+      
       setUser(newUser);
       setToken(newToken);
     } catch (err) {
@@ -83,7 +133,14 @@ export function useAuth(): UseAuthReturn {
     setIsLoading(true);
     setError(null);
     try {
+      // Sign out from Firebase if configured and user used Google auth
+      if (auth && user?.auth_provider === 'google') {
+        await signOutFromFirebase();
+      }
+      
+      // Clear backend session
       await apiClient.logout();
+      
       setUser(null);
       setToken(null);
     } catch (err) {
@@ -93,7 +150,7 @@ export function useAuth(): UseAuthReturn {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [user]);
 
   return {
     user,
@@ -101,8 +158,9 @@ export function useAuth(): UseAuthReturn {
     isAuthenticated: !!token && !!user,
     isLoading,
     error,
-    login,
-    register,
+    loginWithGoogle,
+    loginWithEmail,
+    registerWithEmail,
     logout,
     clearError,
   };

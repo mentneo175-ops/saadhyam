@@ -4,10 +4,12 @@ from config.database import get_sync_db
 from models.user import User
 from schemas.user_schema import UserRegister, UserLogin, TokenResponse, UserResponse
 from services.auth_service_sync import register_user, authenticate_user
+from services.firebase_service import firebase_service
 from services.redis_service import blacklist_token
 from utils.security import create_access_token
 from utils.dependencies import get_current_user
 from config.settings import settings
+from pydantic import BaseModel
 import logging
 
 logger = logging.getLogger(__name__)
@@ -15,11 +17,137 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/auth", tags=["authentication"])
 
 
+class GoogleAuthRequest(BaseModel):
+    """Request model for Google authentication"""
+    id_token: str
+
+
+@router.post(
+    "/google",
+    response_model=TokenResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Authenticate with Google",
+    responses={
+        200: {"description": "Authentication successful"},
+        400: {"description": "Invalid token or missing data"},
+        401: {"description": "Authentication failed"},
+        500: {"description": "Internal server error"},
+        503: {"description": "Google authentication not configured"},
+    },
+)
+async def google_auth(
+    auth_request: GoogleAuthRequest,
+    db: Session = Depends(get_sync_db),
+) -> TokenResponse:
+    """
+    Authenticate user with Google Firebase token - PRODUCTION ONLY.
+    
+    - **id_token**: REAL Firebase ID token from Google authentication
+    
+    Creates user automatically if not exists.
+    Returns JWT access token for backend authentication.
+    NO MOCK/DEMO TOKENS ACCEPTED.
+    """
+    try:
+        # Check if Firebase is available FIRST
+        if not firebase_service.is_firebase_available():
+            logger.error("❌ CRITICAL: Firebase authentication not available")
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Google authentication is not configured. Please contact support."
+            )
+        
+        # Verify REAL Firebase token ONLY - NO MOCK TOKENS
+        logger.info(f"🔍 Processing Google OAuth with REAL Firebase token")
+        user_info = await firebase_service.verify_id_token(auth_request.id_token)
+        
+        # Check if user exists by Firebase UID
+        user = db.query(User).filter(User.firebase_uid == user_info['firebase_uid']).first()
+        
+        logger.info(f"🔍 Looking for existing Firebase user with UID: {user_info['firebase_uid']}")
+        logger.info(f"🔍 Firebase user found: {user is not None}")
+        
+        if not user:
+            # Check if user exists by email (for migration from email auth)
+            user = db.query(User).filter(User.email == user_info['email']).first()
+            
+            logger.info(f"🔍 Looking for existing email user: {user_info['email']}")
+            logger.info(f"🔍 Email user found: {user is not None}")
+            
+            if user:
+                logger.info(f"📋 FOUND EXISTING USER - Email: {user.email}")
+                logger.info(f"📋 Current setup status: {user.business_setup_completed}")
+                logger.info(f"📋 Current provider: {user.auth_provider}")
+                
+                # Update existing user with Firebase info (MERGE ACCOUNTS)
+                logger.info(f"🔗 Merging existing email account with Google OAuth: {user.email}")
+                
+                # Update with Firebase info but PRESERVE business setup
+                user.firebase_uid = user_info['firebase_uid']
+                user.auth_provider = 'both'  # User can now login with both methods
+                user.profile_picture = user_info.get('picture')
+                if user_info.get('name') and not user.name:
+                    user.name = user_info['name']
+                
+                # DO NOT CHANGE business_setup_completed - keep existing value
+                logger.info(f"✅ Account merged. Business setup PRESERVED: {user.business_setup_completed}")
+            else:
+                # Create new user with REAL Firebase data
+                logger.info(f"👤 Creating new Firebase user: {user_info['email']}")
+                user = User(
+                    email=user_info['email'],
+                    firebase_uid=user_info['firebase_uid'],
+                    auth_provider='google',
+                    name=user_info.get('name'),
+                    profile_picture=user_info.get('picture'),
+                    hashed_password=None  # No password for Firebase users
+                )
+                db.add(user)
+                logger.info(f"✅ New Firebase user created: {user.email}")
+        else:
+            # Update existing Firebase user info
+            logger.info(f"🔄 Updating existing Firebase user: {user.email}")
+            if user_info.get('picture'):
+                user.profile_picture = user_info['picture']
+            if user_info.get('name') and not user.name:
+                user.name = user_info['name']
+            logger.info(f"✅ Firebase user updated: {user.email}")
+        
+        db.commit()
+        db.refresh(user)
+        
+        # Create backend JWT token
+        access_token = create_access_token(user.id, user.email)
+        
+        logger.info(f"🎉 REAL Google authentication successful for user: {user.email}")
+        logger.info(f"👤 User ID: {user.id}")
+        logger.info(f"🔑 Firebase UID: {user.firebase_uid}")
+        
+        return TokenResponse(
+            access_token=access_token,
+            token_type="bearer",
+            id=user.id,
+            email=user.email,
+            name=user.name,
+            created_at=user.created_at,
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Unexpected error in Google auth endpoint: {e}")
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Authentication failed",
+        )
+
+
 @router.post(
     "/register",
     response_model=TokenResponse,
     status_code=status.HTTP_201_CREATED,
-    summary="Register a new user",
+    summary="Register a new user with email/password",
     responses={
         201: {"description": "User registered successfully"},
         400: {"description": "Email already registered"},
@@ -31,17 +159,23 @@ def register(
     db: Session = Depends(get_sync_db),
 ) -> TokenResponse:
     """
-    Register a new user.
-
-    - **email**: User email address (must be unique)
-    - **password**: User password (minimum 6 characters)
-
-    Returns access token for immediate login.
+    Register a new user with email and password.
+    
+    - **email**: Valid email address
+    - **password**: Password (minimum 6 characters)
+    - **name**: Optional full name
+    
+    Returns JWT access token for backend authentication.
     """
     try:
+        # Register user using auth service
         user = register_user(db, user_data)
+        
+        # Create access token
         access_token = create_access_token(user.id, user.email)
-
+        
+        logger.info(f"User registered successfully: {user.email}")
+        
         return TokenResponse(
             access_token=access_token,
             token_type="bearer",
@@ -50,6 +184,7 @@ def register(
             name=user.name,
             created_at=user.created_at,
         )
+        
     except HTTPException:
         raise
     except Exception as e:
@@ -63,7 +198,7 @@ def register(
 @router.post(
     "/login",
     response_model=TokenResponse,
-    summary="Login user",
+    summary="Login user with email/password",
     responses={
         200: {"description": "Login successful"},
         401: {"description": "Invalid credentials"},
@@ -75,17 +210,22 @@ def login(
     db: Session = Depends(get_sync_db),
 ) -> TokenResponse:
     """
-    Authenticate user and return access token.
-
+    Authenticate user with email and password.
+    
     - **email**: User email address
     - **password**: User password
-
-    Returns JWT access token valid for 1 hour.
+    
+    Returns JWT access token for backend authentication.
     """
     try:
+        # Authenticate user using auth service
         user = authenticate_user(db, credentials.email, credentials.password)
+        
+        # Create access token
         access_token = create_access_token(user.id, user.email)
-
+        
+        logger.info(f"User logged in successfully: {user.email}")
+        
         return TokenResponse(
             access_token=access_token,
             token_type="bearer",
@@ -94,6 +234,7 @@ def login(
             name=user.name,
             created_at=user.created_at,
         )
+        
     except HTTPException:
         raise
     except Exception as e:
@@ -169,6 +310,7 @@ async def refresh_token(
             token_type="bearer",
             id=current_user.id,
             email=current_user.email,
+            name=current_user.name,
             created_at=current_user.created_at,
         )
     except HTTPException:

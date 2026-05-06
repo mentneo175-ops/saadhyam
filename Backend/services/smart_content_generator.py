@@ -9,6 +9,10 @@ import json
 import re
 from typing import Dict, Any
 from groq import Groq
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 logger = logging.getLogger(__name__)
 
@@ -43,10 +47,17 @@ def generate_smart_content(
     """
     try:
         api_key = os.getenv("GROQ_API_KEY")
+        logger.info(f"🔑 GROQ_API_KEY status: {'SET' if api_key else 'NOT SET'}")
+        if api_key:
+            logger.info(f"🔑 API key length: {len(api_key)} characters")
+            logger.info(f"🔑 API key starts with: {api_key[:10]}...")
+        print(f"DEBUG: GROQ_API_KEY = {api_key}")
+        
         if not api_key:
             logger.warning("⚠️ GROQ_API_KEY not set, using fallback")
             return _fallback_content(user_input, business_type, platform, goal, tone, language)
         
+        logger.info("🚀 Attempting GROQ API call...")
         client = Groq(api_key=api_key)
         
         # Extract context from user input
@@ -56,6 +67,8 @@ def generate_smart_content(
         system_prompt = """You are an expert marketing copywriter for small businesses in India.
 
 Your job is to generate HIGH-CONVERTING social media content based on user input.
+
+CRITICAL: You MUST return ONLY valid JSON. No explanations, no markdown, no extra text.
 
 STRICT RULES:
 1. Understand the business type and event (festival, offer, etc.)
@@ -71,8 +84,7 @@ STRICT RULES:
 7. Keep it short and impactful
 8. For Indian context: Use festival relevance (Diwali, Holi, etc.) and local tone
 
-OUTPUT FORMAT:
-Return ONLY valid JSON in this exact structure:
+OUTPUT FORMAT - RETURN ONLY THIS JSON STRUCTURE:
 {
   "headline": "Short catchy headline (3-6 words)",
   "caption": "Main content (2-3 sentences, specific and engaging)",
@@ -83,8 +95,7 @@ Return ONLY valid JSON in this exact structure:
 
 EXAMPLES:
 
-Input: "bike showroom Diwali offer"
-Output:
+For "bike showroom Diwali offer":
 {
   "headline": "Diwali Bike Bonanza 🪔",
   "caption": "This Diwali, ride home your dream bike with exclusive festive offers! Limited-time deals available now.",
@@ -93,8 +104,7 @@ Output:
   "hashtags": ["#DiwaliOffer", "#BikeSale", "#ShowroomDeals", "#FestiveOffers"]
 }
 
-Input: "salon hair treatment discount"
-Output:
+For "salon hair treatment discount":
 {
   "headline": "Hair Transformation Sale",
   "caption": "Get salon-quality hair treatments at unbeatable prices. Book your appointment and experience the difference.",
@@ -103,17 +113,7 @@ Output:
   "hashtags": ["#SalonDeals", "#HairTreatment", "#BeautyOffer", "#SalonLife"]
 }
 
-Input: "restaurant new menu launch"
-Output:
-{
-  "headline": "New Menu Alert 🍽️",
-  "caption": "Discover our chef's latest creations! Fresh flavors, authentic recipes, and dishes you'll love. Come taste the difference.",
-  "subtext": "Available for dine-in and takeaway",
-  "cta": "Order now",
-  "hashtags": ["#NewMenu", "#FoodLovers", "#RestaurantLife", "#FreshFlavors"]
-}
-
-Remember: Be SPECIFIC, not generic. Use real business language."""
+REMEMBER: Return ONLY the JSON object. No other text."""
 
         # Build user message with context
         user_message = f"""User input: "{user_input}"
@@ -124,9 +124,13 @@ Context:
 - Event/Festival: {context['event']}
 - Intent: {context['intent']}
 - Language: {language}
+- Tone: {tone}
 
-Generate the JSON response with headline, caption, subtext, cta, and hashtags.
-Make it SPECIFIC to this business and event. Avoid generic phrases."""
+Generate content in {language} language with {tone} tone.
+Return ONLY the JSON response with headline, caption, subtext, cta, and hashtags.
+Make it SPECIFIC to this business and event. Avoid generic phrases.
+
+If language is not English, translate the content appropriately while keeping hashtags in English for better reach."""
 
         logger.info(f"🤖 Generating smart content with Groq API")
         logger.info(f"   Context: {context}")
@@ -134,7 +138,7 @@ Make it SPECIFIC to this business and event. Avoid generic phrases."""
         # Call Groq API
         try:
             response = client.chat.completions.create(
-                model="llama-3.1-70b-versatile",
+                model="llama-3.1-8b-instant",
                 messages=[
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_message}
@@ -146,7 +150,7 @@ Make it SPECIFIC to this business and event. Avoid generic phrases."""
         except Exception as e:
             logger.warning(f"⚠️ Primary model failed: {e}, trying fallback model")
             response = client.chat.completions.create(
-                model="llama-3.1-8b-instant",
+                model="llama3-8b-8192",
                 messages=[
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_message}
@@ -158,15 +162,37 @@ Make it SPECIFIC to this business and event. Avoid generic phrases."""
         
         # Parse response
         content = response.choices[0].message.content.strip()
+        logger.info(f"🤖 Raw API response: {content[:200]}...")
         
-        # Extract JSON
+        # Extract JSON - improved extraction
+        json_content = content
+        
+        # Try to find JSON in code blocks
         if "```json" in content:
-            content = content.split("```json")[1].split("```")[0].strip()
+            json_content = content.split("```json")[1].split("```")[0].strip()
         elif "```" in content:
-            content = content.split("```")[1].split("```")[0].strip()
+            json_content = content.split("```")[1].split("```")[0].strip()
+        
+        # Try to find JSON object in the text
+        if not json_content.startswith("{"):
+            # Look for the first { and last }
+            start = content.find("{")
+            end = content.rfind("}") + 1
+            if start != -1 and end > start:
+                json_content = content[start:end]
+        
+        logger.info(f"🔍 Extracted JSON: {json_content[:200]}...")
         
         # Parse JSON
-        result = json.loads(content)
+        try:
+            result = json.loads(json_content)
+        except json.JSONDecodeError as e:
+            logger.error(f"❌ JSON parsing failed, trying to clean content: {e}")
+            # Try to clean the content
+            json_content = json_content.replace('\n', ' ').replace('\r', ' ')
+            # Remove any extra whitespace
+            json_content = ' '.join(json_content.split())
+            result = json.loads(json_content)
         
         # Validate required fields
         required_fields = ["headline", "caption", "subtext", "cta", "hashtags"]
@@ -253,31 +279,39 @@ def _extract_context(user_input: str, business_type: str, platform: str, goal: s
 def _validate_quality(result: Dict[str, Any], context: Dict[str, str]) -> bool:
     """Validate content quality"""
     
-    # Check for generic phrases
-    generic_phrases = ["amazing", "wonderful", "great", "awesome", "fantastic"]
+    # Check for generic phrases (less strict)
+    generic_phrases = ["amazing", "wonderful", "awesome", "fantastic"]
     caption_lower = result["caption"].lower()
     
+    generic_count = 0
     for phrase in generic_phrases:
         if phrase in caption_lower:
-            logger.warning(f"⚠️ Generic phrase detected: {phrase}")
-            return False
+            generic_count += 1
     
-    # Check if business type is mentioned (if specific)
+    # Allow up to 1 generic phrase
+    if generic_count > 1:
+        logger.warning(f"⚠️ Too many generic phrases detected: {generic_count}")
+        return False
+    
+    # Check if business type is mentioned (if specific) - more flexible
     if context["business_type"] != "Business":
         business_lower = context["business_type"].lower()
-        # At least one of caption, headline, or subtext should reference the business
         combined = (result["headline"] + " " + result["caption"] + " " + result["subtext"]).lower()
-        # Check for business-related keywords
-        if not any(word in combined for word in business_lower.split()):
-            logger.warning(f"⚠️ Business type not referenced")
+        
+        # Check for business-related keywords or general business terms
+        business_keywords = business_lower.split() + ["business", "shop", "store", "service", "offer", "deal"]
+        if not any(word in combined for word in business_keywords):
+            logger.warning(f"⚠️ Business context not referenced")
             return False
     
-    # Check if event is mentioned (if present)
+    # Check if event is mentioned (if present) - more flexible
     if context["event"] != "None":
         event_lower = context["event"].lower()
-        combined = (result["headline"] + " " + result["caption"]).lower()
-        if event_lower not in combined:
-            logger.warning(f"⚠️ Event not mentioned: {context['event']}")
+        combined = (result["headline"] + " " + result["caption"] + " " + result["subtext"]).lower()
+        # Also check for festival-related terms
+        event_keywords = [event_lower, "festival", "celebration", "special", "offer"]
+        if not any(keyword in combined for keyword in event_keywords):
+            logger.warning(f"⚠️ Event context not mentioned: {context['event']}")
             return False
     
     # Check for duplicate hashtags
@@ -299,7 +333,7 @@ def _fallback_content(
 ) -> Dict[str, Any]:
     """Generate fallback content using templates"""
     
-    logger.info(f"✅ Using template-based fallback content")
+    logger.info(f"✅ Using template-based fallback content for {language}")
     
     # Extract context
     context = _extract_context(user_input, business_type, platform, goal)
@@ -307,39 +341,103 @@ def _fallback_content(
     event = context["event"]
     intent = context["intent"]
     
-    # Generate headline
-    if event != "None":
-        headline = f"{event} Special Offers"
-    elif intent == "promotion":
-        headline = f"{business} Deals"
-    else:
-        headline = f"Visit {business}"
+    # Language-specific content
+    if language.lower() == "hindi":
+        # Generate headline
+        if event != "None":
+            headline = f"{event} विशेष ऑफर"
+        elif intent == "promotion":
+            headline = f"{business} डील्स"
+        else:
+            headline = f"{business} में आएं"
+        
+        # Generate caption
+        if event != "None":
+            caption = f"{event} के इस खुशी के मौके पर {business} में विशेष छूट पाएं। सीमित समय के लिए बेहतरीन डील्स!"
+        elif intent == "promotion":
+            caption = f"{business} में अब विशेष छूट उपलब्ध है। गुणवत्तापूर्ण उत्पादों और सेवाओं पर बेहतरीन डील्स पाएं।"
+        else:
+            caption = f"{business} में प्रीमियम गुणवत्ता का अनुभव करें। उत्कृष्टता के लिए आपका भरोसेमंद विकल्प।"
+        
+        # Generate subtext
+        if event != "None":
+            subtext = "त्योहारी ऑफर सीमित समय के लिए"
+        elif intent == "promotion":
+            subtext = "जल्दी करें, स्टॉक सीमित है"
+        else:
+            subtext = "गुणवत्ता पर भरोसा करें"
+        
+        # Generate CTA
+        if intent == "promotion":
+            cta = "अभी खरीदें"
+        else:
+            cta = "आज ही आएं"
+            
+    elif language.lower() == "telugu":
+        # Generate headline
+        if event != "None":
+            headline = f"{event} స్పెషల్ ఆఫర్స్"
+        elif intent == "promotion":
+            headline = f"{business} డీల్స్"
+        else:
+            headline = f"{business} రండి"
+        
+        # Generate caption
+        if event != "None":
+            caption = f"{event} సందర్భంగా {business} లో ప్రత్యేక ఆఫర్లు. పరిమిత కాలం డీల్స్ మిస్ చేయకండి!"
+        elif intent == "promotion":
+            caption = f"{business} లో ఇప్పుడు ప్రత్యేక డిస్కౌంట్లు అందుబాటులో. నాణ్యమైన ఉత్పత్తులు మరియు సేవలపై అత్యుత్తమ డీల్స్."
+        else:
+            caption = f"{business} లో ప్రీమియం నాణ్యతను అనుభవించండి. అత్యుత్తమత్వం కోసం మీ నమ్మకమైన ఎంపిక."
+        
+        # Generate subtext
+        if event != "None":
+            subtext = "పండుగ ఆఫర్లు పరిమిత కాలం వరకు"
+        elif intent == "promotion":
+            subtext = "త్వరపడండి, స్టాక్ పరిమితం"
+        else:
+            subtext = "నాణ్యతపై నమ్మకం"
+        
+        # Generate CTA
+        if intent == "promotion":
+            cta = "ఇప్పుడే కొనండి"
+        else:
+            cta = "ఈరోజే రండి"
     
-    # Generate caption
-    if event != "None":
-        caption = f"Celebrate {event} with exclusive offers at {business}. Limited time deals you don't want to miss!"
-    elif intent == "promotion":
-        caption = f"Special discounts now available at {business}. Get the best deals on quality products and services."
-    else:
-        caption = f"Experience premium quality at {business}. Your trusted choice for excellence."
+    else:  # English (default)
+        # Generate headline
+        if event != "None":
+            headline = f"{event} Special Offers"
+        elif intent == "promotion":
+            headline = f"{business} Deals"
+        else:
+            headline = f"Visit {business}"
+        
+        # Generate caption
+        if event != "None":
+            caption = f"Celebrate {event} with exclusive offers at {business}. Limited time deals you don't want to miss!"
+        elif intent == "promotion":
+            caption = f"Special discounts now available at {business}. Get the best deals on quality products and services."
+        else:
+            caption = f"Experience premium quality at {business}. Your trusted choice for excellence."
+        
+        # Generate subtext
+        if event != "None":
+            subtext = f"Festive offers valid for limited time"
+        elif intent == "promotion":
+            subtext = "Hurry, while stocks last"
+        else:
+            subtext = "Quality you can trust"
+        
+        # Generate CTA
+        if intent == "promotion":
+            cta = "Shop now"
+        elif platform == "instagram":
+            cta = "Visit us today"
+        else:
+            cta = "Learn more"
     
-    # Generate subtext
-    if event != "None":
-        subtext = f"Festive offers valid for limited time"
-    elif intent == "promotion":
-        subtext = "Hurry, while stocks last"
-    else:
-        subtext = "Quality you can trust"
-    
-    # Generate CTA
-    if intent == "promotion":
-        cta = "Shop now"
-    elif platform == "instagram":
-        cta = "Visit us today"
-    else:
-        cta = "Learn more"
-    
-    # Generate hashtags
+    # Generate hashtags (always in English for better reach)
     hashtags = []
     if event != "None":
         hashtags.append(f"#{event}Offers")

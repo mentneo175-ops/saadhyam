@@ -48,6 +48,7 @@ def register_user(db: Session, user_data: UserRegister) -> User:
             email=user_data.email,
             hashed_password=hashed_password,
             name=user_data.name,
+            auth_provider="email",
         )
 
         db.add(new_user)
@@ -101,7 +102,15 @@ def authenticate_user(db: Session, email: str, password: str) -> User:
                 detail="Invalid email or password",
             )
 
-        # Verify password
+        # Verify password (handle merged accounts)
+        if not user.hashed_password:
+            # User originally signed up with Google OAuth, no password set
+            logger.warning(f"Login attempt with email for Google-only user: {email}")
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="This account was created with Google. Please use Google Sign-In or set a password.",
+            )
+        
         if not verify_password(password, user.hashed_password):
             logger.warning(f"Failed login attempt for user: {email}")
             raise HTTPException(

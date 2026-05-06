@@ -277,17 +277,18 @@ class ApiClient {
   }
 
   /**
-   * Register a new user
+   * Authenticate with Google Firebase token
    */
-  async register(payload: RegisterRequest): Promise<{ user: User; token: string }> {
-    const data = await this.fetchJson("/auth/register", {
+  async googleAuth(idToken: string): Promise<{ user: User; token: string }> {
+    const data = await this.fetchJson("/auth/google", {
       method: "POST",
-      body: JSON.stringify(payload),
+      body: JSON.stringify({ id_token: idToken }),
     });
 
     const user: User = {
       id: data.id,
       email: data.email,
+      name: data.name,
       created_at: data.created_at,
     };
 
@@ -298,17 +299,40 @@ class ApiClient {
   }
 
   /**
-   * Login user
+   * Register a new user with email/password
    */
-  async login(payload: LoginRequest): Promise<{ user: User; token: string }> {
-    const data = await this.fetchJson("/auth/login", {
+  async register(email: string, password: string, name?: string): Promise<{ user: User; token: string }> {
+    const data = await this.fetchJson("/auth/register", {
       method: "POST",
-      body: JSON.stringify(payload),
+      body: JSON.stringify({ email, password, name }),
     });
 
     const user: User = {
       id: data.id,
       email: data.email,
+      name: data.name,
+      created_at: data.created_at,
+    };
+
+    this.setToken(data.access_token);
+    this.saveUser(user);
+
+    return { user, token: data.access_token };
+  }
+
+  /**
+   * Login user with email/password
+   */
+  async login(email: string, password: string): Promise<{ user: User; token: string }> {
+    const data = await this.fetchJson("/auth/login", {
+      method: "POST",
+      body: JSON.stringify({ email, password }),
+    });
+
+    const user: User = {
+      id: data.id,
+      email: data.email,
+      name: data.name,
       created_at: data.created_at,
     };
 
@@ -519,6 +543,54 @@ class ApiClient {
   async generateReviewReply(reviewText: string, rating: number): Promise<any> {
     return this.post("/ai/generate-review-reply", { review_text: reviewText, rating });
   }
+
+  // ============= INSTAGRAM INTEGRATION =============
+
+  /**
+   * Schedule Instagram post
+   */
+  async scheduleInstagramPost(imageFile: File, caption: string, scheduledTime: string): Promise<any> {
+    const formData = new FormData();
+    formData.append("image", imageFile);
+    formData.append("caption", caption);
+    formData.append("scheduled_time", scheduledTime);
+
+    const response = await fetch(`${this.baseURL}/instagram/schedule-post`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${this.getToken()}`,
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.detail || "Failed to schedule Instagram post");
+    }
+
+    return response.json();
+  }
+
+  /**
+   * Get Instagram posts
+   */
+  async getInstagramPosts(status?: string, limit: number = 20, page: number = 1): Promise<any> {
+    const params = new URLSearchParams();
+    if (status) params.append("status", status);
+    params.append("limit", limit.toString());
+    params.append("page", page.toString());
+
+    return this.get(`/instagram/posts?${params.toString()}`);
+  }
+
+  /**
+   * Check Instagram connection status
+   */
+  async getInstagramStatus(): Promise<any> {
+    return this.get("/settings/instagram/connection-status");
+  }
+
+  // ============= END INSTAGRAM INTEGRATION =============
 
   /**
    * Analyze Business

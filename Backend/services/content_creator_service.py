@@ -61,7 +61,7 @@ def generate_content(data: Dict[str, Any]) -> Dict[str, Any]:
                 "subtext": result["subtext"],
                 "cta": result["cta"],
                 "hashtags": result["hashtags"],
-                "script": result["caption"]  # Use caption as script for backward compatibility
+                "script": result["subtext"] + " " + result["cta"]  # Use subtext + CTA instead of duplicating caption
             }
         }
         
@@ -78,6 +78,6 @@ def generate_content(data: Dict[str, Any]) -> Dict[str, Any]:
                 "subtext": "Quality you can trust",
                 "cta": "Visit us",
                 "hashtags": [f"#{business_type.replace(' ', '')}", f"#{platform}"],
-                "script": f"Discover {business_type} today"
+                "script": "Quality you can trust. Visit us"  # Use subtext + CTA
             }
         }

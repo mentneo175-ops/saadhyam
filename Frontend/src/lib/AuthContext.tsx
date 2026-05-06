@@ -1,12 +1,12 @@
 /**
  * AuthContext - Global authentication state provider
- * Provides authentication state to all components in the app
+ * Provides Firebase Google OAuth authentication state to all components
  */
 
 import { createContext, useContext, ReactNode } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useTokenRefresh } from "@/hooks/useTokenRefresh";
-import { User, LoginRequest, RegisterRequest } from "@/lib/api";
+import { User } from "@/lib/api";
 
 interface AuthContextType {
   user: User | null;
@@ -14,8 +14,9 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
-  login: (credentials: LoginRequest) => Promise<void>;
-  register: (credentials: RegisterRequest) => Promise<void>;
+  loginWithGoogle: () => Promise<void>;
+  loginWithEmail: (email: string, password: string) => Promise<void>;
+  registerWithEmail: (email: string, password: string, name?: string) => Promise<void>;
   logout: () => Promise<void>;
   clearError: () => void;
 }

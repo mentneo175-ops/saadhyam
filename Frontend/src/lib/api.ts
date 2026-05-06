@@ -402,15 +402,84 @@ class ApiClient {
   }
 
   /**
-   * Generate Content
+   * Generate Content (New Content Creator API)
    */
   async generateContent(payload: {
     content_type: string;
     tone: string;
     language: string;
     prompt: string;
+    business_type?: string;
   }): Promise<any> {
-    return this.post("/ai/generate-content", payload);
+    // Map content_type to platform
+    const platformMap: Record<string, string> = {
+      instagram: "instagram",
+      email: "facebook",
+      ad: "instagram",
+      whatsapp: "reels",
+    };
+
+    // Map content_type to goal
+    const goalMap: Record<string, string> = {
+      instagram: "promotion",
+      email: "engagement",
+      ad: "promotion",
+      whatsapp: "engagement",
+    };
+
+    const platform = platformMap[payload.content_type] || "instagram";
+    const goal = goalMap[payload.content_type] || "promotion";
+
+    // Get business type from payload, localStorage, or use default
+    let businessType = payload.business_type;
+    if (!businessType) {
+      try {
+        const profile = localStorage.getItem("businessProfile");
+        if (profile) {
+          const parsed = JSON.parse(profile);
+          businessType = parsed.business_name || parsed.business_type || "Business";
+        }
+      } catch (e) {
+        // Ignore parse errors
+      }
+    }
+    if (!businessType) {
+      businessType = "Business";
+    }
+
+    const response = await this.post("/content/generate", {
+      business_type: businessType,
+      platform: platform,
+      goal: goal,
+      tone: payload.tone,
+      language: payload.language.toLowerCase(),
+    });
+
+    // Transform response to match expected format
+    if (response.status === "success" && response.content) {
+      const { caption, hashtags, script } = response.content;
+      
+      // Format output based on content type
+      let formattedContent = "";
+      
+      if (payload.content_type === "instagram") {
+        formattedContent = `${caption}\n\n${hashtags.join(" ")}\n\n${script}`;
+      } else if (payload.content_type === "email") {
+        formattedContent = `Subject: ${caption}\n\n${script}\n\n${hashtags.join(" ")}`;
+      } else if (payload.content_type === "ad") {
+        formattedContent = `${caption}\n\n${script}\n\n${hashtags.slice(0, 5).join(" ")}`;
+      } else if (payload.content_type === "whatsapp") {
+        formattedContent = `${caption}\n\n${script}`;
+      }
+
+      return {
+        success: true,
+        content: formattedContent,
+        note: response.note,
+      };
+    }
+
+    return response;
   }
 
   /**

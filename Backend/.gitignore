@@ -58,6 +58,13 @@ MANIFEST
 .env.test.local
 
 # ============================================
+# Firebase Credentials (NEVER COMMIT)
+# ============================================
+firebase-adminsdk*.json
+*firebase*.json
+serviceAccountKey.json
+
+# ============================================
 # Testing & Coverage
 # ============================================
 .pytest_cache/

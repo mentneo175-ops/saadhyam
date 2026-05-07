@@ -300,3 +300,46 @@ async def update_notification_settings(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to update notification settings",
         )
+
+
+# ======================== Instagram Disconnect ========================
+
+
+@router.post(
+    "/instagram/disconnect",
+    summary="Disconnect Instagram account",
+)
+async def disconnect_instagram(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_sync_db),
+):
+    """
+    Disconnect Instagram account and remove all associated data.
+    
+    This will:
+    - Remove Instagram access tokens
+    - Disable Instagram automation
+    - Cancel scheduled posts
+    - Clear Instagram account information
+    """
+    try:
+        # Use the settings service to disconnect Instagram
+        success = SettingsService.disconnect_instagram_account(db, current_user.id)
+        
+        if success:
+            return {
+                "success": True,
+                "message": "Instagram account disconnected successfully",
+                "is_connected": False,
+            }
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="No Instagram account was connected",
+            )
+    except Exception as e:
+        logger.error(f"Error disconnecting Instagram account: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to disconnect Instagram account",
+        )

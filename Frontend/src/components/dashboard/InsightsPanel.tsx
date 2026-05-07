@@ -130,25 +130,10 @@ export function InsightsPanel({ businessAnalysis }: InsightsPanelProps) {
         </div>
       ) : (
         /* Fallback: Original Quick Call Section */
-        <div className="rounded-2xl bg-gradient-soft border border-border/60 p-4">
-          <p className="text-sm font-semibold">Quick call</p>
-          <p className="text-xs text-muted-foreground mb-3">Talk to your AI specialist</p>
-          <button className="w-full py-2.5 rounded-xl text-sm font-semibold bg-gradient-primary text-primary-foreground shadow-glow flex items-center justify-center gap-1.5 hover:brightness-110 transition">
-            <Video size={14} /> Start video call
-          </button>
-          <div className="flex -space-x-2 mt-3 justify-center">
-            {[0, 1, 2].map((i) => (
-              <div
-                key={i}
-                className="h-7 w-7 rounded-full bg-gradient-brand border-2 border-card"
-                style={{ filter: `hue-rotate(${i * 50}deg)` }}
-              />
-            ))}
-            <div className="h-7 w-7 rounded-full bg-muted border-2 border-card flex items-center justify-center text-[9px] font-semibold">
-              +4
-            </div>
-          </div>
-        </div>
+        // <div className="rounded-2xl bg-gradient-soft border border-border/60 p-4">
+        <div></div>
+         
+        // </div>
       )}
     </aside>
   );

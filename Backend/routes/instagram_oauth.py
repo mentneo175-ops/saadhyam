@@ -286,7 +286,7 @@ async def instagram_callback(
         # Step 1: Exchange code for Facebook access token
         logger.info("Step 1: Exchanging authorization code for access token...")
         try:
-            access_token = exchange_code_for_token(code)
+            access_token = await exchange_code_for_token(code)
             logger.info("✅ Successfully obtained Facebook access token")
         except Exception as e:
             error_msg = str(e)
@@ -331,7 +331,7 @@ async def instagram_callback(
         # Step 2: Get Instagram Business account
         logger.info("Step 2: Fetching Instagram Business account...")
         try:
-            ig_user_id, page_id, page_name, ig_username = get_instagram_account(access_token)
+            ig_user_id, page_id, page_name, ig_username = await get_instagram_account(access_token)
             logger.info(f"✅ Found Instagram Business account: @{ig_username} (Page: {page_name})")
         except Exception as e:
             logger.error(f"❌ Instagram account fetch failed: {str(e)}")

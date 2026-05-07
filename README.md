@@ -191,7 +191,7 @@ cp .env.example .env
 **Frontend Environment Variables:**
 ```env
 # Backend API URL
-VITE_API_URL=http://localhost:8001
+VITE_API_URL=http://localhost:8000
 
 # Environment
 VITE_ENV=development
@@ -232,7 +232,7 @@ cd Backend
 venv\Scripts\activate  # Windows
 # source venv/bin/activate  # macOS/Linux
 
-python -m uvicorn main:app --reload --port 8001
+python -m uvicorn main:app --reload --port 8000
 ```
 
 #### Terminal 3: Business Analysis AI Model Server
@@ -244,29 +244,47 @@ venv\Scripts\activate  # Windows
 python start_business_server.py
 ```
 
-#### Terminal 4: Celery Worker (Background Tasks)
+#### Terminal 4: Celery Worker - Instagram Tasks (Background Tasks)
 ```bash
 cd Backend
 venv\Scripts\activate  # Windows
 # source venv/bin/activate  # macOS/Linux
 
 # Windows:
-celery -A celery_worker.celery worker --loglevel=info --pool=solo
+celery -A celery_worker worker --loglevel=info --pool=solo
 
 # macOS/Linux:
-celery -A celery_worker.celery worker --loglevel=info
+celery -A celery_worker worker --loglevel=info
 ```
 
-#### Terminal 5: Celery Flower (Task Monitoring - Optional)
+#### Terminal 5: Celery Worker - Website AI Tasks (Background Tasks)
+```bash
+cd Backend
+venv\Scripts\activate  # Windows
+# source venv/bin/activate  # macOS/Linux
+
+# Windows:
+.\start_celery_windows.bat
+# Or manually:
+python -m celery -A ai_models.website_ai.app.workers.celery_app worker --loglevel=info --pool=solo --concurrency=1
+
+# macOS/Linux:
+celery -A ai_models.website_ai.app.workers.celery_app worker --loglevel=info
+```
+
+#### Terminal 6: Celery Flower (Task Monitoring - Optional)
 ```bash
 cd Backend
 venv\Scripts\activate  # Windows
 # source venv/bin/activate  # macOS/Linux
 
 celery -A celery_worker.celery flower --port=5555
+
+# Alternative (if above doesn't work):
+celery -A celery_app flower --port=5555
 ```
 
-#### Terminal 6: Frontend Development Server
+#### Terminal 7: Frontend Development Server
 ```bash
 cd Frontend
 npm run dev
@@ -279,24 +297,31 @@ yarn dev
 #### Start All Backend Services:
 ```bash
 cd Backend
-# Run all backend services
+# Run all backend services (PowerShell syntax)
+.\start_backend.bat
+
+# Alternative for Command Prompt:
 start_backend.bat
 ```
 
 #### Start Individual Services:
 ```bash
-# Main backend only
-run_main_backend.bat
+# Main backend only (PowerShell)
+.\run_main_backend.bat
 
-# Business model server only
-run_business_model.bat
+# Business model server only (PowerShell)
+.\run_business_model.bat
 
-# Celery worker only
-start_celery_worker.bat
+# Celery worker only (PowerShell)
+.\start_celery_worker.bat
 
-# All TinyLlama servers
-run_tinyllama_servers.bat
+# All TinyLlama servers (PowerShell)
+.\run_tinyllama_servers.bat
 ```
+
+**Note for Windows Users:**
+- **PowerShell**: Use `.\filename.bat` syntax
+- **Command Prompt**: Use `filename.bat` directly
 
 ---
 
@@ -347,7 +372,7 @@ run_tinyllama_servers.bat
 | Service | URL | Purpose |
 |---------|-----|---------|
 | **Frontend** | http://localhost:5173 | React development server |
-| **Main Backend** | http://localhost:8001 | FastAPI main server |
+| **Main Backend** | http://localhost:8000 | FastAPI main server |
 | **Business AI** | http://localhost:9001 | Business analysis model |
 | **Flower** | http://localhost:5555 | Celery task monitoring |
 | **Redis** | localhost:6379 | Message broker |
@@ -359,7 +384,7 @@ run_tinyllama_servers.bat
 ### 1. Health Checks
 ```bash
 # Backend health
-curl http://localhost:8001/health
+curl http://localhost:8000/health
 
 # Business model health
 curl http://localhost:9001/health
@@ -408,6 +433,28 @@ redis-cli ping
 # Solution: Ensure Redis is running
 # Check REDIS_URL in .env
 # Use --pool=solo on Windows
+
+# Error: "Received unregistered task of type 'generate_website'"
+# Solution: You're running the wrong worker!
+# For Website AI tasks, use:
+python -m celery -A ai_models.website_ai.app.workers.celery_app worker --loglevel=info --pool=solo
+# Or run the batch file:
+.\start_celery_windows.bat
+
+# For Instagram tasks, use:
+celery -A celery_worker worker --loglevel=info --pool=solo
+
+# Error: Unable to load celery application
+# Try these commands in order:
+celery -A celery_worker.celery worker --loglevel=info --pool=solo
+celery -A celery_app worker --loglevel=info --pool=solo
+python celery_worker.py
+
+# Error: Module not found
+# Ensure you're in the Backend directory
+# Activate virtual environment first
+cd Backend
+venv\Scripts\activate
 ```
 
 #### 4. Database Connection Issues
@@ -422,8 +469,23 @@ redis-cli ping
 ```bash
 # Error: Port already in use
 # Solution: Kill existing processes
-# Windows: netstat -ano | findstr :8001
-# macOS/Linux: lsof -ti:8001 | xargs kill
+# Windows: netstat -ano | findstr :8000
+# macOS/Linux: lsof -ti:8000 | xargs kill
+```
+
+#### 6. PowerShell Batch File Execution
+```bash
+# Error: 'start_backend.bat' is not recognized
+# PowerShell Error: The command start_backend.bat was not found, but does exist in the current location
+
+# Solution: Use .\ prefix in PowerShell
+.\start_backend.bat
+
+# Alternative: Use full path
+C:\path\to\Backend\start_backend.bat
+
+# Or switch to Command Prompt where this works:
+start_backend.bat
 ```
 
 ### Debug Mode:
@@ -433,7 +495,7 @@ export DEBUG=True
 export LOG_LEVEL=DEBUG
 
 # Run with verbose output
-python -m uvicorn main:app --reload --port 8001 --log-level debug
+python -m uvicorn main:app --reload --port 8000 --log-level debug
 ```
 
 ---
@@ -556,7 +618,7 @@ ENCRYPTION_KEY=your-32-char-encryption-key-here
 #### Frontend (.env)
 ```env
 # Backend API URL
-VITE_API_URL=http://localhost:8001
+VITE_API_URL=http://localhost:8000
 
 # Environment
 VITE_ENV=development

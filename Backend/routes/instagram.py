@@ -429,30 +429,90 @@ async def delete_post(
 async def generate_caption(
     request: GenerateCaptionRequest,
     current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_sync_db),
 ):
     """
-    Generate caption using AI (placeholder implementation).
-
-    In production, integrate with OpenAI or custom model.
+    Generate caption using AI with smart content generator.
+    
+    Uses Groq API for high-quality, context-aware caption generation.
     """
-    # Placeholder implementation - replace with OpenAI/custom model later
-    tone_map = {
-        "casual": "chilled out",
-        "professional": "professional and polished",
-        "funny": "hilarious",
-        "inspirational": "motivational and uplifting",
-    }
+    try:
+        from services.smart_content_generator import generate_smart_content
+        
+        logger.info(f"🤖 Generating AI caption for user {current_user.id}")
+        logger.info(f"   Topic: {request.topic}")
+        logger.info(f"   Tone: {request.tone}")
+        
+        # Get user's business info for better context
+        business_type = current_user.business_type or "Business"
+        business_name = current_user.business_name or business_type
+        
+        # Create user input combining topic and business context
+        user_input = f"{business_name} {request.topic}"
+        
+        logger.info(f"   Business context: {business_type}")
+        logger.info(f"   User input: {user_input}")
+        
+        # Generate smart content using Groq API
+        result = generate_smart_content(
+            user_input=user_input,
+            business_type=business_type,
+            platform="instagram",
+            goal="promotion",
+            tone=request.tone.lower(),
+            language="english"
+        )
+        
+        # Combine headline, caption, and subtext for a complete Instagram caption
+        full_caption = f"{result['headline']}\n\n{result['caption']}"
+        
+        # Add subtext if it's different and adds value
+        if result['subtext'] and result['subtext'] not in result['caption']:
+            full_caption += f"\n\n{result['subtext']}"
+        
+        # Add CTA if it's different
+        if result['cta'] and result['cta'] not in full_caption:
+            full_caption += f"\n\n{result['cta']}"
+        
+        # Add hashtags
+        if result['hashtags']:
+            hashtags_str = " ".join(result['hashtags'])
+            full_caption += f"\n\n{hashtags_str}"
+        
+        logger.info(f"✅ AI caption generated successfully")
+        logger.info(f"   Length: {len(full_caption)} characters")
+        
+        return GenerateCaptionResponse(
+            caption=full_caption,
+            topic=request.topic,
+            tone=request.tone,
+        )
+        
+    except Exception as e:
+        logger.error(f"❌ AI caption generation failed: {e}", exc_info=True)
+        
+        # Fallback to simple template-based generation
+        logger.info("🔄 Using fallback template generation")
+        
+        tone_map = {
+            "casual": "chilled out",
+            "professional": "professional and polished", 
+            "funny": "hilarious",
+            "inspirational": "motivational and uplifting",
+        }
 
-    tone_desc = tone_map.get(request.tone.lower(), request.tone)
-    caption = f"Check out this {tone_desc} {request.topic}! 🚀 #sadhyam #socialmedia #automation"
+        tone_desc = tone_map.get(request.tone.lower(), request.tone)
+        business_name = current_user.business_name or "our business"
+        
+        caption = f"Check out this {tone_desc} {request.topic} at {business_name}! 🚀\n\n#business #socialmedia #quality"
 
-    logger.info(f"Generated caption for user {current_user.id}: {request.topic}")
+        logger.info(f"📝 Fallback caption generated for user {current_user.id}")
 
-    return GenerateCaptionResponse(
-        caption=caption,
-        topic=request.topic,
-        tone=request.tone,
-    )
+        return GenerateCaptionResponse(
+            caption=caption,
+            topic=request.topic,
+            tone=request.tone,
+        )
 
 
 # ======================== Analytics Endpoints ========================

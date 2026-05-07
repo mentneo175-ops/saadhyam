@@ -1,5 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-// import { createFileRoute } from "@tantml:router";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,11 +15,11 @@ import {
   ChevronDown,
   ChevronUp,
   LogOut,
+  CheckCircle,
+  AlertCircle,
 } from "lucide-react";
-import { useState, useEffect } from "react";
-import { apiClient } from "@/lib/api";
+import { useState, useEffect, useRef } from "react";
 import { useAuthContext } from "@/lib/AuthContext";
-import { useRouter } from "@tanstack/react-router";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/dashboard/settings")({
@@ -58,36 +57,15 @@ const integrations = [
 function SettingsPage() {
   const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [logoutLoading, setLogoutLoading] = useState(false);
   const [expandedIntegration, setExpandedIntegration] = useState<string | null>(null);
-  const [instagramConnectionLoading, setInstagramConnectionLoading] = useState(false);
   const { logout } = useAuthContext();
-  const router = useRouter();
-  const [instagramStatus, setInstagramStatus] = useState({
-    is_connected: false,
-    account_username: null as string | null,
-    automation_enabled: false,
-    auto_publish_enabled: false,
-    last_post_time: null as string | null,
-  });
-  const [instagramSettings, setInstagramSettings] = useState({
-    instagram_enabled: false,
-    instagram_auto_publish: false,
-    instagram_auto_reply: false,
-    instagram_save_drafts: true,
-  });
-  const [postingPreferences, setPostingPreferences] = useState({
-    preferred_posting_time: "09:00",
-    posting_frequency: "daily",
-    auto_generate_captions: false,
-    weekly_day: "monday",
-    custom_date: "",
-  });
-  const [notificationSettings, setNotificationSettings] = useState({
-    notify_on_post: true,
-    notify_on_engagement: true,
-    notify_on_error: true,
-  });
+  
+  // Ref to track if Instagram status has been loaded
+  const instagramStatusLoadedRef = useRef(false);
+
+  // User settings
   const [settings, setSettings] = useState({
     full_name: "",
     email: "",
@@ -100,221 +78,199 @@ function SettingsPage() {
     target_audience: "",
   });
 
+  // Instagram state
+  const [instagramLoading, setInstagramLoading] = useState(false);
+  const [instagramStatus, setInstagramStatus] = useState({
+    is_connected: false,
+    account_username: null as string | null,
+    page_name: null as string | null,
+  });
+
+  const [instagramSettings, setInstagramSettings] = useState({
+    instagram_enabled: false,
+    instagram_auto_publish: false,
+    instagram_auto_reply: false,
+    instagram_save_drafts: true,
+    auto_generate_captions: false,
+  });
+
+  // Simple useEffect - no dependencies to avoid loops
   useEffect(() => {
     setMounted(true);
-    loadSettings();
-    loadInstagramStatus();
-
-    // Check if user just returned from Instagram OAuth
+    
+    // Load user settings on mount
+    loadUserSettings();
+    
+    // Check for Instagram OAuth success
     const params = new URLSearchParams(window.location.search);
     if (params.get("instagram") === "success") {
       toast.success("Instagram connected successfully!");
-      // Reload Instagram status
-      setTimeout(() => {
-        loadInstagramStatus();
-      }, 1000);
-      // Clean up URL
       window.history.replaceState({}, document.title, window.location.pathname);
     }
-  }, []);
 
-  const loadSettings = async () => {
-    try {
-      const response = await apiClient.getSettings();
-      if (response.success && response.settings) {
-        setSettings(response.settings);
+    // Add message listener for OAuth popup
+    const handleOAuthMessage = (event: MessageEvent) => {
+      // Only accept messages from our backend
+      if (event.origin !== "http://localhost:8000") return;
+      
+      if (event.data.type === "INSTAGRAM_OAUTH_SUCCESS") {
+        toast.success("Instagram connected successfully!");
+        // Reload Instagram status after a short delay
+        setTimeout(() => {
+          loadInstagramStatus();
+        }, 1000);
+      } else if (event.data.type === "INSTAGRAM_OAUTH_ERROR") {
+        toast.error(event.data.message || "Failed to connect Instagram");
       }
-    } catch (error) {
-      console.error("Failed to load settings:", error);
-    }
-  };
+    };
 
-  const loadInstagramStatus = async () => {
+    window.addEventListener("message", handleOAuthMessage);
+    
+    // Cleanup
+    return () => {
+      window.removeEventListener("message", handleOAuthMessage);
+    };
+  }, []); // Empty dependency array
+
+  const loadUserSettings = async () => {
     try {
-      setInstagramConnectionLoading(true);
+      setInitialLoading(true);
       const token = localStorage.getItem("saadhyam_token");
-      const response = await fetch("http://localhost:8000/settings/instagram/connection-status", {
+      if (!token) return;
+
+      // Load user profile data
+      const profileResponse = await fetch("http://localhost:8000/api/profile", {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
       });
-      const data = await response.json();
-      setInstagramStatus(data);
 
-      // Load automation settings
+      if (profileResponse.ok) {
+        const profileData = await profileResponse.json();
+        if (profileData) {
+          // Update user settings from profile data
+          setSettings({
+            full_name: profileData.name || "",
+            email: profileData.email || "",
+            phone: "", // Not in profile, will need to add this field
+            timezone: "Asia/Kolkata (IST)", // Default timezone
+            business_name: profileData.business_profile?.business_name || "",
+            industry: profileData.business_profile?.business_type || "",
+            description: profileData.business_profile?.business_description || "",
+            brand_voice: "", // Not in profile, will need to add this field
+            target_audience: "", // Not in profile, will need to add this field
+          });
+        }
+      } else {
+        console.error("Failed to load user profile:", profileResponse.status);
+      }
+
+      // Also load settings data for additional fields
       const settingsResponse = await fetch("http://localhost:8000/settings", {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
       });
-      const settingsData = await settingsResponse.json();
-      if (settingsData) {
-        setInstagramSettings({
-          instagram_enabled: settingsData.instagram_automation?.instagram_enabled || false,
-          instagram_auto_publish:
-            settingsData.instagram_automation?.instagram_auto_publish || false,
-          instagram_auto_reply: settingsData.instagram_automation?.instagram_auto_reply || false,
-          instagram_save_drafts: settingsData.instagram_automation?.instagram_save_drafts || true,
+
+      if (settingsResponse.ok) {
+        const settingsData = await settingsResponse.json();
+        if (settingsData) {
+          // Update additional settings fields if they exist
+          setSettings(prev => ({
+            ...prev,
+            // Add any additional fields from settings if available
+          }));
+        }
+      }
+
+    } catch (error) {
+      console.error("Error loading user settings:", error);
+    } finally {
+      setInitialLoading(false);
+    }
+  };
+
+  const loadInstagramStatus = async () => {
+    // Prevent concurrent calls
+    if (instagramLoading) {
+      console.log("Instagram status already loading, skipping...");
+      return;
+    }
+    
+    try {
+      setInstagramLoading(true);
+      const token = localStorage.getItem("saadhyam_token");
+      
+      if (!token) {
+        console.log("No token found, skipping Instagram status load");
+        setInstagramLoading(false);
+        return;
+      }
+
+      const response = await fetch("http://localhost:8000/settings/instagram/connection-status", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        
+        // Mark as loaded
+        instagramStatusLoadedRef.current = true;
+        
+        // Only update state if data has actually changed
+        setInstagramStatus(prev => {
+          const hasChanged = 
+            prev.is_connected !== (data.is_connected || false) ||
+            prev.account_username !== (data.account_username || null) ||
+            prev.page_name !== (data.page_name || null);
+          
+          if (hasChanged) {
+            return {
+              is_connected: data.is_connected || false,
+              account_username: data.account_username || null,
+              page_name: data.page_name || null,
+            };
+          }
+          return prev;
         });
-        setPostingPreferences({
-          preferred_posting_time:
-            settingsData.posting_preferences?.preferred_posting_time || "09:00",
-          posting_frequency: settingsData.posting_preferences?.posting_frequency || "daily",
-          auto_generate_captions: settingsData.posting_preferences?.auto_generate_captions || false,
-          weekly_day: settingsData.posting_preferences?.weekly_day || "monday",
-          custom_date: settingsData.posting_preferences?.custom_date || "",
-        });
-        setNotificationSettings({
-          notify_on_post: settingsData.notification_settings?.notify_on_post || true,
-          notify_on_engagement: settingsData.notification_settings?.notify_on_engagement || true,
-          notify_on_error: settingsData.notification_settings?.notify_on_error || true,
-        });
+
+        if (data.is_connected) {
+          const settingsResponse = await fetch("http://localhost:8000/settings", {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          });
+
+          if (settingsResponse.ok) {
+            const settingsData = await settingsResponse.json();
+            if (settingsData?.instagram_automation) {
+              setInstagramSettings(prev => {
+                const newSettings = {
+                  instagram_enabled: settingsData.instagram_automation.instagram_enabled || false,
+                  instagram_auto_publish: settingsData.instagram_automation.instagram_auto_publish || false,
+                  instagram_auto_reply: settingsData.instagram_automation.instagram_auto_reply || false,
+                  instagram_save_drafts: settingsData.instagram_automation.instagram_save_drafts !== false,
+                  auto_generate_captions: settingsData.posting_preferences?.auto_generate_captions || false,
+                };
+                
+                // Only update if changed
+                const hasChanged = JSON.stringify(prev) !== JSON.stringify(newSettings);
+                return hasChanged ? newSettings : prev;
+              });
+            }
+          }
+        }
       }
     } catch (error) {
       console.error("Failed to load Instagram status:", error);
-      toast.error("Failed to load Instagram settings");
     } finally {
-      setInstagramConnectionLoading(false);
-    }
-  };
-
-  const handleInstagramAutomationToggle = async (
-    key: keyof typeof instagramSettings,
-    value: boolean,
-  ) => {
-    try {
-      setInstagramConnectionLoading(true);
-      const token = localStorage.getItem("saadhyam_token");
-      const updatedSettings = { ...instagramSettings, [key]: value };
-
-      const response = await fetch("http://localhost:8000/settings/instagram/automation", {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(updatedSettings),
-      });
-
-      const data = await response.json();
-      if (response.ok) {
-        setInstagramSettings(updatedSettings);
-        toast.success("Instagram automation settings updated!");
-      } else {
-        toast.error("Failed to update settings");
-      }
-    } catch (error) {
-      console.error("Failed to update Instagram automation:", error);
-      toast.error("Failed to update settings");
-    } finally {
-      setInstagramConnectionLoading(false);
-    }
-  };
-
-  const handlePostingPreferencesChange = async () => {
-    try {
-      setLoading(true);
-      const token = localStorage.getItem("saadhyam_token");
-
-      const response = await fetch("http://localhost:8000/settings/posting-preferences", {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(postingPreferences),
-      });
-
-      if (response.ok) {
-        toast.success("Posting preferences updated!");
-      } else {
-        toast.error("Failed to update preferences");
-      }
-    } catch (error) {
-      console.error("Failed to update posting preferences:", error);
-      toast.error("Failed to update preferences");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleNotificationChange = async () => {
-    try {
-      setLoading(true);
-      const token = localStorage.getItem("saadhyam_token");
-
-      const response = await fetch("http://localhost:8000/settings/notifications", {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(notificationSettings),
-      });
-
-      if (response.ok) {
-        toast.success("Notification settings updated!");
-      } else {
-        toast.error("Failed to update settings");
-      }
-    } catch (error) {
-      console.error("Failed to update notifications:", error);
-      toast.error("Failed to update settings");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSaveAllInstagramSettings = async () => {
-    try {
-      setLoading(true);
-      const token = localStorage.getItem("saadhyam_token");
-
-      // Save automation settings
-      const automationResponse = await fetch("http://localhost:8000/settings/instagram/automation", {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(instagramSettings),
-      });
-
-      // Save posting preferences
-      const preferencesResponse = await fetch("http://localhost:8000/settings/posting-preferences", {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(postingPreferences),
-      });
-
-      // Save notification settings
-      const notificationsResponse = await fetch("http://localhost:8000/settings/notifications", {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(notificationSettings),
-      });
-
-      // Check if all requests were successful
-      if (automationResponse.ok && preferencesResponse.ok && notificationsResponse.ok) {
-        toast.success("All Instagram settings saved successfully!");
-        // Reload Instagram status to reflect changes
-        loadInstagramStatus();
-      } else {
-        toast.error("Some settings failed to save. Please try again.");
-      }
-    } catch (error) {
-      console.error("Failed to save Instagram settings:", error);
-      toast.error("Failed to save settings. Please try again.");
-    } finally {
-      setLoading(false);
+      setInstagramLoading(false);
     }
   };
 
@@ -326,73 +282,124 @@ function SettingsPage() {
         return;
       }
       
-      // Open Facebook OAuth in a new window/tab
       const oauthUrl = `http://localhost:8000/auth/instagram/connect?token=${token}`;
+      const popup = window.open(oauthUrl, 'instagram-oauth', 'width=600,height=700,scrollbars=yes,resizable=yes');
       
-      // Open in new window
-      const popup = window.open(
-        oauthUrl,
-        'instagram-oauth',
-        'width=600,height=700,scrollbars=yes,resizable=yes'
-      );
-      
-      // Listen for the popup to close or for a message from the popup
+      if (!popup) {
+        toast.error("Popup blocked. Please allow popups and try again.");
+        return;
+      }
+
       const checkClosed = setInterval(() => {
         if (popup?.closed) {
           clearInterval(checkClosed);
-          // Refresh the Instagram status when popup closes
           setTimeout(() => {
             loadInstagramStatus();
           }, 1000);
         }
       }, 1000);
-      
-      // Also listen for messages from the popup (if callback sends a message)
-      const messageListener = (event: MessageEvent) => {
-        if (event.origin !== window.location.origin) return;
-        
-        if (event.data.type === 'INSTAGRAM_OAUTH_SUCCESS') {
-          popup?.close();
-          clearInterval(checkClosed);
-          toast.success("Instagram connected successfully!");
-          loadInstagramStatus();
-          window.removeEventListener('message', messageListener);
-        } else if (event.data.type === 'INSTAGRAM_OAUTH_ERROR') {
-          popup?.close();
-          clearInterval(checkClosed);
-          toast.error("Failed to connect Instagram. Please try again.");
-          window.removeEventListener('message', messageListener);
-        } else if (event.data.type === 'INSTAGRAM_OAUTH_RETRY') {
-          popup?.close();
-          clearInterval(checkClosed);
-          window.removeEventListener('message', messageListener);
-          // Retry the connection
-          setTimeout(() => {
-            handleConnectInstagram();
-          }, 500);
-        }
-      };
-      
-      window.addEventListener('message', messageListener);
-      
-      // Clean up listener after 5 minutes
+
       setTimeout(() => {
-        window.removeEventListener('message', messageListener);
-      }, 300000);
-      
+        if (!popup.closed) {
+          popup.close();
+        }
+        clearInterval(checkClosed);
+      }, 5 * 60 * 1000);
+
     } catch (error) {
-      console.error("Failed to initiate Instagram connection:", error);
+      console.error("Error connecting Instagram:", error);
       toast.error("Failed to connect Instagram");
     }
   };
 
-  const handleSave = async () => {
-    setLoading(true);
+  const handleInstagramToggle = async (key: string, value: boolean) => {
+    if (instagramLoading) return;
+
+    const previousSettings = { ...instagramSettings };
+    
     try {
-      const response = await apiClient.updateSettings(settings);
-      if (response.success) {
-        toast.success("Settings saved successfully!");
+      setInstagramLoading(true);
+      
+      const newSettings = { ...instagramSettings, [key]: value };
+      setInstagramSettings(newSettings);
+
+      const token = localStorage.getItem("saadhyam_token");
+      
+      // Determine which endpoint to use based on the setting
+      let endpoint = "http://localhost:8000/settings/instagram/automation";
+      let requestBody: any = newSettings;
+      
+      if (key === "auto_generate_captions") {
+        // Use posting preferences endpoint for auto-generate captions
+        endpoint = "http://localhost:8000/settings/posting-preferences";
+        requestBody = { auto_generate_captions: value };
+      } else {
+        // Use Instagram automation endpoint for other settings
+        requestBody = {
+          instagram_enabled: newSettings.instagram_enabled,
+          instagram_auto_publish: newSettings.instagram_auto_publish,
+          instagram_auto_reply: newSettings.instagram_auto_reply,
+          instagram_save_drafts: newSettings.instagram_save_drafts,
+        };
       }
+      
+      const response = await fetch(endpoint, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(requestBody),
+      });
+
+      if (response.ok) {
+        toast.success("Settings updated!");
+      } else {
+        setInstagramSettings(previousSettings);
+        toast.error("Failed to update settings");
+      }
+    } catch (error) {
+      setInstagramSettings(previousSettings);
+      console.error("Failed to update Instagram settings:", error);
+      toast.error("Failed to update settings");
+    } finally {
+      setInstagramLoading(false);
+    }
+  };
+
+  const handleSaveSettings = async () => {
+    try {
+      setLoading(true);
+      
+      const token = localStorage.getItem("saadhyam_token");
+      
+      // Save business profile data
+      const businessData = {
+        business_name: settings.business_name,
+        business_type: settings.industry, // Map industry to business_type
+        business_location: "", // Not currently captured in UI
+        business_description: settings.description,
+      };
+
+      const businessResponse = await fetch("http://localhost:8000/api/profile/business", {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(businessData),
+      });
+
+      if (businessResponse.ok) {
+        toast.success("Business settings saved successfully!");
+      } else {
+        console.error("Failed to save business settings:", businessResponse.status);
+        toast.error("Failed to save some settings");
+      }
+
+      // Note: User profile fields (name, email, phone) would need a separate endpoint
+      // For now, we'll just show success for business fields
+      
     } catch (error) {
       console.error("Failed to save settings:", error);
       toast.error("Failed to save settings");
@@ -402,81 +409,102 @@ function SettingsPage() {
   };
 
   const handleLogout = async () => {
-    setLogoutLoading(true);
     try {
+      setLogoutLoading(true);
       await logout();
-      toast.success("Logged out successfully!");
-      router.navigate({ to: "/login" });
     } catch (error) {
-      console.error("Failed to logout:", error);
-      toast.error("Failed to logout. Please try again.");
+      console.error("Logout error:", error);
+      toast.error("Failed to logout");
     } finally {
       setLogoutLoading(false);
     }
   };
 
+  const handleIntegrationClick = (integrationName: string) => {
+    if (integrationName === "Instagram") {
+      const isExpanding = expandedIntegration !== "Instagram";
+      setExpandedIntegration(prev => prev === "Instagram" ? null : "Instagram");
+      
+      // Load Instagram status only when expanding and not already loaded
+      if (isExpanding && !instagramStatusLoadedRef.current && !instagramLoading) {
+        // Use setTimeout to avoid state update during render
+        setTimeout(() => {
+          loadInstagramStatus();
+        }, 0);
+      }
+    }
+  };
+
+  const handleLoadInstagramData = () => {
+    // Reset the loaded flag and reload
+    instagramStatusLoadedRef.current = false;
+    // Only call this when user explicitly wants to load Instagram data
+    if (!instagramLoading) {
+      loadInstagramStatus();
+    }
+  };
+
+  if (!mounted || initialLoading) {
+    return (
+      <div className="p-4 md:p-6 lg:p-8 space-y-6 max-w-4xl">
+        <PageHeader
+          title="Settings"
+          subtitle="Manage your account and integration preferences"
+        />
+        <div className="flex items-center justify-center py-12">
+          <Loader2 size={32} className="animate-spin text-primary" />
+          <span className="ml-3 text-lg text-muted-foreground">Loading settings...</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-4 md:p-6 lg:p-8 space-y-6 max-w-4xl">
       <PageHeader
         title="Settings"
-        subtitle="Manage your profile, business and integrations"
-        actions={
-          <Button variant="hero" size="sm" onClick={handleSave} disabled={loading}>
-            {loading ? (
-              <>
-                <Loader2 size={14} className="animate-spin" /> Saving...
-              </>
-            ) : (
-              <>
-                <Save size={14} /> Save changes
-              </>
-            )}
-          </Button>
-        }
+        subtitle="Manage your account and integration preferences"
       />
 
-      {/* Profile */}
+      {/* Profile Section */}
       <div className="bg-card rounded-2xl border border-border/60 shadow-soft p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="font-semibold">Profile</h3>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleLogout}
-            disabled={logoutLoading}
-            className="text-destructive hover:text-destructive hover:bg-destructive/10"
-          >
-            {logoutLoading ? (
-              <>
-                <Loader2 size={14} className="animate-spin" /> Logging out...
-              </>
-            ) : (
-              <>
-                <LogOut size={14} /> Logout
-              </>
-            )}
-          </Button>
-        </div>
         <div className="flex items-center gap-4 mb-6">
           <div className="relative">
-            <div className="h-20 w-20 rounded-2xl bg-gradient-brand text-white flex items-center justify-center text-2xl font-bold shadow-glow">
-              {settings.full_name ? settings.full_name[0].toUpperCase() : "U"}
+            <div className="w-16 h-16 bg-gradient-primary rounded-full flex items-center justify-center">
+              <Camera size={24} className="text-primary-foreground" />
             </div>
-            <button className="absolute -bottom-1 -right-1 h-7 w-7 rounded-full bg-card border border-border flex items-center justify-center shadow-soft hover:bg-accent/40">
-              <Camera size={13} />
-            </button>
           </div>
-          <div>
-            <p className="font-semibold">{settings.full_name || "User"}</p>
-            <p className="text-xs text-muted-foreground">Pro plan · Member since Jan 2024</p>
+          <div className="flex-1">
+            <h3 className="font-semibold text-lg">{settings.full_name || "Your Name"}</h3>
+            <p className="text-muted-foreground">{settings.email}</p>
+            <div className="flex items-center gap-2 mt-1">
+              <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">
+                Free Plan
+              </span>
+            </div>
           </div>
+          <Button
+            variant="destructive"
+            onClick={handleLogout}
+            disabled={logoutLoading}
+            className="flex items-center gap-2"
+          >
+            {logoutLoading ? (
+              <Loader2 size={16} className="animate-spin" />
+            ) : (
+              <LogOut size={16} />
+            )}
+            Logout
+          </Button>
         </div>
+
         <div className="grid md:grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label>Full name</Label>
             <Input
               value={settings.full_name}
               onChange={(e) => setSettings({ ...settings, full_name: e.target.value })}
+              placeholder="Your full name"
               className="h-10 rounded-xl"
             />
           </div>
@@ -485,7 +513,9 @@ function SettingsPage() {
             <Input
               value={settings.email}
               onChange={(e) => setSettings({ ...settings, email: e.target.value })}
+              placeholder="your@email.com"
               className="h-10 rounded-xl"
+              type="email"
             />
           </div>
           <div className="space-y-2">
@@ -501,23 +531,23 @@ function SettingsPage() {
             <Label>Timezone</Label>
             <Input
               value={settings.timezone}
-              onChange={(e) => setSettings({ ...settings, timezone: e.target.value })}
               className="h-10 rounded-xl"
+              readOnly
             />
           </div>
         </div>
       </div>
 
-      {/* Business info */}
+      {/* Business Info */}
       <div className="bg-card rounded-2xl border border-border/60 shadow-soft p-6">
-        <h3 className="font-semibold mb-4">Business info</h3>
+        <h3 className="font-semibold mb-4">Business Information</h3>
         <div className="grid md:grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label>Business name</Label>
             <Input
               value={settings.business_name}
               onChange={(e) => setSettings({ ...settings, business_name: e.target.value })}
-              placeholder="My Business"
+              placeholder="Your business name"
               className="h-10 rounded-xl"
             />
           </div>
@@ -526,18 +556,17 @@ function SettingsPage() {
             <Input
               value={settings.industry}
               onChange={(e) => setSettings({ ...settings, industry: e.target.value })}
-              placeholder="Fashion & Lifestyle"
+              placeholder="e.g., Restaurant, Retail"
               className="h-10 rounded-xl"
             />
           </div>
           <div className="space-y-2 md:col-span-2">
-            <Label>Description</Label>
-            <textarea
+            <Label>Business description</Label>
+            <Input
               value={settings.description}
               onChange={(e) => setSettings({ ...settings, description: e.target.value })}
-              placeholder="Describe your business..."
-              rows={3}
-              className="w-full rounded-xl border border-border bg-background p-3 text-sm focus:border-primary focus:ring-2 focus:ring-primary/15 outline-none"
+              placeholder="Brief description of your business"
+              className="h-10 rounded-xl"
             />
           </div>
           <div className="space-y-2">
@@ -565,45 +594,35 @@ function SettingsPage() {
       <div className="bg-card rounded-2xl border border-border/60 shadow-soft p-6">
         <h3 className="font-semibold mb-4">Integrations</h3>
         <div className="space-y-3">
-          {integrations.map((it) => (
-            <div key={it.name}>
+          {integrations.map((integration) => (
+            <div key={integration.name}>
               <div
                 className="flex items-center gap-4 p-3 rounded-xl border border-border/60 hover:bg-muted/30 transition cursor-pointer"
-                onClick={() => {
-                  if (it.name === "Instagram") {
-                    setExpandedIntegration(
-                      expandedIntegration === "Instagram" ? null : "Instagram",
-                    );
-                  }
-                }}
+                onClick={() => handleIntegrationClick(integration.name)}
               >
                 <div
-                  className={`h-10 w-10 rounded-xl bg-gradient-to-br ${it.color} flex items-center justify-center shrink-0`}
+                  className={`h-10 w-10 rounded-xl bg-gradient-to-br ${integration.color} flex items-center justify-center shrink-0`}
                 >
-                  <it.icon size={18} className="text-white" />
+                  <integration.icon size={18} className="text-white" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-sm">{it.name}</p>
-                  <p className="text-xs text-muted-foreground">{it.desc}</p>
+                  <p className="font-medium text-sm">{integration.name}</p>
+                  <p className="text-xs text-muted-foreground">{integration.desc}</p>
                 </div>
                 <span
                   className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
-                    it.name === "Instagram" && instagramStatus.is_connected
+                    integration.name === "Instagram" && instagramStatus.is_connected
                       ? "bg-success/15 text-success"
                       : "bg-muted text-muted-foreground"
                   }`}
                 >
-                  {it.name === "Instagram"
+                  {integration.name === "Instagram"
                     ? instagramStatus.is_connected
                       ? "Connected"
                       : "Not connected"
-                    : it.name === "WhatsApp Business"
-                      ? "Connected"
-                      : it.name === "Email (Gmail)"
-                        ? "Connected"
-                        : "Not connected"}
+                    : "Not connected"}
                 </span>
-                {it.name === "Instagram" && (
+                {integration.name === "Instagram" && (
                   <button className="p-1">
                     {expandedIntegration === "Instagram" ? (
                       <ChevronUp size={18} className="text-muted-foreground" />
@@ -614,326 +633,156 @@ function SettingsPage() {
                 )}
               </div>
 
-              {/* Instagram Automation Settings - Expanded */}
-              {mounted && it.name === "Instagram" && expandedIntegration === "Instagram" && (
+              {/* Instagram Settings - Expanded */}
+              {integration.name === "Instagram" && expandedIntegration === "Instagram" && (
                 <div className="mt-3 ml-14 p-4 rounded-xl bg-muted/30 border border-border/40 space-y-4">
-                  {instagramConnectionLoading ? (
+                  {!instagramStatus.is_connected && !instagramLoading ? (
+                    <div className="space-y-3">
+                      <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
+                        <div className="flex items-center gap-2">
+                          <AlertCircle size={16} className="text-amber-600" />
+                          <p className="text-sm font-medium text-amber-700">
+                            Instagram not connected
+                          </p>
+                        </div>
+                        <p className="text-xs text-amber-700/80 mt-1">
+                          Connect your Instagram Business account to enable automation
+                        </p>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-8"
+                          onClick={handleConnectInstagram}
+                          disabled={instagramLoading}
+                        >
+                          Connect Instagram
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-8"
+                          onClick={handleLoadInstagramData}
+                          disabled={instagramLoading}
+                        >
+                          Check Status
+                        </Button>
+                      </div>
+                    </div>
+                  ) : instagramLoading ? (
                     <div className="flex items-center justify-center py-4">
                       <Loader2 size={18} className="animate-spin text-primary" />
                       <span className="ml-2 text-sm text-muted-foreground">
                         Loading settings...
                       </span>
                     </div>
-                  ) : (
-                    <>
-                      {instagramStatus.is_connected && (
-                        <div className="p-3 rounded-lg bg-success/10 border border-success/20">
+                  ) : instagramStatus.is_connected ? (
+                    <div className="space-y-4">
+                      <div className="p-3 rounded-lg bg-success/10 border border-success/20">
+                        <div className="flex items-center gap-2">
+                          <CheckCircle size={16} className="text-success" />
                           <p className="text-sm font-medium text-success">
-                            ✓ Connected as @{instagramStatus.account_username || "username"}
+                            Connected as @{instagramStatus.account_username}
                           </p>
-                          {instagramStatus.last_post_time && (
-                            <p className="text-xs text-success/80 mt-1">
-                              Last post:{" "}
-                              {new Date(instagramStatus.last_post_time).toLocaleDateString()}
-                            </p>
-                          )}
                         </div>
-                      )}
+                        {instagramStatus.page_name && (
+                          <p className="text-xs text-success/80 mt-1">
+                            Page: {instagramStatus.page_name}
+                          </p>
+                        )}
+                      </div>
 
-                      {!instagramStatus.is_connected && (
-                        <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
-                          <p className="text-sm font-medium text-amber-700">
-                            ⚠️ Instagram not connected
-                          </p>
-                          <p className="text-xs text-amber-700/80 mt-1">
-                            Connect your Instagram account to enable automation
-                          </p>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="mt-2 h-8"
-                            onClick={handleConnectInstagram}
-                          >
-                            Connect Instagram
-                          </Button>
+                      <div className="space-y-3">
+                        <h4 className="font-medium text-sm">Automation Settings</h4>
+                        
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-medium">Enable Instagram Automation</p>
+                            <p className="text-xs text-muted-foreground">Master switch for all features</p>
+                          </div>
+                          <Switch
+                            checked={instagramSettings.instagram_enabled}
+                            onCheckedChange={(checked) => handleInstagramToggle("instagram_enabled", checked)}
+                            disabled={instagramLoading}
+                          />
                         </div>
-                      )}
 
-                      {instagramStatus.is_connected && (
-                        <>
-                          <div className="space-y-3">
-                            <h4 className="text-sm font-semibold">Automation Settings</h4>
-
-                            <div className="flex items-center justify-between p-3 rounded-lg bg-background">
-                              <div>
-                                <p className="text-sm font-medium">Enable Automation</p>
-                                <p className="text-xs text-muted-foreground">
-                                  Turn on all Instagram automation features
-                                </p>
-                              </div>
-                              <Switch
-                                checked={instagramSettings.instagram_enabled}
-                                onCheckedChange={(checked) =>
-                                  handleInstagramAutomationToggle("instagram_enabled", checked)
-                                }
-                                disabled={instagramConnectionLoading}
-                              />
-                            </div>
-
-                            {instagramSettings.instagram_enabled && (
-                              <>
-                                <div className="flex items-center justify-between p-3 rounded-lg bg-background">
-                                  <div>
-                                    <p className="text-sm font-medium">Auto-Publish Posts</p>
-                                    <p className="text-xs text-muted-foreground">
-                                      Automatically publish scheduled posts
-                                    </p>
-                                  </div>
-                                  <Switch
-                                    checked={instagramSettings.instagram_auto_publish}
-                                    onCheckedChange={(checked) =>
-                                      handleInstagramAutomationToggle(
-                                        "instagram_auto_publish",
-                                        checked,
-                                      )
-                                    }
-                                    disabled={instagramConnectionLoading}
-                                  />
-                                </div>
-
-                                <div className="flex items-center justify-between p-3 rounded-lg bg-background">
-                                  <div>
-                                    <p className="text-sm font-medium">Auto-Reply to DMs</p>
-                                    <p className="text-xs text-muted-foreground">
-                                      Send automatic replies to new messages
-                                    </p>
-                                  </div>
-                                  <Switch
-                                    checked={instagramSettings.instagram_auto_reply}
-                                    onCheckedChange={(checked) =>
-                                      handleInstagramAutomationToggle(
-                                        "instagram_auto_reply",
-                                        checked,
-                                      )
-                                    }
-                                    disabled={instagramConnectionLoading}
-                                  />
-                                </div>
-
-                                <div className="flex items-center justify-between p-3 rounded-lg bg-background">
-                                  <div>
-                                    <p className="text-sm font-medium">Save as Drafts</p>
-                                    <p className="text-xs text-muted-foreground">
-                                      Review before publishing
-                                    </p>
-                                  </div>
-                                  <Switch
-                                    checked={instagramSettings.instagram_save_drafts}
-                                    onCheckedChange={(checked) =>
-                                      handleInstagramAutomationToggle(
-                                        "instagram_save_drafts",
-                                        checked,
-                                      )
-                                    }
-                                    disabled={instagramConnectionLoading}
-                                  />
-                                </div>
-                              </>
-                            )}
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-medium">Auto-publish Posts</p>
+                            <p className="text-xs text-muted-foreground">Automatically publish scheduled posts</p>
                           </div>
+                          <Switch
+                            checked={instagramSettings.instagram_auto_publish}
+                            onCheckedChange={(checked) => handleInstagramToggle("instagram_auto_publish", checked)}
+                            disabled={instagramLoading || !instagramSettings.instagram_enabled}
+                          />
+                        </div>
 
-                          <div className="space-y-3">
-                            <h4 className="text-sm font-semibold">Posting Schedule</h4>
-
-                            <div className="space-y-2">
-                              <Label className="text-xs">Preferred Posting Time</Label>
-                              <Input
-                                type="time"
-                                value={postingPreferences.preferred_posting_time}
-                                onChange={(e) =>
-                                  setPostingPreferences({
-                                    ...postingPreferences,
-                                    preferred_posting_time: e.target.value,
-                                  })
-                                }
-                                className="h-8 rounded-lg text-sm"
-                              />
-                            </div>
-
-                            <div className="space-y-2">
-                              <Label className="text-xs">Posting Frequency</Label>
-                              <select
-                                value={postingPreferences.posting_frequency}
-                                onChange={(e) =>
-                                  setPostingPreferences({
-                                    ...postingPreferences,
-                                    posting_frequency: e.target.value,
-                                  })
-                                }
-                                className="w-full h-8 rounded-lg border border-border bg-background px-2 text-sm focus:border-primary focus:ring-2 focus:ring-primary/15 outline-none"
-                              >
-                                <option value="daily">Daily</option>
-                                <option value="weekly">Weekly</option>
-                                <option value="custom">Custom</option>
-                              </select>
-                            </div>
-
-                            {/* Weekly Day Selector */}
-                            {postingPreferences.posting_frequency === "weekly" && (
-                              <div className="space-y-2">
-                                <Label className="text-xs">Select Day</Label>
-                                <select
-                                  value={postingPreferences.weekly_day || "monday"}
-                                  onChange={(e) =>
-                                    setPostingPreferences({
-                                      ...postingPreferences,
-                                      weekly_day: e.target.value,
-                                    })
-                                  }
-                                  className="w-full h-8 rounded-lg border border-border bg-background px-2 text-sm focus:border-primary focus:ring-2 focus:ring-primary/15 outline-none"
-                                >
-                                  <option value="monday">Monday</option>
-                                  <option value="tuesday">Tuesday</option>
-                                  <option value="wednesday">Wednesday</option>
-                                  <option value="thursday">Thursday</option>
-                                  <option value="friday">Friday</option>
-                                  <option value="saturday">Saturday</option>
-                                  <option value="sunday">Sunday</option>
-                                </select>
-                              </div>
-                            )}
-
-                            {/* Custom Date Selector */}
-                            {postingPreferences.posting_frequency === "custom" && (
-                              <div className="space-y-2">
-                                <Label className="text-xs">Custom Schedule</Label>
-                                <Input
-                                  type="date"
-                                  value={postingPreferences.custom_date || ""}
-                                  onChange={(e) =>
-                                    setPostingPreferences({
-                                      ...postingPreferences,
-                                      custom_date: e.target.value,
-                                    })
-                                  }
-                                  min={new Date().toISOString().split('T')[0]}
-                                  className="h-8 rounded-lg text-sm"
-                                />
-                                <p className="text-xs text-muted-foreground">
-                                  Select a specific date for posting
-                                </p>
-                              </div>
-                            )}
-
-                            <div className="flex items-center justify-between p-3 rounded-lg bg-background">
-                              <div>
-                                <p className="text-sm font-medium">AI Generated Captions</p>
-                                <p className="text-xs text-muted-foreground">
-                                  Auto-generate captions using AI
-                                </p>
-                              </div>
-                              <Switch
-                                checked={postingPreferences.auto_generate_captions}
-                                onCheckedChange={(checked) =>
-                                  setPostingPreferences({
-                                    ...postingPreferences,
-                                    auto_generate_captions: checked,
-                                  })
-                                }
-                                disabled={loading}
-                              />
-                            </div>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-medium">Auto-reply to DMs</p>
+                            <p className="text-xs text-muted-foreground">Respond to direct messages automatically</p>
                           </div>
+                          <Switch
+                            checked={instagramSettings.instagram_auto_reply}
+                            onCheckedChange={(checked) => handleInstagramToggle("instagram_auto_reply", checked)}
+                            disabled={instagramLoading || !instagramSettings.instagram_enabled}
+                          />
+                        </div>
 
-                          <div className="space-y-3">
-                            <h4 className="text-sm font-semibold">Notifications</h4>
-
-                            <div className="flex items-center justify-between p-3 rounded-lg bg-background">
-                              <div>
-                                <p className="text-sm font-medium">Notify on Post</p>
-                                <p className="text-xs text-muted-foreground">
-                                  When posts are published
-                                </p>
-                              </div>
-                              <Switch
-                                checked={notificationSettings.notify_on_post}
-                                onCheckedChange={(checked) =>
-                                  setNotificationSettings({
-                                    ...notificationSettings,
-                                    notify_on_post: checked,
-                                  })
-                                }
-                                disabled={loading}
-                              />
-                            </div>
-
-                            <div className="flex items-center justify-between p-3 rounded-lg bg-background">
-                              <div>
-                                <p className="text-sm font-medium">Engagement Alerts</p>
-                                <p className="text-xs text-muted-foreground">
-                                  Likes, comments, and follows
-                                </p>
-                              </div>
-                              <Switch
-                                checked={notificationSettings.notify_on_engagement}
-                                onCheckedChange={(checked) =>
-                                  setNotificationSettings({
-                                    ...notificationSettings,
-                                    notify_on_engagement: checked,
-                                  })
-                                }
-                                disabled={loading}
-                              />
-                            </div>
-
-                            <div className="flex items-center justify-between p-3 rounded-lg bg-background">
-                              <div>
-                                <p className="text-sm font-medium">Error Notifications</p>
-                                <p className="text-xs text-muted-foreground">
-                                  When automation encounters issues
-                                </p>
-                              </div>
-                              <Switch
-                                checked={notificationSettings.notify_on_error}
-                                onCheckedChange={(checked) =>
-                                  setNotificationSettings({
-                                    ...notificationSettings,
-                                    notify_on_error: checked,
-                                  })
-                                }
-                                disabled={loading}
-                              />
-                            </div>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-medium">Save as Drafts</p>
+                            <p className="text-xs text-muted-foreground">Save posts as drafts by default</p>
                           </div>
+                          <Switch
+                            checked={instagramSettings.instagram_save_drafts}
+                            onCheckedChange={(checked) => handleInstagramToggle("instagram_save_drafts", checked)}
+                            disabled={instagramLoading}
+                          />
+                        </div>
 
-                          {/* Single Save Button for All Instagram Settings */}
-                          <Button
-                            size="sm"
-                            onClick={handleSaveAllInstagramSettings}
-                            disabled={loading}
-                            className="w-full h-10 bg-gradient-primary text-primary-foreground hover:brightness-110"
-                          >
-                            {loading ? (
-                              <>
-                                <Loader2 size={16} className="animate-spin mr-2" />
-                                Saving Instagram Settings...
-                              </>
-                            ) : (
-                              <>
-                                <Save size={16} className="mr-2" />
-                                Save Instagram Settings
-                              </>
-                            )}
-                          </Button>
-                        </>
-                      )}
-                    </>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-medium">Auto-generate Captions</p>
+                            <p className="text-xs text-muted-foreground">Use AI to automatically generate captions</p>
+                          </div>
+                          <Switch
+                            checked={instagramSettings.auto_generate_captions}
+                            onCheckedChange={(checked) => handleInstagramToggle("auto_generate_captions", checked)}
+                            disabled={instagramLoading}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center py-4">
+                      <p className="text-sm text-muted-foreground">Click "Check Status" to load Instagram settings</p>
+                    </div>
                   )}
                 </div>
               )}
             </div>
           ))}
         </div>
+      </div>
+
+      {/* Save Button */}
+      <div className="flex justify-end">
+        <Button
+          onClick={handleSaveSettings}
+          disabled={loading}
+          className="bg-gradient-primary text-primary-foreground hover:brightness-110"
+        >
+          {loading ? (
+            <Loader2 size={16} className="animate-spin mr-2" />
+          ) : (
+            <Save size={16} className="mr-2" />
+          )}
+          Save Settings
+        </Button>
       </div>
     </div>
   );

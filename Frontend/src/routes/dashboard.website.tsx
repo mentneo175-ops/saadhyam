@@ -41,6 +41,7 @@ function WebsiteAIPage() {
   const [showPreview, setShowPreview] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [currentPreviewPath, setCurrentPreviewPath] = useState("/");
+  const [pollingTimeoutId, setPollingTimeoutId] = useState<NodeJS.Timeout | null>(null);
 
   // Listen for navigation updates from iframe
   useEffect(() => {
@@ -89,14 +90,36 @@ function WebsiteAIPage() {
   const fetchWebsiteHtml = async (websiteId: string) => {
     try {
       console.log("🔍 Fetching website HTML for preview:", websiteId);
-      const response = await fetch(`http://localhost:8000/website/${websiteId}`, {
+      console.log("🔑 Token:", apiClient.getToken() ? "Present" : "Missing");
+      
+      const url = `http://localhost:8000/website/${websiteId}`;
+      console.log("🌐 Fetching from URL:", url);
+      
+      const response = await fetch(url, {
         headers: {
           "Authorization": `Bearer ${apiClient.getToken()}`,
         },
       });
       
-      if (response.ok) {
-        let html = await response.text();
+      console.log("📡 Response status:", response.status, response.statusText);
+      console.log("📡 Response headers:", Object.fromEntries(response.headers.entries()));
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("❌ Failed to fetch website HTML:", response.status, errorText);
+        setWebsiteStatus(`❌ Failed to load preview: ${response.status} - ${errorText.substring(0, 100)}`);
+        return;
+      }
+      
+      let html = await response.text();
+      console.log("✅ Received HTML, length:", html.length);
+      console.log("✅ HTML preview (first 200 chars):", html.substring(0, 200));
+      
+      if (!html || html.length === 0) {
+        console.error("❌ Received empty HTML");
+        setWebsiteStatus("❌ Received empty website content");
+        return;
+      }
         
         // Simple and reliable navigation script
         const internalNavigationScript = `
@@ -381,14 +404,14 @@ function WebsiteAIPage() {
         
         html = html.replace('</head>', navigationCSS + '</head>');
         
+        console.log("📝 Setting websiteHtml state, length:", html.length);
         setWebsiteHtml(html);
+        console.log("📝 Setting showPreview to true");
         setShowPreview(true);
-        console.log("✅ Website HTML prepared with internal navigation");
-      } else {
-        console.error("❌ Failed to fetch website HTML:", response.status);
-      }
+        console.log("✅ Website HTML prepared with internal navigation - preview should now be visible");
     } catch (error) {
       console.error("❌ Error fetching website HTML:", error);
+      setWebsiteStatus(`❌ Error loading preview: ${error}`);
     }
   };
 
@@ -473,11 +496,19 @@ function WebsiteAIPage() {
       return;
     }
     
+    // Clear any existing polling
+    if (pollingTimeoutId) {
+      clearTimeout(pollingTimeoutId);
+      setPollingTimeoutId(null);
+    }
+    
     setIsGenerating(true);
     setIsProcessing(true);
     setProgress(0);
     setWebsiteStatus("🚀 Starting generation...");
     setWebsiteResult(null);
+    setShowPreview(false);
+    setJobId(null);
     
     try {
       const servicesArray = websiteData.services.split(",").map(s => s.trim()).filter(s => s);
@@ -534,6 +565,7 @@ function WebsiteAIPage() {
       if (data.job_id) {
         setJobId(data.job_id);
         setWebsiteStatus(`📋 Job created! ID: ${data.job_id}`);
+        console.log("✅ Starting to poll for job:", data.job_id);
         // Poll for status
         pollJobStatus(data.job_id);
       } else {
@@ -551,41 +583,63 @@ function WebsiteAIPage() {
   };
 
   const pollJobStatus = async (jobId: string) => {
+    let pollCount = 0;
+    const maxPollCount = 150; // 5 minutes max (150 * 2 seconds)
+    
     const checkStatus = async () => {
       try {
+        pollCount++;
+        console.log(`📊 Polling job ${jobId} (attempt ${pollCount}/${maxPollCount})`);
+        
+        if (pollCount > maxPollCount) {
+          console.error("❌ Polling timeout - job took too long");
+          setWebsiteStatus("❌ Generation timeout - please try again");
+          setIsProcessing(false);
+          return;
+        }
+        
         const response = await fetch(`http://localhost:8000/api/v1/website-ai/jobs/${jobId}`, {
           headers: {
             "Authorization": `Bearer ${apiClient.getToken()}`,
           },
         });
+        
+        if (!response.ok) {
+          console.error("❌ Failed to fetch job status:", response.status);
+          setWebsiteStatus("❌ Failed to check job status");
+          setIsProcessing(false);
+          return;
+        }
+        
         const data = await response.json();
+        console.log(`📊 Job ${jobId} status:`, data.status, `progress: ${data.progress}%`);
         
         setProgress(data.progress || 0);
         
         // Update status with unique business analysis animation
         if (data.status === "pending") {
           setWebsiteStatus(`⏳ Queued - ${data.progress}%`);
+          // Continue polling for pending jobs
+          const timeoutId = setTimeout(checkStatus, 2000);
+          setPollingTimeoutId(timeoutId);
         } else if (data.status === "processing") {
           const messages = [
-            { icon: "�", text: "AI analyzing your business model", progress: 0 },
-            { icon: "�", text: "Identifying target audience", progress: 20 },
-            { icon: "��", text: "Designing website architecture", progress: 40 },
+            { icon: "🧠", text: "AI analyzing your business model", progress: 0 },
+            { icon: "🎯", text: "Identifying target audience", progress: 20 },
+            { icon: "🏗️", text: "Designing website architecture", progress: 40 },
             { icon: "📝", text: "Generating content sections", progress: 60 },
             { icon: "✨", text: "Optimizing for your audience", progress: 80 },
             { icon: "🚀", text: "Finalizing website structure", progress: 95 }
           ];
           
           const currentMessage = messages.find(m => data.progress >= m.progress) || messages[0];
-          const nextMessage = messages.find(m => data.progress < m.progress);
+          setWebsiteStatus(`${currentMessage.icon} ${currentMessage.text}... - ${data.progress}%`);
           
-          if (nextMessage) {
-            setWebsiteStatus(`${currentMessage.icon} ${currentMessage.text}... - ${data.progress}%`);
-          } else {
-            setWebsiteStatus(`${currentMessage.icon} ${currentMessage.text}... - ${data.progress}%`);
-          }
-        }
-        
-        if (data.status === "completed") {
+          // Continue polling for processing jobs
+          const timeoutId = setTimeout(checkStatus, 2000);
+          setPollingTimeoutId(timeoutId);
+        } else if (data.status === "completed") {
+          console.log("✅ Job completed! Fetching result...");
           // Fetch the result data when job is completed
           try {
             const resultResponse = await fetch(`http://localhost:8000/api/v1/website-ai/jobs/${jobId}/result`, {
@@ -593,33 +647,55 @@ function WebsiteAIPage() {
                 "Authorization": `Bearer ${apiClient.getToken()}`,
               },
             });
-            const resultData = await resultResponse.json();
             
-            setWebsiteStatus(`🎉 Load Website`);
+            if (!resultResponse.ok) {
+              throw new Error(`Failed to fetch result: ${resultResponse.status}`);
+            }
+            
+            const resultData = await resultResponse.json();
+            console.log("✅ Result data:", resultData);
+            
+            setWebsiteStatus(`🎉 Website Generated Successfully!`);
             setProgress(100);
-            setIsProcessing(false);
             
             // Store the result data for the buttons
             setWebsiteResult(resultData);
             
             // Automatically fetch HTML for preview
             if (resultData.website_id) {
+              console.log("🌐 Fetching website HTML for preview...");
+              console.log("📋 Result data contains:", {
+                website_id: resultData.website_id,
+                html_file_path: resultData.html_file_path,
+                preview_url: resultData.preview_url,
+                html_url: resultData.html_url
+              });
               await fetchWebsiteHtml(resultData.website_id);
+            } else {
+              console.error("❌ No website_id in result data:", resultData);
             }
+            
+            // Set isProcessing to false AFTER fetching HTML
+            setIsProcessing(false);
           } catch (error) {
-            console.error("Failed to fetch result:", error);
-            setWebsiteStatus(`✅ Load Website`);
+            console.error("❌ Failed to fetch result:", error);
+            setWebsiteStatus(`⚠️ Website generated but failed to load preview`);
             setIsProcessing(false);
           }
         } else if (data.status === "failed") {
-          setWebsiteStatus(`❌ Generation failed: ${data.error_message}`);
+          console.error("❌ Job failed:", data.error_message);
+          setWebsiteStatus(`❌ Generation failed: ${data.error_message || 'Unknown error'}`);
+          setProgress(0);
           setIsProcessing(false);
         } else {
-          // Continue polling
-          setTimeout(checkStatus, 2000);
+          console.warn("⚠️ Unknown job status:", data.status);
+          // Continue polling for unknown statuses
+          const timeoutId = setTimeout(checkStatus, 2000);
+          setPollingTimeoutId(timeoutId);
         }
       } catch (error) {
-        console.error("Status check error:", error);
+        console.error("❌ Status check error:", error);
+        setWebsiteStatus("❌ Failed to check generation status");
         setIsProcessing(false);
       }
     };
@@ -921,11 +997,24 @@ function WebsiteAIPage() {
                   <div className="text-sm leading-relaxed text-gray-600 max-w-sm">
                     Fill in the business details and click 'Generate Full Website' to create your complete website with the selected template.
                   </div>
+                  
+                  {/* Debug Info */}
+                  {websiteResult && (
+                    <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-xs text-left">
+                      <p className="font-bold mb-2">Debug Info:</p>
+                      <p>showPreview: {showPreview ? "true" : "false"}</p>
+                      <p>websiteHtml length: {websiteHtml.length}</p>
+                      <p>isProcessing: {isProcessing ? "true" : "false"}</p>
+                      <p>websiteResult.website_id: {websiteResult?.website_id}</p>
+                    </div>
+                  )}
                 </div>
               )}
 
               {/* Complete Website Preview */}
-              {showPreview && websiteHtml && !isProcessing && (
+              {showPreview && websiteHtml && !isProcessing && (() => {
+                console.log("🎨 Rendering preview - showPreview:", showPreview, "websiteHtml length:", websiteHtml.length, "isProcessing:", isProcessing);
+                return (
                 <div className="flex-1 flex flex-col">
                   <div className="mb-2 text-xs text-muted-foreground flex items-center justify-between flex-shrink-0">
                     <span>Live Preview</span>
@@ -1006,7 +1095,8 @@ function WebsiteAIPage() {
                     />
                   </div>
                 </div>
-              )}
+                );
+              })()}
               
 
               

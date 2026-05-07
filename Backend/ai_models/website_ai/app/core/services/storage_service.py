@@ -22,9 +22,14 @@ class StorageService:
     def __init__(self):
         self.storage_type = settings.STORAGE_TYPE
         
-        # New scalable storage paths
-        self.base_websites_dir = Path(settings.LOCAL_STORAGE_PATH).parent / "websites"
+        # New scalable storage paths - save to Backend/websites/
+        # Get the Backend directory (5 levels up from this file)
+        # storage_service.py -> services -> core -> app -> website_ai -> ai_models -> Backend
+        backend_dir = Path(__file__).resolve().parent.parent.parent.parent.parent.parent
+        self.base_websites_dir = backend_dir / "websites"
         self.base_websites_dir.mkdir(parents=True, exist_ok=True)
+        
+        logger.info(f"📁 Website storage directory: {self.base_websites_dir}")
 
         if self.storage_type in ["s3", "minio"]:
             self.s3_client = boto3.client(

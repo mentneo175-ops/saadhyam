@@ -9,14 +9,14 @@ from sqlalchemy.orm import sessionmaker
 logger = logging.getLogger(__name__)
 
 # Create Celery app
-app = Celery(
+celery = Celery(
     "saadhyam",
     broker=settings.CELERY_BROKER_URL,
     backend=settings.CELERY_RESULT_BACKEND,
 )
 
 # Configure Celery
-app.conf.update(
+celery.conf.update(
     task_serializer=settings.CELERY_TASK_SERIALIZER,
     accept_content=[settings.CELERY_ACCEPT_CONTENT],
     result_serializer=settings.CELERY_RESULT_SERIALIZER,
@@ -42,7 +42,7 @@ def get_db_session():
         raise
 
 
-@app.task(bind=True, max_retries=3)
+@celery.task(bind=True, max_retries=3)
 def post_to_instagram_task(self, post_id: int):
     """
     Post a scheduled post to Instagram.
@@ -132,7 +132,7 @@ def post_to_instagram_task(self, post_id: int):
         db.close()
 
 
-@app.task()
+@celery.task()
 def process_scheduled_posts():
     """
     Process all pending scheduled posts.
@@ -174,7 +174,7 @@ def process_scheduled_posts():
         db.close()
 
 
-@app.task()
+@celery.task()
 def retry_failed_posts():
     """
     Retry failed posts that haven't exceeded max retries.
@@ -215,7 +215,7 @@ def retry_failed_posts():
         db.close()
 
 
-@app.task()
+@celery.task()
 def fetch_analytics():
     """
     Fetch analytics for posted content.
@@ -229,7 +229,7 @@ def fetch_analytics():
 # Periodic tasks configuration
 from celery.schedules import crontab
 
-app.conf.beat_schedule = {
+celery.conf.beat_schedule = {
     "process-scheduled-posts-every-5-minutes": {
         "task": "celery_worker.process_scheduled_posts",
         "schedule": 5 * 60,  # 5 minutes
@@ -246,4 +246,4 @@ app.conf.beat_schedule = {
 
 
 if __name__ == "__main__":
-    app.start()
+    celery.start()

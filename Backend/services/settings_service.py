@@ -226,3 +226,74 @@ class SettingsService:
             db.rollback()
             logger.error(f"Error updating blocked keywords: {e}")
             raise
+
+    @staticmethod
+    def disconnect_instagram_account(db: Session, user_id: int) -> bool:
+        """
+        Disconnect Instagram account and clean up all related data.
+        
+        This will:
+        - Deactivate all Instagram social accounts
+        - Disable Instagram automation
+        - Cancel all scheduled posts
+        - Clear Instagram-related settings
+        
+        Returns True if disconnection was successful, False if no account was connected.
+        """
+        try:
+            # Check if user has any Instagram accounts
+            stmt = select(SocialAccount).where(
+                SocialAccount.user_id == user_id,
+                SocialAccount.platform == "instagram",
+                SocialAccount.is_active == True,
+            )
+            result = db.execute(stmt)
+            accounts = result.scalars().all()
+            
+            if not accounts:
+                logger.info(f"No active Instagram accounts found for user {user_id}")
+                return False
+            
+            # Deactivate all Instagram accounts
+            for account in accounts:
+                account.is_active = False
+                account.disconnected_at = datetime.utcnow()
+                # Don't modify access_token or refresh_token - keep them for potential reconnection
+                db.add(account)
+                logger.info(f"Deactivated Instagram account {account.ig_username} for user {user_id}")
+            
+            # Cancel all scheduled posts
+            scheduled_posts_stmt = select(ScheduledPost).where(
+                ScheduledPost.user_id == user_id,
+                ScheduledPost.status == "scheduled",
+            )
+            scheduled_result = db.execute(scheduled_posts_stmt)
+            scheduled_posts = scheduled_result.scalars().all()
+            
+            for post in scheduled_posts:
+                post.status = "failed"  # Use string instead of enum
+                post.error_message = "Account disconnected by user"
+                db.add(post)
+                logger.info(f"Cancelled scheduled post {post.id} for user {user_id}")
+            
+            # Disable Instagram automation in settings
+            settings = SettingsService.get_user_settings(db, user_id)
+            settings.instagram_enabled = False
+            settings.instagram_auto_publish = False
+            settings.instagram_auto_reply = False
+            db.add(settings)
+            
+            # Commit all changes
+            db.commit()
+            
+            logger.info(f"Successfully disconnected Instagram account for user {user_id}")
+            logger.info(f"- Deactivated {len(accounts)} Instagram account(s)")
+            logger.info(f"- Cancelled {len(scheduled_posts)} scheduled post(s)")
+            logger.info(f"- Disabled Instagram automation")
+            
+            return True
+            
+        except Exception as e:
+            db.rollback()
+            logger.error(f"Error disconnecting Instagram account for user {user_id}: {e}")
+            raise

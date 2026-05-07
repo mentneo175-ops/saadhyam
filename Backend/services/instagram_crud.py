@@ -31,29 +31,56 @@ class InstagramCRUD:
         page_name: Optional[str] = None,
         access_token_expires_at: Optional[datetime] = None,
     ) -> SocialAccount:
-        """Create a new social account record."""
+        """Create a new social account record or reactivate existing one."""
         try:
-            account = SocialAccount(
-                user_id=user_id,
-                platform=platform,
-                access_token=access_token,
-                ig_user_id=ig_user_id,
-                ig_username=ig_username,
-                page_id=page_id,
-                page_name=page_name,
-                access_token_expires_at=access_token_expires_at,
-                is_active=True,
+            # Check if account already exists (even if disconnected)
+            stmt = select(SocialAccount).where(
+                and_(
+                    SocialAccount.user_id == user_id,
+                    SocialAccount.platform == platform,
+                    SocialAccount.ig_user_id == ig_user_id,
+                )
             )
-            db.add(account)
-            db.commit()
-            db.refresh(account)
-            logger.info(
-                f"Created social account {account.id} for user {user_id}"
-            )
-            return account
+            result = db.execute(stmt)
+            existing_account = result.scalar_one_or_none()
+            
+            if existing_account:
+                # Reactivate and update existing account
+                logger.info(f"Reactivating existing social account {existing_account.id} for user {user_id}")
+                existing_account.access_token = access_token
+                existing_account.ig_username = ig_username
+                existing_account.page_id = page_id
+                existing_account.page_name = page_name
+                existing_account.access_token_expires_at = access_token_expires_at
+                existing_account.is_active = True
+                existing_account.disconnected_at = None
+                existing_account.connected_at = datetime.utcnow()
+                db.add(existing_account)
+                db.commit()
+                db.refresh(existing_account)
+                logger.info(f"Reactivated social account {existing_account.id} for user {user_id}")
+                return existing_account
+            else:
+                # Create new account
+                account = SocialAccount(
+                    user_id=user_id,
+                    platform=platform,
+                    access_token=access_token,
+                    ig_user_id=ig_user_id,
+                    ig_username=ig_username,
+                    page_id=page_id,
+                    page_name=page_name,
+                    access_token_expires_at=access_token_expires_at,
+                    is_active=True,
+                )
+                db.add(account)
+                db.commit()
+                db.refresh(account)
+                logger.info(f"Created new social account {account.id} for user {user_id}")
+                return account
         except Exception as e:
             db.rollback()
-            logger.error(f"Error creating social account: {e}")
+            logger.error(f"Error creating/reactivating social account: {e}")
             raise
 
     @staticmethod

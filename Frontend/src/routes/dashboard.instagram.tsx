@@ -13,6 +13,21 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Upload,
   Image as ImageIcon,
   Calendar,
@@ -23,10 +38,17 @@ import {
   Loader2,
   ChevronUp,
   ChevronDown,
+  Instagram,
+  Settings,
+  Sparkles,
+  Wand2,
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { apiClient } from "@/lib/api";
 import { toast } from "sonner";
+import { InstagramConnectionWizard } from "@/components/instagram/InstagramConnectionWizard";
+import { InstagramSettingsModal } from "@/components/instagram/InstagramSettingsModal";
+import { InstagramConnectionSuccess } from "@/components/instagram/InstagramConnectionSuccess";
 
 export const Route = createFileRoute("/dashboard/instagram")({
   head: () => ({ meta: [{ title: "Instagram — Saadhyam AI" }] }),
@@ -45,6 +67,13 @@ interface InstagramPost {
   ai_generated: boolean;
 }
 
+interface InstagramConnectionStatus {
+  is_connected: boolean;
+  account_username?: string;
+  page_name?: string;
+  connection_error?: string;
+}
+
 function InstagramPage() {
   const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -54,6 +83,20 @@ function InstagramPage() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [caption, setCaption] = useState("");
   const [isScheduled, setIsScheduled] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState<InstagramConnectionStatus>({
+    is_connected: false,
+  });
+  const [showConnectionWizard, setShowConnectionWizard] = useState(false);
+  const [connectionLoading, setConnectionLoading] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [showSuccessPage, setShowSuccessPage] = useState(false);
+  
+  // AI Caption Generation State
+  const [showAIDialog, setShowAIDialog] = useState(false);
+  const [aiTopic, setAiTopic] = useState("");
+  const [aiTone, setAiTone] = useState("casual");
+  const [generatingCaption, setGeneratingCaption] = useState(false);
+  const [autoGenerateEnabled, setAutoGenerateEnabled] = useState(false);
   
   // Separate date and time for better control
   const [scheduledDate, setScheduledDate] = useState("");
@@ -136,20 +179,27 @@ function InstagramPage() {
 
   useEffect(() => {
     setMounted(true);
-    loadPosts(false);
-    triggerScheduledPostsProcessing();
+    checkConnectionStatus();
     
-    console.log("🧪 Testing toast system...");
-    setTimeout(() => {
-      toast.info("Instagram page loaded successfully", {
-        duration: 2000,
-      });
-    }, 500);
+    // Check if user just returned from Instagram OAuth
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("instagram") === "success") {
+      setShowSuccessPage(true);
+      // Clean up URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+      // Auto-hide success page after 5 seconds
+      setTimeout(() => {
+        setShowSuccessPage(false);
+        checkConnectionStatus();
+      }, 5000);
+    }
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if ((event.ctrlKey || event.metaKey) && event.key === 'r') {
         event.preventDefault();
-        loadPosts(true);
+        if (connectionStatus.is_connected) {
+          loadPosts(true);
+        }
       }
     };
 
@@ -159,6 +209,186 @@ function InstagramPage() {
       window.removeEventListener('keydown', handleKeyDown);
     };
   }, []);
+
+  const checkConnectionStatus = async () => {
+    try {
+      setConnectionLoading(true);
+      const token = localStorage.getItem("saadhyam_token");
+      const response = await fetch("http://localhost:8000/settings/instagram/connection-status", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+      const data = await response.json();
+      setConnectionStatus(data);
+      
+      // If connected, load posts and trigger processing
+      if (data.is_connected) {
+        loadPosts(false);
+        triggerScheduledPostsProcessing();
+        
+        // Load AI settings
+        loadAISettings();
+      }
+    } catch (error) {
+      console.error("Failed to check Instagram connection:", error);
+      setConnectionStatus({ is_connected: false, connection_error: "Failed to check connection" });
+    } finally {
+      setConnectionLoading(false);
+    }
+  };
+
+  const loadAISettings = async () => {
+    try {
+      const token = localStorage.getItem("saadhyam_token");
+      const response = await fetch("http://localhost:8000/settings", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data?.posting_preferences?.auto_generate_captions) {
+          setAutoGenerateEnabled(data.posting_preferences.auto_generate_captions);
+        }
+      }
+    } catch (error) {
+      console.error("Failed to load AI settings:", error);
+    }
+  };
+
+  const generateAICaption = async () => {
+    if (!aiTopic.trim()) {
+      toast.error("Please enter a topic for the caption");
+      return;
+    }
+
+    try {
+      setGeneratingCaption(true);
+      
+      const response = await fetch("http://localhost:8000/instagram/generate-caption", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("saadhyam_token")}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          topic: aiTopic,
+          tone: aiTone,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setCaption(data.caption);
+        setShowAIDialog(false);
+        setAiTopic("");
+        toast.success("🤖 AI caption generated successfully!");
+      } else {
+        const errorData = await response.json();
+        toast.error(errorData.detail || "Failed to generate caption");
+      }
+    } catch (error) {
+      console.error("Error generating AI caption:", error);
+      toast.error("Failed to generate AI caption");
+    } finally {
+      setGeneratingCaption(false);
+    }
+  };
+
+  const handleConnectInstagram = async () => {
+    try {
+      setConnectionLoading(true);
+      
+      const token = localStorage.getItem("saadhyam_token");
+      const popup = window.open(
+        `http://localhost:8000/auth/instagram/connect?token=${token}`,
+        "instagram-connect",
+        "width=600,height=700,scrollbars=yes,resizable=yes"
+      );
+
+      if (!popup) {
+        toast.error("Popup blocked. Please allow popups and try again.");
+        return;
+      }
+
+      // Listen for popup closure
+      const checkClosed = setInterval(() => {
+        if (popup.closed) {
+          clearInterval(checkClosed);
+          // Check connection status after popup closes
+          setTimeout(() => {
+            checkConnectionStatus();
+          }, 1000);
+        }
+      }, 1000);
+
+      // Listen for messages from popup
+      const messageListener = (event: MessageEvent) => {
+        if (event.origin !== "http://localhost:8000") return;
+        
+        if (event.data.type === "instagram-auth-success") {
+          popup.close();
+          toast.success("Instagram connected successfully!");
+          checkConnectionStatus();
+          window.removeEventListener("message", messageListener);
+        } else if (event.data.type === "instagram-auth-error") {
+          popup.close();
+          toast.error(event.data.message || "Failed to connect Instagram");
+          window.removeEventListener("message", messageListener);
+        }
+      };
+
+      window.addEventListener("message", messageListener);
+
+      // Cleanup after 5 minutes
+      setTimeout(() => {
+        if (!popup.closed) {
+          popup.close();
+        }
+        clearInterval(checkClosed);
+        window.removeEventListener("message", messageListener);
+      }, 5 * 60 * 1000);
+
+    } catch (error) {
+      console.error("Error connecting Instagram:", error);
+      toast.error("Failed to connect Instagram");
+    } finally {
+      setConnectionLoading(false);
+    }
+  };
+
+  const handleDisconnectInstagram = async () => {
+    try {
+      setConnectionLoading(true);
+      const token = localStorage.getItem("saadhyam_token");
+      
+      const response = await fetch("http://localhost:8000/settings/instagram/disconnect", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (response.ok) {
+        toast.success("Instagram account disconnected successfully");
+        setConnectionStatus({ is_connected: false });
+        setPosts([]);
+      } else {
+        const errorData = await response.json();
+        toast.error(errorData.detail || "Failed to disconnect Instagram");
+      }
+    } catch (error) {
+      console.error("Error disconnecting Instagram:", error);
+      toast.error("Failed to disconnect Instagram");
+    } finally {
+      setConnectionLoading(false);
+    }
+  };
 
   // Auto-set time when schedule toggle is checked
   useEffect(() => {
@@ -281,6 +511,45 @@ function InstagramPage() {
         setImagePreview(e.target?.result as string);
       };
       reader.readAsDataURL(file);
+
+      // Auto-generate caption if enabled and no caption exists
+      if (autoGenerateEnabled && !caption.trim()) {
+        autoGenerateCaption(file.name);
+      }
+    }
+  };
+
+  const autoGenerateCaption = async (imageName: string) => {
+    try {
+      // Extract topic from image name or use generic topic
+      let topic = imageName.replace(/\.(jpg|jpeg|png|gif|webp)$/i, '').replace(/[-_]/g, ' ');
+      if (topic.length < 3) {
+        topic = "new post";
+      }
+
+      const response = await fetch("http://localhost:8000/instagram/generate-caption", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("saadhyam_token")}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          topic: topic,
+          tone: "casual",
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setCaption(data.caption);
+        toast.success("🤖 AI caption auto-generated!", {
+          description: "You can edit it or generate a new one",
+          duration: 3000,
+        });
+      }
+    } catch (error) {
+      console.error("Auto-generate caption failed:", error);
+      // Silently fail for auto-generation
     }
   };
 
@@ -487,12 +756,61 @@ function InstagramPage() {
 
   if (!mounted) return null;
 
+  // Show success page after connection
+  if (showSuccessPage) {
+    return (
+      <InstagramConnectionSuccess
+        accountUsername={connectionStatus.account_username}
+        pageName={connectionStatus.page_name}
+        onContinue={() => {
+          setShowSuccessPage(false);
+          checkConnectionStatus();
+        }}
+        onGoToSettings={() => {
+          setShowSuccessPage(false);
+          setShowSettingsModal(true);
+          checkConnectionStatus();
+        }}
+      />
+    );
+  }
+
+  // Show connection wizard if not connected or if explicitly requested
+  if (!connectionStatus.is_connected || showConnectionWizard) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-orange-50">
+        <InstagramConnectionWizard
+          onConnect={handleConnectInstagram}
+          onCancel={() => setShowConnectionWizard(false)}
+          isLoading={connectionLoading}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="p-4 md:p-6 lg:p-8 space-y-6 max-w-6xl">
-      <PageHeader
-        title="Instagram"
-        subtitle="Post and schedule content to your Instagram account"
-      />
+      <div className="flex items-center justify-between">
+        <PageHeader
+          title="Instagram"
+          subtitle={`Connected as @${connectionStatus.account_username || 'Unknown'}`}
+        />
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-green-50 border border-green-200 rounded-full">
+            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+            <span className="text-sm font-medium text-green-700">Connected</span>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowSettingsModal(true)}
+            className="flex items-center gap-2"
+          >
+            <Settings className="w-4 h-4" />
+            Settings
+          </Button>
+        </div>
+      </div>
 
       <div className="grid lg:grid-cols-2 gap-6">
         {/* Post Creation */}
@@ -545,17 +863,102 @@ function InstagramPage() {
 
             {/* Caption */}
             <div className="space-y-2">
-              <Label>Caption</Label>
+              <div className="flex items-center justify-between">
+                <Label>Caption</Label>
+                <Dialog open={showAIDialog} onOpenChange={setShowAIDialog}>
+                  <DialogTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-8 px-3 text-xs bg-gradient-to-r from-purple-50 to-pink-50 border-purple-200 hover:from-purple-100 hover:to-pink-100"
+                    >
+                      <Sparkles size={14} className="mr-1.5 text-purple-600" />
+                      Generate AI Caption
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle className="flex items-center gap-2">
+                        <Wand2 size={20} className="text-purple-600" />
+                        Generate AI Caption
+                      </DialogTitle>
+                      <DialogDescription>
+                        Let AI create an engaging caption for your Instagram post
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="ai-topic">What's your post about?</Label>
+                        <Input
+                          id="ai-topic"
+                          value={aiTopic}
+                          onChange={(e) => setAiTopic(e.target.value)}
+                          placeholder="e.g., new product launch, Diwali offer, weekend special"
+                          className="h-10"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="ai-tone">Tone</Label>
+                        <Select value={aiTone} onValueChange={setAiTone}>
+                          <SelectTrigger className="h-10">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="casual">Casual & Friendly</SelectItem>
+                            <SelectItem value="professional">Professional</SelectItem>
+                            <SelectItem value="funny">Fun & Playful</SelectItem>
+                            <SelectItem value="inspirational">Inspirational</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="flex gap-2 pt-2">
+                        <Button
+                          onClick={generateAICaption}
+                          disabled={generatingCaption || !aiTopic.trim()}
+                          className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                        >
+                          {generatingCaption ? (
+                            <>
+                              <Loader2 size={16} className="animate-spin mr-2" />
+                              Generating...
+                            </>
+                          ) : (
+                            <>
+                              <Sparkles size={16} className="mr-2" />
+                              Generate Caption
+                            </>
+                          )}
+                        </Button>
+                        <Button
+                          variant="outline"
+                          onClick={() => setShowAIDialog(false)}
+                          disabled={generatingCaption}
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </div>
               <Textarea
                 value={caption}
                 onChange={(e) => setCaption(e.target.value)}
-                placeholder="Write your Instagram caption..."
+                placeholder="Write your Instagram caption... or use AI to generate one!"
                 rows={4}
                 className="resize-none"
               />
-              <p className="text-xs text-muted-foreground">
-                {caption.length}/2200 characters
-              </p>
+              <div className="flex items-center justify-between">
+                <p className="text-xs text-muted-foreground">
+                  {caption.length}/2200 characters
+                </p>
+                {autoGenerateEnabled && (
+                  <div className="flex items-center gap-1.5 text-xs text-purple-600 bg-purple-50 px-2 py-1 rounded-full">
+                    <Sparkles size={12} />
+                    AI Auto-generate enabled
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Schedule Toggle */}
@@ -832,6 +1235,16 @@ function InstagramPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Settings Modal */}
+      <InstagramSettingsModal
+        isOpen={showSettingsModal}
+        onClose={() => setShowSettingsModal(false)}
+        connectionStatus={connectionStatus}
+        onDisconnect={handleDisconnectInstagram}
+        onReconnect={handleConnectInstagram}
+        isLoading={connectionLoading}
+      />
     </div>
   );
 }

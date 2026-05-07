@@ -1,9 +1,6 @@
 @echo off
-echo Starting Celery Worker for Windows...
+echo Starting Celery Worker for Website AI...
 echo.
-
-REM Activate virtual environment
-call venv\Scripts\activate.bat
 
 REM Set environment variable for Windows compatibility
 set FORKED_BY_MULTIPROCESSING=1

@@ -27,7 +27,7 @@ class BusinessProfileRequest(BaseModel):
     business_name: str = Field(..., min_length=1, max_length=255)
     business_type: str = Field(..., min_length=1, max_length=100)
     business_location: str = Field(..., min_length=1, max_length=255)
-    business_description: str = Field(..., min_length=20, max_length=2000)
+    business_description: str = Field(..., min_length=20, max_length=5000)  # Increased to 5000 for flexibility
     
     class Config:
         example = {
@@ -45,6 +45,8 @@ class BusinessProfileResponse(BaseModel):
     business_location: Optional[str] = None
     business_description: Optional[str] = None
     business_setup_completed: bool = False
+    pdf_file_url: Optional[str] = None
+    website_url: Optional[str] = None
     
     class Config:
         from_attributes = True
@@ -89,7 +91,9 @@ def get_profile(
             business_type=current_user.business_type,
             business_location=current_user.business_location,
             business_description=current_user.business_description,
-            business_setup_completed=current_user.business_setup_completed or False
+            business_setup_completed=current_user.business_setup_completed or False,
+            pdf_file_url=current_user.pdf_file_url,
+            website_url=current_user.website_url
         )
         
         # Create complete profile response
@@ -135,7 +139,9 @@ def get_business_profile(
             business_type=current_user.business_type,
             business_location=current_user.business_location,
             business_description=current_user.business_description,
-            business_setup_completed=current_user.business_setup_completed or False
+            business_setup_completed=current_user.business_setup_completed or False,
+            pdf_file_url=current_user.pdf_file_url,
+            website_url=current_user.website_url
         )
         
         logger.info(f"✅ Business profile retrieved for user: {current_user.email}")
@@ -198,7 +204,9 @@ def update_business_profile(
             business_type=current_user.business_type,
             business_location=current_user.business_location,
             business_description=current_user.business_description,
-            business_setup_completed=current_user.business_setup_completed
+            business_setup_completed=current_user.business_setup_completed,
+            pdf_file_url=current_user.pdf_file_url,
+            website_url=current_user.website_url
         )
         
     except Exception as e:

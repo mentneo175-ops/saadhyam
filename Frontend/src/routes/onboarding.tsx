@@ -1,10 +1,13 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Sparkles, Loader, AlertCircle, ArrowRight, ChevronLeft } from "lucide-react";
+import { Sparkles, AlertCircle, ArrowRight, ChevronLeft, CheckCircle2 } from "lucide-react";
 import { apiClient } from "@/lib/api";
 import { triggerComprehensiveAnalysis, pollAnalysisStatus } from "@/lib/comprehensiveAnalysisApi";
 import { toast } from "sonner";
+import { PDFUpload } from "@/components/business/PDFUpload";
+import { VoiceInput } from "@/components/business/VoiceInput";
+import { WebsiteImport } from "@/components/business/WebsiteImport";
 
 export const Route = createFileRoute("/onboarding")({
   head: () => ({ meta: [{ title: "Business Setup — Saadhyam AI" }] }),
@@ -35,6 +38,8 @@ function OnboardingPage() {
     location: "",
     description: ""
   });
+  const [baseDescription, setBaseDescription] = useState(""); // Store base text before live recording
+  const [activeInputMethod, setActiveInputMethod] = useState<"none" | "website" | "pdf" | "voice" | "text">("none");
 
   const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement>(null);
 
@@ -109,6 +114,10 @@ function OnboardingPage() {
           setError("Description must be at least 20 characters");
           return false;
         }
+        if (formData.description.length > 5000) {
+          setError(`Description is too long (${formData.description.length - 5000} characters over the 5000 limit). Please shorten it.`);
+          return false;
+        }
         break;
     }
     return true;
@@ -132,7 +141,7 @@ function OnboardingPage() {
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
+    if (e.key === "Enter" && !e.shiftKey && currentStep !== 4) {
       e.preventDefault();
       handleNext();
     }
@@ -143,8 +152,86 @@ function OnboardingPage() {
     setError(null);
   };
 
+  const handleTextExtracted = (extractedText: string, title?: string) => {
+    // Reset base description when final text is extracted
+    setBaseDescription("");
+    
+    // Intelligently merge extracted text with existing description
+    const currentText = formData.description.trim();
+    
+    if (!currentText) {
+      // If textarea is empty, just use extracted text
+      setFormData(prev => ({ ...prev, description: extractedText }));
+    } else {
+      // If there's existing text, append intelligently
+      const separator = currentText.endsWith('.') || currentText.endsWith('!') || currentText.endsWith('?') 
+        ? ' ' 
+        : '. ';
+      setFormData(prev => ({ 
+        ...prev, 
+        description: `${currentText}${separator}${extractedText}` 
+      }));
+    }
+    
+    // Show textarea after extraction
+    setActiveInputMethod("text");
+    
+    // If title is provided and business name is empty, suggest it
+    if (title && !formData.name.trim()) {
+      toast.success(`Suggestion: Use "${title}" as business name?`, {
+        action: {
+          label: "Use it",
+          onClick: () => setFormData(prev => ({ ...prev, name: title }))
+        }
+      });
+    }
+    
+    toast.success("Text added to description!");
+  };
+
+  const handleLiveTranscript = (liveText: string) => {
+    // Update textarea in real-time while recording
+    if (!liveText.trim()) {
+      // Store base description when recording starts
+      setBaseDescription(formData.description);
+      return;
+    }
+    
+    // Use stored base description to avoid duplication
+    const base = baseDescription || formData.description;
+    
+    // Only update if the live text is different from what's already there
+    const currentWithoutBase = formData.description.replace(base, '').trim();
+    if (currentWithoutBase === liveText.trim()) {
+      return; // No change needed
+    }
+    
+    // Add separator if base text exists
+    const separator = base && !base.endsWith('.') && !base.endsWith('!') && !base.endsWith('?') 
+      ? '. ' 
+      : base ? ' ' : '';
+    
+    // Update with base + live transcript
+    setFormData(prev => ({ 
+      ...prev, 
+      description: base + separator + liveText
+    }));
+  };
+
   const handleSubmit = async () => {
     if (!validateCurrentStep()) return;
+
+    // Double-check all fields before submitting
+    if (!formData.name.trim() || !formData.type.trim() || 
+        !formData.location.trim() || !formData.description.trim()) {
+      setError("Please fill in all fields");
+      return;
+    }
+    
+    if (formData.description.length < 20) {
+      setError("Description must be at least 20 characters");
+      return;
+    }
 
     setIsAnalyzing(true);
 
@@ -163,11 +250,18 @@ function OnboardingPage() {
 
       // Save business profile to database
       const businessProfile = {
-        business_name: formData.name,
-        business_type: formData.type,
-        business_location: formData.location,
-        business_description: formData.description,
+        business_name: formData.name.trim(),
+        business_type: formData.type.trim(),
+        business_location: formData.location.trim(),
+        business_description: formData.description.trim(),
       };
+
+      console.log("📤 Submitting business profile:", {
+        name_length: businessProfile.business_name.length,
+        type_length: businessProfile.business_type.length,
+        location_length: businessProfile.business_location.length,
+        description_length: businessProfile.business_description.length
+      });
 
       await apiClient.updateBusinessProfile(businessProfile);
 
@@ -196,16 +290,29 @@ function OnboardingPage() {
     }
   };
 
-  // Analyzing state
+  // Enhanced Analyzing state
   if (isAnalyzing) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 flex items-center justify-center p-4">
-        <div className="text-center max-w-md">
-          <div className="relative mb-8">
-            <div className="w-20 h-20 mx-auto rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center animate-pulse">
-              <Sparkles size={32} className="text-white" />
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 flex items-center justify-center p-4 relative overflow-hidden">
+        {/* Animated background */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-20 left-10 w-96 h-96 bg-purple-300 rounded-full mix-blend-multiply filter blur-3xl opacity-40 animate-blob"></div>
+          <div className="absolute top-40 right-10 w-96 h-96 bg-pink-300 rounded-full mix-blend-multiply filter blur-3xl opacity-40 animate-blob animation-delay-2000"></div>
+          <div className="absolute -bottom-8 left-1/2 w-96 h-96 bg-blue-300 rounded-full mix-blend-multiply filter blur-3xl opacity-40 animate-blob animation-delay-4000"></div>
+        </div>
+
+        <div className="text-center max-w-md relative z-10 animate-scale-in">
+          <div className="relative mb-10">
+            {/* Outer spinning ring */}
+            <div className="absolute inset-0 w-24 h-24 mx-auto rounded-full border-4 border-purple-200 animate-spin border-t-purple-500 border-r-pink-500"></div>
+            
+            {/* Middle pulsing ring */}
+            <div className="absolute inset-0 w-24 h-24 mx-auto rounded-full border-4 border-pink-200 animate-ping opacity-20"></div>
+            
+            {/* Inner icon */}
+            <div className="relative w-24 h-24 mx-auto rounded-full bg-gradient-to-br from-purple-500 via-purple-600 to-pink-500 flex items-center justify-center shadow-2xl animate-pulse">
+              <Sparkles size={40} className="text-white animate-pulse" />
             </div>
-            <div className="absolute inset-0 w-20 h-20 mx-auto rounded-full border-4 border-purple-200 animate-spin border-t-purple-500"></div>
           </div>
           <h2 className="text-2xl font-bold text-gray-900 mb-3">Analyzing Your Business</h2>
           <p className="text-gray-600 mb-6">
@@ -239,20 +346,59 @@ function OnboardingPage() {
     );
   }
 
-  // Complete state
+  // Enhanced Complete state with celebration
   if (isComplete) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 flex items-center justify-center p-4">
-        <div className="text-center max-w-md">
-          <div className="w-20 h-20 mx-auto rounded-full bg-gradient-to-r from-emerald-500 to-green-500 flex items-center justify-center mb-8 animate-bounce">
-            <Sparkles size={32} className="text-white" />
+      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-green-50 flex items-center justify-center p-4 relative overflow-hidden">
+        {/* Animated background */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-20 left-10 w-96 h-96 bg-emerald-300 rounded-full mix-blend-multiply filter blur-3xl opacity-40 animate-blob"></div>
+          <div className="absolute top-40 right-10 w-96 h-96 bg-green-300 rounded-full mix-blend-multiply filter blur-3xl opacity-40 animate-blob animation-delay-2000"></div>
+          <div className="absolute -bottom-8 left-1/2 w-96 h-96 bg-teal-300 rounded-full mix-blend-multiply filter blur-3xl opacity-40 animate-blob animation-delay-4000"></div>
+        </div>
+
+        <div className="text-center max-w-md relative z-10 animate-scale-in">
+          {/* Success icon with celebration effect */}
+          <div className="relative mb-10">
+            {/* Expanding rings */}
+            <div className="absolute inset-0 w-28 h-28 mx-auto rounded-full bg-emerald-200 animate-ping opacity-30"></div>
+            <div className="absolute inset-0 w-28 h-28 mx-auto rounded-full bg-green-200 animate-ping opacity-20" style={{ animationDelay: '0.5s' }}></div>
+            
+            {/* Main icon */}
+            <div className="relative w-28 h-28 mx-auto rounded-full bg-gradient-to-br from-emerald-500 via-green-500 to-teal-500 flex items-center justify-center shadow-2xl animate-bounce">
+              <Sparkles size={48} className="text-white" />
+            </div>
+            
+            {/* Floating sparkles */}
+            <div className="absolute top-0 left-1/4 w-3 h-3 bg-yellow-400 rounded-full animate-ping"></div>
+            <div className="absolute top-1/4 right-1/4 w-2 h-2 bg-yellow-300 rounded-full animate-ping" style={{ animationDelay: '0.3s' }}></div>
+            <div className="absolute bottom-1/4 left-1/3 w-2 h-2 bg-yellow-500 rounded-full animate-ping" style={{ animationDelay: '0.6s' }}></div>
           </div>
-          <h2 className="text-3xl font-bold text-gray-900 mb-3">All Set! 🎉</h2>
-          <p className="text-gray-600 mb-6">
+          
+          <h2 className="text-4xl font-bold text-gray-900 mb-4 animate-fade-in-down">
+            All Set! 🎉
+          </h2>
+          <p className="text-gray-600 mb-8 text-lg animate-fade-in-up">
             Your business analysis is ready. Redirecting to dashboard...
           </p>
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div className="bg-gradient-to-r from-emerald-500 to-green-500 h-2 rounded-full animate-pulse" style={{width: '100%'}}></div>
+          
+          {/* Progress bar */}
+          <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden shadow-inner animate-fade-in-up" style={{ animationDelay: '200ms' }}>
+            <div 
+              className="bg-gradient-to-r from-emerald-500 via-green-500 to-teal-500 h-3 rounded-full relative overflow-hidden"
+              style={{ width: '100%', animation: 'slide-in-right 3s ease-out' }}
+            >
+              {/* Animated shine */}
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent animate-shimmer"></div>
+            </div>
+          </div>
+          
+          {/* Success message */}
+          <div className="mt-8 bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-white/50 animate-fade-in-up" style={{ animationDelay: '400ms' }}>
+            <div className="flex items-center justify-center gap-3 text-emerald-700">
+              <CheckCircle2 className="w-6 h-6 animate-pulse" />
+              <span className="font-semibold text-lg">Profile Created Successfully</span>
+            </div>
           </div>
         </div>
       </div>
@@ -280,81 +426,123 @@ function OnboardingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-lg">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 mb-4">
-            <Sparkles size={24} className="text-white" />
-          </div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Welcome to Saadhyam AI</h1>
-          <p className="text-gray-600 text-sm">Let's set up your business profile</p>
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 relative overflow-hidden">
+      {/* Animated background elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-20 left-10 w-72 h-72 bg-purple-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob"></div>
+        <div className="absolute top-40 right-10 w-72 h-72 bg-pink-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-2000"></div>
+        <div className="absolute -bottom-8 left-1/2 w-72 h-72 bg-blue-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-4000"></div>
+      </div>
 
-        {/* Progress Bar with enhanced animations */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between text-xs text-gray-500 mb-2">
-            <span className="font-medium">Step {currentStep} of 4</span>
-            <span className="font-medium">{Math.round((currentStep / 4) * 100)}% complete</span>
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden shadow-inner">
-            <div 
-              className="bg-gradient-to-r from-purple-500 via-purple-600 to-pink-500 h-3 rounded-full transition-all duration-700 ease-out relative overflow-hidden"
-              style={{ width: `${(currentStep / 4) * 100}%` }}
-            >
-              {/* Animated shine effect */}
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-shine"></div>
+      <div className="relative z-10 min-h-screen grid grid-cols-1 lg:grid-cols-2">
+        {/* LEFT SIDE - Welcome Section */}
+        <div className="flex flex-col justify-center items-center p-8 lg:p-16">
+          <div className="max-w-md animate-fade-in-down">
+            {/* Logo */}
+            <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-gradient-to-br from-purple-500 to-pink-500 mb-8 shadow-2xl transform hover:scale-110 transition-transform duration-300">
+              <Sparkles size={36} className="text-white animate-pulse" />
+            </div>
+            
+            {/* Welcome Text */}
+            <h1 className="text-5xl font-bold text-gray-900 mb-6 bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-pink-600 leading-tight">
+              Welcome to Saadhyam AI
+            </h1>
+            <p className="text-xl text-gray-600 mb-8 leading-relaxed">
+              Let's set up your business profile in 4 simple steps. We'll help you unlock powerful AI-driven insights.
+            </p>
+
+            {/* Progress Indicator */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
+                <span className="font-semibold text-purple-600">Step {currentStep} of 4</span>
+                <span className="font-semibold text-purple-600">{Math.round((currentStep / 4) * 100)}% complete</span>
+              </div>
+              <div className="relative w-full bg-gray-200 rounded-full h-3 overflow-hidden shadow-inner">
+                <div 
+                  className="absolute inset-0 bg-gradient-to-r from-purple-500 via-purple-600 to-pink-500 h-3 rounded-full transition-all duration-700 ease-out"
+                  style={{ width: `${(currentStep / 4) * 100}%` }}
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent animate-shimmer"></div>
+                </div>
+                <div className="absolute inset-0 flex items-center justify-between px-1">
+                  {[1, 2, 3, 4].map((step) => (
+                    <div
+                      key={step}
+                      className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                        step <= currentStep
+                          ? "bg-white shadow-lg scale-125"
+                          : "bg-gray-300"
+                      }`}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              {/* Step Labels */}
+              <div className="grid grid-cols-4 gap-2 mt-6">
+                {["Business", "Type", "Location", "Details"].map((label, idx) => (
+                  <div key={idx} className="text-center">
+                    <div className={`text-xs font-medium transition-colors duration-300 ${
+                      idx + 1 <= currentStep ? "text-purple-600" : "text-gray-400"
+                    }`}>
+                      {label}
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Main Card with enhanced styling */}
-        <div className="bg-white rounded-3xl shadow-2xl border border-gray-100 p-8 relative overflow-hidden backdrop-blur-sm">
-          {/* Enhanced background decorations */}
-          <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-purple-100 via-purple-50 to-pink-100 rounded-full -translate-y-20 translate-x-20 opacity-60 animate-float"></div>
-          <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-pink-100 via-purple-50 to-purple-100 rounded-full translate-y-16 -translate-x-16 opacity-40 animate-float-delayed"></div>
-          
-          {/* Back button - Enhanced with better animations */}
-          {currentStep > 1 && (
-            <button
-              onClick={handleBack}
-              className="absolute top-6 left-6 p-3 rounded-full hover:bg-gray-100 transition-all duration-300 group hover:scale-110 hover:shadow-lg"
-              title="Go back to previous step"
-            >
-              <ChevronLeft size={20} className="text-gray-600 group-hover:text-gray-800 transition-colors duration-300" />
-            </button>
-          )}
+        {/* RIGHT SIDE - Input Card */}
+        <div className="flex items-center justify-center p-4 lg:p-8">
+          <div className="w-full max-w-xl">
+            <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/50 p-8 relative overflow-hidden animate-scale-in">
+              {/* Decorative gradient orbs */}
+              <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-purple-100 via-purple-50 to-pink-100 rounded-full -translate-y-20 translate-x-20 opacity-60 blur-2xl"></div>
+              <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-pink-100 via-purple-50 to-purple-100 rounded-full translate-y-16 -translate-x-16 opacity-40 blur-2xl"></div>
+              
+              {/* Back button */}
+              {currentStep > 1 && (
+                <button
+                  onClick={handleBack}
+                  className="absolute top-6 left-6 p-3 rounded-xl hover:bg-purple-50 transition-all duration-300 group hover:scale-110 hover:shadow-md z-10"
+                  title="Go back to previous step"
+                >
+                  <ChevronLeft size={20} className="text-gray-600 group-hover:text-purple-600 transition-colors duration-300" />
+                </button>
+              )}
 
-          {/* Step Content */}
-          <div className="relative">
-            {/* Step Title with enhanced animations */}
+              {/* Step Content */}
+              <div className="relative">
+            {/* Step Title with stagger animation */}
             <div 
-              key={currentStep}
-              className="mb-6 animate-slide-in-fade"
+              key={`title-${currentStep}`}
+              className="mb-6 animate-slide-in-right"
             >
-              <h2 className="text-2xl font-bold text-gray-900 mb-3 animate-text-focus-in">
+              <h2 className="text-2xl font-bold text-gray-900 mb-3">
                 {getStepTitle()}
               </h2>
-              <p className="text-sm text-gray-600 animate-fade-in-delayed">
+              <p className="text-sm text-gray-600">
                 {getStepSubtitle()}
               </p>
             </div>
 
-            {/* Error Message with enhanced animation */}
+            {/* Error Message with shake animation */}
             {error && (
-              <div className="mb-4 flex items-start gap-3 rounded-xl bg-red-50 border border-red-200 p-4 animate-shake">
+              <div className="mb-4 flex items-start gap-3 rounded-xl bg-red-50 border border-red-200 p-4 animate-shake-x">
                 <AlertCircle size={16} className="text-red-600 mt-0.5 flex-shrink-0 animate-pulse" />
                 <p className="text-sm text-red-700 font-medium">{error}</p>
               </div>
             )}
 
-            {/* Step Input */}
+            {/* Step Input with entrance animation */}
             <div 
-              key={`step-${currentStep}`}
-              className="mb-6 animate-in slide-in-from-bottom-4 fade-in duration-500"
+              key={`input-${currentStep}`}
+              className="mb-6 animate-fade-in-up"
             >
               {currentStep === 1 && (
-                <div className="relative">
+                <div className="relative group">
                   <input
                     ref={inputRef as React.RefObject<HTMLInputElement>}
                     type="text"
@@ -362,13 +550,11 @@ function OnboardingPage() {
                     onChange={(e) => handleInputChange(e.target.value, "name")}
                     onKeyPress={handleKeyPress}
                     placeholder={placeholder}
-                    className="w-full text-xl px-6 py-5 border-2 border-gray-200 rounded-2xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 outline-none transition-all duration-500 bg-gray-50 focus:bg-white hover:border-gray-300 font-medium placeholder:text-gray-400"
+                    className="w-full text-xl px-6 py-5 border-2 border-gray-200 rounded-2xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 outline-none transition-all duration-300 bg-gradient-to-br from-gray-50 to-white hover:border-purple-300 font-medium placeholder:text-gray-400 shadow-sm hover:shadow-md"
                   />
-                  {isTyping && (
-                    <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
-                      <div className="w-0.5 h-6 bg-purple-500 animate-pulse"></div>
-                    </div>
-                  )}
+                  <div className="absolute right-4 top-1/2 transform -translate-y-1/2 opacity-0 group-focus-within:opacity-100 transition-opacity duration-300">
+                    <div className="w-1 h-6 bg-purple-500 animate-pulse rounded-full"></div>
+                  </div>
                 </div>
               )}
 
@@ -379,140 +565,320 @@ function OnboardingPage() {
                       key={type}
                       type="button"
                       onClick={() => handleInputChange(type, "type")}
-                      className={`p-5 rounded-2xl border-2 transition-all duration-400 text-sm font-semibold relative overflow-hidden group ${
-                        formData.type === type
-                          ? "border-purple-500 bg-gradient-to-r from-purple-50 to-pink-50 text-purple-900 shadow-lg scale-105 animate-pulse-subtle"
-                          : "border-gray-200 bg-white text-gray-700 hover:border-purple-300 hover:bg-gradient-to-r hover:from-purple-25 hover:to-pink-25 hover:scale-102 hover:shadow-md"
-                      }`}
                       style={{
                         animationDelay: `${index * 50}ms`
                       }}
+                      className={`group relative p-5 rounded-2xl border-2 transition-all duration-400 text-sm font-semibold overflow-hidden animate-fade-in-up ${
+                        formData.type === type
+                          ? "border-purple-500 bg-gradient-to-br from-purple-50 to-pink-50 text-purple-900 shadow-lg scale-105 animate-glow"
+                          : "border-gray-200 bg-white text-gray-700 hover:border-purple-300 hover:bg-gradient-to-br hover:from-purple-25 hover:to-pink-25 hover:scale-102 hover:shadow-md card-hover"
+                      }`}
                     >
-                      {/* Ripple effect on click */}
+                      {/* Ripple effect background */}
                       <div className="absolute inset-0 bg-gradient-to-r from-purple-400 to-pink-400 opacity-0 group-active:opacity-20 transition-opacity duration-200 rounded-2xl"></div>
-                      <span className="relative z-10">{type}</span>
+                      
+                      {/* Selected indicator */}
+                      {formData.type === type && (
+                        <div className="absolute top-2 right-2 w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center animate-scale-in">
+                          <CheckCircle2 className="w-4 h-4 text-white" />
+                        </div>
+                      )}
+                      
+                      <span className="relative z-10 block">{type}</span>
+                      
+                      {/* Hover glow effect */}
+                      <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-r from-purple-500/10 to-pink-500/10"></div>
                     </button>
                   ))}
                 </div>
               )}
 
               {currentStep === 3 && (
-                <input
-                  ref={inputRef as React.RefObject<HTMLInputElement>}
-                  type="text"
-                  value={formData.location}
-                  onChange={(e) => handleInputChange(e.target.value, "location")}
-                  onKeyPress={handleKeyPress}
-                  placeholder={placeholder}
-                  className="w-full text-lg px-4 py-4 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 outline-none transition-all duration-300 bg-gray-50 focus:bg-white"
-                />
+                <div className="relative group">
+                  <input
+                    ref={inputRef as React.RefObject<HTMLInputElement>}
+                    type="text"
+                    value={formData.location}
+                    onChange={(e) => handleInputChange(e.target.value, "location")}
+                    onKeyPress={handleKeyPress}
+                    placeholder={placeholder}
+                    className="w-full text-xl px-6 py-5 border-2 border-gray-200 rounded-2xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 outline-none transition-all duration-300 bg-gradient-to-br from-gray-50 to-white hover:border-purple-300 font-medium placeholder:text-gray-400 shadow-sm hover:shadow-md"
+                  />
+                  <div className="absolute right-4 top-1/2 transform -translate-y-1/2 opacity-0 group-focus-within:opacity-100 transition-opacity duration-300">
+                    <div className="w-1 h-6 bg-purple-500 animate-pulse rounded-full"></div>
+                  </div>
+                </div>
               )}
 
               {currentStep === 4 && (
-                <div>
-                  <div className="relative">
-                    <textarea
-                      ref={inputRef as React.RefObject<HTMLTextAreaElement>}
-                      value={formData.description}
-                      onChange={(e) => handleInputChange(e.target.value, "description")}
-                      onKeyPress={handleKeyPress}
-                      placeholder={placeholder}
-                      rows={4}
-                      className="w-full text-lg px-6 py-5 border-2 border-gray-200 rounded-2xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 outline-none transition-all duration-500 bg-gray-50 focus:bg-white resize-none font-medium placeholder:text-gray-400"
-                    />
-                    {isTyping && (
-                      <div className="absolute right-4 top-6">
-                        <div className="w-0.5 h-6 bg-purple-500 animate-pulse"></div>
+                <div className="space-y-6">
+                  {/* Header Text */}
+                  <div className="text-center mb-6">
+                    <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                      Tell us about your business
+                    </h2>
+                    <p className="text-sm text-gray-500">
+                      Pick any one — whatever is easiest for you.
+                    </p>
+                  </div>
+
+                  {/* Show input method cards only when no method is active */}
+                  {activeInputMethod === "none" && (
+                    <div className="space-y-3">
+                      {/* Website URL Card */}
+                      <button
+                        type="button"
+                        onClick={() => setActiveInputMethod("website")}
+                        className="w-full bg-white/90 backdrop-blur-sm rounded-2xl p-5 border-2 border-gray-200 hover:border-purple-300 hover:bg-gradient-to-br hover:from-purple-50/50 hover:to-pink-50/50 transition-all duration-300 hover:shadow-lg group text-left animate-fade-in-up"
+                        style={{ animationDelay: '0ms' }}
+                      >
+                        <div className="flex items-center gap-4">
+                          <div className="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center flex-shrink-0 group-hover:bg-purple-200 transition-colors duration-300">
+                            <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                            </svg>
+                          </div>
+                          <div className="flex-1">
+                            <h3 className="text-base font-semibold text-gray-900 mb-0.5">
+                              Paste Website URL
+                            </h3>
+                            <p className="text-sm text-gray-500">
+                              e.g. www.sharmaelectronics.in
+                            </p>
+                          </div>
+                        </div>
+                      </button>
+
+                      {/* PDF Upload Card */}
+                      <button
+                        type="button"
+                        onClick={() => setActiveInputMethod("pdf")}
+                        className="w-full bg-white/90 backdrop-blur-sm rounded-2xl p-5 border-2 border-gray-200 hover:border-purple-300 hover:bg-gradient-to-br hover:from-purple-50/50 hover:to-pink-50/50 transition-all duration-300 hover:shadow-lg group text-left animate-fade-in-up"
+                        style={{ animationDelay: '50ms' }}
+                      >
+                        <div className="flex items-center gap-4">
+                          <div className="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center flex-shrink-0 group-hover:bg-purple-200 transition-colors duration-300">
+                            <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                            </svg>
+                          </div>
+                          <div className="flex-1">
+                            <h3 className="text-base font-semibold text-gray-900 mb-0.5">
+                              Upload PDF or Brochure
+                            </h3>
+                            <p className="text-sm text-gray-500">
+                              Menu, catalog, flyer
+                            </p>
+                          </div>
+                        </div>
+                      </button>
+
+                      {/* Type Business Details Card */}
+                      <button
+                        type="button"
+                        onClick={() => setActiveInputMethod("text")}
+                        className="w-full bg-white/90 backdrop-blur-sm rounded-2xl p-5 border-2 border-gray-200 hover:border-purple-300 hover:bg-gradient-to-br hover:from-purple-50/50 hover:to-pink-50/50 transition-all duration-300 hover:shadow-lg group text-left animate-fade-in-up"
+                        style={{ animationDelay: '100ms' }}
+                      >
+                        <div className="flex items-center gap-4">
+                          <div className="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center flex-shrink-0 group-hover:bg-purple-200 transition-colors duration-300">
+                            <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                          </div>
+                          <div className="flex-1">
+                            <h3 className="text-base font-semibold text-gray-900 mb-0.5">
+                              Type Business Details
+                            </h3>
+                            <p className="text-sm text-gray-500">
+                              Tell us in your own words
+                            </p>
+                          </div>
+                        </div>
+                      </button>
+
+                      {/* Voice Input Card */}
+                      <button
+                        type="button"
+                        onClick={() => setActiveInputMethod("voice")}
+                        className="w-full bg-white/90 backdrop-blur-sm rounded-2xl p-5 border-2 border-gray-200 hover:border-purple-300 hover:bg-gradient-to-br hover:from-purple-50/50 hover:to-pink-50/50 transition-all duration-300 hover:shadow-lg group text-left animate-fade-in-up"
+                        style={{ animationDelay: '150ms' }}
+                      >
+                        <div className="flex items-center gap-4">
+                          <div className="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center flex-shrink-0 group-hover:bg-purple-200 transition-colors duration-300">
+                            <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                            </svg>
+                          </div>
+                          <div className="flex-1">
+                            <h3 className="text-base font-semibold text-gray-900 mb-0.5">
+                              Record Voice
+                            </h3>
+                            <p className="text-sm text-gray-500">
+                              Speak in any language
+                            </p>
+                          </div>
+                        </div>
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Website Import UI */}
+                  {activeInputMethod === "website" && (
+                    <div className="space-y-4 animate-fade-in-up">
+                      <button
+                        type="button"
+                        onClick={() => setActiveInputMethod("none")}
+                        className="text-sm text-gray-500 hover:text-purple-600 flex items-center gap-1 transition-colors"
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                        Back to options
+                      </button>
+                      <WebsiteImport 
+                        onTextExtracted={(text, title) => {
+                          handleTextExtracted(text, title);
+                          setActiveInputMethod("text"); // Switch to textarea after import
+                        }}
+                        disabled={isAnalyzing}
+                      />
+                    </div>
+                  )}
+
+                  {/* PDF Upload UI */}
+                  {activeInputMethod === "pdf" && (
+                    <div className="space-y-4 animate-fade-in-up">
+                      <button
+                        type="button"
+                        onClick={() => setActiveInputMethod("none")}
+                        className="text-sm text-gray-500 hover:text-purple-600 flex items-center gap-1 transition-colors"
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                        Back to options
+                      </button>
+                      <PDFUpload 
+                        onTextExtracted={(text) => {
+                          handleTextExtracted(text);
+                          setActiveInputMethod("text"); // Switch to textarea after upload
+                        }}
+                        disabled={isAnalyzing}
+                      />
+                    </div>
+                  )}
+
+                  {/* Voice Input UI */}
+                  {activeInputMethod === "voice" && (
+                    <div className="space-y-4 animate-fade-in-up">
+                      <button
+                        type="button"
+                        onClick={() => setActiveInputMethod("none")}
+                        className="text-sm text-gray-500 hover:text-purple-600 flex items-center gap-1 transition-colors"
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                        Back to options
+                      </button>
+                      <VoiceInput 
+                        onTextExtracted={(text) => {
+                          handleTextExtracted(text);
+                          setActiveInputMethod("text"); // Switch to textarea after recording
+                        }}
+                        onLiveTranscript={handleLiveTranscript}
+                        disabled={isAnalyzing}
+                      />
+                    </div>
+                  )}
+
+                  {/* Textarea - Shows when "text" method is active OR when description has content */}
+                  {(activeInputMethod === "text" || formData.description.length > 0) && (
+                    <div className="space-y-3 animate-fade-in-up">
+                      {activeInputMethod === "text" && (
+                        <button
+                          type="button"
+                          onClick={() => setActiveInputMethod("none")}
+                          className="text-sm text-gray-500 hover:text-purple-600 flex items-center gap-1 transition-colors"
+                        >
+                          <ChevronLeft className="w-4 h-4" />
+                          Back to options
+                        </button>
+                      )}
+                      
+                      <div className="relative group">
+                        <textarea
+                          id="business-description-textarea"
+                          ref={inputRef as React.RefObject<HTMLTextAreaElement>}
+                          value={formData.description}
+                          onChange={(e) => handleInputChange(e.target.value, "description")}
+                          onKeyPress={handleKeyPress}
+                          placeholder="Describe your business, services, challenges, and goals..."
+                          rows={10}
+                          className={`w-full text-base px-5 py-4 border-2 rounded-2xl focus:ring-4 outline-none transition-all duration-300 bg-gradient-to-br from-gray-50 to-white hover:border-purple-300 resize-none font-medium placeholder:text-gray-400 shadow-sm hover:shadow-md ${
+                            formData.description.length > 5000
+                              ? 'border-red-400 focus:border-red-500 focus:ring-red-100'
+                              : 'border-gray-200 focus:border-purple-500 focus:ring-purple-100'
+                          }`}
+                          autoFocus
+                        />
+                        <div className="absolute right-4 top-4 opacity-0 group-focus-within:opacity-100 transition-opacity duration-300">
+                          <div className={`w-1 h-6 rounded-full animate-pulse ${
+                            formData.description.length > 5000 ? 'bg-red-500' : 'bg-purple-500'
+                          }`}></div>
+                        </div>
                       </div>
-                    )}
-                  </div>
-                  <div className="mt-3 text-xs text-gray-500 text-right font-medium">
-                    {formData.description.length}/2000 characters
-                  </div>
-                  
-                  {/* Alternative Input Methods */}
-                  <div className="mt-6 p-5 bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-2xl">
-                    <h4 className="text-sm font-bold text-purple-900 mb-4 flex items-center gap-2">
-                      <span className="text-lg">✨</span>
-                      Alternative Input Methods
-                    </h4>
-                    
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                      {/* PDF Upload */}
-                      <button
-                        type="button"
-                        disabled
-                        className="group p-4 bg-white border-2 border-dashed border-purple-200 rounded-xl hover:border-purple-300 transition-all duration-300 hover:shadow-md disabled:opacity-60 disabled:cursor-not-allowed"
-                      >
-                        <div className="text-center">
-                          <div className="w-10 h-10 mx-auto mb-2 bg-gradient-to-r from-red-100 to-red-200 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                            <span className="text-lg">📄</span>
-                          </div>
-                          <h5 className="font-semibold text-gray-900 text-sm mb-1">PDF Upload</h5>
-                          <p className="text-xs text-gray-600 mb-2">Upload business documents</p>
-                          <span className="inline-block px-2 py-1 bg-purple-100 text-purple-700 text-xs font-medium rounded-full">
-                            Coming Soon
-                          </span>
-                        </div>
-                      </button>
+                      
+                      <div className="flex items-center justify-between text-xs px-1">
+                        <span className="text-gray-500 font-medium">
+                          {formData.description.length > 5000 ? (
+                            <span className="text-red-600 flex items-center gap-1 font-bold">
+                              <AlertCircle className="w-3 h-3" />
+                              Too long!
+                            </span>
+                          ) : formData.description.length >= 20 ? (
+                            <span className="text-green-600 flex items-center gap-1">
+                              <CheckCircle2 className="w-3 h-3" />
+                              Ready
+                            </span>
+                          ) : (
+                            <span className="text-orange-600">
+                              {20 - formData.description.length} more needed
+                            </span>
+                          )}
+                        </span>
+                        <span className={`font-medium transition-colors duration-300 ${
+                          formData.description.length > 5000 
+                            ? 'text-red-600 font-bold animate-pulse' 
+                            : formData.description.length > 4500 
+                            ? 'text-orange-600' 
+                            : 'text-gray-500'
+                        }`}>
+                          {formData.description.length}/5000
+                        </span>
+                      </div>
 
-                      {/* Voice Input */}
-                      <button
-                        type="button"
-                        disabled
-                        className="group p-4 bg-white border-2 border-dashed border-purple-200 rounded-xl hover:border-purple-300 transition-all duration-300 hover:shadow-md disabled:opacity-60 disabled:cursor-not-allowed"
-                      >
-                        <div className="text-center">
-                          <div className="w-10 h-10 mx-auto mb-2 bg-gradient-to-r from-blue-100 to-blue-200 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                            <span className="text-lg">🎤</span>
-                          </div>
-                          <h5 className="font-semibold text-gray-900 text-sm mb-1">Voice Input</h5>
-                          <p className="text-xs text-gray-600 mb-2">Record your description</p>
-                          <span className="inline-block px-2 py-1 bg-purple-100 text-purple-700 text-xs font-medium rounded-full">
-                            Coming Soon
-                          </span>
-                        </div>
-                      </button>
-
-                      {/* Website Import */}
-                      <button
-                        type="button"
-                        disabled
-                        className="group p-4 bg-white border-2 border-dashed border-purple-200 rounded-xl hover:border-purple-300 transition-all duration-300 hover:shadow-md disabled:opacity-60 disabled:cursor-not-allowed"
-                      >
-                        <div className="text-center">
-                          <div className="w-10 h-10 mx-auto mb-2 bg-gradient-to-r from-green-100 to-green-200 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                            <span className="text-lg">🌐</span>
-                          </div>
-                          <h5 className="font-semibold text-gray-900 text-sm mb-1">Website Import</h5>
-                          <p className="text-xs text-gray-600 mb-2">Import from your website</p>
-                          <span className="inline-block px-2 py-1 bg-purple-100 text-purple-700 text-xs font-medium rounded-full">
-                            Coming Soon
-                          </span>
-                        </div>
-                      </button>
+                      {/* Option to use other methods */}
+                      <div className="text-center pt-2">
+                        <button
+                          type="button"
+                          onClick={() => setActiveInputMethod("none")}
+                          className="text-xs text-purple-600 hover:text-purple-700 font-medium"
+                        >
+                          Or use another input method
+                        </button>
+                      </div>
                     </div>
-                    
-                    <div className="mt-4 text-center">
-                      <p className="text-xs text-purple-700 font-medium">
-                        💡 For now, please describe your business in the text area above
-                      </p>
-                    </div>
-                  </div>
+                  )}
                 </div>
               )}
             </div>
 
-            {/* Action Buttons */}
-            <div className="flex gap-3">
+            {/* Action Buttons with enhanced styling */}
+            <div className="flex gap-3 animate-fade-in-up" style={{ animationDelay: '100ms' }}>
               {/* Back Button */}
               {currentStep > 1 && (
                 <Button
                   onClick={handleBack}
                   variant="outline"
-                  className="flex-1 py-4 text-lg font-semibold border-2 border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50 rounded-xl transition-all duration-300"
+                  className="flex-1 py-6 text-lg font-semibold border-2 border-gray-300 text-gray-700 hover:border-purple-400 hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 hover:text-purple-700 rounded-2xl transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-sm hover:shadow-md group"
                 >
-                  <ChevronLeft size={20} className="mr-2" />
+                  <ChevronLeft size={20} className="mr-2 group-hover:-translate-x-1 transition-transform duration-300" />
                   Back
                 </Button>
               )}
@@ -520,93 +886,94 @@ function OnboardingPage() {
               {/* Next/Submit Button */}
               <Button
                 onClick={handleNext}
-                className={`py-4 text-lg font-semibold bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 ${
+                className={`py-6 text-lg font-semibold bg-gradient-to-r from-purple-500 via-purple-600 to-pink-500 hover:from-purple-600 hover:via-purple-700 hover:to-pink-600 text-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] relative overflow-hidden group ${
                   currentStep > 1 ? 'flex-1' : 'w-full'
                 }`}
               >
-                {currentStep === 4 ? (
-                  <>
-                    <Sparkles size={20} className="mr-2" />
-                    Analyze My Business
-                  </>
-                ) : (
-                  <>
-                    Continue
-                    <ArrowRight size={20} className="ml-2" />
-                  </>
-                )}
+                {/* Animated shine effect */}
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+                
+                <span className="relative z-10 flex items-center justify-center">
+                  {currentStep === 4 ? (
+                    <>
+                      <Sparkles size={20} className="mr-2 animate-pulse" />
+                      Analyze My Business
+                    </>
+                  ) : (
+                    <>
+                      Continue
+                      <ArrowRight size={20} className="ml-2 group-hover:translate-x-1 transition-transform duration-300" />
+                    </>
+                  )}
+                </span>
               </Button>
             </div>
 
-            {/* Progress Dots */}
-            <div className="flex justify-center mt-6 space-x-2">
+            {/* Enhanced Progress Dots */}
+            <div className="flex justify-center mt-8 space-x-3 animate-fade-in" style={{ animationDelay: '200ms' }}>
               {[1, 2, 3, 4].map((step) => (
                 <div
                   key={step}
-                  className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                    step <= currentStep
-                      ? "bg-gradient-to-r from-purple-500 to-pink-500"
-                      : "bg-gray-300"
+                  className={`transition-all duration-500 rounded-full ${
+                    step === currentStep
+                      ? "w-8 h-3 bg-gradient-to-r from-purple-500 to-pink-500 shadow-lg"
+                      : step < currentStep
+                      ? "w-3 h-3 bg-gradient-to-r from-purple-400 to-pink-400"
+                      : "w-3 h-3 bg-gray-300"
                   }`}
+                  style={{
+                    transform: step === currentStep ? 'scale(1.1)' : 'scale(1)'
+                  }}
                 />
               ))}
             </div>
+              </div>
+            </div>
           </div>
-        </div>
-
-        {/* Footer */}
-        <div className="text-center mt-6">
-          <p className="text-xs text-gray-500">
-            We'll analyze your business and create personalized recommendations
-          </p>
         </div>
       </div>
 
-      <style jsx>{`
-        @keyframes animate-in {
-          from {
+      <style>{`
+        @keyframes blob {
+          0%, 100% { transform: translate(0, 0) scale(1); }
+          25% { transform: translate(20px, -50px) scale(1.1); }
+          50% { transform: translate(-20px, 20px) scale(0.9); }
+          75% { transform: translate(50px, 50px) scale(1.05); }
+        }
+        
+        @keyframes shimmer {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(100%); }
+        }
+        
+        @keyframes fade-in-down {
+          0% {
             opacity: 0;
-            transform: translateY(10px);
+            transform: translateY(-20px);
           }
-          to {
+          100% {
             opacity: 1;
             transform: translateY(0);
           }
         }
         
-        @keyframes shine {
-          0% { transform: translateX(-100%); }
-          100% { transform: translateX(100%); }
+        @keyframes fade-in {
+          0% { opacity: 0; }
+          100% { opacity: 1; }
         }
         
-        @keyframes float {
-          0%, 100% { transform: translateY(0px) rotate(0deg); }
-          50% { transform: translateY(-10px) rotate(2deg); }
-        }
-        
-        @keyframes float-delayed {
-          0%, 100% { transform: translateY(0px) rotate(0deg); }
-          50% { transform: translateY(-8px) rotate(-1deg); }
-        }
-        
-        @keyframes shake {
-          0%, 100% { transform: translateX(0); }
-          10%, 30%, 50%, 70%, 90% { transform: translateX(-2px); }
-          20%, 40%, 60%, 80% { transform: translateX(2px); }
-        }
-        
-        @keyframes text-focus-in {
+        @keyframes scale-in {
           0% {
-            filter: blur(12px);
             opacity: 0;
+            transform: scale(0.95);
           }
           100% {
-            filter: blur(0px);
             opacity: 1;
+            transform: scale(1);
           }
         }
         
-        @keyframes slide-in-fade {
+        @keyframes slide-in-right {
           0% {
             opacity: 0;
             transform: translateX(30px);
@@ -617,71 +984,108 @@ function OnboardingPage() {
           }
         }
         
-        @keyframes fade-in-delayed {
+        @keyframes fade-in-up {
           0% {
             opacity: 0;
-          }
-          50% {
-            opacity: 0;
+            transform: translateY(20px);
           }
           100% {
             opacity: 1;
+            transform: translateY(0);
           }
         }
         
-        @keyframes pulse-subtle {
+        @keyframes shake-x {
+          0%, 100% { transform: translateX(0); }
+          10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
+          20%, 40%, 60%, 80% { transform: translateX(4px); }
+        }
+        
+        @keyframes pulse-border {
           0%, 100% {
-            transform: scale(1);
+            border-color: rgb(168 85 247);
+            box-shadow: 0 0 0 0 rgba(168, 85, 247, 0.4);
           }
           50% {
-            transform: scale(1.02);
+            border-color: rgb(236 72 153);
+            box-shadow: 0 0 0 8px rgba(236, 72, 153, 0);
           }
         }
         
-        .animate-shine {
-          animation: shine 2s infinite;
+        @keyframes float-up {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-10px); }
         }
         
-        .animate-float {
-          animation: float 6s ease-in-out infinite;
+        @keyframes glow {
+          0%, 100% {
+            box-shadow: 0 0 20px rgba(168, 85, 247, 0.3);
+          }
+          50% {
+            box-shadow: 0 0 30px rgba(236, 72, 153, 0.5);
+          }
         }
         
-        .animate-float-delayed {
-          animation: float-delayed 8s ease-in-out infinite;
+        .animate-blob {
+          animation: blob 7s infinite;
         }
         
-        .animate-shake {
-          animation: shake 0.5s ease-in-out;
+        .animation-delay-2000 {
+          animation-delay: 2s;
         }
         
-        .animate-text-focus-in {
-          animation: text-focus-in 0.8s cubic-bezier(0.550, 0.085, 0.680, 0.530) both;
+        .animation-delay-4000 {
+          animation-delay: 4s;
         }
         
-        .animate-slide-in-fade {
-          animation: slide-in-fade 0.6s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
+        .animate-shimmer {
+          animation: shimmer 2s infinite;
         }
         
-        .animate-fade-in-delayed {
-          animation: fade-in-delayed 1.2s ease-out both;
+        .animate-fade-in-down {
+          animation: fade-in-down 0.6s ease-out;
         }
         
-        .animate-pulse-subtle {
-          animation: pulse-subtle 2s ease-in-out infinite;
+        .animate-fade-in {
+          animation: fade-in 0.5s ease-out;
         }
         
-        .hover\\:scale-102:hover {
-          transform: scale(1.02);
+        .animate-scale-in {
+          animation: scale-in 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        
+        .animate-slide-in-right {
+          animation: slide-in-right 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        
+        .animate-fade-in-up {
+          animation: fade-in-up 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        
+        .animate-shake-x {
+          animation: shake-x 0.5s ease-in-out;
+        }
+        
+        .animate-pulse-border {
+          animation: pulse-border 2s ease-in-out infinite;
+        }
+        
+        .animate-float-up {
+          animation: float-up 3s ease-in-out infinite;
+        }
+        
+        .animate-glow {
+          animation: glow 2s ease-in-out infinite;
         }
         
         /* Enhanced input focus effects */
         input:focus, textarea:focus {
-          box-shadow: 0 0 0 4px rgba(147, 51, 234, 0.1), 0 10px 25px -5px rgba(147, 51, 234, 0.1);
+          animation: pulse-border 2s ease-in-out infinite;
         }
         
         /* Button hover effects */
         button:hover {
-          transform: translateY(-1px);
+          transform: translateY(-2px);
         }
         
         button:active {
@@ -690,8 +1094,29 @@ function OnboardingPage() {
         
         /* Smooth transitions for all interactive elements */
         * {
-          transition-property: transform, box-shadow, background-color, border-color;
+          transition-property: transform, box-shadow, background-color, border-color, opacity;
           transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        /* Card hover effect */
+        .card-hover:hover {
+          transform: translateY(-4px) scale(1.02);
+          box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        /* Gradient text animation */
+        @keyframes gradient-shift {
+          0%, 100% {
+            background-position: 0% 50%;
+          }
+          50% {
+            background-position: 100% 50%;
+          }
+        }
+        
+        .animate-gradient {
+          background-size: 200% 200%;
+          animation: gradient-shift 3s ease infinite;
         }
       `}</style>
     </div>

@@ -1,9 +1,12 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Building2, MapPin, FileText, Edit3, Save, X, AlertCircle, User, Mail, Calendar } from "lucide-react";
+import { ArrowLeft, Building2, MapPin, FileText, Edit3, Save, X, AlertCircle, User, Mail, Calendar, Sparkles } from "lucide-react";
 import { apiClient } from "@/lib/api";
 import { toast } from "sonner";
+import { PDFUpload } from "@/components/business/PDFUpload";
+import { VoiceInput } from "@/components/business/VoiceInput";
+import { WebsiteImport } from "@/components/business/WebsiteImport";
 
 export const Route = createFileRoute("/dashboard/business-details")({
   head: () => ({ meta: [{ title: "Business Details — Saadhyam AI" }] }),
@@ -31,6 +34,72 @@ function BusinessDetailsPage() {
     business_location: "",
     business_description: "",
   });
+  const [baseDescription, setBaseDescription] = useState(""); // Store base text before live recording
+
+  // Handler for PDF/Website text extraction
+  const handleTextExtracted = (extractedText: string, title?: string) => {
+    // Reset base description when final text is extracted
+    setBaseDescription("");
+    
+    // Intelligently merge extracted text with existing description
+    const currentText = editForm.business_description.trim();
+    
+    if (!currentText) {
+      // If description is empty, just use extracted text
+      setEditForm(prev => ({ ...prev, business_description: extractedText }));
+    } else {
+      // If there's existing text, append intelligently
+      const separator = currentText.endsWith('.') || currentText.endsWith('!') || currentText.endsWith('?') 
+        ? ' ' 
+        : '. ';
+      setEditForm(prev => ({ 
+        ...prev, 
+        business_description: `${currentText}${separator}${extractedText}` 
+      }));
+    }
+    
+    // If title is provided and business name is empty, suggest it
+    if (title && !editForm.business_name.trim()) {
+      toast.success(`Suggestion: Use "${title}" as business name?`, {
+        action: {
+          label: "Use it",
+          onClick: () => setEditForm(prev => ({ ...prev, business_name: title }))
+        }
+      });
+    }
+    
+    toast.success("Text added to description!");
+  };
+
+  // Handler for live voice transcription
+  const handleLiveTranscript = (liveText: string) => {
+    // Update description in real-time while recording
+    if (!liveText.trim()) {
+      // Store base description when recording starts
+      setBaseDescription(editForm.business_description);
+      return;
+    }
+    
+    // Use stored base description to avoid duplication
+    const base = baseDescription || editForm.business_description;
+    
+    // Only update if the live text is different from what's already there
+    const currentWithoutBase = editForm.business_description.replace(base, '').trim();
+    if (currentWithoutBase === liveText.trim()) {
+      return; // No change needed
+    }
+    
+    // Add separator if base text exists
+    const separator = base && !base.endsWith('.') && !base.endsWith('!') && !base.endsWith('?') 
+      ? '. ' 
+      : base ? ' ' : '';
+    
+    // Update with base + live transcript
+    setEditForm(prev => ({ 
+      ...prev, 
+      business_description: base + separator + liveText
+    }));
+  };
 
   useEffect(() => {
     loadBusinessProfile();
@@ -295,17 +364,126 @@ function BusinessDetailsPage() {
 
                     <div className="space-y-2">
                       <label className="text-sm font-medium">Business Description</label>
-                      <textarea
-                        name="business_description"
-                        value={editForm.business_description}
-                        onChange={handleInputChange}
-                        rows={6}
-                        className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-none"
-                        placeholder="Describe your business, services, and goals..."
-                      />
-                      <p className="text-xs text-muted-foreground">
-                        {editForm.business_description.length}/2000 characters (minimum 20)
-                      </p>
+                      <div className="space-y-4">
+                        {/* Textarea */}
+                        <div className="relative group">
+                          <textarea
+                            name="business_description"
+                            value={editForm.business_description}
+                            onChange={handleInputChange}
+                            rows={6}
+                            className="flex min-h-[80px] w-full rounded-md border-2 border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:border-purple-500 disabled:cursor-not-allowed disabled:opacity-50 resize-none transition-all duration-300"
+                            placeholder="Describe your business, services, challenges, and goals..."
+                          />
+                          {/* AI Ready indicator */}
+                          {editForm.business_description.length > 0 && (
+                            <div className="absolute top-3 right-3 flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-full shadow-sm">
+                              <div className="w-1.5 h-1.5 bg-purple-500 rounded-full animate-pulse"></div>
+                              <span className="text-xs font-semibold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">AI Ready</span>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Character counter */}
+                        <div className="flex items-center justify-between text-xs px-2">
+                          <div className="flex items-center gap-2">
+                            {editForm.business_description.length > 5000 ? (
+                              <>
+                                <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                                <span className="text-red-600 font-semibold">
+                                  Too long! Shorten by {editForm.business_description.length - 5000} chars
+                                </span>
+                              </>
+                            ) : editForm.business_description.length >= 20 ? (
+                              <>
+                                <div className="w-2 h-2 bg-emerald-500 rounded-full shadow-sm shadow-emerald-500/50"></div>
+                                <span className="text-emerald-600 font-semibold">Perfect length</span>
+                              </>
+                            ) : (
+                              <>
+                                <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></div>
+                                <span className="text-amber-600 font-semibold">
+                                  {20 - editForm.business_description.length} more needed
+                                </span>
+                              </>
+                            )}
+                          </div>
+                          <span className={`font-mono font-bold ${
+                            editForm.business_description.length > 5000 
+                              ? 'text-red-600' 
+                              : editForm.business_description.length > 4500 
+                              ? 'text-amber-600' 
+                              : 'text-gray-600'
+                          }`}>
+                            {editForm.business_description.length.toLocaleString()}<span className="text-gray-400 font-normal">/5,000</span>
+                          </span>
+                        </div>
+
+                        {/* Premium divider */}
+                        <div className="relative py-4">
+                          <div className="absolute inset-0 flex items-center">
+                            <div className="w-full border-t-2 border-border"></div>
+                          </div>
+                          <div className="relative flex justify-center">
+                            <div className="px-5 py-2 bg-gradient-to-r from-purple-50 via-pink-50 to-blue-50 rounded-full border-2 border-purple-200 shadow-lg">
+                              <div className="flex items-center gap-2.5">
+                                <Sparkles className="w-4 h-4 text-purple-600 animate-pulse" />
+                                <span className="text-sm font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent">
+                                  Quick Import Options
+                                </span>
+                                <Sparkles className="w-4 h-4 text-pink-600 animate-pulse" />
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Import options grid */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          {/* PDF Upload */}
+                          <div className="group relative">
+                            <div className="absolute -inset-0.5 bg-gradient-to-r from-red-500 to-orange-500 rounded-2xl opacity-0 group-hover:opacity-100 blur transition duration-300"></div>
+                            <div className="relative h-full">
+                              <PDFUpload 
+                                onTextExtracted={handleTextExtracted}
+                                disabled={isSaving}
+                              />
+                            </div>
+                          </div>
+
+                          {/* Voice Input */}
+                          <div className="group relative">
+                            <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-2xl opacity-0 group-hover:opacity-100 blur transition duration-300"></div>
+                            <div className="relative h-full">
+                              <VoiceInput 
+                                onTextExtracted={handleTextExtracted}
+                                onLiveTranscript={handleLiveTranscript}
+                                disabled={isSaving}
+                              />
+                            </div>
+                          </div>
+
+                          {/* Website Import */}
+                          <div className="group relative">
+                            <div className="absolute -inset-0.5 bg-gradient-to-r from-green-500 to-emerald-500 rounded-2xl opacity-0 group-hover:opacity-100 blur transition duration-300"></div>
+                            <div className="relative h-full">
+                              <WebsiteImport 
+                                onTextExtracted={handleTextExtracted}
+                                disabled={isSaving}
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Helper text */}
+                        <div className="flex items-center justify-center gap-2 pt-2">
+                          <div className="flex items-center gap-2 px-4 py-2 bg-muted/50 rounded-full border border-border/50">
+                            <div className="w-1.5 h-1.5 bg-purple-500 rounded-full animate-pulse"></div>
+                            <span className="text-xs text-muted-foreground font-medium">
+                              Import from any source or type directly
+                            </span>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -377,28 +555,46 @@ function BusinessDetailsPage() {
                     </div>
                   </div>
 
-                  {/* Future Features */}
+                  {/* Quick Actions */}
                   <div className="rounded-lg border border-border bg-card p-6">
-                    <h3 className="mb-4 text-lg font-semibold">Additional Features</h3>
-                    <div className="grid gap-4 md:grid-cols-2">
-                      <div className="rounded-md border border-dashed border-border p-4 text-center">
-                        <div className="mb-2 text-2xl">📄</div>
-                        <h4 className="mb-1 font-medium">Document Upload</h4>
+                    <h3 className="mb-4 text-lg font-semibold">Quick Actions</h3>
+                    <div className="grid gap-4 md:grid-cols-3">
+                      <div className="rounded-lg border border-border bg-gradient-to-br from-purple-50 to-pink-50 p-4 hover:shadow-md transition-shadow">
+                        <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-purple-500 to-pink-500">
+                          <FileText size={18} className="text-white" />
+                        </div>
+                        <h4 className="mb-1 font-semibold">Edit Profile</h4>
                         <p className="mb-3 text-sm text-muted-foreground">
-                          Upload business documents and brochures
+                          Update your business information
                         </p>
-                        <Button variant="outline" size="sm" disabled>
-                          Coming Soon
+                        <Button variant="outline" size="sm" onClick={handleEdit} className="w-full">
+                          <Edit3 size={14} className="mr-2" />
+                          Edit Now
                         </Button>
                       </div>
                       
-                      <div className="rounded-md border border-dashed border-border p-4 text-center">
-                        <div className="mb-2 text-2xl">🎤</div>
-                        <h4 className="mb-1 font-medium">Voice Input</h4>
+                      <div className="rounded-lg border border-border bg-gradient-to-br from-blue-50 to-cyan-50 p-4">
+                        <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-cyan-500">
+                          <Sparkles size={18} className="text-white" />
+                        </div>
+                        <h4 className="mb-1 font-semibold">AI Analysis</h4>
                         <p className="mb-3 text-sm text-muted-foreground">
-                          Record voice descriptions of your business
+                          Get AI-powered insights
                         </p>
-                        <Button variant="outline" size="sm" disabled>
+                        <Button variant="outline" size="sm" className="w-full" disabled>
+                          Coming Soon
+                        </Button>
+                      </div>
+
+                      <div className="rounded-lg border border-border bg-gradient-to-br from-emerald-50 to-teal-50 p-4">
+                        <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500 to-teal-500">
+                          <Building2 size={18} className="text-white" />
+                        </div>
+                        <h4 className="mb-1 font-semibold">Export Data</h4>
+                        <p className="mb-3 text-sm text-muted-foreground">
+                          Download your business profile
+                        </p>
+                        <Button variant="outline" size="sm" className="w-full" disabled>
                           Coming Soon
                         </Button>
                       </div>

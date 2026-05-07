@@ -766,6 +766,99 @@ class ApiClient {
   async getBusinessSetupStatus(): Promise<any> {
     return this.get("/api/profile/business/setup-status");
   }
+
+  // ============= Business Input Engine =============
+
+  /**
+   * Upload PDF and extract business description
+   */
+  async uploadPDF(file: File): Promise<any> {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const authHeader = await this.getAuthHeader();
+    
+    const response = await fetch(`${this.baseUrl}/api/business/upload-pdf`, {
+      method: "POST",
+      headers: {
+        ...authHeader,
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new ApiError(response.status, errorData, errorData.detail || "PDF upload failed");
+    }
+
+    return response.json();
+  }
+
+
+
+  /**
+   * Import business information from website
+   */
+  async importWebsite(url: string): Promise<any> {
+    return this.post("/api/business/import-website", { url });
+  }
+
+  /**
+   * Get business input profile
+   */
+  async getBusinessInputProfile(): Promise<any> {
+    return this.get("/api/business/profile");
+  }
+
+  /**
+   * Update business description manually
+   */
+  async updateBusinessDescription(description: string): Promise<any> {
+    const formData = new FormData();
+    formData.append("business_description", description);
+
+    const authHeader = await this.getAuthHeader();
+    
+    const response = await fetch(`${this.baseUrl}/api/business/profile`, {
+      method: "PUT",
+      headers: {
+        ...authHeader,
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new ApiError(response.status, errorData, errorData.detail || "Update failed");
+    }
+
+    return response.json();
+  }
+
+  /**
+   * Delete uploaded file (PDF or audio)
+   */
+  async deleteBusinessFile(fileType: "pdf" | "audio"): Promise<any> {
+    const formData = new FormData();
+    formData.append("file_type", fileType);
+
+    const authHeader = await this.getAuthHeader();
+    
+    const response = await fetch(`${this.baseUrl}/api/business/profile/file`, {
+      method: "DELETE",
+      headers: {
+        ...authHeader,
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new ApiError(response.status, errorData, errorData.detail || "Delete failed");
+    }
+
+    return response.json();
+  }
 }
 
 // Export singleton instance

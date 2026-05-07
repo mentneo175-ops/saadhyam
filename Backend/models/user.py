@@ -30,6 +30,10 @@ class User(Base):
     business_description = Column(Text, nullable=True)
     business_setup_completed = Column(Boolean, default=False, nullable=False)
     
+    # Business Input Sources (for edit functionality)
+    pdf_file_url = Column(Text, nullable=True)  # Path to uploaded PDF
+    website_url = Column(Text, nullable=True)  # Imported website URL
+    
     created_at = Column(DateTime, server_default=func.now(), nullable=False)
     updated_at = Column(
         DateTime, server_default=func.now(), onupdate=func.now(), nullable=False

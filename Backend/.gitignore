@@ -233,3 +233,5 @@ dist/
 htmlcov/
 
 output/images/
+Backend/websites/
+Backend/Backend/ai_models/website_ai/websites/

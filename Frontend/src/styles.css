@@ -96,6 +96,14 @@
       transform: translateY(-12px);
     }
   }
+  @keyframes float-up {
+    0%, 100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-20px);
+    }
+  }
   @keyframes shimmer {
     0% {
       background-position: -1000px 0;
@@ -113,6 +121,10 @@
       background-position: 100% 50%;
     }
   }
+}
+
+.animate-float-up {
+  animation: float-up 3s ease-in-out infinite;
 }
 
 :root {

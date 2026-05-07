@@ -122,6 +122,17 @@ numpy==1.26.4
 # Web Scraping & Parsing
 # ============================================
 beautifulsoup4==4.12.3
+lxml==5.3.0
+playwright==1.48.0
+readability-lxml==0.8.1
+
+# ============================================
+# PDF Processing
+# ============================================
+PyPDF2==3.0.1
+pdfplumber==0.11.0
+pytesseract==0.3.10
+pdf2image==1.17.0
 
 # ============================================
 # Development & Testing

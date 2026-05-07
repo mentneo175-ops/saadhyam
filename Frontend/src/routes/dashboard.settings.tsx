@@ -17,6 +17,14 @@ import {
   LogOut,
   CheckCircle,
   AlertCircle,
+  Building2,
+  MapPin,
+  User,
+  Phone,
+  Globe,
+  Shield,
+  Bell,
+  CreditCard,
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { useAuthContext } from "@/lib/AuthContext";
@@ -73,6 +81,7 @@ function SettingsPage() {
     timezone: "Asia/Kolkata (IST)",
     business_name: "",
     industry: "",
+    business_location: "",
     description: "",
     brand_voice: "",
     target_audience: "",
@@ -157,6 +166,7 @@ function SettingsPage() {
             timezone: "Asia/Kolkata (IST)", // Default timezone
             business_name: profileData.business_profile?.business_name || "",
             industry: profileData.business_profile?.business_type || "",
+            business_location: profileData.business_profile?.business_location || "",
             description: profileData.business_profile?.business_description || "",
             brand_voice: "", // Not in profile, will need to add this field
             target_audience: "", // Not in profile, will need to add this field
@@ -460,140 +470,282 @@ function SettingsPage() {
   }
 
   return (
-    <div className="p-4 md:p-6 lg:p-8 space-y-6 max-w-4xl">
+    <div className="p-4 md:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto">
       <PageHeader
         title="Settings"
-        subtitle="Manage your account and integration preferences"
+        subtitle="Manage your account, business profile, and integration preferences"
       />
 
-      {/* Profile Section */}
-      <div className="bg-card rounded-2xl border border-border/60 shadow-soft p-6">
-        <div className="flex items-center gap-4 mb-6">
-          <div className="relative">
-            <div className="w-16 h-16 bg-gradient-primary rounded-full flex items-center justify-center">
-              <Camera size={24} className="text-primary-foreground" />
+      <div className="grid lg:grid-cols-3 gap-6">
+        {/* LEFT COLUMN - Profile & Business (2/3 width) */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Profile Section */}
+          <div className="bg-card rounded-2xl border border-border/60 shadow-soft overflow-hidden">
+            <div className="bg-gradient-to-r from-purple-50 via-pink-50 to-blue-50 px-6 py-4 border-b border-border/60">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-white rounded-lg shadow-sm">
+                  <User size={18} className="text-purple-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-lg">Account Profile</h3>
+                  <p className="text-sm text-muted-foreground">Your personal information</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="p-6">
+              <div className="flex items-center gap-4 mb-6 pb-6 border-b border-border/60">
+                <div className="relative">
+                  <div className="w-20 h-20 bg-gradient-to-br from-purple-500 via-purple-600 to-pink-500 rounded-full flex items-center justify-center shadow-lg">
+                    <span className="text-2xl font-bold text-white">
+                      {settings.full_name ? settings.full_name.charAt(0).toUpperCase() : "U"}
+                    </span>
+                  </div>
+                  <button className="absolute bottom-0 right-0 p-1.5 bg-white rounded-full shadow-md border-2 border-card hover:bg-gray-50 transition-colors">
+                    <Camera size={14} className="text-gray-600" />
+                  </button>
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-xl">{settings.full_name || "Your Name"}</h3>
+                  <p className="text-muted-foreground text-sm">{settings.email}</p>
+                  <div className="flex items-center gap-2 mt-2">
+                    <span className="text-xs bg-purple-100 text-purple-700 px-3 py-1 rounded-full font-medium">
+                      Free Plan
+                    </span>
+                    <span className="text-xs bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full font-medium flex items-center gap-1">
+                      <CheckCircle size={12} />
+                      Active
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium flex items-center gap-2">
+                    <User size={14} className="text-muted-foreground" />
+                    Full name
+                  </Label>
+                  <Input
+                    value={settings.full_name}
+                    onChange={(e) => setSettings({ ...settings, full_name: e.target.value })}
+                    placeholder="Your full name"
+                    className="h-11 rounded-xl border-2"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium flex items-center gap-2">
+                    <Mail size={14} className="text-muted-foreground" />
+                    Email
+                  </Label>
+                  <Input
+                    value={settings.email}
+                    onChange={(e) => setSettings({ ...settings, email: e.target.value })}
+                    placeholder="your@email.com"
+                    className="h-11 rounded-xl border-2"
+                    type="email"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium flex items-center gap-2">
+                    <Phone size={14} className="text-muted-foreground" />
+                    Phone
+                  </Label>
+                  <Input
+                    value={settings.phone}
+                    onChange={(e) => setSettings({ ...settings, phone: e.target.value })}
+                    placeholder="+91 98765 43210"
+                    className="h-11 rounded-xl border-2"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium flex items-center gap-2">
+                    <Globe size={14} className="text-muted-foreground" />
+                    Timezone
+                  </Label>
+                  <Input
+                    value={settings.timezone}
+                    className="h-11 rounded-xl border-2 bg-muted/30"
+                    readOnly
+                  />
+                </div>
+              </div>
             </div>
           </div>
-          <div className="flex-1">
-            <h3 className="font-semibold text-lg">{settings.full_name || "Your Name"}</h3>
-            <p className="text-muted-foreground">{settings.email}</p>
-            <div className="flex items-center gap-2 mt-1">
-              <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">
-                Free Plan
-              </span>
+
+          {/* Business Info */}
+          <div className="bg-card rounded-2xl border border-border/60 shadow-soft overflow-hidden">
+            <div className="bg-gradient-to-r from-emerald-50 via-teal-50 to-cyan-50 px-6 py-4 border-b border-border/60">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-white rounded-lg shadow-sm">
+                  <Building2 size={18} className="text-emerald-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-lg">Business Information</h3>
+                  <p className="text-sm text-muted-foreground">Your business details and profile</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="p-6">
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium flex items-center gap-2">
+                    <Building2 size={14} className="text-muted-foreground" />
+                    Business name
+                  </Label>
+                  <Input
+                    value={settings.business_name}
+                    onChange={(e) => setSettings({ ...settings, business_name: e.target.value })}
+                    placeholder="Your business name"
+                    className="h-11 rounded-xl border-2"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium flex items-center gap-2">
+                    <ShoppingBag size={14} className="text-muted-foreground" />
+                    Industry
+                  </Label>
+                  <Input
+                    value={settings.industry}
+                    onChange={(e) => setSettings({ ...settings, industry: e.target.value })}
+                    placeholder="e.g., Restaurant, Retail"
+                    className="h-11 rounded-xl border-2"
+                  />
+                </div>
+                <div className="space-y-2 md:col-span-2">
+                  <Label className="text-sm font-medium flex items-center gap-2">
+                    <MapPin size={14} className="text-muted-foreground" />
+                    Location
+                  </Label>
+                  <Input
+                    value={settings.business_location || ""}
+                    onChange={(e) => setSettings({ ...settings, business_location: e.target.value })}
+                    placeholder="City, State, Country"
+                    className="h-11 rounded-xl border-2"
+                  />
+                </div>
+                <div className="space-y-2 md:col-span-2">
+                  <Label className="text-sm font-medium">Business description</Label>
+                  <div className="relative">
+                    <textarea
+                      value={settings.description}
+                      onChange={(e) => setSettings({ ...settings, description: e.target.value })}
+                      placeholder="Describe your business, services, challenges, and goals..."
+                      rows={4}
+                      className="w-full px-4 py-3 border-2 border-border rounded-xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 outline-none transition-all duration-300 bg-background resize-none text-sm"
+                    />
+                    <p className="text-xs text-muted-foreground mt-2">
+                      {settings.description.length}/5,000 characters
+                    </p>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Brand voice</Label>
+                  <Input
+                    value={settings.brand_voice}
+                    onChange={(e) => setSettings({ ...settings, brand_voice: e.target.value })}
+                    placeholder="Warm, premium, playful"
+                    className="h-11 rounded-xl border-2"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Target audience</Label>
+                  <Input
+                    value={settings.target_audience}
+                    onChange={(e) => setSettings({ ...settings, target_audience: e.target.value })}
+                    placeholder="Women 25-40, urban India"
+                    className="h-11 rounded-xl border-2"
+                  />
+                </div>
+              </div>
+              
+              {/* Note about editing */}
+              <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                <div className="flex items-start gap-3">
+                  <AlertCircle size={18} className="text-blue-600 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="text-sm font-medium text-blue-900">Need to update your business profile?</p>
+                    <p className="text-xs text-blue-700 mt-1">
+                      Visit the <a href="/dashboard/business-details" className="underline font-medium">Business Details</a> page to edit your profile with advanced import options (PDF, Voice, Website).
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-          <Button
-            variant="destructive"
-            onClick={handleLogout}
-            disabled={logoutLoading}
-            className="flex items-center gap-2"
-          >
-            {logoutLoading ? (
-              <Loader2 size={16} className="animate-spin" />
-            ) : (
-              <LogOut size={16} />
-            )}
-            Logout
-          </Button>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label>Full name</Label>
-            <Input
-              value={settings.full_name}
-              onChange={(e) => setSettings({ ...settings, full_name: e.target.value })}
-              placeholder="Your full name"
-              className="h-10 rounded-xl"
-            />
+        {/* RIGHT COLUMN - Quick Actions & Integrations (1/3 width) */}
+        <div className="space-y-6">
+          {/* Quick Actions Card */}
+          <div className="bg-card rounded-2xl border border-border/60 shadow-soft overflow-hidden">
+            <div className="bg-gradient-to-r from-amber-50 via-orange-50 to-red-50 px-6 py-4 border-b border-border/60">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-white rounded-lg shadow-sm">
+                  <Shield size={18} className="text-amber-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold">Quick Actions</h3>
+                  <p className="text-xs text-muted-foreground">Account management</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="p-4 space-y-3">
+              <Button
+                onClick={handleSaveSettings}
+                disabled={loading}
+                className="w-full bg-gradient-to-r from-purple-500 via-purple-600 to-pink-500 hover:from-purple-600 hover:via-purple-700 hover:to-pink-600 text-white shadow-lg hover:shadow-xl transition-all"
+              >
+                {loading ? (
+                  <Loader2 size={16} className="animate-spin mr-2" />
+                ) : (
+                  <Save size={16} className="mr-2" />
+                )}
+                Save All Changes
+              </Button>
+              
+              <Button
+                variant="outline"
+                className="w-full border-2"
+                onClick={() => window.location.href = "/dashboard/business-details"}
+              >
+                <Building2 size={16} className="mr-2" />
+                Edit Business Profile
+              </Button>
+              
+              <Button
+                variant="destructive"
+                onClick={handleLogout}
+                disabled={logoutLoading}
+                className="w-full"
+              >
+                {logoutLoading ? (
+                  <Loader2 size={16} className="animate-spin mr-2" />
+                ) : (
+                  <LogOut size={16} className="mr-2" />
+                )}
+                Logout
+              </Button>
+            </div>
           </div>
-          <div className="space-y-2">
-            <Label>Email</Label>
-            <Input
-              value={settings.email}
-              onChange={(e) => setSettings({ ...settings, email: e.target.value })}
-              placeholder="your@email.com"
-              className="h-10 rounded-xl"
-              type="email"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label>Phone</Label>
-            <Input
-              value={settings.phone}
-              onChange={(e) => setSettings({ ...settings, phone: e.target.value })}
-              placeholder="+91 98765 43210"
-              className="h-10 rounded-xl"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label>Timezone</Label>
-            <Input
-              value={settings.timezone}
-              className="h-10 rounded-xl"
-              readOnly
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Business Info */}
-      <div className="bg-card rounded-2xl border border-border/60 shadow-soft p-6">
-        <h3 className="font-semibold mb-4">Business Information</h3>
-        <div className="grid md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label>Business name</Label>
-            <Input
-              value={settings.business_name}
-              onChange={(e) => setSettings({ ...settings, business_name: e.target.value })}
-              placeholder="Your business name"
-              className="h-10 rounded-xl"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label>Industry</Label>
-            <Input
-              value={settings.industry}
-              onChange={(e) => setSettings({ ...settings, industry: e.target.value })}
-              placeholder="e.g., Restaurant, Retail"
-              className="h-10 rounded-xl"
-            />
-          </div>
-          <div className="space-y-2 md:col-span-2">
-            <Label>Business description</Label>
-            <Input
-              value={settings.description}
-              onChange={(e) => setSettings({ ...settings, description: e.target.value })}
-              placeholder="Brief description of your business"
-              className="h-10 rounded-xl"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label>Brand voice</Label>
-            <Input
-              value={settings.brand_voice}
-              onChange={(e) => setSettings({ ...settings, brand_voice: e.target.value })}
-              placeholder="Warm, premium, slightly playful"
-              className="h-10 rounded-xl"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label>Target audience</Label>
-            <Input
-              value={settings.target_audience}
-              onChange={(e) => setSettings({ ...settings, target_audience: e.target.value })}
-              placeholder="Women 25-40, urban India"
-              className="h-10 rounded-xl"
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Integrations */}
-      <div className="bg-card rounded-2xl border border-border/60 shadow-soft p-6">
-        <h3 className="font-semibold mb-4">Integrations</h3>
-        <div className="space-y-3">
+          {/* Integrations */}
+          <div className="bg-card rounded-2xl border border-border/60 shadow-soft overflow-hidden">
+            <div className="bg-gradient-to-r from-pink-50 via-fuchsia-50 to-purple-50 px-6 py-4 border-b border-border/60">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-white rounded-lg shadow-sm">
+                  <Globe size={18} className="text-pink-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold">Integrations</h3>
+                  <p className="text-xs text-muted-foreground">Connected services</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="p-4">
+              <div className="space-y-3">
           {integrations.map((integration) => (
             <div key={integration.name}>
               <div
@@ -767,22 +919,9 @@ function SettingsPage() {
             </div>
           ))}
         </div>
-      </div>
-
-      {/* Save Button */}
-      <div className="flex justify-end">
-        <Button
-          onClick={handleSaveSettings}
-          disabled={loading}
-          className="bg-gradient-primary text-primary-foreground hover:brightness-110"
-        >
-          {loading ? (
-            <Loader2 size={16} className="animate-spin mr-2" />
-          ) : (
-            <Save size={16} className="mr-2" />
-          )}
-          Save Settings
-        </Button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

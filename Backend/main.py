@@ -154,6 +154,14 @@ except Exception as e:
 auto_blogger_available = False
 
 try:
+    from routes.business_input import router as business_input_router
+    business_input_available = True
+    logging.info("✅ Business Input router imported successfully")
+except Exception as e:
+    logging.warning(f"Business Input router not available: {e}")
+    business_input_available = False
+
+try:
     from ai_models.website_ai.app.api.v1.routes import generation as website_ai_generation
     from ai_models.website_ai.app.api.v1.routes import jobs as website_ai_jobs
     from ai_models.website_ai.app.routes import website as website_ai_website
@@ -207,6 +215,8 @@ async def lifespan(app: FastAPI):
         migrate_add_business_analysis_table()
         from migrations.add_business_profile_fields import migrate_add_business_profile_fields
         migrate_add_business_profile_fields()
+        from migrations.add_business_profile_table import migrate_add_business_profile_table
+        migrate_add_business_profile_table()
         logger.info("✅ Migrations completed")
         
         # NOTE: AI models are now using TinyLlama for fast CPU inference:
@@ -334,6 +344,9 @@ if auto_blogger_available:
 if website_serving_available:
     app.include_router(website_serving_router)
     logging.info("✅ Website serving router included in app")
+if business_input_available:
+    app.include_router(business_input_router)
+    logging.info("✅ Business Input router included in app")
 if website_ai_available:
     app.include_router(
         website_ai_generation.router,

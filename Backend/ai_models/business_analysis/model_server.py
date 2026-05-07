@@ -41,7 +41,7 @@ class AnalyzeRequest(BaseModel):
     description: str = Field(
         ...,
         min_length=20,
-        max_length=2000,
+        max_length=5000,  # Increased to match profile limit
         description="Business description to analyze"
     )
     

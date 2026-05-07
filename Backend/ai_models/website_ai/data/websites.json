@@ -4,13 +4,13 @@
     "demo": {
       "website_id": "demo",
       "content": {
-        "headline": "Designed to make asald stand out",
+        "headline": "A refined web presence for The Italian Kitchen",
         "about": "",
         "eyebrow": "",
         "services": [],
         "faq": [
           {
-            "question": "What makes asald different?",
+            "question": "What makes The Italian Kitchen different?",
             "answer": "It blends modern business with a professional, engaging, and trustworthy customer experience."
           },
           {
@@ -23,17 +23,12 @@
           }
         ],
         "sections": {
-          "Our Impact": "\n                \n                    750+\n                    Projects Delivered\n                \n                \n                    99%\n                    Client Satisfaction\n                \n                \n                    15+\n                    Years Experience\n                \n                \n                    24/7\n                    Support Available\n                \n            ",
-          "Meet The Team": "\n                \n                    JD\n                    John Doe\n                    CEO & Founder\n                \n                \n                    JS\n                    Jane Smith\n                    Creative Director\n                \n                \n                    MB\n                    Mike Brown\n                    Lead Developer\n                \n                \n                    SD\n                    Sarah Davis\n                    Marketing Head\n                \n            ",
-          "Client Reviews": "\n                \n                    \"asald transformed our digital presence. Their\n                        creativity\n                        and technical expertise are outstanding. Highly recommended!\"\n                    \n                        AM\n                        \n                            Alex Martinez\n                            CEO, Tech Innovations\n                        \n                    \n                \n                \n                    \"Working with this team has been incredible. They delivered beyond\n                        our\n                        expectations and on time. True professionals!\"\n                    \n                        LW\n                        \n                            Lisa Wang\n                            Founder, Creative Labs\n                        \n                    \n                \n            ",
-          "Pricing Plans": "\n                \n                    Starter\n                    $99/mo\n                    \n                        5 Projects\n                        Basic Support\n                        1 GB Storage\n                        Email Support\n                    \n                    Get Started\n                \n                \n                    Professional\n                    $299/mo\n                    \n                        Unlimited Projects\n                        Priority Support\n                        50 GB Storage\n                        24/7 Support\n                    \n                    Get Started\n                \n            ",
-          "Ready to Transform Your Business?": "Join hundreds of satisfied clients and take your business to the next level.",
-          "FAQ": "\n            \n                What makes asald different?\n                It blends modern business with a professional, engaging, and trustworthy customer experience.\n            \n            \n                How do I get started?\n                Choose a service, reach out, and we will guide you through the next step.\n            \n            \n                Who is this for?\n                It is designed for customers looking for a reliable, modern brand experience.\n            \n        ",
-          "Let's Talk": "Contact asald to schedule a consultation or request a quote."
+          "Frequently Asked QuestionS": "\n            What makes The Italian Kitchen different?\n            It blends modern business with a professional, engaging, and trustworthy customer experience.\n        ",
+          "Get in Touch": "Contact The Italian Kitchen to schedule a consultation or request a quote."
         }
       },
-      "theme": "timeline-vertical",
-      "updated_at": "2026-05-05T14:33:17.301470"
+      "theme": "bento-box",
+      "updated_at": "2026-05-07T11:23:30.776557"
     }
   }
 }

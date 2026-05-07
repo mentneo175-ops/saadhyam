@@ -54,6 +54,39 @@
 - **Authentication**: Firebase
 - **Deployment**: Docker-ready
 
+## 🚀 Quick Start - Run All Services at Once
+
+### ⚡ Super Simple Method (Recommended)
+
+**Just run ONE command to start everything:**
+
+```powershell
+# PowerShell (Recommended)
+.\start_all.bat
+
+# Or double-click start_all.bat in File Explorer
+```
+
+This automatically starts **5 services** in separate windows:
+1. 🧠 **Business Model Server** (Port 9001) - AI business analysis
+2. 🚀 **Backend API** (Port 8000) - Main server
+3. 📸 **Instagram Celery Worker** - Instagram background tasks
+4. 🌐 **Website AI Celery Worker** - Website generation
+5. 💻 **Frontend** (Port 5173) - React UI
+
+**Access your app:** http://localhost:5173
+
+### 🛑 Stop All Services
+
+```powershell
+# Run stop script
+.\stop_all.bat
+
+# Or press any key in the start_all.bat window
+```
+
+---
+
 ## 🚀 Complete Setup & Running Instructions
 
 ### Prerequisites

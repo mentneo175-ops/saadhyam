@@ -15,6 +15,9 @@ import {
   Sparkles,
   ChevronRight,
   Instagram,
+  Calendar,
+  Search,
+  Target,
 } from "lucide-react";
 
 type NavItem = {
@@ -26,16 +29,15 @@ type NavItem = {
 
 const items: NavItem[] = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard, exact: true },
-  { to: "/dashboard/business-analysis", label: "Business Analysis", icon: LineChart },
+  { to: "/dashboard/business-analysis", label: "Business Analysis", icon: Sparkles },
+  { to: "/dashboard/competitor-analysis", label: "Competitor Analysis", icon: Users },
+  { to: "/dashboard/daily-ask", label: "Daily Suggestions", icon: Calendar },
+  { to: "/dashboard/seo-google-maps", label: "SEO & Google Maps", icon: Search },
   { to: "/dashboard/content", label: "Content Creator", icon: Wand2 },
   { to: "/dashboard/instagram", label: "Instagram", icon: Instagram },
   { to: "/dashboard/whatsapp-sales", label: "WhatsApp Sales", icon: MessageSquare },
   { to: "/dashboard/website", label: "Website AI", icon: FileText },
-  { to: "/dashboard/actions", label: "Daily Tasks", icon: CheckSquare },
-  { to: "/dashboard/competitors", label: "Competitor Analysis", icon: Eye },
-  { to: "/dashboard/pricing", label: "Pricing Suggestion", icon: Sparkles },
   { to: "/dashboard/review-reply", label: "Review Reply", icon: MessageSquare },
-  { to: "/dashboard/seo", label: "SEO & Google Maps", icon: Map },
   { to: "/dashboard/automation", label: "Automation", icon: Workflow },
   { to: "/dashboard/settings", label: "Settings", icon: Settings },
 ];

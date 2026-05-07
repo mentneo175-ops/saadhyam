@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Sparkles, AlertCircle, ArrowRight, ChevronLeft, CheckCircle2 } from "lucide-react";
 import { apiClient } from "@/lib/api";
+import { triggerComprehensiveAnalysis, pollAnalysisStatus } from "@/lib/comprehensiveAnalysisApi";
 import { toast } from "sonner";
 import { PDFUpload } from "@/components/business/PDFUpload";
 import { VoiceInput } from "@/components/business/VoiceInput";
@@ -235,6 +236,18 @@ function OnboardingPage() {
     setIsAnalyzing(true);
 
     try {
+      // Get token from apiClient (which reads from localStorage)
+      const token = apiClient.getToken();
+      if (!token) {
+        setError("Not authenticated. Please log in again.");
+        setIsAnalyzing(false);
+        // Redirect to login after 2 seconds
+        setTimeout(() => {
+          navigate({ to: "/login" });
+        }, 2000);
+        return;
+      }
+
       // Save business profile to database
       const businessProfile = {
         business_name: formData.name.trim(),
@@ -252,73 +265,25 @@ function OnboardingPage() {
 
       await apiClient.updateBusinessProfile(businessProfile);
 
-      // Analyze the business
-      const fullDescription = `Business Name: ${formData.name}
-Business Type: ${formData.type}
-Location: ${formData.location}
+      // Trigger comprehensive business analysis (NEW API)
+      await triggerComprehensiveAnalysis(token);
 
-Description: ${formData.description}`;
+      // Poll for analysis completion
+      await pollAnalysisStatus(token, (status) => {
+        console.log("Analysis status:", status.status);
+      });
 
-      const response = await apiClient.analyzeBusiness(fullDescription);
+      // Analysis complete!
+      setIsComplete(true);
+      toast.success("Business profile saved! Welcome to Saadhyam AI 🎉");
 
-      if (response.success) {
-        // Store analysis in localStorage temporarily
-        localStorage.setItem("businessAnalysis", JSON.stringify(response));
+      // Redirect to dashboard after 2 seconds
+      setTimeout(() => {
+        navigate({ to: "/dashboard" });
+      }, 2000);
 
-        // Generate tasks from recommendations
-        const generatedTasks = response.recommendations.map(
-          (rec: string, idx: number) => ({
-            title: rec,
-            impact: idx < 2 ? "High" : idx < 4 ? "Medium" : "Low",
-            time: "15 min",
-            done: false,
-            ai: true,
-            icon: "Sparkles",
-          })
-        );
-
-        // Create tasks in backend
-        for (const task of generatedTasks) {
-          try {
-            await apiClient.createTask(task);
-          } catch (err) {
-            console.error("Failed to create task:", err);
-          }
-        }
-
-        setIsComplete(true);
-        toast.success("Business profile saved! Welcome to Saadhyam AI 🎉");
-
-        // Redirect to dashboard after 3 seconds
-        setTimeout(() => {
-          navigate({ to: "/dashboard" });
-        }, 3000);
-      } else {
-        setError(response.error || "Analysis failed");
-        setIsAnalyzing(false);
-      }
-    } catch (err: any) {
-      let errorMsg = "Failed to save business profile";
-      
-      // Handle validation errors (422)
-      if (err.status === 422 || err.response?.status === 422) {
-        const detail = err.data?.detail || err.response?.data?.detail;
-        if (Array.isArray(detail)) {
-          // Pydantic validation errors
-          const fieldErrors = detail.map((e: any) => {
-            const field = e.loc?.[e.loc.length - 1] || 'field';
-            return `${field}: ${e.msg}`;
-          }).join(', ');
-          errorMsg = `Validation error: ${fieldErrors}`;
-        } else if (typeof detail === 'string') {
-          errorMsg = detail;
-        } else {
-          errorMsg = "Please check all fields and try again";
-        }
-      } else if (err instanceof Error) {
-        errorMsg = err.message;
-      }
-      
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : "Failed to save business profile";
       setError(errorMsg);
       setIsAnalyzing(false);
       toast.error(errorMsg);
@@ -349,32 +314,32 @@ Description: ${formData.description}`;
               <Sparkles size={40} className="text-white animate-pulse" />
             </div>
           </div>
-          
-          <h2 className="text-3xl font-bold text-gray-900 mb-4 bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-pink-600 animate-gradient">
-            Analyzing Your Business
-          </h2>
-          <p className="text-gray-600 mb-8 text-lg">
-            Our AI is reviewing your information and generating personalized insights...
+          <h2 className="text-2xl font-bold text-gray-900 mb-3">Analyzing Your Business</h2>
+          <p className="text-gray-600 mb-6">
+            Our AI is analyzing your business with Google Search grounding...
           </p>
-          
-          <div className="space-y-4 text-left bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-white/50">
-            <div className="flex items-center gap-3 animate-fade-in-up" style={{ animationDelay: '0ms' }}>
-              <div className="w-3 h-3 bg-green-500 rounded-full shadow-lg shadow-green-500/50 animate-pulse"></div>
-              <span className="text-gray-700 font-medium">Analyzing business strengths</span>
-              <CheckCircle2 className="w-5 h-5 text-green-500 ml-auto" />
+          <div className="space-y-2 text-sm text-gray-600">
+            <div className="flex items-center justify-center gap-2">
+              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+              <span>Analyzing business strengths & weaknesses</span>
             </div>
-            <div className="flex items-center gap-3 animate-fade-in-up" style={{ animationDelay: '200ms' }}>
-              <div className="w-3 h-3 bg-green-500 rounded-full shadow-lg shadow-green-500/50 animate-pulse"></div>
-              <span className="text-gray-700 font-medium">Identifying growth opportunities</span>
-              <CheckCircle2 className="w-5 h-5 text-green-500 ml-auto" />
+            <div className="flex items-center justify-center gap-2">
+              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+              <span>Researching competitor landscape</span>
             </div>
-            <div className="flex items-center gap-3 animate-fade-in-up" style={{ animationDelay: '400ms' }}>
-              <div className="w-3 h-3 bg-yellow-500 rounded-full shadow-lg shadow-yellow-500/50 animate-pulse"></div>
-              <span className="text-gray-700 font-medium">Generating recommendations</span>
-              <div className="ml-auto">
-                <div className="w-5 h-5 border-2 border-yellow-500 border-t-transparent rounded-full animate-spin"></div>
-              </div>
+            <div className="flex items-center justify-center gap-2">
+              <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></div>
+              <span>Generating growth recommendations</span>
             </div>
+            <div className="flex items-center justify-center gap-2">
+              <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></div>
+              <span>Creating SEO & Google Maps tips</span>
+            </div>
+          </div>
+          <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <p className="text-xs text-blue-900">
+              💡 This comprehensive analysis takes 2-3 minutes but will populate all your dashboard features instantly!
+            </p>
           </div>
         </div>
       </div>

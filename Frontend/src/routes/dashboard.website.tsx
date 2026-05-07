@@ -20,7 +20,6 @@ const templates = [
 ];
 
 function WebsiteAIPage() {
-  const [mode, setMode] = useState<"website">("website");
   const [isGenerating, setIsGenerating] = useState(false);
   
   // Website generation state
@@ -632,18 +631,6 @@ function WebsiteAIPage() {
       <PageHeader
         title="Website AI"
         subtitle="Generate instant website content or complete websites for your business"
-        actions={
-          <div className="flex gap-2">
-          
-            <Button 
-              variant={mode === "website" ? "hero" : "outline"} 
-              size="sm"
-              onClick={() => setMode("website")}
-            >
-              <Globe size={144} /> Full Website
-            </Button>
-          </div>
-        }
       />
 
       

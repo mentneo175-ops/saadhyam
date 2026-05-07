@@ -1,16 +1,26 @@
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 const REQUEST_TIMEOUT_MS = 20000;
 
-export async function sendQuery(query) {
+export async function sendQuery(query, token) {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
   try {
-    const response = await fetch(`${API_URL}/assistant`, {
+    const headers = {
+      "Content-Type": "application/json",
+    };
+
+    // Add authorization header if token is provided
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+
+    // Use demo endpoint if no token (for testing)
+    const endpoint = token ? `${API_URL}/assistant` : `${API_URL}/assistant/demo`;
+
+    const response = await fetch(endpoint, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers,
       body: JSON.stringify({ query }),
       signal: controller.signal,
     });

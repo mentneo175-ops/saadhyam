@@ -55,6 +55,7 @@ const validateFirebaseConfig = () => {
 let app: any = null;
 let auth: any = null;
 let googleProvider: GoogleAuthProvider | null = null;
+let firebaseConfigured = false;
 
 try {
   // Validate configuration first
@@ -74,13 +75,23 @@ try {
     prompt: 'select_account'
   });
   
+  firebaseConfigured = true;
   console.log('🔥 Firebase initialized successfully');
   console.log('📋 Project ID:', firebaseConfig.projectId);
   
 } catch (error) {
-  console.error('❌ CRITICAL: Firebase initialization failed:', error);
-  console.error('❌ Application cannot start without proper Firebase configuration');
-  // Don't throw here to allow app to show error message
+  console.warn('⚠️ Firebase not configured - running in development mode');
+  console.warn('⚠️ To enable Google authentication, configure Firebase in .env file');
+  // Create a mock auth object to prevent crashes
+  auth = {
+    currentUser: null,
+    onAuthStateChanged: (callback: any) => {
+      // Call callback with null user immediately
+      callback(null);
+      // Return unsubscribe function
+      return () => {};
+    }
+  };
 }
 
 export { auth };
@@ -96,10 +107,10 @@ export interface GoogleAuthResult {
  */
 export const signInWithGoogle = async (): Promise<GoogleAuthResult> => {
   // Check if Firebase is properly initialized
-  if (!auth || !googleProvider) {
-    const error = '❌ CRITICAL: Firebase not properly configured. Please check your environment variables.';
-    console.error(error);
-    throw new Error('Firebase authentication not available. Please contact support.');
+  if (!firebaseConfigured || !auth || !googleProvider) {
+    const error = '⚠️ Firebase not configured. Please set up Firebase in .env file to enable Google authentication.';
+    console.warn(error);
+    throw new Error('Firebase authentication not available. Please configure Firebase or use email/password login.');
   }
 
   try {
@@ -153,8 +164,9 @@ export const signInWithGoogle = async (): Promise<GoogleAuthResult> => {
  * Sign out from Firebase - PRODUCTION ONLY
  */
 export const signOutFromFirebase = async (): Promise<void> => {
-  if (!auth) {
-    throw new Error('Firebase not configured. Cannot sign out.');
+  if (!firebaseConfigured || !auth) {
+    console.warn('⚠️ Firebase not configured');
+    return;
   }
 
   try {

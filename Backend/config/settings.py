@@ -49,6 +49,9 @@ class Settings(BaseSettings):
     # Groq API
     GROQ_API_KEY: str = ""
 
+    # Google AI Studio (Gemini API)
+    GEMINI_API_KEY: str = ""
+
     # Token Encryption Key
     ENCRYPTION_KEY: str = "your-32-char-encryption-key-here"
 

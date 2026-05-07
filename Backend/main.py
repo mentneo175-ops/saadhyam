@@ -99,12 +99,14 @@ except Exception as e:
     async def check_model_server_health() -> bool:
         return False
 
-try:
-    from routes.business import router as business_router
-    business_available = True
-except Exception as e:
-    logging.warning(f"Business Analysis router not available: {e}")
-    business_available = False
+# OLD TinyLlama Business Analysis - DISABLED (now using Gemini API)
+# try:
+#     from routes.business import router as business_router
+#     business_available = True
+# except Exception as e:
+#     logging.warning(f"Business Analysis router not available: {e}")
+#     business_available = False
+business_available = False
 
 try:
     from routes.profile import router as profile_router
@@ -152,6 +154,29 @@ except Exception as e:
 
 # Disable auto blogger for now
 auto_blogger_available = False
+
+try:
+    from routes.realtime_business import router as realtime_business_router
+    realtime_business_available = True
+except Exception as e:
+    logging.warning(f"Real-time Business Intelligence router not available: {e}")
+    realtime_business_available = False
+
+try:
+    from routes.business_analysis_gemini import router as business_analysis_gemini_router
+    business_analysis_gemini_available = True
+    logging.info("✅ Business Analysis (Gemini) router imported successfully")
+except Exception as e:
+    logging.warning(f"Business Analysis (Gemini) router not available: {e}")
+    business_analysis_gemini_available = False
+
+try:
+    from routes.comprehensive_business_analysis import router as comprehensive_business_analysis_router
+    comprehensive_business_analysis_available = True
+    logging.info("✅ Comprehensive Business Analysis router imported successfully")
+except Exception as e:
+    logging.warning(f"Comprehensive Business Analysis router not available: {e}")
+    comprehensive_business_analysis_available = False
 
 try:
     from ai_models.website_ai.app.api.v1.routes import generation as website_ai_generation
@@ -207,15 +232,19 @@ async def lifespan(app: FastAPI):
         migrate_add_business_analysis_table()
         from migrations.add_business_profile_fields import migrate_add_business_profile_fields
         migrate_add_business_profile_fields()
+        from migrations.add_comprehensive_business_analysis import migrate_add_comprehensive_business_analysis
+        migrate_add_comprehensive_business_analysis()
+        from migrations.fix_description_nullable import migrate_fix_description_nullable
+        migrate_fix_description_nullable()
         logger.info("✅ Migrations completed")
         
-        # NOTE: AI models are now using TinyLlama for fast CPU inference:
+        # NOTE: AI models configuration:
         # - Review Reply AI: TinyLlama loaded in main backend (port 8000)
-        # - Business Analysis: TinyLlama loaded in separate server (port 9001)
+        # - Business Analysis: Gemini API with Google Search grounding (comprehensive analysis)
         logger.info("🧠 AI Model Architecture:")
         logger.info("   - Main Backend (port 8000): TinyLlama for review replies")
-        logger.info("   - Business Model Server (port 9001): TinyLlama for business analysis")
-        logger.info("   - Expected inference: 2-5 seconds per request")
+        logger.info("   - Business Analysis: Gemini API with Google Search grounding")
+        logger.info("   - Expected inference: 2-5 seconds per request (review replies)")
         
         # Load TinyLlama for review replies
         logger.info("🔄 Loading TinyLlama for review replies...")
@@ -318,8 +347,9 @@ if ai_available:
     app.include_router(ai_router)
 if review_reply_available:
     app.include_router(review_reply_router)
-if business_available:
-    app.include_router(business_router)
+# OLD TinyLlama Business Analysis - DISABLED (now using Gemini API)
+# if business_available:
+#     app.include_router(business_router)
 if profile_available:
     app.include_router(profile_router)
     logging.info("✅ Profile router included in app")
@@ -331,6 +361,15 @@ if image_generator_available:
     app.include_router(image_generator_router)
 if auto_blogger_available:
     app.include_router(auto_blogger_router)
+if realtime_business_available:
+    app.include_router(realtime_business_router)
+    logging.info("✅ Real-time Business Intelligence router included in app")
+if business_analysis_gemini_available:
+    app.include_router(business_analysis_gemini_router)
+    logging.info("✅ Business Analysis (Gemini) router included in app")
+if comprehensive_business_analysis_available:
+    app.include_router(comprehensive_business_analysis_router)
+    logging.info("✅ Comprehensive Business Analysis router included in app")
 if website_serving_available:
     app.include_router(website_serving_router)
     logging.info("✅ Website serving router included in app")

@@ -1,0 +1,419 @@
+"""
+Comprehensive Business Analysis Service
+ONE Gemini API call to populate ALL features:
+- Business Analysis (strengths, weaknesses, opportunities, local insights)
+- Competitor Analysis
+- Dashboard (30-day growth plan)
+- Daily Ask (daily suggestions)
+- SEO/Google Maps Feature
+
+This avoids rate limit issues by making only ONE API call and storing everything in database
+"""
+
+import logging
+import json
+from typing import Dict, Any, Optional
+from datetime import datetime
+from sqlalchemy.orm import Session
+from db.models import BusinessAnalysis
+from models.user import User
+from services.gemini_business_analysis_service import generate_realtime_business_analysis
+import asyncio
+
+logger = logging.getLogger(__name__)
+
+
+async def trigger_comprehensive_analysis(
+    user: User,
+    db: Session
+) -> Dict[str, Any]:
+    """
+    Trigger comprehensive business analysis for a user
+    Makes ONE Gemini API call and stores ALL results in database
+    
+    Args:
+        user: User object with business profile
+        db: Database session
+    
+    Returns:
+        Dict with status and message
+    """
+    
+    try:
+        logger.info(f"[ComprehensiveAnalysis] Starting analysis for user {user.id}")
+        
+        # Check if user has business profile data
+        if not user.business_type or not user.business_location:
+            return {
+                "status": "error",
+                "message": "Please complete your business profile before analyzing"
+            }
+        
+        # Check if analysis already exists and is recent
+        existing_analysis = db.query(BusinessAnalysis).filter(
+            BusinessAnalysis.user_id == user.id
+        ).order_by(BusinessAnalysis.last_analyzed_at.desc()).first()
+        
+        if existing_analysis and existing_analysis.analysis_status == 'analyzing':
+            return {
+                "status": "analyzing",
+                "message": "Analysis is already in progress. Please wait..."
+            }
+        
+        # Create or update analysis record with 'analyzing' status
+        if existing_analysis:
+            existing_analysis.analysis_status = 'analyzing'
+            db.commit()
+            analysis_id = existing_analysis.id
+        else:
+            new_analysis = BusinessAnalysis(
+                user_id=user.id,
+                analysis_status='analyzing',
+                business_name=user.business_name or "",
+                business_type=user.business_type or "",
+                location=user.business_location or "",
+                description=user.business_description or ""  # Add description field
+            )
+            db.add(new_analysis)
+            db.commit()
+            db.refresh(new_analysis)
+            analysis_id = new_analysis.id
+        
+        logger.info(f"[ComprehensiveAnalysis] Set status to 'analyzing' for analysis {analysis_id}")
+        
+        # Build business profile from user data
+        business_profile = {
+            "business_name": user.business_name or "",
+            "business_type": user.business_type or "",
+            "location": user.business_location or "",
+            "services": [],  # User model doesn't have services field
+            "target_audience": "",  # User model doesn't have target_audience field
+            "goals": "",  # User model doesn't have goals field
+            "website_or_instagram": ""  # User model doesn't have website_or_instagram field
+        }
+        
+        # If user has business_description, use it to infer some details
+        if user.business_description:
+            business_profile["description"] = user.business_description
+        
+        logger.info(f"[ComprehensiveAnalysis] Calling Gemini API for user {user.id}...")
+        
+        # Make ONE Gemini API call (now we can await it directly)
+        analysis_result = await generate_realtime_business_analysis(business_profile)
+        
+        if analysis_result.get("status") == "error":
+            # Update status to error
+            analysis = db.query(BusinessAnalysis).filter(BusinessAnalysis.id == analysis_id).first()
+            if analysis:
+                analysis.analysis_status = 'error'
+                analysis.last_analyzed_at = datetime.utcnow()
+                db.commit()
+            
+            return {
+                "status": "error",
+                "message": analysis_result.get("message", "Analysis failed")
+            }
+        
+        logger.info(f"[ComprehensiveAnalysis] ✅ Gemini API call successful")
+        
+        # Store ALL results in database
+        analysis = db.query(BusinessAnalysis).filter(BusinessAnalysis.id == analysis_id).first()
+        if analysis:
+            # Business details
+            analysis.business_name = business_profile["business_name"]
+            analysis.business_type = business_profile["business_type"]
+            analysis.location = business_profile["location"]
+            analysis.services = json.dumps(business_profile["services"])
+            analysis.target_audience = business_profile["target_audience"]
+            analysis.goals = business_profile["goals"]
+            analysis.website_or_instagram = business_profile["website_or_instagram"]
+            analysis.business_summary = analysis_result.get("business_details", {}).get("summary", "")
+            
+            # Analysis results
+            analysis.strengths_data = json.dumps(analysis_result.get("strengths", []))
+            analysis.weaknesses_data = json.dumps(analysis_result.get("weaknesses", []))
+            analysis.growth_opportunities_data = json.dumps(analysis_result.get("growth_opportunities", []))
+            
+            # Local market insights
+            analysis.local_market_insights = json.dumps(analysis_result.get("local_market_insights", {}))
+            
+            # Competitor analysis
+            analysis.competitor_analysis = json.dumps(analysis_result.get("competitor_analysis", {}))
+            
+            # SEO & Google Maps tips
+            analysis.seo_google_maps_tips = json.dumps(analysis_result.get("seo_google_maps_tips", {}))
+            
+            # 30-day growth plan
+            analysis.thirty_day_growth_plan = json.dumps(analysis_result.get("thirty_day_growth_plan", {}))
+            
+            # Daily suggestions
+            analysis.daily_suggestions = json.dumps(analysis_result.get("daily_suggestions", []))
+            
+            # Health score
+            analysis.health_score = analysis_result.get("health_score", 0)
+            
+            # Metadata
+            analysis.analysis_source = analysis_result.get("source", "google_ai_studio_gemini_search_grounding")
+            analysis.last_analyzed_at = datetime.utcnow()
+            analysis.analysis_status = "completed"
+            
+            db.commit()
+        
+        logger.info(f"[ComprehensiveAnalysis] ✅ Analysis stored in database (ID: {analysis_id})")
+        
+        return {
+            "status": "success",
+            "message": "Comprehensive business analysis completed successfully",
+            "analysis_id": analysis_id
+        }
+        
+    except Exception as e:
+        logger.error(f"[ComprehensiveAnalysis] ❌ Error: {e}", exc_info=True)
+        
+        # Update status to error if we have an analysis_id
+        if 'analysis_id' in locals():
+            try:
+                analysis = db.query(BusinessAnalysis).filter(BusinessAnalysis.id == analysis_id).first()
+                if analysis:
+                    analysis.analysis_status = 'error'
+                    analysis.last_analyzed_at = datetime.utcnow()
+                    db.commit()
+            except:
+                pass
+        
+        return {
+            "status": "error",
+            "message": f"Analysis failed: {str(e)}"
+        }
+
+
+def get_business_analysis_data(
+    user_id: int,
+    db: Session
+) -> Optional[Dict[str, Any]]:
+    """
+    Get business analysis data for Business Analysis page
+    Shows: strengths, weaknesses, opportunities, local market insights
+    
+    Args:
+        user_id: User ID
+        db: Database session
+    
+    Returns:
+        Dict with analysis data or None
+    """
+    
+    try:
+        analysis = db.query(BusinessAnalysis).filter(
+            BusinessAnalysis.user_id == user_id,
+            BusinessAnalysis.analysis_status == 'completed'
+        ).order_by(BusinessAnalysis.last_analyzed_at.desc()).first()
+        
+        if not analysis:
+            return None
+        
+        return {
+            "status": "success",
+            "business_details": {
+                "business_name": analysis.business_name,
+                "business_type": analysis.business_type,
+                "location": analysis.location,
+                "services": json.loads(analysis.services) if analysis.services else [],
+                "summary": analysis.business_summary
+            },
+            "strengths": json.loads(analysis.strengths_data) if analysis.strengths_data else [],
+            "weaknesses": json.loads(analysis.weaknesses_data) if analysis.weaknesses_data else [],
+            "growth_opportunities": json.loads(analysis.growth_opportunities_data) if analysis.growth_opportunities_data else [],
+            "local_market_insights": json.loads(analysis.local_market_insights) if analysis.local_market_insights else {},
+            "health_score": analysis.health_score,
+            "last_updated": analysis.last_analyzed_at.isoformat() if analysis.last_analyzed_at else None
+        }
+        
+    except Exception as e:
+        logger.error(f"[BusinessAnalysisData] ❌ Error: {e}", exc_info=True)
+        return None
+
+
+def get_competitor_analysis_data(
+    user_id: int,
+    db: Session
+) -> Optional[Dict[str, Any]]:
+    """
+    Get competitor analysis data for Competitor Analysis page
+    
+    Args:
+        user_id: User ID
+        db: Database session
+    
+    Returns:
+        Dict with competitor analysis data or None
+    """
+    
+    try:
+        analysis = db.query(BusinessAnalysis).filter(
+            BusinessAnalysis.user_id == user_id,
+            BusinessAnalysis.analysis_status == 'completed'
+        ).order_by(BusinessAnalysis.last_analyzed_at.desc()).first()
+        
+        if not analysis:
+            return None
+        
+        return {
+            "status": "success",
+            "competitor_analysis": json.loads(analysis.competitor_analysis) if analysis.competitor_analysis else {},
+            "last_updated": analysis.last_analyzed_at.isoformat() if analysis.last_analyzed_at else None
+        }
+        
+    except Exception as e:
+        logger.error(f"[CompetitorAnalysisData] ❌ Error: {e}", exc_info=True)
+        return None
+
+
+def get_growth_plan_data(
+    user_id: int,
+    db: Session
+) -> Optional[Dict[str, Any]]:
+    """
+    Get 30-day growth plan data for Dashboard
+    
+    Args:
+        user_id: User ID
+        db: Database session
+    
+    Returns:
+        Dict with growth plan data or None
+    """
+    
+    try:
+        analysis = db.query(BusinessAnalysis).filter(
+            BusinessAnalysis.user_id == user_id,
+            BusinessAnalysis.analysis_status == 'completed'
+        ).order_by(BusinessAnalysis.last_analyzed_at.desc()).first()
+        
+        if not analysis:
+            return None
+        
+        return {
+            "status": "success",
+            "thirty_day_growth_plan": json.loads(analysis.thirty_day_growth_plan) if analysis.thirty_day_growth_plan else {},
+            "last_updated": analysis.last_analyzed_at.isoformat() if analysis.last_analyzed_at else None
+        }
+        
+    except Exception as e:
+        logger.error(f"[GrowthPlanData] ❌ Error: {e}", exc_info=True)
+        return None
+
+
+def get_daily_suggestions_data(
+    user_id: int,
+    db: Session
+) -> Optional[Dict[str, Any]]:
+    """
+    Get daily suggestions data for Daily Ask feature
+    
+    Args:
+        user_id: User ID
+        db: Database session
+    
+    Returns:
+        Dict with daily suggestions data or None
+    """
+    
+    try:
+        analysis = db.query(BusinessAnalysis).filter(
+            BusinessAnalysis.user_id == user_id,
+            BusinessAnalysis.analysis_status == 'completed'
+        ).order_by(BusinessAnalysis.last_analyzed_at.desc()).first()
+        
+        if not analysis:
+            return None
+        
+        return {
+            "status": "success",
+            "daily_suggestions": json.loads(analysis.daily_suggestions) if analysis.daily_suggestions else [],
+            "last_updated": analysis.last_analyzed_at.isoformat() if analysis.last_analyzed_at else None
+        }
+        
+    except Exception as e:
+        logger.error(f"[DailySuggestionsData] ❌ Error: {e}", exc_info=True)
+        return None
+
+
+def get_seo_google_maps_data(
+    user_id: int,
+    db: Session
+) -> Optional[Dict[str, Any]]:
+    """
+    Get SEO & Google Maps tips data for SEO/Google Maps feature
+    
+    Args:
+        user_id: User ID
+        db: Database session
+    
+    Returns:
+        Dict with SEO tips data or None
+    """
+    
+    try:
+        analysis = db.query(BusinessAnalysis).filter(
+            BusinessAnalysis.user_id == user_id,
+            BusinessAnalysis.analysis_status == 'completed'
+        ).order_by(BusinessAnalysis.last_analyzed_at.desc()).first()
+        
+        if not analysis:
+            return None
+        
+        return {
+            "status": "success",
+            "seo_google_maps_tips": json.loads(analysis.seo_google_maps_tips) if analysis.seo_google_maps_tips else {},
+            "last_updated": analysis.last_analyzed_at.isoformat() if analysis.last_analyzed_at else None
+        }
+        
+    except Exception as e:
+        logger.error(f"[SEOGoogleMapsData] ❌ Error: {e}", exc_info=True)
+        return None
+
+
+def get_analysis_status(
+    user_id: int,
+    db: Session
+) -> Dict[str, Any]:
+    """
+    Get current analysis status for a user
+    
+    Args:
+        user_id: User ID
+        db: Database session
+    
+    Returns:
+        Dict with status information
+    """
+    
+    try:
+        analysis = db.query(BusinessAnalysis).filter(
+            BusinessAnalysis.user_id == user_id
+        ).order_by(BusinessAnalysis.last_analyzed_at.desc()).first()
+        
+        if not analysis:
+            return {
+                "status": "not_started",
+                "message": "No analysis found. Click 'Analyze Business' to start."
+            }
+        
+        return {
+            "status": analysis.analysis_status,
+            "last_analyzed_at": analysis.last_analyzed_at.isoformat() if analysis.last_analyzed_at else None,
+            "message": {
+                "pending": "Analysis not started yet",
+                "analyzing": "Analysis in progress... This may take 2-3 minutes",
+                "completed": "Analysis completed successfully",
+                "error": "Analysis failed. Please try again."
+            }.get(analysis.analysis_status, "Unknown status")
+        }
+        
+    except Exception as e:
+        logger.error(f"[AnalysisStatus] ❌ Error: {e}", exc_info=True)
+        return {
+            "status": "error",
+            "message": f"Failed to get analysis status: {str(e)}"
+        }

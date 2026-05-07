@@ -1,271 +1,387 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { Button } from "@/components/ui/button";
-import { Sparkles, TrendingUp, AlertCircle, Target, Map, CheckCircle2, Circle } from "lucide-react";
-import { useState } from "react";
-import { apiClient } from "@/lib/api";
+import {
+  Sparkles,
+  TrendingUp,
+  AlertCircle,
+  Target,
+  Map,
+  CheckCircle2,
+  RefreshCw,
+  Clock,
+  Building2,
+  MapPin,
+  Briefcase,
+  Loader2,
+} from "lucide-react";
+import { useEffect, useState } from "react";
+import {
+  getBusinessAnalysisData,
+  getAnalysisStatus,
+  triggerComprehensiveAnalysis,
+  pollAnalysisStatus,
+  type BusinessAnalysisData,
+  type AnalysisStatus,
+} from "@/lib/comprehensiveAnalysisApi";
 
 export const Route = createFileRoute("/dashboard/business-analysis")({
-  head: () => ({ meta: [{ title: "Business Analysis AI — Saadhyam AI" }] }),
+  head: () => ({ meta: [{ title: "Business Analysis — Saadhyam AI" }] }),
   component: BusinessAnalysisPage,
 });
 
-const growthWeeks = [
-  {
-    week: "Week 1 · Foundations",
-    progress: 100,
-    items: [
-      { t: "Connect Instagram & WhatsApp accounts", done: true },
-      { t: "Import customer list", done: true },
-      { t: "Set brand voice and target audience", done: true },
-    ],
-  },
-  {
-    week: "Week 2 · Engagement",
-    progress: 75,
-    items: [
-      { t: "Launch WhatsApp re-engagement campaign", done: true },
-      { t: "Run first AI-suggested offer", done: true },
-      { t: "A/B test 3 ad creatives", done: false },
-    ],
-  },
-  {
-    week: "Week 3 · Acceleration",
-    progress: 25,
-    items: [
-      { t: "Scale top-performing ad by 2×", done: true },
-      { t: "Build 14-day email nurture sequence", done: false },
-      { t: "Launch loyalty program", done: false },
-    ],
-  },
-];
-
 function BusinessAnalysisPage() {
-  const [businessType, setBusinessType] = useState("");
-  const [location, setLocation] = useState("");
+  const [analysis, setAnalysis] = useState<BusinessAnalysisData | null>(null);
+  const [status, setStatus] = useState<AnalysisStatus | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [showResults, setShowResults] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Get token from localStorage
+  const getToken = () => {
+    const token = localStorage.getItem("saadhyam_token");
+    if (!token) {
+      throw new Error("Not authenticated");
+    }
+    return token;
+  };
+
+  // Load analysis status and data on mount
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const token = getToken();
+
+      // Check status first
+      const statusResult = await getAnalysisStatus(token);
+      setStatus(statusResult);
+
+      // If completed, load the data
+      if (statusResult.status === "completed") {
+        const data = await getBusinessAnalysisData(token);
+        setAnalysis(data);
+      } else if (statusResult.status === "analyzing") {
+        // If analyzing, start polling
+        setIsAnalyzing(true);
+        pollAnalysisStatus(token, (updatedStatus) => {
+          setStatus(updatedStatus);
+        })
+          .then(async () => {
+            // Analysis completed, load data
+            const data = await getBusinessAnalysisData(token);
+            setAnalysis(data);
+            setIsAnalyzing(false);
+          })
+          .catch((err) => {
+            setError(err.message);
+            setIsAnalyzing(false);
+          });
+      }
+    } catch (err: any) {
+      console.error("Error loading data:", err);
+      setError(err.message || "Failed to load business analysis");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleAnalyze = async () => {
     setIsAnalyzing(true);
+    setError(null);
+
     try {
-      const response = await apiClient.analyzeBusinessAsync(businessType, location);
-      if (response.success) {
-        setShowResults(true);
-      }
-    } catch (error) {
-      console.error("Analysis error:", error);
-      // Still show results for demo
-      setShowResults(true);
+      const token = getToken();
+
+      // Trigger analysis
+      await triggerComprehensiveAnalysis(token);
+
+      // Start polling for status
+      await pollAnalysisStatus(token, (updatedStatus) => {
+        setStatus(updatedStatus);
+      });
+
+      // Load the completed analysis
+      const data = await getBusinessAnalysisData(token);
+      setAnalysis(data);
+    } catch (err: any) {
+      console.error("Error analyzing:", err);
+      setError(err.message || "Failed to analyze business");
     } finally {
       setIsAnalyzing(false);
     }
   };
 
-  const totalDone = growthWeeks.reduce((s, w) => s + w.items.filter((i) => i.done).length, 0);
-  const total = growthWeeks.reduce((s, w) => s + w.items.length, 0);
-  const growthPct = Math.round((totalDone / total) * 100);
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="p-4 md:p-6 space-y-5">
+        <PageHeader
+          title="Business Analysis"
+          subtitle="AI-powered insights for your business"
+        />
+        <div className="flex flex-col items-center justify-center py-20">
+          <Loader2 size={48} className="animate-spin text-purple-600 mb-4" />
+          <p className="text-lg font-semibold text-gray-900">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
-  return (
-    <div className="p-4 md:p-6 space-y-5">
-      <PageHeader
-        title="Business Analysis AI"
-        subtitle="Get AI-powered insights about your business strengths, weaknesses, and growth opportunities"
-        actions={
-          <Button variant="hero" size="sm">
-            <Sparkles size={14} /> Quick Analysis
-          </Button>
-        }
-      />
-
-      {/* Input Section */}
-      <div className="bg-card rounded-2xl border border-border/60 shadow-sm p-4 space-y-4">
-        <div className="grid md:grid-cols-2 gap-4">
-          <div>
-            <label className="text-sm font-semibold mb-2 block">Business Type</label>
-            <input
-              type="text"
-              value={businessType}
-              onChange={(e) => setBusinessType(e.target.value)}
-              placeholder="e.g., Dental Clinic, Salon, Restaurant"
-              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:border-primary focus:ring-2 focus:ring-primary/15 outline-none"
-            />
-          </div>
-          <div>
-            <label className="text-sm font-semibold mb-2 block">Location</label>
-            <input
-              type="text"
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              placeholder="e.g., Hyderabad, Banjara Hills"
-              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:border-primary focus:ring-2 focus:ring-primary/15 outline-none"
-            />
+  // Analyzing state
+  if (isAnalyzing || status?.status === "analyzing") {
+    return (
+      <div className="p-4 md:p-6 space-y-5">
+        <PageHeader
+          title="Business Analysis"
+          subtitle="AI-powered insights for your business"
+        />
+        <div className="flex flex-col items-center justify-center py-20">
+          <Sparkles size={48} className="animate-spin text-purple-600 mb-4" />
+          <p className="text-lg font-semibold text-gray-900">Analyzing your business...</p>
+          <p className="text-sm text-gray-600 mt-2">This may take 2-3 minutes</p>
+          <p className="text-xs text-gray-500 mt-1">Using Google AI Studio Gemini with Search Grounding</p>
+          <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4 max-w-md">
+            <p className="text-sm text-blue-900 text-center">
+              💡 We're making ONE comprehensive API call to gather all your business insights.
+              After this, all pages will load instantly with no rate limits!
+            </p>
           </div>
         </div>
+      </div>
+    );
+  }
 
+  // Not started state
+  if (!analysis && status?.status === "not_started") {
+    return (
+      <div className="p-4 md:p-6 space-y-5">
+        <PageHeader
+          title="Business Analysis"
+          subtitle="AI-powered insights for your business"
+        />
+        <div className="flex flex-col items-center justify-center py-20">
+          <div className="h-20 w-20 rounded-full bg-purple-100 flex items-center justify-center mb-6">
+            <Sparkles size={40} className="text-purple-600" />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Ready to Analyze Your Business?</h2>
+          <p className="text-gray-600 mb-6 text-center max-w-md">
+            Get comprehensive AI-powered insights including strengths, weaknesses, opportunities, and local market analysis.
+          </p>
+          <Button variant="hero" size="lg" onClick={handleAnalyze}>
+            <Sparkles size={20} />
+            Analyze My Business
+          </Button>
+          <p className="text-xs text-gray-500 mt-4">Takes 2-3 minutes • Powered by Google AI Studio Gemini</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error && !analysis) {
+    return (
+      <div className="p-4 md:p-6 space-y-5">
+        <PageHeader
+          title="Business Analysis"
+          subtitle="AI-powered insights for your business"
+        />
+        <div className="bg-red-50 border-red-200 border rounded-lg p-6 text-center">
+          <AlertCircle size={48} className="mx-auto text-red-600 mb-4" />
+          <p className="text-lg font-semibold text-red-900 mb-2">Analysis Failed</p>
+          <p className="text-red-700 mb-4">{error}</p>
+          <Button variant="hero" onClick={handleAnalyze}>
+            <RefreshCw size={16} />
+            Try Again
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // Success state - show ONLY Business Analysis data
+  return (
+    <div className="p-4 md:p-6 space-y-5">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Business Analysis</h1>
+          <p className="text-sm text-gray-600 flex items-center gap-2 mt-1">
+            <Sparkles size={14} className="text-purple-600" />
+            AI-powered insights from Google Search grounding
+          </p>
+          {analysis?.last_updated && (
+            <p className="text-xs text-gray-500 flex items-center gap-1 mt-1">
+              <Clock size={12} />
+              Last updated: {new Date(analysis.last_updated).toLocaleString()}
+            </p>
+          )}
+        </div>
         <Button
           variant="hero"
-          className="w-full"
-          size="lg"
+          size="sm"
           onClick={handleAnalyze}
           disabled={isAnalyzing}
         >
-          {isAnalyzing ? (
-            <>
-              <Target size={16} className="animate-spin" /> Analyzing...
-            </>
-          ) : (
-            <>
-              <Sparkles size={16} /> Analyze My Business
-            </>
-          )}
+          <RefreshCw size={14} className={isAnalyzing ? "animate-spin" : ""} />
+          Re-analyze
         </Button>
       </div>
 
-      {showResults && (
-        <>
-          {/* Strengths */}
-          <div className="bg-card rounded-2xl border border-border/60 shadow-sm p-4">
-            <div className="flex items-center gap-2 mb-3">
-              <div className="h-8 w-8 rounded-lg bg-emerald-100 flex items-center justify-center">
-                <TrendingUp size={16} className="text-emerald-600" />
+      {/* Business Details Card */}
+      {analysis?.business_details && (
+        <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl border border-purple-200 shadow-sm p-6">
+          <div className="flex items-start justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className="h-12 w-12 rounded-full bg-purple-200 flex items-center justify-center">
+                <Building2 size={24} className="text-purple-700" />
               </div>
-              <h3 className="text-sm font-semibold">Strengths</h3>
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">{analysis.business_details.business_name}</h2>
+                <div className="flex items-center gap-4 mt-1 text-sm text-gray-700">
+                  <span className="flex items-center gap-1">
+                    <Briefcase size={14} />
+                    {analysis.business_details.business_type}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <MapPin size={14} />
+                    {analysis.business_details.location}
+                  </span>
+                </div>
+              </div>
             </div>
-            <ul className="space-y-2 text-sm text-gray-700">
-              <li className="flex items-start gap-2">
-                <CheckCircle2 size={16} className="text-emerald-600 shrink-0 mt-0.5" />
-                <span>Strong local presence with 4.8★ rating</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <CheckCircle2 size={16} className="text-emerald-600 shrink-0 mt-0.5" />
-                <span>Experienced team with 5+ years in business</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <CheckCircle2 size={16} className="text-emerald-600 shrink-0 mt-0.5" />
-                <span>Good customer retention rate (68%)</span>
-              </li>
-            </ul>
+            {analysis.health_score !== undefined && (
+              <div className="text-center">
+                <div className="text-3xl font-bold text-purple-700">{analysis.health_score}</div>
+                <div className="text-xs text-gray-600">Health Score</div>
+              </div>
+            )}
           </div>
+          {analysis.business_details.services && analysis.business_details.services.length > 0 && (
+            <div className="mb-3">
+              <p className="text-xs font-semibold text-gray-600 mb-2">Services</p>
+              <div className="flex flex-wrap gap-2">
+                {analysis.business_details.services.map((service, idx) => (
+                  <span key={idx} className="px-2 py-1 bg-purple-100 text-purple-700 rounded-md text-xs">
+                    {service}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+          {analysis.business_details.summary && (
+            <p className="text-sm text-gray-700 leading-relaxed">{analysis.business_details.summary}</p>
+          )}
+        </div>
+      )}
 
-          {/* Weaknesses */}
-          <div className="bg-card rounded-2xl border border-border/60 shadow-sm p-4">
-            <div className="flex items-center gap-2 mb-3">
-              <div className="h-8 w-8 rounded-lg bg-red-100 flex items-center justify-center">
-                <AlertCircle size={16} className="text-red-600" />
-              </div>
-              <h3 className="text-sm font-semibold">Weaknesses</h3>
+      {/* Strengths */}
+      {analysis?.strengths && analysis.strengths.length > 0 && (
+        <div className="bg-card rounded-2xl border border-border/60 shadow-sm p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="h-10 w-10 rounded-lg bg-emerald-100 flex items-center justify-center">
+              <TrendingUp size={20} className="text-emerald-600" />
             </div>
-            <ul className="space-y-2 text-sm text-gray-700">
-              <li className="flex items-start gap-2">
-                <AlertCircle size={16} className="text-red-600 shrink-0 mt-0.5" />
-                <span>Low online visibility - not ranking on Google Maps</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <AlertCircle size={16} className="text-red-600 shrink-0 mt-0.5" />
-                <span>Inconsistent social media posting</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <AlertCircle size={16} className="text-red-600 shrink-0 mt-0.5" />
-                <span>No WhatsApp automation for follow-ups</span>
-              </li>
-            </ul>
+            <h3 className="text-lg font-semibold">Strengths</h3>
           </div>
+          <ul className="space-y-3">
+            {analysis.strengths.map((strength, idx) => (
+              <li key={idx} className="flex items-start gap-3">
+                <CheckCircle2 size={18} className="text-emerald-600 shrink-0 mt-0.5" />
+                <span className="text-sm text-gray-700">{strength}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
-          {/* Growth Opportunities */}
-          <div className="bg-card rounded-2xl border border-border/60 shadow-sm p-4">
-            <div className="flex items-center gap-2 mb-3">
-              <div className="h-8 w-8 rounded-lg bg-purple-100 flex items-center justify-center">
-                <Target size={16} className="text-purple-600" />
-              </div>
-              <h3 className="text-sm font-semibold">Growth Opportunities</h3>
+      {/* Weaknesses */}
+      {analysis?.weaknesses && analysis.weaknesses.length > 0 && (
+        <div className="bg-card rounded-2xl border border-border/60 shadow-sm p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="h-10 w-10 rounded-lg bg-red-100 flex items-center justify-center">
+              <AlertCircle size={20} className="text-red-600" />
             </div>
-            <ul className="space-y-2 text-sm text-gray-700">
-              <li className="flex items-start gap-2">
-                <Sparkles size={16} className="text-purple-600 shrink-0 mt-0.5" />
-                <span>Launch referral program - competitors seeing 30% growth</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <Sparkles size={16} className="text-purple-600 shrink-0 mt-0.5" />
-                <span>Start Instagram Reels - high engagement in your area</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <Sparkles size={16} className="text-purple-600 shrink-0 mt-0.5" />
-                <span>Optimize Google Maps listing for local searches</span>
-              </li>
-            </ul>
+            <h3 className="text-lg font-semibold">Weaknesses</h3>
           </div>
+          <ul className="space-y-3">
+            {analysis.weaknesses.map((weakness, idx) => (
+              <li key={idx} className="flex items-start gap-3">
+                <AlertCircle size={18} className="text-red-600 shrink-0 mt-0.5" />
+                <span className="text-sm text-gray-700">{weakness}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
-          {/* 30-Day Growth Plan */}
-          <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-            <div className="bg-gradient-to-r from-purple-200 to-pink-200 p-4 text-gray-800">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2.5">
-                  <div className="h-10 w-10 rounded-full bg-purple-300 flex items-center justify-center">
-                    <Map size={18} className="text-purple-800" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-base">30-Day Growth Plan</h3>
-                    <p className="text-xs text-gray-700">Your personalized roadmap to success</p>
-                  </div>
-                </div>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  className="bg-purple-300 hover:bg-purple-400 text-purple-900 border-purple-300 text-xs h-8"
-                >
-                  <Sparkles size={12} /> View Details
-                </Button>
-              </div>
-              <div className="grid grid-cols-2 gap-3 mb-3">
-                <div>
-                  <p className="text-xs text-gray-700 mb-0.5">Overall Progress</p>
-                  <p className="text-2xl font-bold text-gray-900">{growthPct}%</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-xs text-gray-700 mb-0.5">Revenue Goal</p>
-                  <p className="text-lg font-semibold text-gray-900">₹3.62L / ₹5L</p>
-                </div>
-              </div>
-              <div className="h-1.5 rounded-full bg-purple-300 overflow-hidden">
-                <div
-                  className="h-full bg-purple-600 rounded-full transition-all duration-500"
-                  style={{ width: `${growthPct}%` }}
-                />
-              </div>
+      {/* Growth Opportunities */}
+      {analysis?.growth_opportunities && analysis.growth_opportunities.length > 0 && (
+        <div className="bg-card rounded-2xl border border-border/60 shadow-sm p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="h-10 w-10 rounded-lg bg-purple-100 flex items-center justify-center">
+              <Target size={20} className="text-purple-600" />
             </div>
-            <div className="p-4 space-y-3">
-              {growthWeeks.map((w) => (
-                <div key={w.week} className="bg-gray-50 rounded-xl p-3 border border-gray-100">
-                  <div className="flex items-center justify-between mb-2">
-                    <p className="font-semibold text-sm text-gray-900">{w.week}</p>
-                    <span className="text-xs font-semibold text-purple-600">{w.progress}%</span>
-                  </div>
-                  <div className="h-1.5 rounded-full bg-gray-200 overflow-hidden mb-3">
-                    <div
-                      className="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full transition-all duration-500"
-                      style={{ width: `${w.progress}%` }}
-                    />
-                  </div>
-                  <ul className="space-y-1.5">
-                    {w.items.map((it) => (
-                      <li key={it.t} className="flex items-start gap-2 text-xs">
-                        {it.done ? (
-                          <CheckCircle2 size={14} className="text-emerald-600 shrink-0 mt-0.5" />
-                        ) : (
-                          <Circle size={14} className="text-gray-400 shrink-0 mt-0.5" />
-                        )}
-                        <span className={it.done ? "line-through text-gray-500" : "text-gray-700"}>
-                          {it.t}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
+            <h3 className="text-lg font-semibold">Growth Opportunities</h3>
           </div>
-        </>
+          <ul className="space-y-3">
+            {analysis.growth_opportunities.map((opportunity, idx) => (
+              <li key={idx} className="flex items-start gap-3">
+                <Sparkles size={18} className="text-purple-600 shrink-0 mt-0.5" />
+                <span className="text-sm text-gray-700">{opportunity}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* Local Market Insights */}
+      {analysis?.local_market_insights && (
+        <div className="bg-card rounded-2xl border border-border/60 shadow-sm p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="h-10 w-10 rounded-lg bg-blue-100 flex items-center justify-center">
+              <Map size={20} className="text-blue-600" />
+            </div>
+            <h3 className="text-lg font-semibold">Local Market Insights</h3>
+          </div>
+          <div className="space-y-4">
+            {analysis.local_market_insights.local_demand && (
+              <div>
+                <h4 className="text-sm font-semibold text-gray-900 mb-1">Local Demand</h4>
+                <p className="text-sm text-gray-700">{analysis.local_market_insights.local_demand}</p>
+              </div>
+            )}
+            {analysis.local_market_insights.customer_behavior && (
+              <div>
+                <h4 className="text-sm font-semibold text-gray-900 mb-1">Customer Behavior</h4>
+                <p className="text-sm text-gray-700">{analysis.local_market_insights.customer_behavior}</p>
+              </div>
+            )}
+            {analysis.local_market_insights.competition_level && (
+              <div>
+                <h4 className="text-sm font-semibold text-gray-900 mb-1">Competition Level</h4>
+                <p className="text-sm text-gray-700">{analysis.local_market_insights.competition_level}</p>
+              </div>
+            )}
+            {analysis.local_market_insights.trending_services && analysis.local_market_insights.trending_services.length > 0 && (
+              <div>
+                <h4 className="text-sm font-semibold text-gray-900 mb-2">Trending Services</h4>
+                <div className="flex flex-wrap gap-2">
+                  {analysis.local_market_insights.trending_services.map((service, idx) => (
+                    <span key={idx} className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
+                      {service}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
       )}
     </div>
   );

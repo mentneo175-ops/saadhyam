@@ -40,17 +40,23 @@ export function useAuth(): UseAuthReturn {
     }
 
     // Listen to Firebase auth state changes
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-      if (!firebaseUser && user) {
-        // Firebase user signed out, clear local state
-        setUser(null);
-        setToken(null);
-        apiClient.clearAuth();
-      }
-    });
+    if (auth) {
+      const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+        if (!firebaseUser) {
+          // Firebase user signed out, check if we need to clear local state
+          const currentUser = apiClient.getStoredUser();
+          if (currentUser) {
+            // Only clear if user was authenticated via Google
+            setUser(null);
+            setToken(null);
+            apiClient.clearAuth();
+          }
+        }
+      });
 
-    return () => unsubscribe();
-  }, [user]);
+      return () => unsubscribe();
+    }
+  }, []); // Empty dependency array - only run once on mount
 
   const loginWithGoogle = useCallback(async () => {
     setIsLoading(true);

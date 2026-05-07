@@ -144,6 +144,16 @@ except Exception as e:
     image_generator_available = False
 
 try:
+    from routes.auto_blogger import router as auto_blogger_router
+    auto_blogger_available = True
+except Exception as e:
+    logging.warning(f"Auto Blogger router not available: {e}")
+    auto_blogger_available = False
+
+# Disable auto blogger for now
+auto_blogger_available = False
+
+try:
     from ai_models.website_ai.app.api.v1.routes import generation as website_ai_generation
     from ai_models.website_ai.app.api.v1.routes import jobs as website_ai_jobs
     from ai_models.website_ai.app.routes import website as website_ai_website
@@ -319,6 +329,8 @@ if content_creator_available:
     app.include_router(content_creator_router)
 if image_generator_available:
     app.include_router(image_generator_router)
+if auto_blogger_available:
+    app.include_router(auto_blogger_router)
 if website_serving_available:
     app.include_router(website_serving_router)
     logging.info("✅ Website serving router included in app")

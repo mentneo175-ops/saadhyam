@@ -67,12 +67,13 @@
 # Or double-click start_all.bat in File Explorer
 ```
 
-This automatically starts **5 services** in separate windows:
-1. 🧠 **Business Model Server** (Port 9001) - AI business analysis
-2. 🚀 **Backend API** (Port 8000) - Main server
-3. 📸 **Instagram Celery Worker** - Instagram background tasks
-4. 🌐 **Website AI Celery Worker** - Website generation
-5. 💻 **Frontend** (Port 5173) - React UI
+This automatically starts **4 services** in separate windows:
+1. 🚀 **Backend API** (Port 8000) - Main server with TinyLlama for reviews
+2. 📸 **Instagram Celery Worker** - Instagram background tasks
+3. 🌐 **Website AI Celery Worker** - Website generation
+4. 💻 **Frontend** (Port 5173) - React UI
+
+**Note:** Business Analysis now uses Google Gemini API (cloud-based, no local server needed)
 
 **Access your app:** http://localhost:5173
 
@@ -159,6 +160,10 @@ ACCESS_TOKEN_EXPIRE_MINUTES=10080
 # AI Services
 GROQ_API_KEY=your-groq-api-key
 HUGGINGFACE_TOKEN=your-huggingface-token
+
+# Google AI Studio (Gemini API) - REQUIRED for Business Analysis
+# Get your API key from: https://aistudio.google.com/app/apikey
+GEMINI_API_KEY=your_google_ai_studio_api_key_here
 
 # Cloud Storage
 CLOUDINARY_CLOUD_NAME=your-cloudinary-name
@@ -268,16 +273,7 @@ venv\Scripts\activate  # Windows
 python -m uvicorn main:app --reload --port 8000
 ```
 
-#### Terminal 3: Business Analysis AI Model Server
-```bash
-cd Backend
-venv\Scripts\activate  # Windows
-# source venv/bin/activate  # macOS/Linux
-
-python start_business_server.py
-```
-
-#### Terminal 4: Celery Worker - Instagram Tasks (Background Tasks)
+#### Terminal 3: Celery Worker - Instagram Tasks (Background Tasks)
 ```bash
 cd Backend
 venv\Scripts\activate  # Windows
@@ -290,7 +286,7 @@ celery -A celery_worker worker --loglevel=info --pool=solo
 celery -A celery_worker worker --loglevel=info
 ```
 
-#### Terminal 5: Celery Worker - Website AI Tasks (Background Tasks)
+#### Terminal 4: Celery Worker - Website AI Tasks (Background Tasks)
 ```bash
 cd Backend
 venv\Scripts\activate  # Windows
@@ -305,7 +301,7 @@ python -m celery -A ai_models.website_ai.app.workers.celery_app worker --logleve
 celery -A ai_models.website_ai.app.workers.celery_app worker --loglevel=info
 ```
 
-#### Terminal 6: Celery Flower (Task Monitoring - Optional)
+#### Terminal 5: Celery Flower (Task Monitoring - Optional)
 ```bash
 cd Backend
 venv\Scripts\activate  # Windows
@@ -317,7 +313,7 @@ celery -A celery_worker.celery flower --port=5555
 celery -A celery_app flower --port=5555
 ```
 
-#### Terminal 7: Frontend Development Server
+#### Terminal 6: Frontend Development Server
 ```bash
 cd Frontend
 npm run dev
@@ -360,20 +356,27 @@ start_backend.bat
 
 ## 🤖 AI Models & Services
 
-### TinyLlama Models (CPU Optimized)
-- **Review Reply AI**: Loaded in main backend (port 8001)
-- **Business Analysis AI**: Separate server (port 9001)
+### Google Gemini API (Cloud-Based)
+- **Business Analysis AI**: Uses Gemini 2.5 Flash with Google Search grounding
+- **Real-time Insights**: Live market data and competitor analysis
+- **No Local Model Required**: Cloud-based, no heavy downloads
+- **Fast Response**: 2-5 seconds per request
+- **Get API Key**: https://aistudio.google.com/app/apikey
+
+### TinyLlama Models (CPU Optimized - Local)
+- **Review Reply AI**: Loaded in main backend (port 8000)
 - **Expected Load Time**: 30-60 seconds on first start
 - **Memory Usage**: ~2-4GB RAM per model
 
 ### Model Loading Process:
-1. **Automatic Download**: Models download from HuggingFace on first run
-2. **Local Caching**: Models cached in `~/.cache/huggingface/`
-3. **Fast Inference**: 2-5 seconds per request after loading
+1. **Gemini API**: Requires GEMINI_API_KEY in .env (no downloads needed)
+2. **TinyLlama**: Automatic download from HuggingFace on first run
+3. **Local Caching**: Models cached in `~/.cache/huggingface/`
+4. **Fast Inference**: 2-5 seconds per request after loading
 
 ### Supported AI Features:
-- ✅ **Review Reply Generation**: Professional responses to customer reviews
-- ✅ **Business Analysis**: Comprehensive business insights and recommendations
+- ✅ **Business Analysis**: Comprehensive insights via Gemini API with real-time search
+- ✅ **Review Reply Generation**: Professional responses to customer reviews (TinyLlama)
 - ✅ **Content Creation**: AI-powered social media content
 - ✅ **Image Generation**: FLUX-powered image creation via GROQ API
 
@@ -405,10 +408,11 @@ start_backend.bat
 | Service | URL | Purpose |
 |---------|-----|---------|
 | **Frontend** | http://localhost:5173 | React development server |
-| **Main Backend** | http://localhost:8000 | FastAPI main server |
-| **Business AI** | http://localhost:9001 | Business analysis model |
+| **Main Backend** | http://localhost:8000 | FastAPI main server (includes TinyLlama for reviews) |
 | **Flower** | http://localhost:5555 | Celery task monitoring |
 | **Redis** | localhost:6379 | Message broker |
+
+**Note:** Business Analysis uses Gemini API (cloud-based, no local server)
 
 ---
 

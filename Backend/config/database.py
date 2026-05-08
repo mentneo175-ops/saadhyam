@@ -40,7 +40,6 @@ else:
     logger.info("🔄 Attempting to connect to PostgreSQL...")
     try:
         # For asyncpg, we need to handle SSL differently
-        # Extract connection params
         import ssl
         
         # Test connection with psycopg2 first (sync)
@@ -61,6 +60,11 @@ else:
             result = conn.execute(text("SELECT 1"))
             logger.info("✅ PostgreSQL connection successful")
         
+        # Create SSL context for asyncpg
+        ssl_context = ssl.create_default_context()
+        ssl_context.check_hostname = False
+        ssl_context.verify_mode = ssl.CERT_NONE
+        
         # Use async engine for PostgreSQL with SSL
         async_engine = create_async_engine(
             DATABASE_URL,
@@ -70,7 +74,7 @@ else:
             pool_size=20,
             max_overflow=0,
             connect_args={
-                "ssl": True,
+                "ssl": ssl_context,
                 "server_settings": {"jit": "off"}
             }
         )
@@ -89,6 +93,7 @@ else:
         )
         IS_SQLITE = False
         test_engine.dispose()
+        logger.info("✅ Using PostgreSQL (Neon DB) database")
         
     except Exception as e:
         logger.warning(f"⚠️  PostgreSQL connection failed: {e}")

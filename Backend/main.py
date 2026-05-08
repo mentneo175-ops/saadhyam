@@ -156,14 +156,6 @@ except Exception as e:
 auto_blogger_available = False
 
 try:
-<<<<<<< HEAD
-    from routes.business_input import router as business_input_router
-    business_input_available = True
-    logging.info("✅ Business Input router imported successfully")
-except Exception as e:
-    logging.warning(f"Business Input router not available: {e}")
-    business_input_available = False
-=======
     from routes.realtime_business import router as realtime_business_router
     realtime_business_available = True
 except Exception as e:
@@ -185,7 +177,14 @@ try:
 except Exception as e:
     logging.warning(f"Comprehensive Business Analysis router not available: {e}")
     comprehensive_business_analysis_available = False
->>>>>>> origin/main
+
+try:
+    from routes.business_input import router as business_input_router
+    business_input_available = True
+    logging.info("✅ Business Input router imported successfully")
+except Exception as e:
+    logging.warning(f"Business Input router not available: {e}")
+    business_input_available = False
 
 try:
     from ai_models.website_ai.app.api.v1.routes import generation as website_ai_generation
@@ -241,15 +240,10 @@ async def lifespan(app: FastAPI):
         migrate_add_business_analysis_table()
         from migrations.add_business_profile_fields import migrate_add_business_profile_fields
         migrate_add_business_profile_fields()
-<<<<<<< HEAD
-        from migrations.add_business_profile_table import migrate_add_business_profile_table
-        migrate_add_business_profile_table()
-=======
         from migrations.add_comprehensive_business_analysis import migrate_add_comprehensive_business_analysis
         migrate_add_comprehensive_business_analysis()
         from migrations.fix_description_nullable import migrate_fix_description_nullable
         migrate_fix_description_nullable()
->>>>>>> origin/main
         logger.info("✅ Migrations completed")
         
         # NOTE: AI models configuration:

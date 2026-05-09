@@ -187,6 +187,20 @@ except Exception as e:
     business_input_available = False
 
 try:
+    from routes.aeo_geo import router as aeo_geo_router
+    aeo_geo_available = True
+    logging.info("✅ AEO/GEO router imported successfully")
+except Exception as e:
+    logging.warning(f"AEO/GEO router not available: {e}")
+    aeo_geo_available = False
+
+try:
+    from routes.blog import router as blog_router
+    blog_available = True
+    logging.info("✅ Blog router imported successfully")
+except Exception as e:
+    logging.warning(f"Blog router not available: {e}")
+    blog_available = False
     from routes.whatsapp_auth import router as whatsapp_auth_router
     whatsapp_auth_available = True
     logging.info("✅ WhatsApp Auth router imported successfully")
@@ -292,6 +306,12 @@ async def lifespan(app: FastAPI):
         migrate_add_comprehensive_business_analysis()
         from migrations.fix_description_nullable import migrate_fix_description_nullable
         migrate_fix_description_nullable()
+        from migrations.add_aeo_geo_tables import migrate_add_aeo_geo_tables
+        migrate_add_aeo_geo_tables()
+        from migrations.add_blogs_table import migrate_add_blogs_table
+        migrate_add_blogs_table()
+        from migrations.add_website_id_to_user import run_migration as migrate_add_website_id
+        migrate_add_website_id()
         from migrations.add_whatsapp_tables import migrate_add_whatsapp_tables
         migrate_add_whatsapp_tables()
         from migrations.add_location_coordinates import migrate_add_location_coordinates
@@ -436,6 +456,12 @@ if website_serving_available:
 if business_input_available:
     app.include_router(business_input_router)
     logging.info("✅ Business Input router included in app")
+if aeo_geo_available:
+    app.include_router(aeo_geo_router)
+    logging.info("✅ AEO/GEO router included in app")
+if blog_available:
+    app.include_router(blog_router)
+    logging.info("✅ Blog router included in app")
 if whatsapp_auth_available:
     app.include_router(whatsapp_auth_router)
     logging.info("✅ WhatsApp Auth router included in app")
@@ -516,6 +542,20 @@ async def status():
             "Save user feedback"
         ]
     }
+
+
+@app.get("/api/routes", tags=["Health"])
+async def list_routes():
+    """List all registered routes for debugging"""
+    routes = []
+    for route in app.routes:
+        if hasattr(route, "methods") and hasattr(route, "path"):
+            routes.append({
+                "path": route.path,
+                "methods": list(route.methods),
+                "name": route.name
+            })
+    return {"routes": routes}
 
 
 # ============ Error Handlers ============

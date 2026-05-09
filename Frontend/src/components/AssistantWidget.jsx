@@ -8,7 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 const initialMessages = [
   {
     role: "assistant",
-    content: "Hi! I can tell you about Amazon, Flipkart, Google, and Microsoft. Ask me anything!",
+    content: "Hi! I'm your AI business assistant. Ask me anything about your business, market trends, or competitors!",
   },
 ];
 
@@ -51,42 +51,55 @@ export default function AssistantWidget() {
   }, [isListening]);
 
   const speak = useCallback((text) => {
-    if (synthRef.current && !isSpeaking) {
-      // Cancel any ongoing speech
-      synthRef.current.cancel();
-      
+    console.log('[Speak] Attempting to speak:', text.substring(0, 50) + '...');
+    console.log('[Speak] isSpeaking:', isSpeaking);
+    console.log('[Speak] synthRef available:', !!synthRef.current);
+    
+    if (!synthRef.current) {
+      console.error('[Speak] Speech synthesis not available');
+      return;
+    }
+    
+    // Cancel any ongoing speech first
+    synthRef.current.cancel();
+    
+    // Small delay to ensure cancel completes
+    setTimeout(() => {
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.rate = 1.0;
       utterance.pitch = 1.0;
       utterance.volume = 1.0;
       
       utterance.onstart = () => {
+        console.log('[Speak] Speech started');
         setIsSpeaking(true);
         setVoiceStatus("speaking");
       };
       
       utterance.onend = () => {
+        console.log('[Speak] Speech ended');
         setIsSpeaking(false);
+        setVoiceStatus("idle");
         
         // In voice mode, automatically start listening again after speaking
         if (mode === "voice" && isOpen) {
           setTimeout(() => {
-            setVoiceStatus("idle");
+            console.log('[Speak] Auto-starting listening after speech');
             startListening();
-          }, 500);
-        } else {
-          setVoiceStatus("idle");
+          }, 800);
         }
       };
       
-      utterance.onerror = () => {
+      utterance.onerror = (event) => {
+        console.error('[Speak] Speech error:', event);
         setIsSpeaking(false);
         setVoiceStatus("idle");
       };
       
+      console.log('[Speak] Calling speak()');
       synthRef.current.speak(utterance);
-    }
-  }, [isSpeaking, mode, isOpen, startListening]);
+    }, 100);
+  }, [mode, isOpen, startListening]);
 
   const stopSpeaking = useCallback(() => {
     if (synthRef.current) {
@@ -98,16 +111,23 @@ export default function AssistantWidget() {
 
   // Handle voice mode query (no chat UI)
   const handleVoiceQuery = useCallback(async (transcript) => {
+    console.log('[Voice] Processing query:', transcript);
     setVoiceStatus("processing");
     setIsLoading(true);
 
     try {
-      const token = user?.token || localStorage.getItem('token');
+      // Get token - try multiple sources
+      const token = user?.token || localStorage.getItem('saadhyam_token') || localStorage.getItem('token');
+      console.log('[Voice] Token available:', !!token);
+      
       const responseText = await sendQuery(transcript, token);
+      console.log('[Voice] Response received:', responseText);
       
       // Speak the response immediately
+      console.log('[Voice] Calling speak function...');
       speak(responseText);
     } catch (error) {
+      console.error('[Voice] Error:', error);
       const errorMsg = "Sorry, I encountered an error. Please try again.";
       speak(errorMsg);
       setVoiceStatus("idle");
@@ -128,6 +148,7 @@ export default function AssistantWidget() {
 
       recognitionRef.current.onresult = (event) => {
         const transcript = event.results[0][0].transcript;
+        console.log('Speech recognized:', transcript);
         
         if (mode === "voice") {
           // In voice mode, automatically process the query
@@ -142,14 +163,24 @@ export default function AssistantWidget() {
       recognitionRef.current.onerror = (event) => {
         console.error('Speech recognition error:', event.error);
         setIsListening(false);
-        setVoiceStatus("idle");
         
-        if (mode === "voice") {
-          speak("Sorry, I couldn't hear you clearly. Please try again.");
+        // Only set to idle if not already processing or speaking
+        if (voiceStatus === "listening") {
+          setVoiceStatus("idle");
+        }
+        
+        // Don't speak error in voice mode if we're already processing
+        if (mode === "voice" && voiceStatus === "listening") {
+          setTimeout(() => {
+            if (!isSpeaking && !isLoading) {
+              speak("Sorry, I couldn't hear you clearly. Please try again.");
+            }
+          }, 500);
         }
       };
 
       recognitionRef.current.onend = () => {
+        console.log('Speech recognition ended');
         setIsListening(false);
       };
     }
@@ -179,37 +210,42 @@ export default function AssistantWidget() {
 
   // Auto-start listening when switching to voice mode
   useEffect(() => {
-    if (mode === "voice" && isOpen && speechSupported) {
-      // Give a welcome message
-      speak("Voice assistant activated. I can tell you about Amazon, Flipkart, Google, and Microsoft. What would you like to know?");
-      // Start listening after welcome message
-      setTimeout(() => {
-        if (mode === "voice" && !isListening && !isSpeaking) {
-          startListening();
-        }
-      }, 5000); // Increased to 5 seconds for longer welcome message
+    if (mode === "voice" && isOpen && speechSupported && !isListening && !isSpeaking) {
+      // Set status to idle first
+      setVoiceStatus("idle");
+      
+      // Give a brief welcome message
+      const welcomeMsg = "Voice assistant ready. Ask me anything about your business.";
+      speak(welcomeMsg);
     } else if (mode === "chat") {
       // Stop any ongoing speech when switching to chat
       stopSpeaking();
       stopListening();
       setVoiceStatus("idle");
     }
-  }, [mode, isOpen, speechSupported, speak, startListening, stopSpeaking, stopListening, isListening, isSpeaking]);
+  }, [mode, isOpen, speechSupported]);
 
   // Handle chat mode query (with chat UI)
   const handleChatQuery = async () => {
     const trimmed = query.trim();
     if (!trimmed || isLoading) return;
 
+    console.log('[Chat] Sending query:', trimmed);
     setMessages((prev) => [...prev, { role: "user", content: trimmed }]);
     setQuery("");
     setIsLoading(true);
 
     try {
-      const token = user?.token || localStorage.getItem('token');
+      // Get token - try multiple sources
+      const token = user?.token || localStorage.getItem('saadhyam_token') || localStorage.getItem('token');
+      console.log('[Chat] Token available:', !!token);
+      
       const responseText = await sendQuery(trimmed, token);
+      console.log('[Chat] Response received:', responseText);
+      
       setMessages((prev) => [...prev, { role: "assistant", content: responseText }]);
     } catch (error) {
+      console.error('[Chat] Error:', error);
       const errorMsg = "Sorry, I could not fetch an answer right now. Please try again.";
       setMessages((prev) => [
         ...prev,
@@ -232,19 +268,20 @@ export default function AssistantWidget() {
     }
   };
 
-  // Hide widget on login/signup pages
-  const hideOnPages = ['/login', '/signup', '/'];
-  const shouldHide = hideOnPages.includes(location.pathname) || !user;
+  // Show widget ONLY on dashboard pages when user is logged in
+  const isDashboardPage = location.pathname.startsWith('/dashboard');
+  const shouldShow = isDashboardPage && user;
 
-  // Don't render if should be hidden
-  if (shouldHide) {
+  // Don't render if should not be shown
+  if (!shouldShow) {
     return null;
   }
 
   return (
-    <div className="fixed bottom-6 right-6 z-50">
+    <>
+      {/* Widget Panel - Positioned above button */}
       {isOpen && (
-        <div className="mb-4 w-[380px] overflow-hidden rounded-2xl border border-border bg-card shadow-xl">
+        <div className="fixed bottom-24 right-6 z-50 w-[380px] overflow-hidden rounded-2xl border border-border bg-card shadow-xl">
           {/* Header with Mode Toggle */}
           <div className="border-b border-border">
             <div className="flex items-center justify-between px-4 py-3">
@@ -481,14 +518,17 @@ export default function AssistantWidget() {
         </div>
       )}
 
-      <button
-        type="button"
-        onClick={() => setIsOpen((prev) => !prev)}
-        className="flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition hover:scale-105 hover:bg-primary/90"
-        aria-label="Toggle assistant"
-      >
-        {mode === "voice" && isListening ? "🎤" : mode === "voice" && isSpeaking ? "🔊" : "AI"}
-      </button>
-    </div>
+      {/* AI Button - Fixed in corner */}
+      <div className="fixed bottom-6 right-6 z-50">
+        <button
+          type="button"
+          onClick={() => setIsOpen((prev) => !prev)}
+          className="flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition hover:scale-105 hover:bg-primary/90"
+          aria-label="Toggle assistant"
+        >
+          {mode === "voice" && isListening ? "🎤" : mode === "voice" && isSpeaking ? "🔊" : "AI"}
+        </button>
+      </div>
+    </>
   );
 }

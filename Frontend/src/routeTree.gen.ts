@@ -37,8 +37,10 @@ import { Route as DashboardCompetitorsRouteImport } from './routes/dashboard.com
 import { Route as DashboardCompetitorAnalysisRouteImport } from './routes/dashboard.competitor-analysis'
 import { Route as DashboardBusinessDetailsRouteImport } from './routes/dashboard.business-details'
 import { Route as DashboardBusinessAnalysisRouteImport } from './routes/dashboard.business-analysis'
+import { Route as DashboardBlogsRouteImport } from './routes/dashboard.blogs'
 import { Route as DashboardB2bNetworkRouteImport } from './routes/dashboard.b2b-network'
 import { Route as DashboardAutomationRouteImport } from './routes/dashboard.automation'
+import { Route as DashboardAeoGeoRouteImport } from './routes/dashboard.aeo-geo'
 import { Route as DashboardActionsRouteImport } from './routes/dashboard.actions'
 import { Route as DashboardBusinessAnalysisOldRouteImport } from './routes/dashboard.business-analysis.old'
 
@@ -185,6 +187,11 @@ const DashboardBusinessAnalysisRoute =
     path: '/business-analysis',
     getParentRoute: () => DashboardRoute,
   } as any)
+const DashboardBlogsRoute = DashboardBlogsRouteImport.update({
+  id: '/blogs',
+  path: '/blogs',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardB2bNetworkRoute = DashboardB2bNetworkRouteImport.update({
   id: '/b2b-network',
   path: '/b2b-network',
@@ -193,6 +200,11 @@ const DashboardB2bNetworkRoute = DashboardB2bNetworkRouteImport.update({
 const DashboardAutomationRoute = DashboardAutomationRouteImport.update({
   id: '/automation',
   path: '/automation',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardAeoGeoRoute = DashboardAeoGeoRouteImport.update({
+  id: '/aeo-geo',
+  path: '/aeo-geo',
   getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardActionsRoute = DashboardActionsRouteImport.update({
@@ -215,8 +227,10 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/verify': typeof VerifyRoute
   '/dashboard/actions': typeof DashboardActionsRoute
+  '/dashboard/aeo-geo': typeof DashboardAeoGeoRoute
   '/dashboard/automation': typeof DashboardAutomationRoute
   '/dashboard/b2b-network': typeof DashboardB2bNetworkRoute
+  '/dashboard/blogs': typeof DashboardBlogsRoute
   '/dashboard/business-analysis': typeof DashboardBusinessAnalysisRouteWithChildren
   '/dashboard/business-details': typeof DashboardBusinessDetailsRoute
   '/dashboard/competitor-analysis': typeof DashboardCompetitorAnalysisRoute
@@ -248,8 +262,10 @@ export interface FileRoutesByTo {
   '/signup': typeof SignupRoute
   '/verify': typeof VerifyRoute
   '/dashboard/actions': typeof DashboardActionsRoute
+  '/dashboard/aeo-geo': typeof DashboardAeoGeoRoute
   '/dashboard/automation': typeof DashboardAutomationRoute
   '/dashboard/b2b-network': typeof DashboardB2bNetworkRoute
+  '/dashboard/blogs': typeof DashboardBlogsRoute
   '/dashboard/business-analysis': typeof DashboardBusinessAnalysisRouteWithChildren
   '/dashboard/business-details': typeof DashboardBusinessDetailsRoute
   '/dashboard/competitor-analysis': typeof DashboardCompetitorAnalysisRoute
@@ -283,8 +299,10 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/verify': typeof VerifyRoute
   '/dashboard/actions': typeof DashboardActionsRoute
+  '/dashboard/aeo-geo': typeof DashboardAeoGeoRoute
   '/dashboard/automation': typeof DashboardAutomationRoute
   '/dashboard/b2b-network': typeof DashboardB2bNetworkRoute
+  '/dashboard/blogs': typeof DashboardBlogsRoute
   '/dashboard/business-analysis': typeof DashboardBusinessAnalysisRouteWithChildren
   '/dashboard/business-details': typeof DashboardBusinessDetailsRoute
   '/dashboard/competitor-analysis': typeof DashboardCompetitorAnalysisRoute
@@ -319,8 +337,10 @@ export interface FileRouteTypes {
     | '/signup'
     | '/verify'
     | '/dashboard/actions'
+    | '/dashboard/aeo-geo'
     | '/dashboard/automation'
     | '/dashboard/b2b-network'
+    | '/dashboard/blogs'
     | '/dashboard/business-analysis'
     | '/dashboard/business-details'
     | '/dashboard/competitor-analysis'
@@ -352,8 +372,10 @@ export interface FileRouteTypes {
     | '/signup'
     | '/verify'
     | '/dashboard/actions'
+    | '/dashboard/aeo-geo'
     | '/dashboard/automation'
     | '/dashboard/b2b-network'
+    | '/dashboard/blogs'
     | '/dashboard/business-analysis'
     | '/dashboard/business-details'
     | '/dashboard/competitor-analysis'
@@ -386,8 +408,10 @@ export interface FileRouteTypes {
     | '/signup'
     | '/verify'
     | '/dashboard/actions'
+    | '/dashboard/aeo-geo'
     | '/dashboard/automation'
     | '/dashboard/b2b-network'
+    | '/dashboard/blogs'
     | '/dashboard/business-analysis'
     | '/dashboard/business-details'
     | '/dashboard/competitor-analysis'
@@ -621,6 +645,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardBusinessAnalysisRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/blogs': {
+      id: '/dashboard/blogs'
+      path: '/blogs'
+      fullPath: '/dashboard/blogs'
+      preLoaderRoute: typeof DashboardBlogsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/b2b-network': {
       id: '/dashboard/b2b-network'
       path: '/b2b-network'
@@ -633,6 +664,13 @@ declare module '@tanstack/react-router' {
       path: '/automation'
       fullPath: '/dashboard/automation'
       preLoaderRoute: typeof DashboardAutomationRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/aeo-geo': {
+      id: '/dashboard/aeo-geo'
+      path: '/aeo-geo'
+      fullPath: '/dashboard/aeo-geo'
+      preLoaderRoute: typeof DashboardAeoGeoRouteImport
       parentRoute: typeof DashboardRoute
     }
     '/dashboard/actions': {
@@ -668,8 +706,10 @@ const DashboardBusinessAnalysisRouteWithChildren =
 
 interface DashboardRouteChildren {
   DashboardActionsRoute: typeof DashboardActionsRoute
+  DashboardAeoGeoRoute: typeof DashboardAeoGeoRoute
   DashboardAutomationRoute: typeof DashboardAutomationRoute
   DashboardB2bNetworkRoute: typeof DashboardB2bNetworkRoute
+  DashboardBlogsRoute: typeof DashboardBlogsRoute
   DashboardBusinessAnalysisRoute: typeof DashboardBusinessAnalysisRouteWithChildren
   DashboardBusinessDetailsRoute: typeof DashboardBusinessDetailsRoute
   DashboardCompetitorAnalysisRoute: typeof DashboardCompetitorAnalysisRoute
@@ -695,8 +735,10 @@ interface DashboardRouteChildren {
 
 const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardActionsRoute: DashboardActionsRoute,
+  DashboardAeoGeoRoute: DashboardAeoGeoRoute,
   DashboardAutomationRoute: DashboardAutomationRoute,
   DashboardB2bNetworkRoute: DashboardB2bNetworkRoute,
+  DashboardBlogsRoute: DashboardBlogsRoute,
   DashboardBusinessAnalysisRoute: DashboardBusinessAnalysisRouteWithChildren,
   DashboardBusinessDetailsRoute: DashboardBusinessDetailsRoute,
   DashboardCompetitorAnalysisRoute: DashboardCompetitorAnalysisRoute,

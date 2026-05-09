@@ -4,13 +4,13 @@
     "demo": {
       "website_id": "demo",
       "content": {
-        "headline": "A refined web presence for The Italian Kitchen",
+        "headline": "A sharper digital identity for The Office",
         "about": "",
         "eyebrow": "",
         "services": [],
         "faq": [
           {
-            "question": "What makes The Italian Kitchen different?",
+            "question": "What makes The Office different?",
             "answer": "It blends modern business with a professional, engaging, and trustworthy customer experience."
           },
           {
@@ -23,12 +23,20 @@
           }
         ],
         "sections": {
-          "Frequently Asked QuestionS": "\n            What makes The Italian Kitchen different?\n            It blends modern business with a professional, engaging, and trustworthy customer experience.\n        ",
-          "Get in Touch": "Contact The Italian Kitchen to schedule a consultation or request a quote."
+          "Why Choose Us": "\n                    \n                        500+\n                        Happy Clients\n                    \n                    \n                        98%\n                        Satisfaction Rate\n                    \n                    \n                        10+\n                        Years Experience\n                    \n                    \n                        24/7\n                        Support Available\n                    \n                ",
+          "About The Office": "\n                    The Office is a Service built for customers looking for a reliable, modern brand experience. The brand feels professional, engaging, and trustworthy and reflects modern business. We are committed to delivering excellence and building long-term relationships\n                    with our clients. Our team of experts brings years of experience and innovative solutions to every\n                    project.\n                ",
+          "Our Services": "\n                    \n                        Core service four\n                        Tailored core service four for customers looking for a reliable, modern brand experience.\n                    \n                    \n                        Core service three\n                        Tailored core service three for customers looking for a reliable, modern brand experience.\n                    \n                    \n                        Core service two\n                        Tailored core service two for customers looking for a reliable, modern brand experience.\n                    \n                    \n                        Core service one\n                        Tailored core service one for customers looking for a reliable, modern brand experience.\n                    \n                ",
+          "Meet Our Team": "\n                    \n                        JD\n                        John Doe\n                        CEO & Founder\n                    \n                    \n                        JS\n                        Jane Smith\n                        Head of Operations\n                    \n                    \n                        MB\n                        Mike Brown\n                        Lead Developer\n                    \n                    \n                        SD\n                        Sarah Davis\n                        Marketing Director\n                    \n                ",
+          "What Our Clients Say": "\n                    \"Working with The Office has been an absolute pleasure.\n                        Their professionalism and expertise are unmatched. Highly recommended!\"\n                    \n                        AM\n                        \n                            Alex Martinez\n                            CEO, Tech Solutions Inc.\n                        \n                    \n                ",
+          "Our Pricing": "\n                    \n                        Starter\n                        $99/mo\n                        \n                            Basic features\n                            Email support\n                            5 projects\n                            1 GB storage\n                        \n                        Get\n                            Started\n                    \n                    \n                        Professional\n                        $299/mo\n                        \n                            All features\n                            Priority support\n                            Unlimited projects\n                            50 GB storage\n                        \n                        Get\n                            Started\n                    \n                ",
+          "Ready to Get Started?": "Join hundreds of satisfied clients and transform your business today.",
+          "Frequently Asked Questions": "\n                    What makes The Office different?\n                    It blends modern business with a professional, engaging, and trustworthy customer experience.\n                ",
+          "Get In Touch": "Contact The Office to schedule a consultation or request a quote.",
+          "Latest from Our Blog": "Stay updated with our latest insights and news"
         }
       },
-      "theme": "bento-box",
-      "updated_at": "2026-05-07T11:23:30.776557"
+      "theme": "card-masonry",
+      "updated_at": "2026-05-09T15:26:01.028202"
     }
   }
 }

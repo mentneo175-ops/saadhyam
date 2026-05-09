@@ -148,25 +148,62 @@ async def realtime_business_analysis(
     current_user: User = Depends(get_current_user)
 ) -> BusinessAnalysisResponse:
     """
-    Generate comprehensive business analysis with real-time data
-    
-    TEMPORARILY DISABLED to save API quota for Business Analysis testing
+    Generate comprehensive business analysis with real-time data from Gemini API
     """
     
-    logger.info(f"⚠️ Dashboard analysis endpoint DISABLED (saving quota for Business Analysis testing)")
+    logger.info(f"[RealtimeBusiness] Analysis requested for: {request.business_name}")
     
-    # Return mock data to avoid API calls
-    return BusinessAnalysisResponse(
-        status="success",
-        source="mock_data_quota_saving",
-        analysis={
-            "strengths": ["Dashboard analysis temporarily disabled"],
-            "weaknesses": ["API quota being saved for Business Analysis testing"],
-            "growth_opportunities": ["Test Business Analysis page instead"],
-            "local_market_ideas": ["Navigate to /dashboard/business-analysis"],
-            "thirty_day_plan": ["This endpoint will be re-enabled after testing"]
+    try:
+        # Call Gemini business analysis service
+        from services.gemini_business_analysis_service import generate_realtime_business_analysis
+        
+        business_profile = {
+            "business_name": request.business_name,
+            "business_type": request.business_type,
+            "location": request.location,
+            "services": request.services,
+            "target_audience": request.target_audience,
+            "goals": request.goals
         }
-    )
+        
+        result = await generate_realtime_business_analysis(business_profile)
+        
+        if result.get("status") == "error":
+            return BusinessAnalysisResponse(
+                status="error",
+                message=result.get("message", "Failed to generate analysis")
+            )
+        
+        # Format response for dashboard
+        analysis_data = {
+            "strengths": result.get("strengths", []),
+            "weaknesses": result.get("weaknesses", []),
+            "growth_opportunities": result.get("growth_opportunities", []),
+            "local_market_ideas": result.get("seo_google_maps_tips", {}).get("local_visibility_ideas", []),
+            "thirty_day_plan": []
+        }
+        
+        # Extract 30-day plan
+        thirty_day_plan = result.get("thirty_day_growth_plan", {})
+        if thirty_day_plan:
+            for week in ["week_1", "week_2", "week_3", "week_4"]:
+                if week in thirty_day_plan:
+                    analysis_data["thirty_day_plan"].extend(thirty_day_plan[week])
+        
+        logger.info(f"[RealtimeBusiness] ✅ Analysis completed for {request.business_name}")
+        
+        return BusinessAnalysisResponse(
+            status="success",
+            source="gemini_search_grounding",
+            analysis=analysis_data
+        )
+        
+    except Exception as e:
+        logger.error(f"[RealtimeBusiness] ❌ Error: {e}", exc_info=True)
+        return BusinessAnalysisResponse(
+            status="error",
+            message=f"Failed to generate analysis: {str(e)}"
+        )
 
 
 @router.post(
@@ -227,31 +264,58 @@ async def realtime_business_insights(
     current_user: User = Depends(get_current_user)
 ) -> BusinessInsightsResponse:
     """
-    Generate business development insights with real-time data
-    
-    Uses Gemini API with Google Search grounding to provide:
-    - Current market trends
-    - SEO and local growth ideas
-    - Promotional offer suggestions
-    - Customer acquisition strategies
-    - Immediate action items
-    
-    All insights are based on real-time web data and current market conditions.
+    Generate business development insights with real-time data from Gemini API
     """
     
-    logger.info(f"⚠️ Dashboard insights endpoint DISABLED (saving quota)")
+    logger.info(f"[RealtimeBusiness] Insights requested for: {request.business_name}")
     
-    return BusinessInsightsResponse(
-        status="success",
-        source="mock_data_quota_saving",
-        insights={
-            "market_trends": ["Endpoint disabled for testing"],
-            "seo_ideas": ["Test Business Analysis page instead"],
-            "offer_ideas": ["Navigate to /dashboard/business-analysis"],
-            "customer_acquisition_ideas": ["API quota being saved"],
-            "next_actions": ["This will be re-enabled after testing"]
+    try:
+        # Call Gemini business analysis service
+        from services.gemini_business_analysis_service import generate_realtime_business_analysis
+        
+        business_profile = {
+            "business_name": request.business_name,
+            "business_type": request.business_type,
+            "location": request.location,
+            "services": request.services,
+            "target_audience": request.target_audience,
+            "goals": ""
         }
-    )
+        
+        result = await generate_realtime_business_analysis(business_profile)
+        
+        if result.get("status") == "error":
+            return BusinessInsightsResponse(
+                status="error",
+                message=result.get("message", "Failed to generate insights")
+            )
+        
+        # Format response for dashboard
+        seo_tips = result.get("seo_google_maps_tips", {})
+        daily_suggestions = result.get("daily_suggestions", [])
+        
+        insights_data = {
+            "market_trends": result.get("local_market_insights", {}).get("trending_services", []),
+            "seo_ideas": seo_tips.get("ranking_tips", []),
+            "offer_ideas": result.get("growth_opportunities", [])[:3],
+            "customer_acquisition_ideas": result.get("competitor_analysis", {}).get("differentiation_ideas", []),
+            "next_actions": daily_suggestions[:5]
+        }
+        
+        logger.info(f"[RealtimeBusiness] ✅ Insights generated for {request.business_name}")
+        
+        return BusinessInsightsResponse(
+            status="success",
+            source="gemini_search_grounding",
+            insights=insights_data
+        )
+        
+    except Exception as e:
+        logger.error(f"[RealtimeBusiness] ❌ Error: {e}", exc_info=True)
+        return BusinessInsightsResponse(
+            status="error",
+            message=f"Failed to generate insights: {str(e)}"
+        )
 
 
 @router.get(

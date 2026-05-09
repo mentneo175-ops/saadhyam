@@ -380,6 +380,7 @@
             <nav>
                 <ul class="nav-menu">
                     <li><a href="#services">Services</a></li>
+                    <li><a href="blogs.html">Blog</a></li>
                     <li><a href="#faq">FAQ</a></li>
                     <li><a href="#contact">Contact</a></li>
                 </ul>
@@ -434,6 +435,58 @@
             </div>
         </div>
     </section>
+
+    <!-- Blog Section -->
+    <section class="scroll-section">
+        <div class="section-content">
+            <h2 class="section-title">Latest from Our Blog</h2>
+            <div id="blog-posts-container" class="service-grid">
+                <p style="text-align: center; color: rgba(255,255,255,0.7); font-size: 18px; padding: 40px; grid-column: 1 / -1;">Loading blog posts...</p>
+            </div>
+            <div style="text-align: center; margin-top: 60px;">
+                <a href="blogs.html" class="hero-cta">View All Posts</a>
+            </div>
+        </div>
+    </section>
+    
+    <script>
+        async function loadBlogPosts() {
+            const container = document.getElementById('blog-posts-container');
+            try {
+                const response = await fetch('blogs.json');
+                if (!response.ok) throw new Error('No blogs found');
+                
+                const data = await response.json();
+                const blogs = data.blogs || [];
+                
+                if (blogs.length === 0) {
+                    container.innerHTML = '<p style="text-align: center; color: rgba(255,255,255,0.7); font-size: 18px; padding: 40px; grid-column: 1 / -1;">No blog posts yet. Check back soon!</p>';
+                    return;
+                }
+                
+                const recentBlogs = blogs.slice(0, 3);
+                container.innerHTML = recentBlogs.map(blog => `
+                    <div class="service-card" onclick="window.location.href='blog-${blog.slug}.html'" style="cursor: pointer;">
+                        <div class="service-number">${blog.title.charAt(0)}</div>
+                        <h3>${blog.title}</h3>
+                        <p>${blog.meta_description || blog.introduction.substring(0, 150) + '...'}</p>
+                        <div style="display: flex; justify-content: space-between; margin-top: 20px; font-size: 14px; color: rgba(255,255,255,0.5);">
+                            <span>📅 ${new Date(blog.published_at).toLocaleDateString()}</span>
+                            <span>⏱️ ${blog.reading_time || 5} min read</span>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                container.innerHTML = '<p style="text-align: center; color: rgba(255,255,255,0.7); font-size: 18px; padding: 40px; grid-column: 1 / -1;">No blog posts yet. Check back soon!</p>';
+            }
+        }
+        
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', loadBlogPosts);
+        } else {
+            loadBlogPosts();
+        }
+    </script>
 </body>
 
 </html>

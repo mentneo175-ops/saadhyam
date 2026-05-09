@@ -51,6 +51,13 @@ class Settings(BaseSettings):
 
     # Google AI Studio (Gemini API)
     GEMINI_API_KEY: str = ""
+    GEMINI_API_KEY_2: str = ""
+    GEMINI_API_KEY_3: str = ""
+
+    # Web Search APIs (for Blog Generation)
+    TAVILY_API_KEY: str = ""
+    SERPER_API_KEY: str = ""
+    BRAVE_SEARCH_API_KEY: str = ""
 
     # Token Encryption Key
     ENCRYPTION_KEY: str = "your-32-char-encryption-key-here"
@@ -79,6 +86,29 @@ class Settings(BaseSettings):
     # Firebase Configuration (Optional - for Google OAuth)
     GOOGLE_APPLICATION_CREDENTIALS: str = ""
     FIREBASE_PROJECT_ID: str = ""
+
+    # AEO/GEO System Configuration
+    OPENAI_API_KEY: str = "your_openai_api_key_here"
+    PINECONE_API_KEY: str = "your_pinecone_api_key_here"
+    PINECONE_ENVIRONMENT: str = "your_pinecone_environment_here"
+    PINECONE_INDEX_NAME: str = "saadhyam-aeo-geo"
+    GOOGLE_SEARCH_API_KEY: str = "your_google_search_api_key_here"
+    GOOGLE_SEARCH_ENGINE_ID: str = "your_search_engine_id_here"
+    LINKEDIN_ACCESS_TOKEN: str = "your_linkedin_token_here"
+    FACEBOOK_ACCESS_TOKEN: str = "your_facebook_token_here"
+    MEDIUM_API_TOKEN: str = "your_medium_token_here"
+    WORDPRESS_API_URL: str = "your_wordpress_url_here"
+    WORDPRESS_USERNAME: str = "your_wordpress_username_here"
+    WORDPRESS_PASSWORD: str = "your_wordpress_password_here"
+    REDDIT_CLIENT_ID: str = "your_reddit_client_id_here"
+    REDDIT_CLIENT_SECRET: str = "your_reddit_client_secret_here"
+    REDDIT_USER_AGENT: str = "Saadhyam-AEO-Bot/1.0"
+    QUORA_SCRAPING_ENABLED: str = "false"
+    AEO_GEO_ENABLED: str = "true"
+    AEO_GEO_USE_MOCK_DATA: str = "false"
+    AEO_GEO_AUTO_OPTIMIZATION: str = "true"
+    AEO_GEO_CONTENT_GENERATION_MODEL: str = "gemini"
+    AEO_GEO_QUESTION_DISCOVERY_MODEL: str = "gemini"
 
     @field_validator("CORS_ORIGINS", mode="before")
     @classmethod

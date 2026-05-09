@@ -18,6 +18,9 @@ import {
   Calendar,
   Search,
   Target,
+  Brain,
+  Zap,
+  BookOpen,
 } from "lucide-react";
 
 type NavItem = {
@@ -32,7 +35,7 @@ const items: NavItem[] = [
   { to: "/dashboard/business-analysis", label: "Business Analysis", icon: Sparkles },
   { to: "/dashboard/competitor-analysis", label: "Competitor Analysis", icon: Users },
   { to: "/dashboard/daily-ask", label: "Daily Suggestions", icon: Calendar },
-  { to: "/dashboard/seo-google-maps", label: "SEO & Google Maps", icon: Search },
+  { to: "/dashboard/aeo-geo", label: "AEO & GEO", icon: Brain },
   { to: "/dashboard/content", label: "Content Creator", icon: Wand2 },
   { to: "/dashboard/instagram", label: "Instagram", icon: Instagram },
   { to: "/dashboard/whatsapp-sales", label: "WhatsApp Sales", icon: MessageSquare },

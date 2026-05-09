@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }} - {{ business_name }}</title>
+    <meta name="description" content="{{ meta_description }}">
+    <meta name="keywords" content="{{ keywords }}">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.8;
+            color: #2c3e50;
+            background: #f8f9fa;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 80px 40px 60px;
+            text-align: center;
+        }
+        
+        .header-category {
+            display: inline-block;
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        
+        .header h1 {
+            font-size: 56px;
+            font-weight: 800;
+            margin-bottom: 20px;
+            line-height: 1.2;
+        }
+        
+        .header-meta {
+            font-size: 16px;
+            opacity: 0.9;
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .article-container {
+            max-width: 800px;
+            margin: -40px auto 80px;
+            background: white;
+            border-radius: 20px;
+            padding: 60px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        }
+        
+        .introduction {
+            font-size: 20px;
+            color: #4a5568;
+            margin-bottom: 40px;
+            line-height: 1.8;
+        }
+        
+        .main-content h2 {
+            font-size: 32px;
+            font-weight: 700;
+            margin: 50px 0 20px;
+            color: #2c3e50;
+        }
+        
+        .main-content h3 {
+            font-size: 24px;
+            font-weight: 600;
+            margin: 30px 0 15px;
+            color: #4a5568;
+        }
+        
+        .main-content p {
+            font-size: 18px;
+            margin-bottom: 20px;
+            line-height: 1.8;
+        }
+        
+        .main-content ul, .main-content ol {
+            margin: 20px 0 20px 30px;
+        }
+        
+        .main-content li {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+        
+        .conclusion {
+            font-size: 18px;
+            margin: 40px 0;
+            padding: 30px;
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            border-radius: 8px;
+        }
+        
+        .faq-section {
+            margin: 60px 0;
+            padding: 40px;
+            background: #f8f9fa;
+            border-radius: 16px;
+        }
+        
+        .faq-section h2 {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 30px;
+            color: #2c3e50;
+        }
+        
+        .faq-item {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+        
+        .faq-item summary {
+            font-weight: 600;
+            cursor: pointer;
+            color: #2c3e50;
+            font-size: 18px;
+            list-style: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .faq-item summary::after {
+            content: '+';
+            font-size: 24px;
+            color: #667eea;
+            transition: transform 0.3s;
+        }
+        
+        .faq-item[open] summary::after {
+            transform: rotate(45deg);
+        }
+        
+        .faq-item p {
+            margin-top: 16px;
+            color: #6c757d;
+            line-height: 1.7;
+        }
+        
+        .cta-section {
+            margin: 60px 0;
+            padding: 50px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 20px;
+            text-align: center;
+        }
+        
+        .cta-section h2 {
+            font-size: 36px;
+            margin-bottom: 16px;
+        }
+        
+        .cta-section p {
+            font-size: 18px;
+            margin-bottom: 30px;
+            opacity: 0.95;
+        }
+        
+        .cta-button {
+            display: inline-block;
+            padding: 16px 40px;
+            background: white;
+            color: #667eea;
+            text-decoration: none;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        .tags {
+            margin: 40px 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .tag {
+            padding: 8px 16px;
+            background: #e9ecef;
+            color: #667eea;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        .back-link {
+            display: inline-block;
+            margin-bottom: 40px;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 16px;
+        }
+        
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 36px;
+            }
+            
+            .article-container {
+                padding: 30px 20px;
+                margin: -20px 20px 40px;
+            }
+            
+            .main-content h2 {
+                font-size: 24px;
+            }
+            
+            .main-content h3 {
+                font-size: 20px;
+            }
+            
+            .main-content p, .main-content li {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <span class="header-category">{{ category }}</span>
+        <h1>{{ title }}</h1>
+        <div class="header-meta">
+            <span>📅 {{ published_date }}</span>
+            <span>⏱️ {{ reading_time }} min read</span>
+            <span>👤 {{ business_name }}</span>
+        </div>
+    </header>
+    
+    <article class="article-container">
+        <a href="blogs.html" class="back-link">← Back to Blog</a>
+        
+        <div class="introduction">
+            {{ introduction }}
+        </div>
+        
+        <div class="main-content">
+            {{ main_content }}
+        </div>
+        
+        <div class="conclusion">
+            {{ conclusion }}
+        </div>
+        
+        {% if faq %}
+        <section class="faq-section">
+            <h2>Frequently Asked Questions</h2>
+            {% for item in faq %}
+            <details class="faq-item">
+                <summary>{{ item.question }}</summary>
+                <p>{{ item.answer }}</p>
+            </details>
+            {% endfor %}
+        </section>
+        {% endif %}
+        
+        {% if cta %}
+        <section class="cta-section">
+            <h2>{{ cta.text }}</h2>
+            <p>Ready to take the next step?</p>
+            <a href="{{ cta.link }}" class="cta-button">{{ cta.button_text }}</a>
+        </section>
+        {% endif %}
+        
+        {% if tags %}
+        <div class="tags">
+            {% for tag in tags %}
+            <span class="tag">#{{ tag }}</span>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </article>
+</body>
+</html>

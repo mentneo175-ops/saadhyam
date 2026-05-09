@@ -226,6 +226,17 @@ def fetch_analytics():
     return {"success": True, "message": "Analytics fetch scheduled"}
 
 
+# Import website generation tasks to register them with Celery
+try:
+    from ai_models.website_ai.app.workers.tasks.generation_tasks import (
+        generate_website_task,
+        regenerate_website_task
+    )
+    logger.info("✅ Website generation tasks imported successfully")
+except ImportError as e:
+    logger.warning(f"⚠️ Could not import website generation tasks: {e}")
+
+
 # Periodic tasks configuration
 from celery.schedules import crontab
 

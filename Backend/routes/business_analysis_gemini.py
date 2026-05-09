@@ -13,6 +13,7 @@ from config.database import get_sync_db
 from utils.dependencies import get_current_user
 from models.user import User
 from services.gemini_business_analysis_service import generate_realtime_business_analysis
+from services.business_pinecone_service import store_business_analysis_in_pinecone
 
 logger = logging.getLogger(__name__)
 
@@ -124,6 +125,9 @@ async def get_realtime_business_analysis(
         logger.info(f"[BusinessAnalysis] ✅ Analysis completed successfully for {current_user.email}")
         logger.info(f"[BusinessAnalysis] Source: {result.get('source')}")
         logger.info(f"[BusinessAnalysis] Health Score: {result.get('health_score')}")
+        
+        # Store business analysis in Pinecone for fast retrieval
+        await store_business_analysis_in_pinecone(current_user.id, result)
         
         return BusinessAnalysisResponse(
             status=result.get("status"),

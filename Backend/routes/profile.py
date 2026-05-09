@@ -58,6 +58,7 @@ class UserProfileResponse(BaseModel):
     email: str
     name: Optional[str] = None
     business_profile: BusinessProfileResponse
+    last_generated_website_id: Optional[str] = None  # UUID of confirmed website
     
     class Config:
         from_attributes = True
@@ -101,7 +102,8 @@ def get_profile(
             id=current_user.id,
             email=current_user.email,
             name=current_user.name,
-            business_profile=business_profile
+            business_profile=business_profile,
+            last_generated_website_id=current_user.last_generated_website_id
         )
         
         logger.info(f"✅ Profile retrieved for user: {current_user.email}")
@@ -250,4 +252,62 @@ def get_business_setup_status(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to check setup status"
+        )
+
+
+@router.post(
+    "/confirm-website",
+    summary="Confirm and save generated website",
+    responses={
+        200: {"description": "Website confirmed successfully"},
+        400: {"description": "Invalid request"},
+        401: {"description": "Not authenticated"}
+    }
+)
+def confirm_website(
+    request: dict,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_sync_db)
+) -> dict:
+    """
+    Confirm and save user's generated website
+    
+    This endpoint is called when user confirms they want to use a generated website.
+    The website_id is saved to the user profile and will be used for:
+    - Showing the website on page reload
+    - Integrating published blogs into the website
+    """
+    
+    try:
+        website_id = request.get("website_id")
+        
+        if not website_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="website_id is required"
+            )
+        
+        logger.info(f"📝 User {current_user.email} confirming website {website_id}")
+        
+        # Update user's last_generated_website_id
+        current_user.last_generated_website_id = website_id
+        db.commit()
+        db.refresh(current_user)
+        
+        logger.info(f"✅ Website {website_id} confirmed for user {current_user.id}")
+        
+        return {
+            "status": "success",
+            "message": "Website confirmed successfully",
+            "website_id": website_id
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error confirming website: {e}", exc_info=True)
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to confirm website: {str(e)}"
         )

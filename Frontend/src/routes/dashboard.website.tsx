@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { Button } from "@/components/ui/button";
-import { Sparkles, Globe, Download, Loader2, Code, ExternalLink, Share2, Brain, Zap, Target } from "lucide-react";
+import { Sparkles, Globe, Download, Loader2, Code, ExternalLink, Share2, Brain, Zap, Target, Check, RefreshCw } from "lucide-react";
 import { useState, useEffect } from "react";
 import { apiClient } from "@/lib/api";
 
@@ -41,6 +41,11 @@ function WebsiteAIPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [currentPreviewPath, setCurrentPreviewPath] = useState("/");
   const [pollingTimeoutId, setPollingTimeoutId] = useState<NodeJS.Timeout | null>(null);
+  
+  // Website confirmation state
+  const [isWebsiteConfirmed, setIsWebsiteConfirmed] = useState(false);
+  const [showConfirmButton, setShowConfirmButton] = useState(false);
+  const [showForm, setShowForm] = useState(true);
 
   // Listen for navigation updates from iframe
   useEffect(() => {
@@ -85,6 +90,30 @@ function WebsiteAIPage() {
     loadUserData();
   }, []);
 
+  // Load confirmed website on component mount
+  useEffect(() => {
+    const loadConfirmedWebsite = async () => {
+      try {
+        const profile = await apiClient.getProfile();
+        
+        if (profile.last_generated_website_id) {
+          console.log("✅ Found confirmed website:", profile.last_generated_website_id);
+          setIsWebsiteConfirmed(true);
+          setShowForm(false);  // Hide form
+          setWebsiteResult({ 
+            website_id: profile.last_generated_website_id,
+            preview_url: `/website/${profile.last_generated_website_id}`
+          });
+          await fetchWebsiteHtml(profile.last_generated_website_id);
+        }
+      } catch (error) {
+        console.error("❌ Error loading confirmed website:", error);
+      }
+    };
+    
+    loadConfirmedWebsite();
+  }, []);
+
   // Fetch website HTML for preview
   const fetchWebsiteHtml = async (websiteId: string) => {
     try {
@@ -120,264 +149,82 @@ function WebsiteAIPage() {
         return;
       }
         
-        // Simple and reliable navigation script
+        // Minimal navigation script - just handle hash links
         const internalNavigationScript = `
           <script>
-            console.log('🚀 Starting navigation script...');
+            console.log('🚀 Navigation script loaded');
             
-            let currentPath = '/';
-            
-            // Function to update parent address bar
-            function updateParentAddressBar(path) {
-              console.log('📍 Updating parent address bar to:', path);
-              try {
-                if (window.parent && window.parent !== window) {
-                  window.parent.postMessage({
-                    type: 'updateAddress',
-                    path: path,
-                    websiteId: '${websiteId}'
-                  }, '*');
-                  console.log('✅ Message sent to parent');
-                } else {
-                  console.log('❌ No parent window found');
-                }
-              } catch (e) {
-                console.error('❌ Error updating parent address bar:', e);
-              }
-            }
-            
-            // Function to navigate to a page
-            function navigateToPage(path) {
-              console.log('🧭 Navigating to:', path);
-              currentPath = path;
-              updateParentAddressBar(path);
-              
-              if (path.startsWith('#')) {
-                // Hash navigation - scroll to section
-                const targetId = path.substring(1);
-                const targetElement = document.getElementById(targetId);
-                if (targetElement) {
-                  console.log('📍 Scrolling to element:', targetId);
-                  targetElement.scrollIntoView({ behavior: 'smooth' });
-                } else {
-                  console.log('❌ Element not found:', targetId);
-                }
-              } else {
-                // Page navigation - show/hide sections
-                const pageName = path.substring(1) || 'home';
-                console.log('📄 Showing page:', pageName);
+            // Handle hash navigation (scroll to sections)
+            document.addEventListener('click', function(e) {
+              const link = e.target.closest('a');
+              if (link) {
+                const href = link.getAttribute('href');
                 
-                // Hide all sections
-                const allSections = document.querySelectorAll('section, .page, [data-page], .content-section');
-                console.log('📋 Found sections:', allSections.length);
-                allSections.forEach(section => {
-                  section.style.display = 'none';
-                });
-                
-                // Try to find and show target section
-                let targetSection = null;
-                const selectors = [
-                  \`#\${pageName}\`,
-                  \`.\${pageName}\`,
-                  \`[data-page="\${pageName}"]\`,
-                  \`.\${pageName}-section\`,
-                  \`.page-\${pageName}\`
-                ];
-                
-                for (const selector of selectors) {
-                  targetSection = document.querySelector(selector);
-                  if (targetSection) {
-                    console.log('✅ Found target section with selector:', selector);
-                    break;
-                  }
-                }
-                
-                if (targetSection) {
-                  targetSection.style.display = 'block';
-                  targetSection.scrollIntoView({ behavior: 'smooth' });
-                } else {
-                  console.log('❌ No specific section found, showing all');
-                  // Show all sections (home page)
-                  allSections.forEach(section => {
-                    section.style.display = 'block';
-                  });
-                }
-              }
-            }
-            
-            // Block external navigation
-            function blockExternalNavigation() {
-              // Override location methods
-              if (window.location) {
-                const originalLocation = window.location;
-                try {
-                  Object.defineProperty(window, 'location', {
-                    get: function() {
-                      return {
-                        href: 'http://localhost:8000/website/${websiteId}' + currentPath,
-                        pathname: currentPath,
-                        assign: function(url) {
-                          console.log('🚫 Location.assign blocked:', url);
-                          if (url.startsWith('#') || url.startsWith('/') || !url.includes('://')) {
-                            navigateToPage(url.startsWith('/') ? url : '/' + url);
-                          }
-                        },
-                        replace: function(url) {
-                          console.log('🚫 Location.replace blocked:', url);
-                          if (url.startsWith('#') || url.startsWith('/') || !url.includes('://')) {
-                            navigateToPage(url.startsWith('/') ? url : '/' + url);
-                          }
-                        },
-                        reload: function() { console.log('🚫 Reload blocked'); }
-                      };
-                    },
-                    set: function(url) {
-                      console.log('🚫 Location set blocked:', url);
-                      if (typeof url === 'string' && (url.startsWith('#') || url.startsWith('/') || !url.includes('://'))) {
-                        navigateToPage(url.startsWith('/') ? url : '/' + url);
-                      }
-                    }
-                  });
-                } catch (e) {
-                  console.log('⚠️ Could not override location:', e);
-                }
-              }
-              
-              // Block window.open
-              window.open = function(url, target, features) {
-                console.log('🚫 Window.open blocked:', url);
-                return null;
-              };
-            }
-            
-            // Handle clicks
-            function handleClicks() {
-              document.addEventListener('click', function(e) {
-                console.log('🖱️ Click detected on:', e.target);
-                
-                const link = e.target.closest('a');
-                if (link) {
+                // Handle hash links (e.g., #services, #contact)
+                if (href && href.startsWith('#')) {
                   e.preventDefault();
-                  e.stopPropagation();
+                  const targetId = href.substring(1);
+                  const targetElement = document.getElementById(targetId);
                   
-                  const href = link.getAttribute('data-original-href') || link.getAttribute('href');
-                  const linkText = link.textContent.trim();
-                  
-                  console.log('🔗 Link clicked - href:', href, 'text:', linkText);
-                  
-                  if (href && href !== 'javascript:void(0)') {
-                    if (href.startsWith('#')) {
-                      navigateToPage(href);
-                    } else if (href.startsWith('/') || href.match(/^[a-zA-Z0-9-_]+$/)) {
-                      const cleanPath = href.startsWith('/') ? href : '/' + href;
-                      navigateToPage(cleanPath);
-                    } else if (href.includes('://')) {
-                      alert('External links are disabled in preview mode');
-                    } else {
-                      // Try to navigate based on link text
-                      const pagePath = '/' + linkText.toLowerCase().replace(/\\s+/g, '-');
-                      navigateToPage(pagePath);
-                    }
-                  } else if (linkText) {
-                    // Navigate based on text content
-                    if (linkText.toLowerCase() === 'home') {
-                      navigateToPage('/');
-                    } else {
-                      const pagePath = '/' + linkText.toLowerCase().replace(/\\s+/g, '-');
-                      navigateToPage(pagePath);
-                    }
+                  if (targetElement) {
+                    console.log('📍 Scrolling to:', targetId);
+                    targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
                   }
-                  
-                  return false;
+                  return;
                 }
-              }, true);
-            }
+                
+                // Allow /api/ links (blog posts, etc.) - open in new tab
+                if (href && href.startsWith('/api/')) {
+                  e.preventDefault();
+                  console.log('🔗 Opening API link in new tab:', href);
+                  window.open('http://localhost:8000' + href, '_blank');
+                  return;
+                }
+                
+                // Block external links in preview
+                if (href && href.includes('://') && !href.includes('localhost')) {
+                  e.preventDefault();
+                  console.log('🚫 External link blocked in preview:', href);
+                  alert('External links are disabled in preview mode');
+                  return;
+                }
+              }
+            }, true);
             
-            // Handle form submissions
-            function handleForms() {
-              document.addEventListener('submit', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                alert('Form submissions are disabled in preview mode');
-                return false;
-              }, true);
-            }
+            // Prevent form submissions in preview
+            document.addEventListener('submit', function(e) {
+              e.preventDefault();
+              alert('Form submissions are disabled in preview mode');
+            }, true);
             
-            // Initialize everything
-            function initialize() {
-              console.log('🔧 Initializing navigation...');
-              
-              blockExternalNavigation();
-              handleClicks();
-              handleForms();
-              
-              // Set initial path
-              updateParentAddressBar('/');
-              
-              console.log('✅ Navigation initialized successfully');
-            }
-            
-            // Start when DOM is ready
-            if (document.readyState === 'loading') {
-              document.addEventListener('DOMContentLoaded', initialize);
-            } else {
-              initialize();
-            }
-            
-            console.log('📝 Navigation script loaded');
+            console.log('✅ Navigation ready');
           </script>
         `;
         
-        // Preserve original hrefs but make them safe
-        html = html.replace(/href\s*=\s*["']([^"']*)["']/gi, function(match, href) {
-          console.log('Processing href:', href);
-          if (href.startsWith('#') || href.startsWith('/')) {
-            // Keep internal links and store original
-            return `data-original-href="${href}" href="${href}"`;
-          } else if (href.match(/^[a-zA-Z0-9-_]+$/)) {
-            // Relative page links
-            return `data-original-href="${href}" href="/${href}"`;
-          } else if (href.includes('://')) {
-            // External links - block but store original
-            return `data-original-href="${href}" href="javascript:void(0)"`;
-          } else {
-            // Other links - make safe but keep original
-            return `data-original-href="${href}" href="javascript:void(0)"`;
+        // Don't modify hrefs - keep them as is for proper navigation
+        // Only block external links
+        html = html.replace(/href\s*=\s*["'](https?:\/\/[^"']*)["']/gi, function(match, href) {
+          if (!href.includes('localhost')) {
+            // External link - make it show alert
+            return `href="javascript:void(0)" data-external-url="${href}" onclick="alert('External links are disabled in preview mode')"`;
           }
+          return match; // Keep localhost links as is
         });
         
-        // Remove problematic attributes but keep functionality
+        // Remove target="_blank" to keep navigation in same window
         html = html.replace(/target\s*=\s*["']_blank["']/gi, '');
-        html = html.replace(/on(?:click|submit)\s*=\s*["'][^"']*["']/gi, '');
         
-        // Add safe base and meta tags
+        // Add meta tags
         const safeMeta = `
-          <base href="javascript:void(0)">
           <meta name="viewport" content="width=device-width, initial-scale=1">
         `;
         
-        // Insert navigation script
-        html = html.replace('<head>', '<head>' + safeMeta + internalNavigationScript);
+        // Insert navigation script before </head>
+        html = html.replace('</head>', safeMeta + internalNavigationScript + '</head>');
         
-        // Add CSS for better navigation
-        const navigationCSS = `
+        // Add minimal CSS
+        const minimalCSS = `
           <style>
-            /* Smooth transitions */
-            section, .page, [data-page] {
-              transition: opacity 0.3s ease-in-out;
-            }
-            
-            /* Ensure links are clickable */
-            a {
-              cursor: pointer !important;
-              color: #3b82f6 !important;
-              text-decoration: underline !important;
-            }
-            
-            a:hover {
-              color: #1d4ed8 !important;
-            }
-            
             /* Smooth scrolling */
             html {
               scroll-behavior: smooth;
@@ -385,7 +232,7 @@ function WebsiteAIPage() {
             
             /* Preview indicator */
             body::after {
-              content: 'PREVIEW MODE - INTERNAL NAVIGATION ENABLED';
+              content: 'PREVIEW MODE';
               position: fixed;
               top: 10px;
               right: 10px;
@@ -401,13 +248,13 @@ function WebsiteAIPage() {
           </style>
         `;
         
-        html = html.replace('</head>', navigationCSS + '</head>');
+        html = html.replace('</head>', minimalCSS + '</head>');
         
         console.log("📝 Setting websiteHtml state, length:", html.length);
         setWebsiteHtml(html);
         console.log("📝 Setting showPreview to true");
         setShowPreview(true);
-        console.log("✅ Website HTML prepared with internal navigation - preview should now be visible");
+        console.log("✅ Website HTML prepared - preview should now be visible");
     } catch (error) {
       console.error("❌ Error fetching website HTML:", error);
       setWebsiteStatus(`❌ Error loading preview: ${error}`);
@@ -663,19 +510,14 @@ function WebsiteAIPage() {
             // Automatically fetch HTML for preview
             if (resultData.website_id) {
               console.log("🌐 Fetching website HTML for preview...");
-              console.log("📋 Result data contains:", {
-                website_id: resultData.website_id,
-                html_file_path: resultData.html_file_path,
-                preview_url: resultData.preview_url,
-                html_url: resultData.html_url
-              });
               await fetchWebsiteHtml(resultData.website_id);
-            } else {
-              console.error("❌ No website_id in result data:", resultData);
             }
             
-            // Set isProcessing to false AFTER fetching HTML
+            // Show confirmation button instead of hiding form
+            setShowConfirmButton(true);
             setIsProcessing(false);
+            
+            // DON'T hide form yet - wait for user confirmation
           } catch (error) {
             console.error("❌ Failed to fetch result:", error);
             setWebsiteStatus(`⚠️ Website generated but failed to load preview`);
@@ -702,6 +544,52 @@ function WebsiteAIPage() {
     checkStatus();
   };
 
+  const handleConfirmWebsite = async () => {
+    if (!websiteResult?.website_id) return;
+    
+    try {
+      console.log("📝 Confirming website:", websiteResult.website_id);
+      
+      const response = await fetch('http://localhost:8000/api/profile/confirm-website', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiClient.getToken()}`,
+        },
+        body: JSON.stringify({
+          website_id: websiteResult.website_id
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to confirm website');
+      }
+      
+      const data = await response.json();
+      console.log("✅ Website confirmed:", data);
+      
+      // Update state
+      setIsWebsiteConfirmed(true);
+      setShowConfirmButton(false);
+      setShowForm(false); // NOW hide the form
+      
+    } catch (error) {
+      console.error("❌ Error confirming website:", error);
+      alert("Failed to confirm website. Please try again.");
+    }
+  };
+
+  const handleRegenerateWebsite = () => {
+    setShowForm(true);
+    setIsWebsiteConfirmed(false);
+    setShowConfirmButton(false);
+    setShowPreview(false);
+    setWebsiteHtml("");
+    setWebsiteResult(null);
+    setProgress(0);
+    setWebsiteStatus("");
+  };
+
   return (
     <div className="p-4 md:p-6 space-y-5">
       <PageHeader
@@ -710,8 +598,9 @@ function WebsiteAIPage() {
       />
 
       
-        <div className="grid lg:grid-cols-[400px_1fr] gap-4 h-[600px]">
+        <div className={showForm ? "grid lg:grid-cols-[400px_1fr] gap-4 h-[600px]" : "w-full h-screen"}>
           {/* Full Website Generation */}
+          {showForm && (
           <div className="bg-card rounded-2xl border border-border/60 shadow-sm p-4 space-y-4 h-full flex flex-col">
             <div>
               <p className="text-sm font-semibold mb-3">Select Template</p>
@@ -821,8 +710,9 @@ function WebsiteAIPage() {
               )}
             </Button>
           </div>
+          )}
 
-          <div className="bg-card rounded-2xl border border-border/60 shadow-sm p-4 flex flex-col h-full">
+          <div className={showForm ? "bg-card rounded-2xl border border-border/60 shadow-sm p-4 flex flex-col h-full" : "w-full h-full relative bg-card rounded-2xl border border-border/60 shadow-sm p-4 flex flex-col"}>
             <div className="flex items-center justify-between mb-3">
               <p className="text-sm font-semibold">Website Preview</p>
               <div className="flex items-center gap-2">
@@ -838,6 +728,44 @@ function WebsiteAIPage() {
                 )}
               </div>
             </div>
+
+            {/* Confirmation Button - Show after generation */}
+            {showConfirmButton && !isWebsiteConfirmed && websiteResult && (
+              <div className="mb-3 p-4 bg-green-50 border border-green-200 rounded-lg">
+                <p className="text-sm font-medium text-green-900 mb-2">
+                  ✅ Website Generated Successfully!
+                </p>
+                <p className="text-xs text-green-700 mb-3">
+                  Review your website preview below. Click "Confirm & Use This Website" to make it your official website. Your published blogs will be automatically added to this website.
+                </p>
+                <Button
+                  onClick={handleConfirmWebsite}
+                  className="w-full bg-green-600 hover:bg-green-700 text-white"
+                >
+                  <Check size={16} className="mr-2" />
+                  Confirm & Use This Website
+                </Button>
+              </div>
+            )}
+
+            {/* Regenerate Button - Show when website is confirmed and form is hidden */}
+            {isWebsiteConfirmed && !showForm && (
+              <div className="mb-3 flex items-center justify-between p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <div>
+                  <p className="text-sm font-medium text-blue-900">Your Confirmed Website</p>
+                  <p className="text-xs text-blue-700">This is your official website. Blogs will be published here.</p>
+                </div>
+                <Button
+                  onClick={handleRegenerateWebsite}
+                  variant="outline"
+                  size="sm"
+                  className="border-blue-300 text-blue-700 hover:bg-blue-100"
+                >
+                  <RefreshCw size={14} className="mr-2" />
+                  Regenerate
+                </Button>
+              </div>
+            )}
 
             {/* Action Buttons */}
             {websiteResult && (

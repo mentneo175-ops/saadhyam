@@ -36,7 +36,9 @@ import { Route as DashboardCompetitorsRouteImport } from './routes/dashboard.com
 import { Route as DashboardCompetitorAnalysisRouteImport } from './routes/dashboard.competitor-analysis'
 import { Route as DashboardBusinessDetailsRouteImport } from './routes/dashboard.business-details'
 import { Route as DashboardBusinessAnalysisRouteImport } from './routes/dashboard.business-analysis'
+import { Route as DashboardBlogsRouteImport } from './routes/dashboard.blogs'
 import { Route as DashboardAutomationRouteImport } from './routes/dashboard.automation'
+import { Route as DashboardAeoGeoRouteImport } from './routes/dashboard.aeo-geo'
 import { Route as DashboardActionsRouteImport } from './routes/dashboard.actions'
 import { Route as DashboardBusinessAnalysisOldRouteImport } from './routes/dashboard.business-analysis.old'
 
@@ -178,9 +180,19 @@ const DashboardBusinessAnalysisRoute =
     path: '/business-analysis',
     getParentRoute: () => DashboardRoute,
   } as any)
+const DashboardBlogsRoute = DashboardBlogsRouteImport.update({
+  id: '/blogs',
+  path: '/blogs',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardAutomationRoute = DashboardAutomationRouteImport.update({
   id: '/automation',
   path: '/automation',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardAeoGeoRoute = DashboardAeoGeoRouteImport.update({
+  id: '/aeo-geo',
+  path: '/aeo-geo',
   getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardActionsRoute = DashboardActionsRouteImport.update({
@@ -203,7 +215,9 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/verify': typeof VerifyRoute
   '/dashboard/actions': typeof DashboardActionsRoute
+  '/dashboard/aeo-geo': typeof DashboardAeoGeoRoute
   '/dashboard/automation': typeof DashboardAutomationRoute
+  '/dashboard/blogs': typeof DashboardBlogsRoute
   '/dashboard/business-analysis': typeof DashboardBusinessAnalysisRouteWithChildren
   '/dashboard/business-details': typeof DashboardBusinessDetailsRoute
   '/dashboard/competitor-analysis': typeof DashboardCompetitorAnalysisRoute
@@ -234,7 +248,9 @@ export interface FileRoutesByTo {
   '/signup': typeof SignupRoute
   '/verify': typeof VerifyRoute
   '/dashboard/actions': typeof DashboardActionsRoute
+  '/dashboard/aeo-geo': typeof DashboardAeoGeoRoute
   '/dashboard/automation': typeof DashboardAutomationRoute
+  '/dashboard/blogs': typeof DashboardBlogsRoute
   '/dashboard/business-analysis': typeof DashboardBusinessAnalysisRouteWithChildren
   '/dashboard/business-details': typeof DashboardBusinessDetailsRoute
   '/dashboard/competitor-analysis': typeof DashboardCompetitorAnalysisRoute
@@ -267,7 +283,9 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/verify': typeof VerifyRoute
   '/dashboard/actions': typeof DashboardActionsRoute
+  '/dashboard/aeo-geo': typeof DashboardAeoGeoRoute
   '/dashboard/automation': typeof DashboardAutomationRoute
+  '/dashboard/blogs': typeof DashboardBlogsRoute
   '/dashboard/business-analysis': typeof DashboardBusinessAnalysisRouteWithChildren
   '/dashboard/business-details': typeof DashboardBusinessDetailsRoute
   '/dashboard/competitor-analysis': typeof DashboardCompetitorAnalysisRoute
@@ -301,7 +319,9 @@ export interface FileRouteTypes {
     | '/signup'
     | '/verify'
     | '/dashboard/actions'
+    | '/dashboard/aeo-geo'
     | '/dashboard/automation'
+    | '/dashboard/blogs'
     | '/dashboard/business-analysis'
     | '/dashboard/business-details'
     | '/dashboard/competitor-analysis'
@@ -332,7 +352,9 @@ export interface FileRouteTypes {
     | '/signup'
     | '/verify'
     | '/dashboard/actions'
+    | '/dashboard/aeo-geo'
     | '/dashboard/automation'
+    | '/dashboard/blogs'
     | '/dashboard/business-analysis'
     | '/dashboard/business-details'
     | '/dashboard/competitor-analysis'
@@ -364,7 +386,9 @@ export interface FileRouteTypes {
     | '/signup'
     | '/verify'
     | '/dashboard/actions'
+    | '/dashboard/aeo-geo'
     | '/dashboard/automation'
+    | '/dashboard/blogs'
     | '/dashboard/business-analysis'
     | '/dashboard/business-details'
     | '/dashboard/competitor-analysis'
@@ -590,11 +614,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardBusinessAnalysisRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/blogs': {
+      id: '/dashboard/blogs'
+      path: '/blogs'
+      fullPath: '/dashboard/blogs'
+      preLoaderRoute: typeof DashboardBlogsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/automation': {
       id: '/dashboard/automation'
       path: '/automation'
       fullPath: '/dashboard/automation'
       preLoaderRoute: typeof DashboardAutomationRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/aeo-geo': {
+      id: '/dashboard/aeo-geo'
+      path: '/aeo-geo'
+      fullPath: '/dashboard/aeo-geo'
+      preLoaderRoute: typeof DashboardAeoGeoRouteImport
       parentRoute: typeof DashboardRoute
     }
     '/dashboard/actions': {
@@ -630,7 +668,9 @@ const DashboardBusinessAnalysisRouteWithChildren =
 
 interface DashboardRouteChildren {
   DashboardActionsRoute: typeof DashboardActionsRoute
+  DashboardAeoGeoRoute: typeof DashboardAeoGeoRoute
   DashboardAutomationRoute: typeof DashboardAutomationRoute
+  DashboardBlogsRoute: typeof DashboardBlogsRoute
   DashboardBusinessAnalysisRoute: typeof DashboardBusinessAnalysisRouteWithChildren
   DashboardBusinessDetailsRoute: typeof DashboardBusinessDetailsRoute
   DashboardCompetitorAnalysisRoute: typeof DashboardCompetitorAnalysisRoute
@@ -655,7 +695,9 @@ interface DashboardRouteChildren {
 
 const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardActionsRoute: DashboardActionsRoute,
+  DashboardAeoGeoRoute: DashboardAeoGeoRoute,
   DashboardAutomationRoute: DashboardAutomationRoute,
+  DashboardBlogsRoute: DashboardBlogsRoute,
   DashboardBusinessAnalysisRoute: DashboardBusinessAnalysisRouteWithChildren,
   DashboardBusinessDetailsRoute: DashboardBusinessDetailsRoute,
   DashboardCompetitorAnalysisRoute: DashboardCompetitorAnalysisRoute,

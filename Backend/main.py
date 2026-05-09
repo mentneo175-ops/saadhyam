@@ -201,6 +201,52 @@ try:
 except Exception as e:
     logging.warning(f"Blog router not available: {e}")
     blog_available = False
+    from routes.whatsapp_auth import router as whatsapp_auth_router
+    whatsapp_auth_available = True
+    logging.info("✅ WhatsApp Auth router imported successfully")
+except Exception as e:
+    logging.warning(f"WhatsApp Auth router not available: {e}")
+    whatsapp_auth_available = False
+
+try:
+    from routes.whatsapp_webhook import router as whatsapp_webhook_router
+    whatsapp_webhook_available = True
+    logging.info("✅ WhatsApp Webhook router imported successfully")
+except Exception as e:
+    logging.warning(f"WhatsApp Webhook router not available: {e}")
+    whatsapp_webhook_available = False
+
+try:
+    from routes.whatsapp_messages import router as whatsapp_messages_router
+    whatsapp_messages_available = True
+    logging.info("✅ WhatsApp Messages router imported successfully")
+except Exception as e:
+    logging.warning(f"WhatsApp Messages router not available: {e}")
+    whatsapp_messages_available = False
+
+try:
+    from routes.whatsapp_campaigns import router as whatsapp_campaigns_router
+    whatsapp_campaigns_available = True
+    logging.info("✅ WhatsApp Campaigns router imported successfully")
+except Exception as e:
+    logging.warning(f"WhatsApp Campaigns router not available: {e}")
+    whatsapp_campaigns_available = False
+
+try:
+    from routes.whatsapp_automation import router as whatsapp_automation_router
+    whatsapp_automation_available = True
+    logging.info("✅ WhatsApp Automation router imported successfully")
+except Exception as e:
+    logging.warning(f"WhatsApp Automation router not available: {e}")
+    whatsapp_automation_available = False
+
+try:
+    from routes.b2b_network import router as b2b_network_router
+    b2b_network_available = True
+    logging.info("✅ B2B Network router imported successfully")
+except Exception as e:
+    logging.warning(f"B2B Network router not available: {e}")
+    b2b_network_available = False
 
 try:
     from ai_models.website_ai.app.api.v1.routes import generation as website_ai_generation
@@ -266,6 +312,10 @@ async def lifespan(app: FastAPI):
         migrate_add_blogs_table()
         from migrations.add_website_id_to_user import run_migration as migrate_add_website_id
         migrate_add_website_id()
+        from migrations.add_whatsapp_tables import migrate_add_whatsapp_tables
+        migrate_add_whatsapp_tables()
+        from migrations.add_location_coordinates import migrate_add_location_coordinates
+        migrate_add_location_coordinates()
         logger.info("✅ Migrations completed")
         
         # NOTE: AI models configuration:
@@ -412,6 +462,24 @@ if aeo_geo_available:
 if blog_available:
     app.include_router(blog_router)
     logging.info("✅ Blog router included in app")
+if whatsapp_auth_available:
+    app.include_router(whatsapp_auth_router)
+    logging.info("✅ WhatsApp Auth router included in app")
+if whatsapp_webhook_available:
+    app.include_router(whatsapp_webhook_router)
+    logging.info("✅ WhatsApp Webhook router included in app")
+if whatsapp_messages_available:
+    app.include_router(whatsapp_messages_router)
+    logging.info("✅ WhatsApp Messages router included in app")
+if whatsapp_campaigns_available:
+    app.include_router(whatsapp_campaigns_router)
+    logging.info("✅ WhatsApp Campaigns router included in app")
+if whatsapp_automation_available:
+    app.include_router(whatsapp_automation_router)
+    logging.info("✅ WhatsApp Automation router included in app")
+if b2b_network_available:
+    app.include_router(b2b_network_router)
+    logging.info("✅ B2B Network router included in app")
 if website_ai_available:
     app.include_router(
         website_ai_generation.router,

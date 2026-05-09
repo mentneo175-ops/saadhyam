@@ -29,7 +29,7 @@ export function useAuth(): UseAuthReturn {
 
   const clearError = useCallback(() => setError(null), []);
 
-  // Sync auth state on mount
+  // Sync auth state on mount and fetch user data
   useEffect(() => {
     const storedUser = apiClient.getStoredUser();
     const storedToken = apiClient.getToken();
@@ -37,6 +37,29 @@ export function useAuth(): UseAuthReturn {
     if (storedUser && storedToken) {
       setUser(storedUser);
       setToken(storedToken);
+      
+      // Fetch fresh user data from backend
+      apiClient.getCurrentUser()
+        .then((freshUser) => {
+          setUser(freshUser);
+        })
+        .catch((error) => {
+          console.error("Failed to fetch user data:", error);
+          // If token is invalid, clear auth
+          if (error instanceof ApiError && error.status === 401) {
+            // Clear auth data manually
+            apiClient.setToken(null);
+            if (typeof window !== "undefined") {
+              localStorage.removeItem("saadhyam_token");
+              localStorage.removeItem("saadhyam_user");
+              localStorage.removeItem("businessInfo");
+              localStorage.removeItem("businessAnalysis");
+              localStorage.removeItem("businessProfile");
+            }
+            setUser(null);
+            setToken(null);
+          }
+        });
     }
 
     // Listen to Firebase auth state changes
@@ -45,11 +68,19 @@ export function useAuth(): UseAuthReturn {
         if (!firebaseUser) {
           // Firebase user signed out, check if we need to clear local state
           const currentUser = apiClient.getStoredUser();
-          if (currentUser) {
+          if (currentUser && currentUser.auth_provider === 'google') {
             // Only clear if user was authenticated via Google
             setUser(null);
             setToken(null);
-            apiClient.clearAuth();
+            // Clear auth data manually
+            apiClient.setToken(null);
+            if (typeof window !== "undefined") {
+              localStorage.removeItem("saadhyam_token");
+              localStorage.removeItem("saadhyam_user");
+              localStorage.removeItem("businessInfo");
+              localStorage.removeItem("businessAnalysis");
+              localStorage.removeItem("businessProfile");
+            }
           }
         }
       });

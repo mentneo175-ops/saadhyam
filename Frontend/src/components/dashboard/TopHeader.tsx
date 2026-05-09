@@ -78,7 +78,7 @@ export function TopHeader() {
   const handleLogout = async () => {
     try {
       await logout();
-      navigate({ to: "/auth/login" });
+      navigate({ to: "/login" });
     } catch (error) {
       console.error("Logout failed:", error);
     }

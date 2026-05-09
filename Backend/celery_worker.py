@@ -242,6 +242,19 @@ celery.conf.beat_schedule = {
         "task": "celery_worker.fetch_analytics",
         "schedule": crontab(minute=0),  # Every hour
     },
+    # WhatsApp tasks
+    "process-whatsapp-campaigns-every-5-minutes": {
+        "task": "tasks.whatsapp_tasks.process_scheduled_campaigns",
+        "schedule": 5 * 60,  # 5 minutes
+    },
+    "process-whatsapp-follow-ups-every-10-minutes": {
+        "task": "tasks.whatsapp_tasks.process_follow_up_automations",
+        "schedule": 10 * 60,  # 10 minutes
+    },
+    "sync-whatsapp-message-statuses-every-30-minutes": {
+        "task": "tasks.whatsapp_tasks.sync_message_statuses",
+        "schedule": 30 * 60,  # 30 minutes
+    },
 }
 
 

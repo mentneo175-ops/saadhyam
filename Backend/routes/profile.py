@@ -47,6 +47,8 @@ class BusinessProfileResponse(BaseModel):
     business_setup_completed: bool = False
     pdf_file_url: Optional[str] = None
     website_url: Optional[str] = None
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
     
     class Config:
         from_attributes = True
@@ -134,6 +136,28 @@ def get_business_profile(
     try:
         logger.info(f"🏢 Getting business profile for user: {current_user.email}")
         
+        # Try to get coordinates from database columns (if they exist)
+        latitude = getattr(current_user, 'latitude', None)
+        longitude = getattr(current_user, 'longitude', None)
+        
+        # If no coordinates in DB, geocode from location text
+        if (not latitude or not longitude) and current_user.business_location:
+            logger.info(f"📍 Geocoding location: {current_user.business_location}")
+            from services.geocoding_service import get_city_coordinates
+            coords = get_city_coordinates(current_user.business_location)
+            if coords:
+                latitude, longitude = coords
+                logger.info(f"✅ Geocoded to: {latitude}, {longitude}")
+            else:
+                # Fallback to Hyderabad if geocoding fails
+                logger.warning(f"⚠️  Could not geocode '{current_user.business_location}', using Hyderabad")
+                latitude, longitude = 17.3850, 78.4867
+        
+        # Final fallback if still no coordinates
+        if not latitude or not longitude:
+            logger.warning("⚠️  No location data, using Hyderabad as default")
+            latitude, longitude = 17.3850, 78.4867
+        
         business_profile = BusinessProfileResponse(
             business_name=current_user.business_name,
             business_type=current_user.business_type,
@@ -141,10 +165,13 @@ def get_business_profile(
             business_description=current_user.business_description,
             business_setup_completed=current_user.business_setup_completed or False,
             pdf_file_url=current_user.pdf_file_url,
-            website_url=current_user.website_url
+            website_url=current_user.website_url,
+            latitude=latitude,
+            longitude=longitude
         )
         
         logger.info(f"✅ Business profile retrieved for user: {current_user.email}")
+        logger.info(f"📍 Final coordinates: {latitude}, {longitude}")
         return business_profile
         
     except Exception as e:

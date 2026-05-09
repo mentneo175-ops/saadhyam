@@ -38,6 +38,20 @@ class Settings(BaseSettings):
     INSTAGRAM_REDIRECT_URI: str = "http://localhost:8000/auth/instagram/callback"
     INSTAGRAM_GRAPH_API_VERSION: str = "v19.0"
 
+    # WhatsApp API Configuration (Meta WhatsApp Cloud API)
+    META_APP_ID: str = ""
+    META_APP_SECRET: str = ""
+    WHATSAPP_CONFIG_ID: str = ""
+    WHATSAPP_API_VERSION: str = "v21.0"
+    WHATSAPP_VERIFY_TOKEN: str = "saadhyam_whatsapp_verify_token_2024"
+    WHATSAPP_REDIRECT_URI: str = "http://localhost:8000/api/whatsapp/callback"
+    
+    # Legacy WhatsApp fields (for backward compatibility)
+    WHATSAPP_APP_ID: str = ""
+    WHATSAPP_APP_SECRET: str = ""
+    WHATSAPP_TOKEN: str = ""
+    WHATSAPP_PHONE_ID: str = ""
+
     # Cloudinary Configuration
     CLOUDINARY_CLOUD_NAME: str = "di16qmtbf"
     CLOUDINARY_API_KEY: str = "679832578499241"

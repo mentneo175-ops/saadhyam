@@ -323,7 +323,7 @@ class ContentEditor {
     async loadContent() {
         try {
             this.updateStatus('Loading...');
-            const response = await fetch(`/api/v1/content/${this.websiteId}`);
+            const response = await fetch(`/website-ai/api/content/${this.websiteId}`);
 
             if (response.ok) {
                 const data = await response.json();
@@ -372,7 +372,7 @@ class ContentEditor {
             const fullHtml = document.documentElement.outerHTML;
             console.log('📄 HTML length:', fullHtml.length);
 
-            const url = `/api/v1/content/${this.websiteId}`;
+            const url = `/website-ai/api/content/${this.websiteId}`;
             console.log('🌐 Saving to:', url);
 
             const response = await fetch(url, {

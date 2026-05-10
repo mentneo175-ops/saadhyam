@@ -606,7 +606,6 @@
                     <li><a href="#services">Services</a></li>
                     <li><a href="#team">Team</a></li>
                     <li><a href="#pricing">Pricing</a></li>
-                    <li><a href="blogs.html">Blog</a></li>
                     <li><a href="#contact">Contact</a></li>
                 </ul>
             </nav>
@@ -823,7 +822,6 @@
                     <li><a href="#team">About Us</a></li>
                     <li><a href="#team">Team</a></li>
                     <li><a href="#pricing">Pricing</a></li>
-                    <li><a href="blogs.html">Blog</a></li>
                     <li><a href="#contact">Contact</a></li>
                 </ul>
             </div>
@@ -841,44 +839,6 @@
         </div>
     </footer>
     
-    <script>
-        async function loadBlogPosts() {
-            const container = document.getElementById('blog-posts-container');
-            try {
-                const response = await fetch('blogs.json');
-                if (!response.ok) throw new Error('No blogs found');
-                
-                const data = await response.json();
-                const blogs = data.blogs || [];
-                
-                if (blogs.length === 0) {
-                    container.innerHTML = '<p style="text-align: center; color: #94a3b8; font-size: 18px; padding: 40px;">No blog posts yet. Check back soon!</p>';
-                    return;
-                }
-                
-                const recentBlogs = blogs.slice(0, 3);
-                container.innerHTML = recentBlogs.map(blog => `
-                    <article class="card" onclick="window.location.href='blog-${blog.slug}.html'" style="cursor: pointer;">
-                        <div class="card-icon">${blog.title.charAt(0)}</div>
-                        <h3>${blog.title}</h3>
-                        <p>${blog.meta_description || blog.introduction.substring(0, 150) + '...'}</p>
-                        <div style="display: flex; justify-content: space-between; margin-top: 20px; font-size: 14px; color: #94a3b8;">
-                            <span>📅 ${new Date(blog.published_at).toLocaleDateString()}</span>
-                            <span>⏱️ ${blog.reading_time || 5} min read</span>
-                        </div>
-                    </article>
-                `).join('');
-            } catch (error) {
-                container.innerHTML = '<p style="text-align: center; color: #94a3b8; font-size: 18px; padding: 40px;">No blog posts yet. Check back soon!</p>';
-            }
-        }
-        
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', loadBlogPosts);
-        } else {
-            loadBlogPosts();
-        }
-    </script>
-</body>
+    </body>
 
 </html>

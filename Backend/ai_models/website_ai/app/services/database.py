@@ -158,6 +158,28 @@ def save_content(website_id: str, content: dict, theme: Optional[str] = None) ->
     }
 
     _save_db(db)
+    
+    # If full HTML was saved, write it back to the actual HTML file
+    if "html" in content:
+        # Find the website record to get the html_file path
+        website = None
+        for w in db.get("websites", []):
+            if w["id"] == website_id:
+                website = w
+                break
+        
+        if website and "html_file" in website:
+            # Get the output directory
+            output_dir = Path(__file__).parent.parent.parent / "output"
+            html_file_path = output_dir / website["html_file"]
+            
+            # Write the updated HTML to the file
+            try:
+                html_file_path.write_text(content["html"], encoding="utf-8")
+                print(f"✅ Updated HTML file: {html_file_path}")
+            except Exception as e:
+                print(f"❌ Failed to write HTML file: {e}")
+    
     return db["content"][website_id]
 
 

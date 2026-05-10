@@ -23,7 +23,7 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 router = APIRouter(
-    prefix="/website",
+    prefix="/saadhyam",
     tags=["Website Serving"]
 )
 
@@ -420,8 +420,8 @@ async def get_website_info(
                 "file_list": files
             },
             "urls": {
-                "website_url": f"/website/{website_id}",
-                "info_url": f"/website/{website_id}/info"
+                "website_url": f"/saadhyam/{website_id}",
+                "info_url": f"/saadhyam/{website_id}/info"
             }
         }
         

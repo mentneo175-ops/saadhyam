@@ -201,6 +201,76 @@ try:
 except Exception as e:
     logging.warning(f"Customer Retention Agent router not available: {e}")
     customer_retention_available = False
+    from routes.aeo_geo import router as aeo_geo_router
+    aeo_geo_available = True
+    logging.info("✅ AEO/GEO router imported successfully")
+except Exception as e:
+    logging.warning(f"AEO/GEO router not available: {e}")
+    aeo_geo_available = False
+
+try:
+    from routes.blog import router as blog_router
+    blog_available = True
+    logging.info("✅ Blog router imported successfully")
+except Exception as e:
+    logging.warning(f"Blog router not available: {e}")
+    blog_available = False
+
+try:
+    from routes.whatsapp_auth import router as whatsapp_auth_router
+    whatsapp_auth_available = True
+    logging.info("✅ WhatsApp Auth router imported successfully")
+except Exception as e:
+    logging.warning(f"WhatsApp Auth router not available: {e}")
+    whatsapp_auth_available = False
+
+try:
+    from routes.whatsapp_webhook import router as whatsapp_webhook_router
+    whatsapp_webhook_available = True
+    logging.info("✅ WhatsApp Webhook router imported successfully")
+except Exception as e:
+    logging.warning(f"WhatsApp Webhook router not available: {e}")
+    whatsapp_webhook_available = False
+
+try:
+    from routes.dashboard_analytics import router as dashboard_analytics_router
+    dashboard_analytics_available = True
+    logging.info("✅ Dashboard Analytics router imported successfully")
+except Exception as e:
+    logging.warning(f"Dashboard Analytics router not available: {e}")
+    dashboard_analytics_available = False
+
+try:
+    from routes.whatsapp_messages import router as whatsapp_messages_router
+    whatsapp_messages_available = True
+    logging.info("✅ WhatsApp Messages router imported successfully")
+except Exception as e:
+    logging.warning(f"WhatsApp Messages router not available: {e}")
+    whatsapp_messages_available = False
+
+try:
+    from routes.whatsapp_campaigns import router as whatsapp_campaigns_router
+    whatsapp_campaigns_available = True
+    logging.info("✅ WhatsApp Campaigns router imported successfully")
+except Exception as e:
+    logging.warning(f"WhatsApp Campaigns router not available: {e}")
+    whatsapp_campaigns_available = False
+
+try:
+    from routes.whatsapp_automation import router as whatsapp_automation_router
+    whatsapp_automation_available = True
+    logging.info("✅ WhatsApp Automation router imported successfully")
+except Exception as e:
+    logging.warning(f"WhatsApp Automation router not available: {e}")
+    whatsapp_automation_available = False
+
+try:
+    from routes.b2b_network import router as b2b_network_router
+    b2b_network_available = True
+    logging.info("✅ B2B Network router imported successfully")
+except Exception as e:
+    logging.warning(f"B2B Network router not available: {e}")
+    b2b_network_available = False
 
 try:
     from ai_models.website_ai.app.api.v1.routes import generation as website_ai_generation
@@ -260,7 +330,29 @@ async def lifespan(app: FastAPI):
         migrate_add_comprehensive_business_analysis()
         from migrations.fix_description_nullable import migrate_fix_description_nullable
         migrate_fix_description_nullable()
+        from migrations.add_aeo_geo_tables import migrate_add_aeo_geo_tables
+        migrate_add_aeo_geo_tables()
+        from migrations.add_blogs_table import migrate_add_blogs_table
+        migrate_add_blogs_table()
+        from migrations.add_website_id_to_user import run_migration as migrate_add_website_id
+        migrate_add_website_id()
+        from migrations.add_whatsapp_tables import migrate_add_whatsapp_tables
+        migrate_add_whatsapp_tables()
+        from migrations.add_location_coordinates import migrate_add_location_coordinates
+        migrate_add_location_coordinates()
+        from migrations.add_user_id_to_review_history import migrate_add_user_id_to_review_history
+        migrate_add_user_id_to_review_history()
         logger.info("✅ Migrations completed")
+        
+        # Start scheduler for processing scheduled Instagram posts
+        logger.info("🔄 Starting Instagram post scheduler...")
+        try:
+            from services.scheduler import start_scheduler
+            start_scheduler()
+            logger.info("✅ Instagram post scheduler started (checks every 1 minute)")
+        except Exception as e:
+            logger.error(f"❌ Failed to start scheduler: {e}")
+            logger.warning("⚠️  Scheduled posts will not be automatically processed")
         
         # NOTE: AI models configuration:
         # - Review Reply AI: TinyLlama loaded in main backend (port 8000)
@@ -305,6 +397,15 @@ async def lifespan(app: FastAPI):
     logger.info("=" * 60)
     
     try:
+        # Stop scheduler
+        logger.info("🔄 Stopping Instagram post scheduler...")
+        try:
+            from services.scheduler import stop_scheduler
+            stop_scheduler()
+            logger.info("✅ Scheduler stopped")
+        except Exception as e:
+            logger.error(f"❌ Error stopping scheduler: {e}")
+        
         # Close database
         logger.info("🔄 Closing database connections...")
         await close_db()
@@ -406,6 +507,33 @@ if partnership_agent_available:
 if customer_retention_available:
     app.include_router(customer_retention_router)
     logging.info("✅ Customer Retention Agent router included in app")
+if aeo_geo_available:
+    app.include_router(aeo_geo_router)
+    logging.info("✅ AEO/GEO router included in app")
+if blog_available:
+    app.include_router(blog_router)
+    logging.info("✅ Blog router included in app")
+if whatsapp_auth_available:
+    app.include_router(whatsapp_auth_router)
+    logging.info("✅ WhatsApp Auth router included in app")
+if whatsapp_webhook_available:
+    app.include_router(whatsapp_webhook_router)
+    logging.info("✅ WhatsApp Webhook router included in app")
+if whatsapp_messages_available:
+    app.include_router(whatsapp_messages_router)
+    logging.info("✅ WhatsApp Messages router included in app")
+if whatsapp_campaigns_available:
+    app.include_router(whatsapp_campaigns_router)
+    logging.info("✅ WhatsApp Campaigns router included in app")
+if whatsapp_automation_available:
+    app.include_router(whatsapp_automation_router)
+    logging.info("✅ WhatsApp Automation router included in app")
+if b2b_network_available:
+    app.include_router(b2b_network_router)
+    logging.info("✅ B2B Network router included in app")
+if dashboard_analytics_available:
+    app.include_router(dashboard_analytics_router)
+    logging.info("✅ Dashboard Analytics router included in app")
 if website_ai_available:
     app.include_router(
         website_ai_generation.router,
@@ -468,6 +596,20 @@ async def status():
             "Save user feedback"
         ]
     }
+
+
+@app.get("/api/routes", tags=["Health"])
+async def list_routes():
+    """List all registered routes for debugging"""
+    routes = []
+    for route in app.routes:
+        if hasattr(route, "methods") and hasattr(route, "path"):
+            routes.append({
+                "path": route.path,
+                "methods": list(route.methods),
+                "name": route.name
+            })
+    return {"routes": routes}
 
 
 # ============ Error Handlers ============

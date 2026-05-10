@@ -101,13 +101,24 @@ def process_scheduled_posts():
                 
                 logger.info(f"   Access token: {account.access_token[:20]}...")
                 
+                # Detect if media is video/reel or image based on URL
+                media_type = "IMAGE"
+                if post.image_url:
+                    url_lower = post.image_url.lower()
+                    if any(ext in url_lower for ext in ['.mp4', '.mov', '.avi', '/video/', 'resource_type/video']):
+                        media_type = "REELS"
+                        logger.info(f"   Media type: REELS (video detected)")
+                    else:
+                        logger.info(f"   Media type: IMAGE")
+                
                 # Post to Instagram
                 logger.info(f"📸 Calling Instagram Graph API...")
                 post_result = instagram_service.post_to_instagram_sync(
                     ig_user_id=account.ig_user_id,
                     image_url=post.image_url,
                     caption=post.caption or "",
-                    access_token=account.access_token
+                    access_token=account.access_token,
+                    media_type=media_type
                 )
                 
                 logger.info(f"📥 Instagram API response: {post_result}")

@@ -99,6 +99,8 @@ alembic==1.13.2
 groq==0.11.0
 openai==1.101.0
 google-generativeai==0.8.6
+tavily-python==0.5.0
+pinecone-client==5.0.1
 
 # ============================================
 # Image Processing
@@ -122,7 +124,8 @@ numpy==1.26.4
 # ============================================
 # Web Scraping & Parsing
 # ============================================
-beautifulsoup4==4.12.3
+beautifulsoup4==4.14.3
+soupsieve==2.8.3
 lxml==5.3.0
 playwright==1.48.0
 readability-lxml==0.8.1

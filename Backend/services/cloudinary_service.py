@@ -32,6 +32,70 @@ class CloudinaryService:
                 secure=True
             )
 
+    async def upload_video(
+        self,
+        file_data: bytes,
+        filename: str,
+        folder: str = "instagram_posts",
+        user_id: Optional[int] = None
+    ) -> Dict[str, Any]:
+        """
+        Upload video to Cloudinary.
+        
+        Args:
+            file_data: Video file bytes
+            filename: Original filename
+            folder: Cloudinary folder to store video
+            user_id: User ID for organizing uploads
+            
+        Returns:
+            Dict with upload result including public_id and secure_url
+        """
+        if not CLOUDINARY_AVAILABLE:
+            return {
+                "success": False,
+                "error": "Cloudinary package not installed. Please install with: pip install cloudinary==1.36.0"
+            }
+            
+        try:
+            # Create unique public_id
+            public_id = f"{folder}/{user_id or 'anonymous'}/{filename.split('.')[0]}"
+            
+            # Upload to Cloudinary
+            result = cloudinary.uploader.upload(
+                file_data,
+                public_id=public_id,
+                folder=folder,
+                resource_type="video",
+                format="mp4",  # Convert to MP4 for Instagram compatibility
+                quality="auto:good",  # Optimize quality
+                transformation=[
+                    {"width": 1080, "crop": "limit"},  # Limit width to 1080px
+                    {"quality": "auto:good"}
+                ]
+            )
+            
+            logger.info(f"Successfully uploaded video: {result['public_id']}")
+            
+            return {
+                "success": True,
+                "public_id": result["public_id"],
+                "secure_url": result["secure_url"],
+                "url": result["url"],
+                "width": result.get("width"),
+                "height": result.get("height"),
+                "format": result["format"],
+                "bytes": result["bytes"],
+                "duration": result.get("duration")  # Video duration in seconds
+            }
+            
+        except Exception as e:
+            logger.error(f"Error uploading video to Cloudinary: {e}")
+            return {
+                "success": False,
+                "error": str(e)
+            }
+
     async def upload_image(
         self,
         file_data: bytes,

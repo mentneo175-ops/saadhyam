@@ -1,467 +1,622 @@
 """
-Auto Blogger Service - Generate and publish blogs automatically
-Uses Groq API for content generation
+Auto Blogger Service
+Generates SEO-optimized blog posts based on business details and web search
+Publishes to customer website automatically
+Uses multiple API keys with automatic fallback
 """
 
 import logging
-import httpx
-from datetime import datetime
-from typing import Dict, Any
-
+import json
+import os
+from typing import Dict, Any, Optional
+from datetime import datetime, timedelta
+import pytz
+import google.generativeai as genai
 from config.settings import settings
+from services.rate_limiter import gemini_rate_limiter
+from services.business_pinecone_service import get_business_context_from_pinecone, store_web_fetched_data_in_pinecone
 
 logger = logging.getLogger(__name__)
 
-GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
-GROQ_MODEL = "llama-3.1-70b-versatile"
-GROQ_TIMEOUT = 30.0
+# Multiple Gemini API Keys for fallback - Read from environment variables
+GEMINI_API_KEYS = []
+
+# Try to get API keys from environment variables
+gemini_key_1 = os.getenv("GEMINI_API_KEY")
+gemini_key_2 = os.getenv("GEMINI_API_KEY_2")
+gemini_key_3 = os.getenv("GEMINI_API_KEY_3")
+
+# Add keys to list if they exist
+if gemini_key_1:
+    GEMINI_API_KEYS.append(gemini_key_1)
+if gemini_key_2:
+    GEMINI_API_KEYS.append(gemini_key_2)
+if gemini_key_3:
+    GEMINI_API_KEYS.append(gemini_key_3)
+
+# Fallback to hardcoded keys if no env vars found (for backward compatibility)
+if not GEMINI_API_KEYS:
+    logger.warning("[AutoBlogger] No GEMINI_API_KEY found in environment variables, using fallback keys")
+    GEMINI_API_KEYS = [
+        "AIzaSyCcyGPNjLNBrjylqIOlaoU8Oa2RVM2zoC0",  # Primary key (likely exhausted)
+        "AIzaSyCFxC-0DBXbdCZyNnVYAk3A9pAh0H5hI7w",  # Secondary key (likely exhausted)
+    ]
+
+logger.info(f"[AutoBlogger] Loaded {len(GEMINI_API_KEYS)} API key(s) for fallback")
+
+# Track which key index to use
+current_key_index = 0
 
 
-async def generate_blog_content(topic: str, business_context: str = None, user_id: str = None) -> Dict[str, Any]:
+def get_next_api_key():
+    """Get next available API key"""
+    global current_key_index
+    if current_key_index >= len(GEMINI_API_KEYS):
+        current_key_index = 0  # Reset to first key
+    key = GEMINI_API_KEYS[current_key_index]
+    logger.info(f"[AutoBlogger] Using API key #{current_key_index + 1}")
+    return key
+
+
+def switch_to_next_key():
+    """Switch to next API key"""
+    global current_key_index
+    current_key_index += 1
+    if current_key_index < len(GEMINI_API_KEYS):
+        key = GEMINI_API_KEYS[current_key_index]
+        genai.configure(api_key=key)
+        logger.info(f"[AutoBlogger] Switched to API key #{current_key_index + 1}")
+        return True
+    return False
+
+
+# Configure with first API key
+genai.configure(api_key=GEMINI_API_KEYS[0])
+
+
+async def generate_blog_post(
+    user_id: int,
+    business_name: str,
+    business_type: str,
+    location: str,
+    topic: Optional[str] = None,
+    keywords: Optional[list] = None
+) -> Dict[str, Any]:
     """
-    Generate complete blog content using Groq API
+    Generate SEO-optimized blog post using business details + web search + Pinecone context
     
     Args:
-        topic: Blog topic or title
-        business_context: Optional business context for personalization
-        user_id: User ID for fetching business context
-        
+        user_id: User ID
+        business_name: Business name
+        business_type: Business type
+        location: Business location
+        topic: Optional specific topic for blog
+        keywords: Optional SEO keywords to include
+    
     Returns:
-        Dict with title, content, excerpt, tags, meta_description
+        Dict with generated blog post
     """
     
-    api_key = settings.GROQ_API_KEY
-    if not api_key:
-        raise ValueError("GROQ_API_KEY not configured")
-    
-    # If user_id provided and no business_context, try to fetch from database
-    if user_id and not business_context:
-        try:
-            from services.firebase_service import get_user_profile
-            profile = await get_user_profile(user_id)
-            if profile and profile.get("business_profile"):
-                bp = profile["business_profile"]
-                business_context = f"{bp.get('business_name', '')} - {bp.get('business_type', '')}: {bp.get('business_description', '')}"
-        except Exception as e:
-            logger.warning(f"Could not fetch business context: {e}")
-    
-    system_prompt = """You are an expert blog writer and content strategist.
-    
-Your task is to create high-quality, SEO-optimized blog posts that are:
-- Engaging and informative
-- Well-structured with clear sections
-- Optimized for search engines
-- Professional yet conversational
-- Include actionable insights
-
-Format your response as JSON with these fields:
-{
-  "title": "Catchy, SEO-friendly title (60-70 characters)",
-  "excerpt": "Compelling summary (150-160 characters)",
-  "content": "Full blog post in HTML format with <h2>, <h3>, <p>, <ul>, <li> tags",
-  "tags": ["tag1", "tag2", "tag3", "tag4", "tag5"],
-  "meta_description": "SEO meta description (150-160 characters)",
-  "reading_time": "Estimated reading time in minutes"
-}
-
-IMPORTANT:
-- Use proper HTML formatting in content
-- Include at least 3 main sections with <h2> headings
-- Add bullet points where appropriate
-- Make it at least 800-1000 words
-- Include a conclusion section
-- Add relevant internal linking suggestions"""
-
-    user_prompt = f"""Generate a comprehensive blog post about: {topic}
-
-{f"Business Context: {business_context}" if business_context else ""}
-
-Create an engaging, informative blog post that provides real value to readers.
-Include practical tips, examples, and actionable advice.
-
-Return ONLY valid JSON, no additional text."""
-
-    payload = {
-        "model": GROQ_MODEL,
-        "messages": [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_prompt}
-        ],
-        "temperature": 0.7,
-        "max_tokens": 4000,
-    }
-
-    headers = {
-        "Authorization": f"Bearer {api_key}",
-        "Content-Type": "application/json",
-    }
-
     try:
-        timeout = httpx.Timeout(GROQ_TIMEOUT)
-        async with httpx.AsyncClient(timeout=timeout) as client:
-            response = await client.post(GROQ_API_URL, json=payload, headers=headers)
-            response.raise_for_status()
+        logger.info(f"[AutoBlogger] Generating blog post for {business_name}")
+        
+        # Check if we have API keys configured
+        if not GEMINI_API_KEYS or not GEMINI_API_KEYS[0]:
+            return {
+                "status": "error",
+                "message": "Gemini API not configured. Cannot generate blog post."
+            }
+        
+        # 1. Get business context from Pinecone
+        query = topic if topic else f"{business_type} in {location} blog topics"
+        business_context = await get_business_context_from_pinecone(user_id, query, top_k=5)
+        
+        # Format business context
+        context_text = ""
+        if business_context:
+            context_text = "Business Insights:\n"
+            for ctx in business_context:
+                context_text += f"- {ctx['text']}\n"
+        
+        # 2. Perform web search for real-time data
+        from services.web_search_service import web_search_service
+        
+        search_query = topic if topic else f"Latest trends and tips for {business_type} in {location}"
+        search_results = await web_search_service.search(search_query, max_results=5)
+        
+        # Format search results for prompt
+        web_research = ""
+        if search_results.get('results'):
+            web_research = web_search_service.format_search_results_for_prompt(search_results)
+            logger.info(f"[AutoBlogger] ✅ Web search via {search_results['provider']} returned {len(search_results['results'])} results")
+        else:
+            web_research = "No web search results available. Will use Google Search Grounding instead."
+            logger.info("[AutoBlogger] ⚠️ No web search results, will use Google Grounding")
+        
+        # 3. Build comprehensive prompt for Gemini
+        prompt = f"""You are an expert content writer and SEO specialist.
 
-        data = response.json()
-        content = data.get("choices", [{}])[0].get("message", {}).get("content", "").strip()
+Generate a comprehensive, SEO-optimized blog post for this business:
+
+**Business Details:**
+- Business Name: {business_name}
+- Business Type: {business_type}
+- Location: {location}
+- Topic: {topic if topic else f"Best practices and tips for {business_type}"}
+- SEO Keywords: {', '.join(keywords) if keywords else f"{business_type}, {location}, local business"}
+
+**Business Context from Analysis:**
+{context_text if context_text else "No additional context available"}
+
+**Web Research Results:**
+{web_research}
+
+**Your Task:**
+Based on the web research above and your knowledge, create a blog post that:
+1. Incorporates insights from the web research
+2. Addresses latest trends in {business_type} industry
+3. Provides solutions to customer pain points
+4. Includes local market insights for {location}
+5. Answers popular questions people ask about {business_type}
+
+Generate a blog post in this EXACT JSON format:
+
+{{
+  "title": "Compelling, SEO-optimized title (60-70 characters)",
+  "meta_description": "Engaging meta description (150-160 characters)",
+  "slug": "url-friendly-slug",
+  "featured_image_prompt": "Detailed prompt for AI image generation",
+  "introduction": "Engaging 2-3 paragraph introduction that hooks the reader",
+  "main_content": [
+    {{
+      "heading": "H2 heading",
+      "content": "2-3 paragraphs of valuable content",
+      "subheadings": [
+        {{
+          "heading": "H3 subheading",
+          "content": "1-2 paragraphs"
+        }}
+      ]
+    }}
+  ],
+  "conclusion": "Strong conclusion with call-to-action",
+  "seo_keywords": ["keyword1", "keyword2", "keyword3", "keyword4", "keyword5"],
+  "tags": ["tag1", "tag2", "tag3", "tag4", "tag5"],
+  "category": "Main category",
+  "reading_time": 5,
+  "word_count": 1500,
+  "faq": [
+    {{
+      "question": "Common question 1",
+      "answer": "Detailed answer"
+    }},
+    {{
+      "question": "Common question 2",
+      "answer": "Detailed answer"
+    }}
+  ],
+  "internal_links": [
+    {{
+      "anchor_text": "Link text",
+      "url": "/related-page",
+      "context": "Where to place this link"
+    }}
+  ],
+  "cta": {{
+    "text": "Call-to-action text",
+    "button_text": "Button text",
+    "link": "/contact"
+  }}
+}}
+
+**CRITICAL REQUIREMENTS:**
+1. Use REAL data from the web research provided above
+2. Be specific to {location} and {business_type}
+3. Include actual industry trends and insights from the research
+4. Write in engaging, conversational tone
+5. Optimize for SEO (keywords, headings, meta)
+6. Include actionable tips and advice
+7. Add FAQ section for voice search optimization
+8. Suggest internal links for better SEO
+9. Return ONLY valid JSON, no markdown formatting
+10. Minimum 1500 words of high-quality content
+
+Generate the blog post now:"""
+
+        # Apply rate limiting (5 requests per minute per API key)
+        # If you're hitting rate limits frequently, add more API keys to .env:
+        # GEMINI_API_KEY_2=your_second_key_here
+        # GEMINI_API_KEY_3=your_third_key_here
+        # This will give you 15 requests/minute instead of 5
+        await gemini_rate_limiter.acquire()
+        
+        remaining = gemini_rate_limiter.get_remaining_requests()
+        logger.info(f"[AutoBlogger] 🔒 Rate limit check passed. Remaining requests: {remaining}/5")
+        
+        # Decide whether to use Google Grounding based on web search results
+        use_grounding = not search_results.get('results')  # Use grounding only if no web search results
+        
+        # Try with current API key and models
+        content_text = None
+        models_to_try = [
+            'models/gemini-2.5-flash',
+            'models/gemini-2.0-flash',
+            'models/gemini-flash-latest'
+        ]
+        
+        for key_attempt in range(len(GEMINI_API_KEYS)):
+            for model_name in models_to_try:
+                try:
+                    logger.info(f"[AutoBlogger] Trying {model_name} with API key #{current_key_index + 1}")
+                    
+                    model = genai.GenerativeModel(
+                        model_name,
+                        generation_config={
+                            "temperature": 0.8,
+                            "top_p": 0.95,
+                            "top_k": 40,
+                            "max_output_tokens": 8192,
+                        }
+                    )
+                    
+                    # Use Google Search grounding only if no web search results
+                    if use_grounding:
+                        logger.info(f"[AutoBlogger] Using Google Search grounding as fallback")
+                        response = model.generate_content(
+                            prompt,
+                            tools='google_search_retrieval'
+                        )
+                    else:
+                        logger.info(f"[AutoBlogger] Using web search results (no grounding needed)")
+                        response = model.generate_content(prompt)
+                    
+                    content_text = response.text
+                    logger.info(f"[AutoBlogger] ✅ Successfully used {model_name} with API key #{current_key_index + 1}")
+                    break
+                    
+                except Exception as e:
+                    error_msg = str(e)
+                    logger.warning(f"[AutoBlogger] {model_name} failed: {error_msg[:150]}")
+                    
+                    # Check if it's a quota error
+                    if "quota" in error_msg.lower() or "429" in error_msg:
+                        logger.info(f"[AutoBlogger] Quota exceeded for API key #{current_key_index + 1}")
+                        continue  # Try next model with same key
+                    else:
+                        continue  # Try next model
+            
+            # If we got content, break out of key loop
+            if content_text:
+                break
+            
+            # Try switching to next API key
+            if key_attempt < len(GEMINI_API_KEYS) - 1:
+                if switch_to_next_key():
+                    logger.info(f"[AutoBlogger] Switched to next API key, retrying...")
+                    await gemini_rate_limiter.acquire()  # Rate limit for new key
+                else:
+                    break
+        
+        # If still no content, all keys exhausted
+        if not content_text:
+            # Calculate time until quota reset
+            pt = pytz.timezone('America/Los_Angeles')
+            now_pt = datetime.now(pt)
+            midnight_pt = now_pt.replace(hour=23, minute=59, second=59) + timedelta(seconds=1)
+            time_until_reset = midnight_pt - now_pt
+            hours = int(time_until_reset.total_seconds() // 3600)
+            minutes = int((time_until_reset.total_seconds() % 3600) // 60)
+            
+            return {
+                "status": "error",
+                "message": f"All API keys exhausted. Free tier: 20 requests/day per key. Quota resets in ~{hours}h {minutes}m (midnight PT). Please try again later or upgrade at: https://ai.google.dev/pricing"
+            }
         
         # Parse JSON response
-        import json
-        blog_data = json.loads(content)
+        content_text = content_text.strip()
+        if content_text.startswith('```json'):
+            content_text = content_text[7:]
+        if content_text.startswith('```'):
+            content_text = content_text[3:]
+        if content_text.endswith('```'):
+            content_text = content_text[:-3]
+        content_text = content_text.strip()
         
-        # Add metadata
-        blog_data["generated_at"] = datetime.utcnow().isoformat()
-        blog_data["status"] = "draft"
+        blog_data = json.loads(content_text)
         
-        logger.info(f"✅ Blog generated successfully: {blog_data.get('title')}")
-        return blog_data
+        # Store blog content in Pinecone for future reference
+        blog_text = f"{blog_data['title']}. {blog_data['introduction']}"
+        await store_web_fetched_data_in_pinecone(
+            user_id=user_id,
+            query=topic if topic else f"{business_type} blog",
+            web_data=blog_text,
+            source="auto_blogger"
+        )
+        
+        logger.info(f"[AutoBlogger] ✅ Blog post generated successfully")
+        logger.info(f"[AutoBlogger] Title: {blog_data['title']}")
+        logger.info(f"[AutoBlogger] Word count: {blog_data.get('word_count', 'N/A')}")
+        
+        return {
+            "status": "success",
+            "blog_post": blog_data,
+            "generated_at": datetime.utcnow().isoformat(),
+            "source": "gemini_search_grounding"
+        }
         
     except json.JSONDecodeError as e:
-        logger.error(f"Failed to parse blog JSON: {e}")
-        # Fallback: create structured response from raw content
+        logger.error(f"[AutoBlogger] ❌ Failed to parse Gemini response as JSON: {e}")
         return {
-            "title": topic,
-            "excerpt": f"A comprehensive guide about {topic}",
-            "content": f"<p>{content}</p>",
-            "tags": ["blog", "article"],
-            "meta_description": f"Learn about {topic}",
-            "reading_time": "5",
-            "generated_at": datetime.utcnow().isoformat(),
-            "status": "draft"
+            "status": "error",
+            "message": "Failed to parse blog post. Please try again."
         }
     except Exception as e:
-        logger.error(f"Error generating blog: {e}")
-        raise
+        logger.error(f"[AutoBlogger] ❌ Error generating blog post: {e}", exc_info=True)
+        return {
+            "status": "error",
+            "message": f"Failed to generate blog post: {str(e)}"
+        }
 
 
-async def generate_blog_ideas(business_type: str = None, count: int = 5) -> list:
+async def publish_blog_to_website(
+    user_id: int,
+    blog_post: Dict[str, Any],
+    business_name: str
+) -> Dict[str, Any]:
     """
-    Generate blog topic ideas based on business type
+    Publish blog post to customer website
     
     Args:
-        business_type: Type of business (optional)
-        count: Number of ideas to generate
-        
+        user_id: User ID
+        blog_post: Generated blog post data
+        business_name: Business name for website identification
+    
     Returns:
-        List of blog topic ideas
+        Dict with publish status
     """
     
-    api_key = settings.GROQ_API_KEY
-    if not api_key:
-        raise ValueError("GROQ_API_KEY not configured")
-    
-    system_prompt = """You are a content strategist specializing in blog topic ideation.
-Generate engaging, SEO-friendly blog topics that will attract readers and drive traffic."""
-
-    user_prompt = f"""Generate {count} blog topic ideas{f" for a {business_type} business" if business_type else ""}.
-
-Requirements:
-- Topics should be specific and actionable
-- Include a mix of how-to, listicles, and thought leadership
-- Focus on topics that solve real problems
-- Make them SEO-friendly
-
-Return as a JSON array of strings:
-["Topic 1", "Topic 2", "Topic 3", ...]"""
-
-    payload = {
-        "model": GROQ_MODEL,
-        "messages": [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_prompt}
-        ],
-        "temperature": 0.8,
-        "max_tokens": 500,
-    }
-
-    headers = {
-        "Authorization": f"Bearer {api_key}",
-        "Content-Type": "application/json",
-    }
-
     try:
-        timeout = httpx.Timeout(GROQ_TIMEOUT)
-        async with httpx.AsyncClient(timeout=timeout) as client:
-            response = await client.post(GROQ_API_URL, json=payload, headers=headers)
-            response.raise_for_status()
-
-        data = response.json()
-        content = data.get("choices", [{}])[0].get("message", {}).get("content", "").strip()
+        logger.info(f"[AutoBlogger] Publishing blog to website for user {user_id}")
         
-        # Parse JSON response
+        from pathlib import Path
+        from jinja2 import Environment, FileSystemLoader
         import json
-        ideas = json.loads(content)
         
-        logger.info(f"✅ Generated {len(ideas)} blog ideas")
-        return ideas
+        # Define paths
+        website_output_dir = Path("ai_models/website_ai/output")
+        website_output_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Create blog post HTML file
+        template_dir = Path("ai_models/website_ai/app/templates")
+        env = Environment(loader=FileSystemLoader(str(template_dir)))
+        template = env.get_template("blog-post.html")
+        
+        # Format main content as HTML
+        main_content_html = ""
+        for section in blog_post.get("main_content", []):
+            main_content_html += f"<h2>{section['heading']}</h2>\n"
+            main_content_html += f"<p>{section['content']}</p>\n"
+            
+            for subsection in section.get("subheadings", []):
+                main_content_html += f"<h3>{subsection['heading']}</h3>\n"
+                main_content_html += f"<p>{subsection['content']}</p>\n"
+        
+        # Render blog post HTML
+        blog_html = template.render(
+            title=blog_post["title"],
+            meta_description=blog_post["meta_description"],
+            keywords=", ".join(blog_post.get("seo_keywords", [])),
+            business_name=business_name,
+            category=blog_post.get("category", "Blog"),
+            published_date=blog_post.get("published_at", datetime.utcnow().strftime("%B %d, %Y")),
+            reading_time=blog_post.get("reading_time", 5),
+            introduction=blog_post["introduction"],
+            main_content=main_content_html,
+            conclusion=blog_post["conclusion"],
+            faq=blog_post.get("faq", []),
+            cta=blog_post.get("cta"),
+            tags=blog_post.get("tags", [])
+        )
+        
+        # Save blog post HTML
+        blog_filename = f"blog-{blog_post['slug']}.html"
+        blog_path = website_output_dir / blog_filename
+        with open(blog_path, "w", encoding="utf-8") as f:
+            f.write(blog_html)
+        
+        logger.info(f"[AutoBlogger] ✅ Blog post HTML created: {blog_filename}")
+        
+        # Update or create blogs.json file
+        blogs_json_path = website_output_dir / "blogs.json"
+        
+        # Load existing blogs
+        existing_blogs = []
+        if blogs_json_path.exists():
+            try:
+                with open(blogs_json_path, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                    existing_blogs = data.get("blogs", [])
+            except Exception as e:
+                logger.warning(f"[AutoBlogger] Could not load existing blogs.json: {e}")
+        
+        # Add new blog to list (or update if exists)
+        blog_entry = {
+            "id": blog_post.get("id"),
+            "title": blog_post["title"],
+            "slug": blog_post["slug"],
+            "meta_description": blog_post["meta_description"],
+            "category": blog_post.get("category", "Blog"),
+            "introduction": blog_post["introduction"],
+            "reading_time": blog_post.get("reading_time", 5),
+            "published_at": blog_post.get("published_at", datetime.utcnow().isoformat()),
+            "tags": blog_post.get("tags", []),
+            "url": blog_filename
+        }
+        
+        # Check if blog already exists (update) or add new
+        existing_index = next((i for i, b in enumerate(existing_blogs) if b.get("slug") == blog_post["slug"]), None)
+        if existing_index is not None:
+            existing_blogs[existing_index] = blog_entry
+            logger.info(f"[AutoBlogger] Updated existing blog in blogs.json")
+        else:
+            existing_blogs.insert(0, blog_entry)  # Add to beginning (most recent first)
+            logger.info(f"[AutoBlogger] Added new blog to blogs.json")
+        
+        # Save updated blogs.json
+        with open(blogs_json_path, "w", encoding="utf-8") as f:
+            json.dump({"blogs": existing_blogs}, f, indent=2)
+        
+        logger.info(f"[AutoBlogger] ✅ blogs.json updated")
+        
+        # Create/update blogs listing page
+        blogs_page_template = env.get_template("blogs-page.html")
+        blogs_page_html = blogs_page_template.render(business_name=business_name)
+        
+        blogs_page_path = website_output_dir / "blogs.html"
+        with open(blogs_page_path, "w", encoding="utf-8") as f:
+            f.write(blogs_page_html)
+        
+        logger.info(f"[AutoBlogger] ✅ blogs.html page created/updated")
+        
+        # Integrate blog into user's confirmed website (if they have one)
+        from services.website_blog_integrator import integrate_blog_into_website
+        from config.database import get_sync_db
+        from ai_models.website_ai.app.db.session import get_db as get_website_db
+        
+        # Get both database sessions
+        user_db = next(get_sync_db())
+        website_db = next(get_website_db())
+        
+        try:
+            # Check if user has a confirmed website
+            from models.user import User
+            user = user_db.query(User).filter(User.id == user_id).first()
+            confirmed_website_id = user.last_generated_website_id if user else None
+            
+            if confirmed_website_id:
+                logger.info(f"[AutoBlogger] User has confirmed website {confirmed_website_id}, integrating blog...")
+                
+                # Integrate blog into website
+                integration_result = await integrate_blog_into_website(
+                    user_id=user_id,
+                    website_id=confirmed_website_id,
+                    blog_post=blog_post,
+                    db=website_db
+                )
+                
+                if integration_result['status'] == 'success':
+                    logger.info(f"[AutoBlogger] ✅ Blog integrated into confirmed website")
+                else:
+                    logger.warning(f"[AutoBlogger] ⚠️ Blog integration failed: {integration_result.get('message')}")
+            else:
+                logger.info(f"[AutoBlogger] User has no confirmed website, skipping integration")
+        except Exception as e:
+            logger.error(f"[AutoBlogger] ❌ Error during blog integration: {e}", exc_info=True)
+        finally:
+            user_db.close()
+            website_db.close()
+        
+        return {
+            "status": "success",
+            "message": "Blog post published to website successfully",
+            "blog_url": f"/website-ai/output/{blog_filename}",
+            "blogs_page_url": f"/website-ai/output/blogs.html",
+            "files_created": [blog_filename, "blogs.json", "blogs.html"],
+            "integrated_into_website": confirmed_website_id is not None
+        }
         
     except Exception as e:
-        logger.error(f"Error generating blog ideas: {e}")
-        # Fallback ideas
-        return [
-            "10 Tips to Grow Your Business in 2024",
-            "How to Improve Customer Engagement",
-            "The Ultimate Guide to Social Media Marketing",
-            "5 Common Business Mistakes to Avoid",
-            "Building a Strong Brand Identity"
-        ]
+        logger.error(f"[AutoBlogger] ❌ Error publishing blog: {e}", exc_info=True)
+        return {
+            "status": "error",
+            "message": f"Failed to publish blog: {str(e)}"
+        }
 
 
-def format_blog_for_website(blog_data: Dict[str, Any]) -> str:
+def format_blog_content_html(blog_post: Dict[str, Any]) -> str:
     """
-    Format blog data into HTML section for website integration
+    Format blog post content as HTML
     
     Args:
-        blog_data: Blog data dictionary
-        
+        blog_post: Blog post data
+    
     Returns:
-        HTML blog section (not a complete page)
+        HTML formatted content
     """
     
     html = f"""
-<article class="blog-post" id="blog-{blog_data.get('id', '')}">
-    <header class="blog-header">
-        <h1 class="blog-title">{blog_data.get('title', 'Untitled')}</h1>
-        <div class="blog-meta">
-            <span class="reading-time">📖 {blog_data.get('reading_time', '5')} min read</span>
-            <span class="separator"> • </span>
-            <span class="publish-date">📅 {datetime.fromisoformat(blog_data.get('generated_at', datetime.utcnow().isoformat())).strftime('%B %d, %Y')}</span>
-        </div>
-        <p class="blog-excerpt">{blog_data.get('excerpt', '')}</p>
+<article class="blog-post">
+    <header>
+        <h1>{blog_post['title']}</h1>
+        <p class="meta-description">{blog_post['meta_description']}</p>
+        <p class="reading-time">Reading time: {blog_post.get('reading_time', 5)} minutes</p>
     </header>
     
-    <div class="blog-content">
-        {blog_data.get('content', '')}
-    </div>
+    <section class="introduction">
+        {blog_post['introduction']}
+    </section>
     
-    <footer class="blog-footer">
-        <div class="blog-tags">
-            <strong>Tags:</strong>
-            {' '.join([f'<span class="tag">{tag}</span>' for tag in blog_data.get('tags', [])])}
+    <main class="main-content">
+"""
+    
+    # Add main content sections
+    for section in blog_post.get('main_content', []):
+        html += f"""
+        <section>
+            <h2>{section['heading']}</h2>
+            <p>{section['content']}</p>
+"""
+        
+        # Add subheadings
+        for subsection in section.get('subheadings', []):
+            html += f"""
+            <h3>{subsection['heading']}</h3>
+            <p>{subsection['content']}</p>
+"""
+        
+        html += """
+        </section>
+"""
+    
+    html += """
+    </main>
+    
+    <section class="conclusion">
+"""
+    html += f"        {blog_post['conclusion']}\n"
+    html += """
+    </section>
+"""
+    
+    # Add FAQ section
+    if blog_post.get('faq'):
+        html += """
+    <section class="faq">
+        <h2>Frequently Asked Questions</h2>
+"""
+        for faq in blog_post['faq']:
+            html += f"""
+        <div class="faq-item">
+            <h3>{faq['question']}</h3>
+            <p>{faq['answer']}</p>
         </div>
-    </footer>
+"""
+        html += """
+    </section>
+"""
+    
+    # Add CTA
+    if blog_post.get('cta'):
+        cta = blog_post['cta']
+        html += f"""
+    <section class="cta">
+        <p>{cta['text']}</p>
+        <a href="{cta['link']}" class="cta-button">{cta['button_text']}</a>
+    </section>
+"""
+    
+    html += """
 </article>
-
-<style>
-.blog-post {{
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 40px 20px;
-}}
-
-.blog-header {{
-    margin-bottom: 40px;
-    border-bottom: 2px solid #e5e7eb;
-    padding-bottom: 20px;
-}}
-
-.blog-title {{
-    font-size: 2.5em;
-    font-weight: 700;
-    margin-bottom: 15px;
-    color: #1a1a1a;
-    line-height: 1.2;
-}}
-
-.blog-meta {{
-    color: #6b7280;
-    font-size: 0.95em;
-    margin-bottom: 15px;
-}}
-
-.blog-excerpt {{
-    font-size: 1.15em;
-    color: #4b5563;
-    font-style: italic;
-    margin-top: 15px;
-}}
-
-.blog-content {{
-    font-size: 1.05em;
-    line-height: 1.8;
-    color: #374151;
-}}
-
-.blog-content h2 {{
-    font-size: 1.8em;
-    margin-top: 40px;
-    margin-bottom: 15px;
-    color: #1f2937;
-    font-weight: 600;
-}}
-
-.blog-content h3 {{
-    font-size: 1.4em;
-    margin-top: 30px;
-    margin-bottom: 12px;
-    color: #374151;
-    font-weight: 600;
-}}
-
-.blog-content p {{
-    margin-bottom: 20px;
-}}
-
-.blog-content ul, .blog-content ol {{
-    margin-bottom: 20px;
-    padding-left: 30px;
-}}
-
-.blog-content li {{
-    margin-bottom: 10px;
-}}
-
-.blog-footer {{
-    margin-top: 50px;
-    padding-top: 30px;
-    border-top: 1px solid #e5e7eb;
-}}
-
-.blog-tags {{
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    align-items: center;
-}}
-
-.blog-tags strong {{
-    color: #374151;
-    margin-right: 5px;
-}}
-
-.tag {{
-    display: inline-block;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    padding: 6px 14px;
-    border-radius: 20px;
-    font-size: 0.85em;
-    font-weight: 500;
-}}
-</style>
 """
     
     return html
-
-
-async def integrate_blog_with_website(blog_id: str, user_id: str) -> Dict[str, Any]:
-    """
-    Integrate a blog post into the user's existing website
-    
-    Args:
-        blog_id: Blog ID to integrate
-        user_id: User ID who owns the blog
-        
-    Returns:
-        Dict with success status and updated website info
-    """
-    from pathlib import Path
-    import json
-    
-    # Load blog data
-    blogs_dir = Path("Backend/blogs")
-    blog_file = blogs_dir / f"{blog_id}.json"
-    
-    if not blog_file.exists():
-        raise ValueError(f"Blog {blog_id} not found")
-    
-    with open(blog_file, 'r', encoding='utf-8') as f:
-        blog_data = json.load(f)
-    
-    # Find user's latest website
-    websites_db = Path("Backend/ai_models/website_ai/data/websites.json")
-    if not websites_db.exists():
-        raise ValueError("No websites found. Please generate a website first.")
-    
-    with open(websites_db, 'r', encoding='utf-8') as f:
-        websites_data = json.load(f)
-    
-    # Find the user's most recent website (you'll need to add user_id tracking to websites)
-    # For now, we'll use the most recent website
-    if not websites_data.get("websites"):
-        raise ValueError("No websites found. Please generate a website first.")
-    
-    # Get the most recent website
-    latest_website = max(websites_data["websites"], key=lambda w: w.get("created_at", ""))
-    website_id = latest_website["id"]
-    
-    # Load the website HTML
-    from ai_models.website_ai.app.core.services.storage_service import StorageService
-    storage = StorageService()
-    website_dir = storage.get_website_directory(website_id)
-    html_file = website_dir / "index.html"
-    
-    if not html_file.exists():
-        raise ValueError(f"Website HTML not found for {website_id}")
-    
-    with open(html_file, 'r', encoding='utf-8') as f:
-        website_html = f.read()
-    
-    # Format blog content
-    blog_html = format_blog_for_website(blog_data)
-    
-    # Create or update blog section in website
-    # Look for existing blog section or add before footer
-    if '<section id="blog"' in website_html or '<div id="blog"' in website_html:
-        # Blog section exists, append to it
-        import re
-        # Find the blog section and append the new blog
-        blog_section_pattern = r'(<(?:section|div)[^>]*id="blog"[^>]*>)(.*?)(</(?:section|div)>)'
-        match = re.search(blog_section_pattern, website_html, re.DOTALL)
-        
-        if match:
-            section_start, section_content, section_end = match.groups()
-            # Add new blog to the section
-            new_section = f"{section_start}{section_content}\n{blog_html}\n{section_end}"
-            website_html = website_html.replace(match.group(0), new_section)
-    else:
-        # No blog section exists, create one before footer
-        blog_section = f"""
-<section id="blog" class="blog-section">
-    <div class="container">
-        <h2 class="section-title">Latest Blog Posts</h2>
-        {blog_html}
-    </div>
-</section>
-
-<style>
-.blog-section {{
-    padding: 80px 20px;
-    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-}}
-
-.section-title {{
-    text-align: center;
-    font-size: 2.5em;
-    font-weight: 700;
-    margin-bottom: 50px;
-    color: #1a1a1a;
-}}
-
-.container {{
-    max-width: 1200px;
-    margin: 0 auto;
-}}
-</style>
-"""
-        
-        # Insert before footer or at the end of body
-        if '</footer>' in website_html:
-            website_html = website_html.replace('</footer>', f'{blog_section}\n</footer>')
-        elif '</body>' in website_html:
-            website_html = website_html.replace('</body>', f'{blog_section}\n</body>')
-        else:
-            website_html += blog_section
-    
-    # Save updated website
-    with open(html_file, 'w', encoding='utf-8') as f:
-        f.write(website_html)
-    
-    logger.info(f"✅ Blog {blog_id} integrated into website {website_id}")
-    
-    return {
-        "success": True,
-        "website_id": website_id,
-        "blog_id": blog_id,
-        "message": f"Blog published to website successfully"
-    }

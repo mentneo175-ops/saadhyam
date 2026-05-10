@@ -1,0 +1,231 @@
+<!-- Blog Section Template - Can be included in any theme -->
+<section id="blog" class="blog-section">
+    <div class="blog-container">
+        <h2 class="blog-title">Latest from Our Blog</h2>
+        <p class="blog-subtitle">Stay updated with our latest insights and news</p>
+        
+        <div class="blog-grid" id="blog-posts-container">
+            <!-- Blog posts will be dynamically loaded here -->
+            <p class="blog-loading">Loading blog posts...</p>
+        </div>
+        
+        <div class="blog-cta">
+            <a href="blogs.html" class="btn-view-all">View All Posts</a>
+        </div>
+    </div>
+</section>
+
+<style>
+    .blog-section {
+        padding: 80px 40px;
+        background: #f8f9fa;
+    }
+    
+    .blog-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    
+    .blog-title {
+        font-size: 48px;
+        font-weight: 700;
+        text-align: center;
+        margin-bottom: 16px;
+        color: #2c3e50;
+    }
+    
+    .blog-subtitle {
+        font-size: 20px;
+        text-align: center;
+        color: #6c757d;
+        margin-bottom: 60px;
+    }
+    
+    .blog-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 30px;
+        margin-bottom: 60px;
+    }
+    
+    .blog-card {
+        background: white;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s;
+        cursor: pointer;
+    }
+    
+    .blog-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+    }
+    
+    .blog-card-image {
+        width: 100%;
+        height: 220px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 48px;
+        font-weight: 700;
+    }
+    
+    .blog-card-content {
+        padding: 30px;
+    }
+    
+    .blog-card-category {
+        display: inline-block;
+        padding: 6px 12px;
+        background: #667eea;
+        color: white;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        margin-bottom: 16px;
+    }
+    
+    .blog-card-title {
+        font-size: 24px;
+        font-weight: 700;
+        margin-bottom: 12px;
+        color: #2c3e50;
+        line-height: 1.3;
+    }
+    
+    .blog-card-excerpt {
+        font-size: 16px;
+        color: #6c757d;
+        line-height: 1.6;
+        margin-bottom: 20px;
+    }
+    
+    .blog-card-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 14px;
+        color: #86868b;
+    }
+    
+    .blog-card-date {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    
+    .blog-card-reading-time {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    
+    .blog-loading {
+        text-align: center;
+        color: #6c757d;
+        font-size: 18px;
+        padding: 40px;
+    }
+    
+    .blog-empty {
+        text-align: center;
+        color: #6c757d;
+        font-size: 18px;
+        padding: 40px;
+    }
+    
+    .blog-cta {
+        text-align: center;
+    }
+    
+    .btn-view-all {
+        display: inline-block;
+        padding: 16px 40px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        text-decoration: none;
+        border-radius: 50px;
+        font-size: 16px;
+        font-weight: 600;
+        transition: all 0.3s;
+    }
+    
+    .btn-view-all:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    }
+    
+    @media (max-width: 768px) {
+        .blog-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .blog-title {
+            font-size: 36px;
+        }
+    }
+</style>
+
+<script>
+    // Load blog posts dynamically
+    async function loadBlogPosts() {
+        const container = document.getElementById('blog-posts-container');
+        
+        try {
+            // Try to load blogs from blogs.json file
+            const response = await fetch('blogs.json');
+            
+            if (!response.ok) {
+                throw new Error('No blogs found');
+            }
+            
+            const data = await response.json();
+            const blogs = data.blogs || [];
+            
+            if (blogs.length === 0) {
+                container.innerHTML = '<p class="blog-empty">No blog posts yet. Check back soon!</p>';
+                return;
+            }
+            
+            // Show only the 3 most recent blogs
+            const recentBlogs = blogs.slice(0, 3);
+            
+            container.innerHTML = recentBlogs.map(blog => `
+                <article class="blog-card" onclick="window.location.href='blog-${blog.slug}.html'">
+                    <div class="blog-card-image">
+                        ${blog.title.charAt(0)}
+                    </div>
+                    <div class="blog-card-content">
+                        <span class="blog-card-category">${blog.category || 'Blog'}</span>
+                        <h3 class="blog-card-title">${blog.title}</h3>
+                        <p class="blog-card-excerpt">${blog.meta_description || blog.introduction.substring(0, 150) + '...'}</p>
+                        <div class="blog-card-meta">
+                            <span class="blog-card-date">
+                                📅 ${new Date(blog.published_at).toLocaleDateString()}
+                            </span>
+                            <span class="blog-card-reading-time">
+                                ⏱️ ${blog.reading_time || 5} min read
+                            </span>
+                        </div>
+                    </div>
+                </article>
+            `).join('');
+            
+        } catch (error) {
+            console.log('No blogs available yet');
+            container.innerHTML = '<p class="blog-empty">No blog posts yet. Check back soon!</p>';
+        }
+    }
+    
+    // Load blogs when page loads
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', loadBlogPosts);
+    } else {
+        loadBlogPosts();
+    }
+</script>

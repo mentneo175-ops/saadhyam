@@ -1,0 +1,213 @@
+import { motion } from "framer-motion";
+import {
+  X,
+  Building2,
+  MapPin,
+  Users,
+  Globe,
+  CheckCircle2,
+  Sparkles,
+  MessageCircle,
+  Share2,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import type { Business } from "./types";
+
+interface BusinessDetailPanelProps {
+  business: Business;
+  onClose: () => void;
+}
+
+export function BusinessDetailPanel({
+  business,
+  onClose,
+}: BusinessDetailPanelProps) {
+  return (
+    <>
+      {/* Backdrop */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={onClose}
+        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
+      />
+
+      {/* Panel */}
+      <motion.div
+        initial={{ x: "100%" }}
+        animate={{ x: 0 }}
+        exit={{ x: "100%" }}
+        transition={{ type: "spring", damping: 30, stiffness: 300 }}
+        className="fixed right-0 top-0 h-full w-full max-w-md bg-card border-l border-border shadow-2xl z-50 overflow-y-auto"
+      >
+        <div className="p-6">
+          {/* Header */}
+          <div className="flex items-start justify-between mb-6">
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-xl bg-purple-100 flex items-center justify-center">
+                {business.logo ? (
+                  <img
+                    src={business.logo}
+                    alt={business.name}
+                    className="w-full h-full object-cover rounded-xl"
+                  />
+                ) : (
+                  <Building2 className="w-7 h-7 text-purple-600" />
+                )}
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-gray-900 mb-1">
+                  {business.name}
+                </h2>
+                <p className="text-sm text-muted-foreground">{business.category}</p>
+              </div>
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onClose}
+              className="shrink-0"
+            >
+              <X className="w-5 h-5" />
+            </Button>
+          </div>
+
+          {/* Badges */}
+          <div className="flex flex-wrap gap-2 mb-6">
+            {business.isVerified && (
+              <div className="px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 flex items-center gap-2">
+                <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                <span className="text-xs font-medium text-emerald-700">
+                  Verified
+                </span>
+              </div>
+            )}
+            {business.isPartner && (
+              <div className="px-3 py-1 rounded-full bg-purple-50 border border-purple-200 flex items-center gap-2">
+                <Sparkles className="w-3 h-3 text-purple-600" />
+                <span className="text-xs font-medium text-purple-700">
+                  Saadhyam Partner
+                </span>
+              </div>
+            )}
+            {business.source === "external" && (
+              <div className="px-3 py-1 rounded-full bg-gray-100 border border-gray-200 flex items-center gap-2">
+                <MapPin className="w-3 h-3 text-gray-600" />
+                <span className="text-xs font-medium text-gray-700">
+                  External
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Description */}
+          {business.description && (
+            <div className="mb-6">
+              <h3 className="text-sm font-semibold text-gray-900 mb-2">
+                About
+              </h3>
+              <p className="text-sm text-gray-700 leading-relaxed">
+                {business.description}
+              </p>
+            </div>
+          )}
+
+          {/* Stats */}
+          <div className="grid grid-cols-2 gap-3 mb-6">
+            {business.employees && (
+              <div className="p-4 rounded-xl bg-muted/50 border border-border/60">
+                <Users className="w-5 h-5 text-purple-600 mb-2" />
+                <p className="text-2xl font-bold text-gray-900">
+                  {business.employees}
+                </p>
+                <p className="text-xs text-muted-foreground">Employees</p>
+              </div>
+            )}
+            {business.aiScore && (
+              <div className="p-4 rounded-xl bg-muted/50 border border-border/60">
+                <Sparkles className="w-5 h-5 text-purple-600 mb-2" />
+                <p className="text-2xl font-bold text-gray-900">
+                  {business.aiScore}
+                </p>
+                <p className="text-xs text-muted-foreground">AI Score</p>
+              </div>
+            )}
+          </div>
+
+          {/* Services */}
+          <div className="mb-6">
+            <h3 className="text-sm font-semibold text-gray-900 mb-3">
+              Services
+            </h3>
+            <div className="flex flex-wrap gap-2">
+              {business.services.map((service, index) => (
+                <div
+                  key={index}
+                  className="px-3 py-1 rounded-lg bg-purple-50 border border-purple-100 text-purple-700 text-sm"
+                >
+                  {service}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Location */}
+          <div className="mb-6">
+            <h3 className="text-sm font-semibold text-gray-900 mb-2">
+              Location
+            </h3>
+            <div className="flex items-center gap-2 text-gray-700 text-sm">
+              <MapPin className="w-4 h-4 text-purple-600" />
+              <span>
+                {business.location.lat.toFixed(4)},{" "}
+                {business.location.lng.toFixed(4)}
+              </span>
+            </div>
+          </div>
+
+          {/* Website */}
+          {business.website && (
+            <div className="mb-6">
+              <h3 className="text-sm font-semibold text-gray-900 mb-2">
+                Website
+              </h3>
+              <a
+                href={business.website}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 text-purple-600 hover:text-purple-700 transition-colors text-sm"
+              >
+                <Globe className="w-4 h-4" />
+                <span>{business.website}</span>
+              </a>
+            </div>
+          )}
+
+          {/* Actions */}
+          <div className="flex gap-3">
+            <Button variant="hero" className="flex-1">
+              <MessageCircle className="w-4 h-4 mr-2" />
+              Connect
+            </Button>
+            <Button variant="outline" size="icon">
+              <Share2 className="w-4 h-4" />
+            </Button>
+          </div>
+
+          {/* Claim Business (for external businesses) */}
+          {business.source === "external" && (
+            <div className="mt-6 p-4 rounded-xl bg-purple-50 border border-purple-200">
+              <p className="text-sm text-purple-900 mb-3">
+                Is this your business? Claim it to unlock premium features.
+              </p>
+              <Button variant="outline" className="w-full">
+                Claim Business
+              </Button>
+            </div>
+          )}
+        </div>
+      </motion.div>
+    </>
+  );
+}

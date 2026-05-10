@@ -491,16 +491,46 @@ function InstagramPage() {
   const handleImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      // Validate file type
-      if (!file.type.startsWith("image/")) {
-        toast.error("Please select an image file");
+      // Validate file type (images and videos)
+      const isImage = file.type.startsWith("image/");
+      const isVideo = file.type.startsWith("video/");
+      
+      if (!isImage && !isVideo) {
+        toast.error("Please select an image or video file");
         return;
       }
 
-      // Validate file size (max 10MB)
-      if (file.size > 10 * 1024 * 1024) {
-        toast.error("Image file too large. Maximum size is 10MB.");
+      // Validate file size
+      const maxSize = isVideo ? 100 * 1024 * 1024 : 10 * 1024 * 1024; // 100MB for video, 10MB for image
+      if (file.size > maxSize) {
+        const maxSizeMB = isVideo ? 100 : 10;
+        toast.error(`${isVideo ? 'Video' : 'Image'} file too large. Maximum size is ${maxSizeMB}MB.`);
         return;
+      }
+
+      // Validate video duration (if video)
+      if (isVideo) {
+        const video = document.createElement('video');
+        video.preload = 'metadata';
+        
+        video.onloadedmetadata = function() {
+          window.URL.revokeObjectURL(video.src);
+          const duration = video.duration;
+          
+          if (duration < 3 || duration > 60) {
+            toast.error("Video must be between 3 and 60 seconds long");
+            if (fileInputRef.current) {
+              fileInputRef.current.value = "";
+            }
+            return;
+          }
+          
+          toast.success(`${isVideo ? 'Video' : 'Image'} selected (${Math.round(duration)}s)`);
+        };
+        
+        video.src = URL.createObjectURL(file);
+      } else {
+        toast.success("Image selected");
       }
 
       setSelectedImage(file);
@@ -555,16 +585,17 @@ function InstagramPage() {
 
   const handlePost = async () => {
     if (!selectedImage) {
-      toast.error("Please select an image to post");
+      toast.error("Please select an image or video to post");
       return;
     }
 
-    console.log("🚀 Starting Instagram post...");
+    const isVideo = selectedImage.type.startsWith("video/");
+    console.log(`🚀 Starting Instagram ${isVideo ? 'video' : 'image'} post...`);
     setLoading(true);
     
     try {
       const formData = new FormData();
-      formData.append("image", selectedImage);
+      formData.append("media", selectedImage); // Changed from "image" to "media"
       formData.append("caption", caption);
 
       let endpoint = "/instagram/upload-and-post";
@@ -595,7 +626,13 @@ function InstagramPage() {
 
       console.log(`📤 Posting to: ${endpoint}`);
       console.log(`📝 Caption: ${caption}`);
-      console.log(`🖼️ Image: ${selectedImage.name} (${selectedImage.size} bytes)`);
+      console.log(`${isVideo ? '🎥' : '🖼️'} Media: ${selectedImage.name} (${selectedImage.size} bytes)`);
+      
+      if (isVideo) {
+        toast.info("Uploading video... This may take a moment", {
+          duration: 5000,
+        });
+      }
 
       const response = await fetch(`http://localhost:8000${endpoint}`, {
         method: "POST",
@@ -614,7 +651,7 @@ function InstagramPage() {
         console.log("✅ Post successful, showing success toast");
         
         // Always show a basic success message first
-        toast.success("🎉 Posted to Instagram successfully!", {
+        toast.success(`🎉 ${isVideo ? 'Video' : 'Image'} posted to Instagram successfully!`, {
           duration: 4000,
         });
         
@@ -627,7 +664,7 @@ function InstagramPage() {
                 `Posted to ${data.details.account} • ${data.details.posted_at}` : 
                 data.post?.instagram_post_id ? 
                   `Post ID: ${data.post.instagram_post_id}` : 
-                  "Your post is now live on Instagram!"
+                  `Your ${isVideo ? 'video' : 'post'} is now live on Instagram!`
             });
           }, 500);
         }
@@ -668,7 +705,7 @@ function InstagramPage() {
         }, 1500);
       } else {
         console.log("❌ Post failed, showing error toast");
-        const errorMessage = data.detail || data.message || "Failed to post to Instagram";
+        const errorMessage = data.detail || data.message || `Failed to post ${isVideo ? 'video' : 'image'} to Instagram`;
         toast.error(errorMessage);
         console.error("Post failed:", data);
       }
@@ -822,32 +859,41 @@ function InstagramPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* Image Upload */}
+            {/* Media Upload */}
             <div className="space-y-2">
-              <Label>Image</Label>
+              <Label>Image or Video</Label>
               <div
                 className="border-2 border-dashed border-border rounded-xl p-6 text-center cursor-pointer hover:border-primary/50 transition-colors"
                 onClick={() => fileInputRef.current?.click()}
               >
                 {imagePreview ? (
                   <div className="space-y-2">
-                    <img
-                      src={imagePreview}
-                      alt="Preview"
-                      className="max-w-full max-h-48 mx-auto rounded-lg object-cover"
-                    />
+                    {selectedImage?.type.startsWith("video/") ? (
+                      <video
+                        src={imagePreview}
+                        controls
+                        className="max-w-full max-h-48 mx-auto rounded-lg"
+                      />
+                    ) : (
+                      <img
+                        src={imagePreview}
+                        alt="Preview"
+                        className="max-w-full max-h-48 mx-auto rounded-lg object-cover"
+                      />
+                    )}
                     <p className="text-sm text-muted-foreground">
-                      Click to change image
+                      Click to change {selectedImage?.type.startsWith("video/") ? "video" : "image"}
                     </p>
                   </div>
                 ) : (
                   <div className="space-y-2">
                     <Upload className="mx-auto h-12 w-12 text-muted-foreground" />
                     <p className="text-sm text-muted-foreground">
-                      Click to upload an image
+                      Click to upload an image or video
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      JPEG, PNG up to 10MB
+                      Images: JPEG, PNG up to 10MB<br />
+                      Videos: MP4, MOV (3-60s) up to 100MB
                     </p>
                   </div>
                 )}
@@ -855,7 +901,7 @@ function InstagramPage() {
               <input
                 ref={fileInputRef}
                 type="file"
-                accept="image/*"
+                accept="image/*,video/*"
                 onChange={handleImageSelect}
                 className="hidden"
               />

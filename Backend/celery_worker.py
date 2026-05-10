@@ -226,6 +226,17 @@ def fetch_analytics():
     return {"success": True, "message": "Analytics fetch scheduled"}
 
 
+# Import website generation tasks to register them with Celery
+try:
+    from ai_models.website_ai.app.workers.tasks.generation_tasks import (
+        generate_website_task,
+        regenerate_website_task
+    )
+    logger.info("✅ Website generation tasks imported successfully")
+except ImportError as e:
+    logger.warning(f"⚠️ Could not import website generation tasks: {e}")
+
+
 # Periodic tasks configuration
 from celery.schedules import crontab
 
@@ -241,6 +252,19 @@ celery.conf.beat_schedule = {
     "fetch-analytics-every-hour": {
         "task": "celery_worker.fetch_analytics",
         "schedule": crontab(minute=0),  # Every hour
+    },
+    # WhatsApp tasks
+    "process-whatsapp-campaigns-every-5-minutes": {
+        "task": "tasks.whatsapp_tasks.process_scheduled_campaigns",
+        "schedule": 5 * 60,  # 5 minutes
+    },
+    "process-whatsapp-follow-ups-every-10-minutes": {
+        "task": "tasks.whatsapp_tasks.process_follow_up_automations",
+        "schedule": 10 * 60,  # 10 minutes
+    },
+    "sync-whatsapp-message-statuses-every-30-minutes": {
+        "task": "tasks.whatsapp_tasks.sync_message_statuses",
+        "schedule": 30 * 60,  # 30 minutes
     },
 }
 

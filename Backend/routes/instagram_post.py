@@ -29,7 +29,7 @@ instagram_crud = InstagramCRUD()
 
 @router.post(
     "/upload-and-post",
-    summary="Upload image and post to Instagram",
+    summary="Upload media (image/video) and post to Instagram",
     responses={
         201: {"description": "Successfully posted to Instagram"},
         400: {"description": "Invalid request or upload failed"},
@@ -37,18 +37,22 @@ instagram_crud = InstagramCRUD()
     },
 )
 async def upload_and_post(
-    image: UploadFile = File(..., description="Image file to upload and post"),
+    media: UploadFile = File(..., description="Image or video file to upload and post"),
     caption: str = Form("", description="Caption for the Instagram post"),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_sync_db),
 ):
     """
-    Upload image to Cloudinary and post immediately to Instagram.
+    Upload image or video to Cloudinary and post immediately to Instagram.
+    
+    Supported formats:
+    - Images: JPEG, PNG, GIF (max 10MB)
+    - Videos: MP4, MOV (max 100MB, 3-60 seconds duration)
     
     This endpoint:
-    1. Validates the uploaded image
-    2. Uploads image to Cloudinary with Instagram-optimized settings
-    3. Posts the image to Instagram using the Cloudinary URL
+    1. Validates the uploaded media
+    2. Uploads media to Cloudinary with Instagram-optimized settings
+    3. Posts the media to Instagram using the Cloudinary URL
     4. Saves the post record in database
     """
     try:
@@ -70,56 +74,82 @@ async def upload_and_post(
         account = instagram_accounts[0]
         logger.info(f"📱 Using Instagram account: @{account.ig_username} (IG User ID: {account.ig_user_id})")
         
-        # Validate image file
-        if not image.content_type or not image.content_type.startswith("image/"):
+        # Detect media type
+        is_video = False
+        media_type = "IMAGE"
+        
+        if media.content_type:
+            if media.content_type.startswith("video/"):
+                is_video = True
+                media_type = "REELS"  # Instagram now requires REELS for videos
+                logger.info(f"🎥 Video detected: {media.content_type} - will post as REELS")
+            elif media.content_type.startswith("image/"):
+                is_video = False
+                media_type = "IMAGE"
+                logger.info(f"🖼️ Image detected: {media.content_type}")
+            else:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="File must be an image (JPEG, PNG) or video (MP4, MOV)"
+                )
+        
+        # Check file size
+        max_size = 100 * 1024 * 1024 if is_video else 10 * 1024 * 1024  # 100MB for video, 10MB for image
+        if media.size and media.size > max_size:
+            max_size_mb = 100 if is_video else 10
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="File must be an image (JPEG, PNG, etc.)"
+                detail=f"{'Video' if is_video else 'Image'} file too large. Maximum size is {max_size_mb}MB."
             )
         
-        # Check file size (max 10MB)
-        if image.size and image.size > 10 * 1024 * 1024:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Image file too large. Maximum size is 10MB."
-            )
-        
-        # Read image data
-        image_data = await image.read()
+        # Read media data
+        media_data = await media.read()
         
         # Upload to Cloudinary
-        logger.info(f"Uploading image to Cloudinary for user {current_user.id}")
-        upload_result = await cloudinary_service.upload_image(
-            file_data=image_data,
-            filename=image.filename or "instagram_post.jpg",
-            folder="instagram_posts",
-            user_id=current_user.id
-        )
+        logger.info(f"Uploading {'video' if is_video else 'image'} to Cloudinary for user {current_user.id}")
+        
+        if is_video:
+            # Upload video
+            upload_result = await cloudinary_service.upload_video(
+                file_data=media_data,
+                filename=media.filename or "instagram_video.mp4",
+                folder="instagram_posts",
+                user_id=current_user.id
+            )
+        else:
+            # Upload image
+            upload_result = await cloudinary_service.upload_image(
+                file_data=media_data,
+                filename=media.filename or "instagram_post.jpg",
+                folder="instagram_posts",
+                user_id=current_user.id
+            )
         
         if not upload_result.get("success"):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Failed to upload image: {upload_result.get('error', 'Unknown error')}"
+                detail=f"Failed to upload {'video' if is_video else 'image'}: {upload_result.get('error', 'Unknown error')}"
             )
         
         
         # Get the Cloudinary URL
-        image_url = upload_result["secure_url"]
+        media_url = upload_result["secure_url"]
         cloudinary_public_id = upload_result["public_id"]
         
-        logger.info(f"Image uploaded to Cloudinary: {image_url}")
+        logger.info(f"{'Video' if is_video else 'Image'} uploaded to Cloudinary: {media_url}")
         
         # Post to Instagram
-        logger.info(f"Posting to Instagram for user {current_user.id}")
+        logger.info(f"Posting {'video' if is_video else 'image'} to Instagram for user {current_user.id}")
         post_result = instagram_service.post_to_instagram_sync(
             ig_user_id=account.ig_user_id,
-            image_url=image_url,
+            image_url=media_url,
             caption=caption,
-            access_token=account.access_token
+            access_token=account.access_token,
+            media_type=media_type
         )
         
         if not post_result.get("success"):
-            # If Instagram posting fails, optionally delete the Cloudinary image
+            # If Instagram posting fails, optionally delete the Cloudinary media
             # cloudinary_service.delete_image(cloudinary_public_id)
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -131,7 +161,7 @@ async def upload_and_post(
             db=db,
             user_id=current_user.id,
             social_account_id=account.id,
-            image_url=image_url,
+            image_url=media_url,
             caption=caption,
             scheduled_time=None,  # Posted immediately
             ai_generated=False
@@ -145,18 +175,19 @@ async def upload_and_post(
             instagram_post_id=post_result["post_id"]
         )
         
-        logger.info(f"Successfully posted to Instagram: {post_result['post_id']}")
+        logger.info(f"Successfully posted {'video' if is_video else 'image'} to Instagram: {post_result['post_id']}")
         
         # Enhanced success response with more details
         instagram_url = f"https://www.instagram.com/p/{post_result['post_id']}/" if post_result.get('post_id') else None
         
         return {
             "success": True,
-            "message": f"🎉 Successfully posted to Instagram! Your post is now live on @{account.ig_username}",
+            "message": f"🎉 Successfully posted {'video' if is_video else 'image'} to Instagram! Your post is now live on @{account.ig_username}",
             "post": {
                 "id": post.id,
                 "instagram_post_id": post_result["post_id"],
-                "image_url": image_url,
+                "media_url": media_url,
+                "media_type": media_type,
                 "caption": caption,
                 "cloudinary_public_id": cloudinary_public_id,
                 "account_username": account.ig_username,
@@ -168,8 +199,9 @@ async def upload_and_post(
             "details": {
                 "post_id": post_result["post_id"],
                 "account": f"@{account.ig_username}",
-                "image_size": f"{upload_result.get('width', 'unknown')}x{upload_result.get('height', 'unknown')}",
-                "image_format": upload_result.get('format', 'unknown'),
+                "media_type": media_type,
+                "media_size": f"{upload_result.get('width', 'unknown')}x{upload_result.get('height', 'unknown')}" if not is_video else f"{upload_result.get('duration', 'unknown')}s",
+                "media_format": upload_result.get('format', 'unknown'),
                 "posted_at": datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
             }
         }
@@ -183,13 +215,13 @@ async def upload_and_post(
         logger.error(f"Stack trace: {error_trace}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to upload and post image: {str(e)}"
+            detail=f"Failed to upload and post media: {str(e)}"
         )
 
 
 @router.post(
     "/schedule-post",
-    summary="Upload image and schedule Instagram post",
+    summary="Upload media (image/video) and schedule Instagram post",
     responses={
         201: {"description": "Successfully scheduled Instagram post"},
         400: {"description": "Invalid request or upload failed"},
@@ -197,25 +229,29 @@ async def upload_and_post(
     },
 )
 async def schedule_post(
-    image: UploadFile = File(..., description="Image file to upload and schedule"),
+    media: UploadFile = File(..., description="Image or video file to upload and schedule"),
     caption: str = Form("", description="Caption for the Instagram post"),
     scheduled_time: str = Form(..., description="Scheduled time in ISO format (YYYY-MM-DDTHH:MM:SS)"),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_sync_db),
 ):
     """
-    Upload image to Cloudinary and schedule Instagram post.
+    Upload image or video to Cloudinary and schedule Instagram post.
+    
+    Supported formats:
+    - Images: JPEG, PNG, GIF (max 10MB)
+    - Videos: MP4, MOV (max 100MB, 3-60 seconds duration)
     
     This endpoint:
-    1. Validates the uploaded image
-    2. Uploads image to Cloudinary
+    1. Validates the uploaded media
+    2. Uploads media to Cloudinary
     3. Schedules the post for later publishing
     4. Saves the scheduled post in database
     """
     try:
         logger.info(f"📨 Received schedule-post request")
         logger.info(f"   User ID: {current_user.id}")
-        logger.info(f"   Image: {image.filename} ({image.size} bytes)")
+        logger.info(f"   Media: {media.filename} ({media.size} bytes)")
         logger.info(f"   Caption length: {len(caption)}")
         logger.info(f"   Scheduled time: '{scheduled_time}' (type: {type(scheduled_time).__name__}, len: {len(scheduled_time)})")
         
@@ -240,11 +276,28 @@ async def schedule_post(
         # Use the first Instagram account
         account = instagram_accounts[0]
         
-        # Validate image file
-        if not image.content_type or not image.content_type.startswith("image/"):
+        # Detect media type
+        is_video = False
+        if media.content_type:
+            if media.content_type.startswith("video/"):
+                is_video = True
+                logger.info(f"🎥 Video detected: {media.content_type} - will schedule as REELS")
+            elif media.content_type.startswith("image/"):
+                is_video = False
+                logger.info(f"🖼️ Image detected: {media.content_type}")
+            else:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="File must be an image (JPEG, PNG) or video (MP4, MOV)"
+                )
+        
+        # Check file size
+        max_size = 100 * 1024 * 1024 if is_video else 10 * 1024 * 1024  # 100MB for video, 10MB for image
+        if media.size and media.size > max_size:
+            max_size_mb = 100 if is_video else 10
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="File must be an image (JPEG, PNG, etc.)"
+                detail=f"{'Video' if is_video else 'Image'} file too large. Maximum size is {max_size_mb}MB."
             )
         
         # Parse scheduled time
@@ -292,26 +345,37 @@ async def schedule_post(
                 detail=f"Scheduled time must be in the future. Current UTC: {utc_now.isoformat()}, Scheduled UTC: {scheduled_datetime.isoformat()}"
             )
         
-        # Read image data
-        image_data = await image.read()
+        # Read media data
+        media_data = await media.read()
         
         # Upload to Cloudinary
-        logger.info(f"Uploading image to Cloudinary for scheduled post by user {current_user.id}")
-        upload_result = await cloudinary_service.upload_image(
-            file_data=image_data,
-            filename=image.filename or "scheduled_post.jpg",
-            folder="instagram_scheduled",
-            user_id=current_user.id
-        )
+        logger.info(f"Uploading {'video' if is_video else 'image'} to Cloudinary for scheduled post by user {current_user.id}")
+        
+        if is_video:
+            # Upload video
+            upload_result = await cloudinary_service.upload_video(
+                file_data=media_data,
+                filename=media.filename or "scheduled_video.mp4",
+                folder="instagram_scheduled",
+                user_id=current_user.id
+            )
+        else:
+            # Upload image
+            upload_result = await cloudinary_service.upload_image(
+                file_data=media_data,
+                filename=media.filename or "scheduled_post.jpg",
+                folder="instagram_scheduled",
+                user_id=current_user.id
+            )
         
         if not upload_result.get("success"):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Failed to upload image: {upload_result.get('error', 'Unknown error')}"
+                detail=f"Failed to upload {'video' if is_video else 'image'}: {upload_result.get('error', 'Unknown error')}"
             )
         
         # Get the Cloudinary URL
-        image_url = upload_result["secure_url"]
+        media_url = upload_result["secure_url"]
         cloudinary_public_id = upload_result["public_id"]
         
         # Save scheduled post in database
@@ -319,20 +383,21 @@ async def schedule_post(
             db=db,
             user_id=current_user.id,
             social_account_id=account.id,
-            image_url=image_url,
+            image_url=media_url,
             caption=caption,
             scheduled_time=scheduled_datetime,
             ai_generated=False
         )
         
-        logger.info(f"Successfully scheduled Instagram post for {scheduled_datetime}")
+        logger.info(f"Successfully scheduled Instagram {'video' if is_video else 'image'} post for {scheduled_datetime}")
         
         return {
             "success": True,
-            "message": "Successfully scheduled Instagram post!",
+            "message": f"Successfully scheduled Instagram {'reel' if is_video else 'image'} post!",
             "post": {
                 "id": post.id,
-                "image_url": image_url,
+                "media_url": media_url,
+                "media_type": "REELS" if is_video else "IMAGE",
                 "caption": caption,
                 "scheduled_time": scheduled_datetime.isoformat(),
                 "cloudinary_public_id": cloudinary_public_id,
@@ -340,7 +405,6 @@ async def schedule_post(
                 "status": "scheduled"
             }
         }
-        
     except HTTPException:
         raise
     except Exception as e:
@@ -571,13 +635,27 @@ async def process_scheduled_posts(
                 
                 logger.info(f"✅ Found account: {account.ig_username}")
                 
+                # Detect if media is video or image based on URL
+                is_video = False
+                media_type = "IMAGE"
+                if post.image_url:
+                    # Check file extension or content type
+                    url_lower = post.image_url.lower()
+                    if any(ext in url_lower for ext in ['.mp4', '.mov', '.avi', '/video/', 'resource_type/video']):
+                        is_video = True
+                        media_type = "REELS"  # Instagram now requires REELS for videos
+                        logger.info(f"🎥 Detected video post - will post as REELS")
+                    else:
+                        logger.info(f"🖼️ Detected image post")
+                
                 # Post to Instagram
-                logger.info(f"📸 Posting to Instagram...")
+                logger.info(f"📸 Posting {'video' if is_video else 'image'} to Instagram...")
                 post_result = instagram_service.post_to_instagram_sync(
                     ig_user_id=account.ig_user_id,
                     image_url=post.image_url,
                     caption=post.caption or "",
-                    access_token=account.access_token
+                    access_token=account.access_token,
+                    media_type=media_type
                 )
                 
                 logger.info(f"📥 Post result: {post_result}")

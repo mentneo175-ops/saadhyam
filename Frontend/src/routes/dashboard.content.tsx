@@ -272,31 +272,34 @@ function ContentStudio() {
         caption = output;
       }
 
-      // Convert image URL to File (same as Instagram dashboard)
-      let imageFile: File;
+      // Convert image URL to File (supports both images and videos)
+      let mediaFile: File;
       try {
-        console.log("🖼️ Converting image URL to File:", generatedImageUrl);
+        console.log("🖼️ Converting media URL to File:", generatedImageUrl);
         const response = await fetch(generatedImageUrl);
-        if (!response.ok) throw new Error("Failed to fetch image");
+        if (!response.ok) throw new Error("Failed to fetch media");
         
         const blob = await response.blob();
-        imageFile = new File([blob], `saadhyam-content-${Date.now()}.png`, { 
-          type: blob.type || 'image/png' 
+        const isVideo = blob.type.startsWith('video/');
+        const extension = isVideo ? 'mp4' : 'png';
+        mediaFile = new File([blob], `saadhyam-content-${Date.now()}.${extension}`, { 
+          type: blob.type || (isVideo ? 'video/mp4' : 'image/png')
         });
-        console.log("✅ Image converted to File:", imageFile.name, imageFile.size, "bytes");
+        console.log(`✅ Media converted to File: ${mediaFile.name}, ${mediaFile.size} bytes, type: ${mediaFile.type}`);
       } catch (error) {
-        console.error("❌ Error converting image to file:", error);
-        toast.error("Failed to prepare image for posting");
+        console.error("❌ Error converting media to file:", error);
+        toast.error("Failed to prepare media for posting");
         return;
       }
 
       // Post to Instagram using the same method as Instagram dashboard
-      console.log("🚀 Posting to Instagram...");
+      const isVideo = mediaFile.type.startsWith("video/");
+      console.log(`🚀 Posting ${isVideo ? 'video' : 'image'} to Instagram...`);
       console.log(`📝 Caption: ${caption}`);
-      console.log(`🖼️ Image: ${imageFile.name} (${imageFile.size} bytes)`);
+      console.log(`${isVideo ? '🎥' : '🖼️'} Media: ${mediaFile.name} (${mediaFile.size} bytes)`);
 
       const formData = new FormData();
-      formData.append("image", imageFile);
+      formData.append("media", mediaFile); // Changed from "image" to "media"
       formData.append("caption", caption);
 
       const response = await fetch("http://localhost:8000/instagram/upload-and-post", {
@@ -316,7 +319,7 @@ function ContentStudio() {
         console.log("✅ Post successful, showing success toast");
         
         // Always show a basic success message first (same as Instagram dashboard)
-        toast.success("🎉 Posted to Instagram successfully!", {
+        toast.success(`🎉 ${isVideo ? 'Video' : 'Image'} posted to Instagram successfully!`, {
           duration: 4000,
         });
         

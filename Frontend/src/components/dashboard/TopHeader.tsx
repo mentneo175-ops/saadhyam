@@ -1,8 +1,9 @@
-import { Bell, ChevronDown, Sparkles, User, Building2, Settings, LogOut } from "lucide-react";
+import { Bell, ChevronDown, Sparkles, Building2, Settings, LogOut, RefreshCw } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { apiClient } from "@/lib/api";
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate, useRouter, useLocation } from "@tanstack/react-router";
+import { useDashboardContext } from "@/contexts/DashboardContext";
 
 interface BusinessProfile {
   business_name?: string;
@@ -15,11 +16,25 @@ interface BusinessProfile {
 export function TopHeader() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const router = useRouter();
+  const location = useLocation();
+  const { refreshDashboard, isRefreshing: contextRefreshing } = useDashboardContext();
   const [isHydrated, setIsHydrated] = useState(false);
   const [businessProfile, setBusinessProfile] = useState<BusinessProfile | null>(null);
   const [businessAnalysis, setBusinessAnalysis] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [isLocalRefreshing, setIsLocalRefreshing] = useState(false);
+
+  const isRefreshing = contextRefreshing || isLocalRefreshing;
+
+  // Only show TopHeader on the main dashboard page
+  const isMainDashboard = location.pathname === '/dashboard' || location.pathname === '/dashboard/';
+  
+  // Don't render if not on main dashboard
+  if (!isMainDashboard) {
+    return null;
+  }
 
   useEffect(() => {
     setIsHydrated(true);
@@ -78,9 +93,23 @@ export function TopHeader() {
   const handleLogout = async () => {
     try {
       await logout();
-      navigate({ to: "/auth/login" });
+      navigate({ to: "/login" });
     } catch (error) {
       console.error("Logout failed:", error);
+    }
+  };
+
+  const handleRefresh = async () => {
+    setIsLocalRefreshing(true);
+    try {
+      // Reload TopHeader's business data
+      await loadBusinessData();
+      // Trigger dashboard-wide refresh via context
+      await refreshDashboard();
+    } catch (error) {
+      console.error("Refresh failed:", error);
+    } finally {
+      setIsLocalRefreshing(false);
     }
   };
 
@@ -142,6 +171,18 @@ export function TopHeader() {
           )}
         </div>
       </div>
+
+      {/* Refresh Button */}
+      <button
+        onClick={handleRefresh}
+        disabled={isRefreshing}
+        aria-label="Refresh Data"
+        className="h-10 px-3 rounded-xl border border-border hover:bg-accent/40 flex items-center justify-center gap-2 transition disabled:opacity-50 disabled:cursor-not-allowed"
+        title="Refresh all dashboard data"
+      >
+        <RefreshCw size={16} className={isRefreshing ? "animate-spin" : ""} />
+        <span className="hidden md:inline text-sm font-medium">Refresh</span>
+      </button>
 
       <button
         aria-label="Notifications"

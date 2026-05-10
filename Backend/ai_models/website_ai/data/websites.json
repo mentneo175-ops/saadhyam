@@ -4,13 +4,13 @@
     "demo": {
       "website_id": "demo",
       "content": {
-        "headline": "A refined web presence for The Italian Kitchen",
+        "headline": "Amazon for\u00a0 customers",
         "about": "",
         "eyebrow": "",
         "services": [],
         "faq": [
           {
-            "question": "What makes The Italian Kitchen different?",
+            "question": "What makes Amazon different?",
             "answer": "It blends modern business with a professional, engaging, and trustworthy customer experience."
           },
           {
@@ -23,12 +23,14 @@
           }
         ],
         "sections": {
-          "Frequently Asked QuestionS": "\n            What makes The Italian Kitchen different?\n            It blends modern business with a professional, engaging, and trustworthy customer experience.\n        ",
-          "Get in Touch": "Contact The Italian Kitchen to schedule a consultation or request a quote."
+          "Frequently Asked Questions": "\n            What makes Amazon different?\n            It blends modern business with a professional, engaging, and trustworthy customer experience.\n        ",
+          "Get in Touch": "Contact Amazon to schedule a consultation or request a quote.",
+          "Latest from Our Blog": "No blog posts yet. Check back soon!"
         }
       },
       "theme": "bento-box",
-      "updated_at": "2026-05-07T11:23:30.776557"
+      "updated_at": "2026-05-10T11:49:11.607264",
+      "version": 6
     }
   }
 }

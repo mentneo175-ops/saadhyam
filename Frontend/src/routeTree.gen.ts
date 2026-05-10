@@ -18,6 +18,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
 import { Route as WebsiteWebsiteIdRouteImport } from './routes/website.$websiteId'
 import { Route as DashboardWhatsappSalesRouteImport } from './routes/dashboard.whatsapp-sales'
+import { Route as DashboardWhatsappRouteImport } from './routes/dashboard.whatsapp'
 import { Route as DashboardWebsiteRouteImport } from './routes/dashboard.website'
 import { Route as DashboardSettingsRouteImport } from './routes/dashboard.settings'
 import { Route as DashboardSeoGoogleMapsRouteImport } from './routes/dashboard.seo-google-maps'
@@ -36,7 +37,10 @@ import { Route as DashboardCompetitorsRouteImport } from './routes/dashboard.com
 import { Route as DashboardCompetitorAnalysisRouteImport } from './routes/dashboard.competitor-analysis'
 import { Route as DashboardBusinessDetailsRouteImport } from './routes/dashboard.business-details'
 import { Route as DashboardBusinessAnalysisRouteImport } from './routes/dashboard.business-analysis'
+import { Route as DashboardBlogsRouteImport } from './routes/dashboard.blogs'
+import { Route as DashboardB2bNetworkRouteImport } from './routes/dashboard.b2b-network'
 import { Route as DashboardAutomationRouteImport } from './routes/dashboard.automation'
+import { Route as DashboardAeoGeoRouteImport } from './routes/dashboard.aeo-geo'
 import { Route as DashboardActionsRouteImport } from './routes/dashboard.actions'
 import { Route as DashboardAgentsIndexRouteImport } from './routes/dashboard.agents.index'
 import { Route as DashboardBusinessAnalysisOldRouteImport } from './routes/dashboard.business-analysis.old'
@@ -86,6 +90,11 @@ const WebsiteWebsiteIdRoute = WebsiteWebsiteIdRouteImport.update({
 const DashboardWhatsappSalesRoute = DashboardWhatsappSalesRouteImport.update({
   id: '/whatsapp-sales',
   path: '/whatsapp-sales',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardWhatsappRoute = DashboardWhatsappRouteImport.update({
+  id: '/whatsapp',
+  path: '/whatsapp',
   getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardWebsiteRoute = DashboardWebsiteRouteImport.update({
@@ -181,9 +190,24 @@ const DashboardBusinessAnalysisRoute =
     path: '/business-analysis',
     getParentRoute: () => DashboardRoute,
   } as any)
+const DashboardBlogsRoute = DashboardBlogsRouteImport.update({
+  id: '/blogs',
+  path: '/blogs',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardB2bNetworkRoute = DashboardB2bNetworkRouteImport.update({
+  id: '/b2b-network',
+  path: '/b2b-network',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardAutomationRoute = DashboardAutomationRouteImport.update({
   id: '/automation',
   path: '/automation',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardAeoGeoRoute = DashboardAeoGeoRouteImport.update({
+  id: '/aeo-geo',
+  path: '/aeo-geo',
   getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardActionsRoute = DashboardActionsRouteImport.update({
@@ -223,7 +247,10 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/verify': typeof VerifyRoute
   '/dashboard/actions': typeof DashboardActionsRoute
+  '/dashboard/aeo-geo': typeof DashboardAeoGeoRoute
   '/dashboard/automation': typeof DashboardAutomationRoute
+  '/dashboard/b2b-network': typeof DashboardB2bNetworkRoute
+  '/dashboard/blogs': typeof DashboardBlogsRoute
   '/dashboard/business-analysis': typeof DashboardBusinessAnalysisRouteWithChildren
   '/dashboard/business-details': typeof DashboardBusinessDetailsRoute
   '/dashboard/competitor-analysis': typeof DashboardCompetitorAnalysisRoute
@@ -242,6 +269,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/seo-google-maps': typeof DashboardSeoGoogleMapsRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/website': typeof DashboardWebsiteRoute
+  '/dashboard/whatsapp': typeof DashboardWhatsappRoute
   '/dashboard/whatsapp-sales': typeof DashboardWhatsappSalesRoute
   '/website/$websiteId': typeof WebsiteWebsiteIdRoute
   '/dashboard/': typeof DashboardIndexRoute
@@ -257,7 +285,10 @@ export interface FileRoutesByTo {
   '/signup': typeof SignupRoute
   '/verify': typeof VerifyRoute
   '/dashboard/actions': typeof DashboardActionsRoute
+  '/dashboard/aeo-geo': typeof DashboardAeoGeoRoute
   '/dashboard/automation': typeof DashboardAutomationRoute
+  '/dashboard/b2b-network': typeof DashboardB2bNetworkRoute
+  '/dashboard/blogs': typeof DashboardBlogsRoute
   '/dashboard/business-analysis': typeof DashboardBusinessAnalysisRouteWithChildren
   '/dashboard/business-details': typeof DashboardBusinessDetailsRoute
   '/dashboard/competitor-analysis': typeof DashboardCompetitorAnalysisRoute
@@ -276,6 +307,7 @@ export interface FileRoutesByTo {
   '/dashboard/seo-google-maps': typeof DashboardSeoGoogleMapsRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/website': typeof DashboardWebsiteRoute
+  '/dashboard/whatsapp': typeof DashboardWhatsappRoute
   '/dashboard/whatsapp-sales': typeof DashboardWhatsappSalesRoute
   '/website/$websiteId': typeof WebsiteWebsiteIdRoute
   '/dashboard': typeof DashboardIndexRoute
@@ -293,7 +325,10 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/verify': typeof VerifyRoute
   '/dashboard/actions': typeof DashboardActionsRoute
+  '/dashboard/aeo-geo': typeof DashboardAeoGeoRoute
   '/dashboard/automation': typeof DashboardAutomationRoute
+  '/dashboard/b2b-network': typeof DashboardB2bNetworkRoute
+  '/dashboard/blogs': typeof DashboardBlogsRoute
   '/dashboard/business-analysis': typeof DashboardBusinessAnalysisRouteWithChildren
   '/dashboard/business-details': typeof DashboardBusinessDetailsRoute
   '/dashboard/competitor-analysis': typeof DashboardCompetitorAnalysisRoute
@@ -312,6 +347,7 @@ export interface FileRoutesById {
   '/dashboard/seo-google-maps': typeof DashboardSeoGoogleMapsRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/website': typeof DashboardWebsiteRoute
+  '/dashboard/whatsapp': typeof DashboardWhatsappRoute
   '/dashboard/whatsapp-sales': typeof DashboardWhatsappSalesRoute
   '/website/$websiteId': typeof WebsiteWebsiteIdRoute
   '/dashboard/': typeof DashboardIndexRoute
@@ -330,7 +366,10 @@ export interface FileRouteTypes {
     | '/signup'
     | '/verify'
     | '/dashboard/actions'
+    | '/dashboard/aeo-geo'
     | '/dashboard/automation'
+    | '/dashboard/b2b-network'
+    | '/dashboard/blogs'
     | '/dashboard/business-analysis'
     | '/dashboard/business-details'
     | '/dashboard/competitor-analysis'
@@ -349,6 +388,7 @@ export interface FileRouteTypes {
     | '/dashboard/seo-google-maps'
     | '/dashboard/settings'
     | '/dashboard/website'
+    | '/dashboard/whatsapp'
     | '/dashboard/whatsapp-sales'
     | '/website/$websiteId'
     | '/dashboard/'
@@ -364,7 +404,10 @@ export interface FileRouteTypes {
     | '/signup'
     | '/verify'
     | '/dashboard/actions'
+    | '/dashboard/aeo-geo'
     | '/dashboard/automation'
+    | '/dashboard/b2b-network'
+    | '/dashboard/blogs'
     | '/dashboard/business-analysis'
     | '/dashboard/business-details'
     | '/dashboard/competitor-analysis'
@@ -383,6 +426,7 @@ export interface FileRouteTypes {
     | '/dashboard/seo-google-maps'
     | '/dashboard/settings'
     | '/dashboard/website'
+    | '/dashboard/whatsapp'
     | '/dashboard/whatsapp-sales'
     | '/website/$websiteId'
     | '/dashboard'
@@ -399,7 +443,10 @@ export interface FileRouteTypes {
     | '/signup'
     | '/verify'
     | '/dashboard/actions'
+    | '/dashboard/aeo-geo'
     | '/dashboard/automation'
+    | '/dashboard/b2b-network'
+    | '/dashboard/blogs'
     | '/dashboard/business-analysis'
     | '/dashboard/business-details'
     | '/dashboard/competitor-analysis'
@@ -418,6 +465,7 @@ export interface FileRouteTypes {
     | '/dashboard/seo-google-maps'
     | '/dashboard/settings'
     | '/dashboard/website'
+    | '/dashboard/whatsapp'
     | '/dashboard/whatsapp-sales'
     | '/website/$websiteId'
     | '/dashboard/'
@@ -500,6 +548,13 @@ declare module '@tanstack/react-router' {
       path: '/whatsapp-sales'
       fullPath: '/dashboard/whatsapp-sales'
       preLoaderRoute: typeof DashboardWhatsappSalesRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/whatsapp': {
+      id: '/dashboard/whatsapp'
+      path: '/whatsapp'
+      fullPath: '/dashboard/whatsapp'
+      preLoaderRoute: typeof DashboardWhatsappRouteImport
       parentRoute: typeof DashboardRoute
     }
     '/dashboard/website': {
@@ -628,11 +683,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardBusinessAnalysisRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/blogs': {
+      id: '/dashboard/blogs'
+      path: '/blogs'
+      fullPath: '/dashboard/blogs'
+      preLoaderRoute: typeof DashboardBlogsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/b2b-network': {
+      id: '/dashboard/b2b-network'
+      path: '/b2b-network'
+      fullPath: '/dashboard/b2b-network'
+      preLoaderRoute: typeof DashboardB2bNetworkRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/automation': {
       id: '/dashboard/automation'
       path: '/automation'
       fullPath: '/dashboard/automation'
       preLoaderRoute: typeof DashboardAutomationRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/aeo-geo': {
+      id: '/dashboard/aeo-geo'
+      path: '/aeo-geo'
+      fullPath: '/dashboard/aeo-geo'
+      preLoaderRoute: typeof DashboardAeoGeoRouteImport
       parentRoute: typeof DashboardRoute
     }
     '/dashboard/actions': {
@@ -689,7 +765,10 @@ const DashboardBusinessAnalysisRouteWithChildren =
 
 interface DashboardRouteChildren {
   DashboardActionsRoute: typeof DashboardActionsRoute
+  DashboardAeoGeoRoute: typeof DashboardAeoGeoRoute
   DashboardAutomationRoute: typeof DashboardAutomationRoute
+  DashboardB2bNetworkRoute: typeof DashboardB2bNetworkRoute
+  DashboardBlogsRoute: typeof DashboardBlogsRoute
   DashboardBusinessAnalysisRoute: typeof DashboardBusinessAnalysisRouteWithChildren
   DashboardBusinessDetailsRoute: typeof DashboardBusinessDetailsRoute
   DashboardCompetitorAnalysisRoute: typeof DashboardCompetitorAnalysisRoute
@@ -708,6 +787,7 @@ interface DashboardRouteChildren {
   DashboardSeoGoogleMapsRoute: typeof DashboardSeoGoogleMapsRoute
   DashboardSettingsRoute: typeof DashboardSettingsRoute
   DashboardWebsiteRoute: typeof DashboardWebsiteRoute
+  DashboardWhatsappRoute: typeof DashboardWhatsappRoute
   DashboardWhatsappSalesRoute: typeof DashboardWhatsappSalesRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
   DashboardAgentsCustomerRetentionRoute: typeof DashboardAgentsCustomerRetentionRoute
@@ -717,7 +797,10 @@ interface DashboardRouteChildren {
 
 const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardActionsRoute: DashboardActionsRoute,
+  DashboardAeoGeoRoute: DashboardAeoGeoRoute,
   DashboardAutomationRoute: DashboardAutomationRoute,
+  DashboardB2bNetworkRoute: DashboardB2bNetworkRoute,
+  DashboardBlogsRoute: DashboardBlogsRoute,
   DashboardBusinessAnalysisRoute: DashboardBusinessAnalysisRouteWithChildren,
   DashboardBusinessDetailsRoute: DashboardBusinessDetailsRoute,
   DashboardCompetitorAnalysisRoute: DashboardCompetitorAnalysisRoute,
@@ -736,6 +819,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardSeoGoogleMapsRoute: DashboardSeoGoogleMapsRoute,
   DashboardSettingsRoute: DashboardSettingsRoute,
   DashboardWebsiteRoute: DashboardWebsiteRoute,
+  DashboardWhatsappRoute: DashboardWhatsappRoute,
   DashboardWhatsappSalesRoute: DashboardWhatsappSalesRoute,
   DashboardIndexRoute: DashboardIndexRoute,
   DashboardAgentsCustomerRetentionRoute: DashboardAgentsCustomerRetentionRoute,

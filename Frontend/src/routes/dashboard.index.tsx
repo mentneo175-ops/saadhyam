@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useRouteContext } from "@tanstack/react-router";
 import { SnapshotCard } from "@/components/dashboard/SnapshotCard";
 import { GrowthChart } from "@/components/dashboard/GrowthChart";
 import { InsightsPanel } from "@/components/dashboard/InsightsPanel";
@@ -10,6 +10,7 @@ import { apiClient } from "@/lib/api";
 import { useRealtimeBusiness } from "@/hooks/useRealtimeBusiness";
 import { formatCacheAge } from "@/lib/realtimeBusinessApi";
 import { getGrowthPlanData, type GrowthPlanData } from "@/lib/comprehensiveAnalysisApi";
+import { useDashboardContext } from "@/contexts/DashboardContext";
 import {
   Activity,
   Eye,
@@ -56,6 +57,7 @@ const iconMap: Record<string, any> = {
 
 function Overview() {
   const navigate = useNavigate();
+  const { refreshTrigger } = useDashboardContext();
   
   // Use real-time business intelligence hook
   const {
@@ -82,6 +84,13 @@ function Overview() {
   // 30-Day Growth Plan state
   const [growthPlan, setGrowthPlan] = useState<GrowthPlanData | null>(null);
   const [growthPlanLoading, setGrowthPlanLoading] = useState(false);
+
+  // Listen to refresh trigger from context
+  useEffect(() => {
+    if (refreshTrigger && refreshTrigger > 0) {
+      refreshAll();
+    }
+  }, [refreshTrigger, refreshAll]);
 
   // Check if business profile is complete
   useEffect(() => {
@@ -347,32 +356,6 @@ function Overview() {
 
       <div className="flex">
         <div className="flex-1 min-w-0 p-4 md:p-6 lg:p-8 space-y-7">
-          {/* Header with refresh button */}
-          {profile && (
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900">
-                  Welcome back, {profile.business_name}!
-                </h2>
-                {lastUpdated && (
-                  <p className="text-sm text-gray-600 flex items-center gap-1 mt-1">
-                    <Clock size={14} />
-                    Last updated: {formatCacheAge(Date.now() - new Date(lastUpdated).getTime())}
-                  </p>
-                )}
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={refreshAll}
-                disabled={analysisLoading || insightsLoading}
-              >
-                <RefreshCw size={14} className={analysisLoading || insightsLoading ? "animate-spin" : ""} />
-                Refresh Data
-              </Button>
-            </div>
-          )}
-
           {/* Loading state */}
           {checkingProfile && (
             <div className="text-center py-12">
@@ -445,18 +428,13 @@ function Overview() {
                   </div>
                 ) : (
                   <div 
-                    className="flex gap-4 overflow-x-auto pb-2 -mx-1 px-1" 
+                    className="flex gap-4 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-hide" 
                     style={{ 
                       scrollbarWidth: 'none', 
                       msOverflowStyle: 'none',
                       WebkitOverflowScrolling: 'touch'
                     }}
                   >
-                    <style jsx>{`
-                      div::-webkit-scrollbar {
-                        display: none;
-                      }
-                    `}</style>
                     {actionsToShow.map((a, idx) => (
                       <ActionCard key={`${a.title}-${idx}`} {...a} />
                     ))}
@@ -573,8 +551,6 @@ function Overview() {
 
         <InsightsPanel 
           businessAnalysis={analysis?.status === "success" ? analysis.analysis : null}
-          insights={insights?.status === "success" ? insights.insights : null}
-          isLoading={analysisLoading || insightsLoading}
         />
       </div>
     </>

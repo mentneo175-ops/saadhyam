@@ -676,6 +676,20 @@
                     <p>Phone: +1 (555) 123-4567</p>
                 </div>
             </div>
+            
+            <!-- Blog Section -->
+            <div class="content-section">
+                <h2 class="section-title">Latest from Our Blog</h2>
+                <p style="color: #6c757d; margin-bottom: 30px;">Stay updated with our latest insights and news</p>
+                
+                <div id="blog-posts-container" style="display: flex; flex-direction: column; gap: 20px;">
+                    <p style="text-align: center; color: #6c757d;">Loading blog posts...</p>
+                </div>
+                
+                <div style="text-align: center; margin-top: 30px;">
+                    <a href="blogs.html" class="btn btn-primary">View All Posts</a>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -694,6 +708,7 @@
                     <li><a href="#services">Services</a></li>
                     <li><a href="#about">About Us</a></li>
                     <li><a href="#pricing">Pricing</a></li>
+                    <li><a href="blogs.html">Blog</a></li>
                     <li><a href="#contact">Contact</a></li>
                 </ul>
             </div>
@@ -710,6 +725,60 @@
             <p>&copy; 2024 {{ data.business_name }}. All rights reserved.</p>
         </div>
     </footer>
+    
+    <script>
+        // Load blog posts dynamically
+        async function loadBlogPosts() {
+            const container = document.getElementById('blog-posts-container');
+            
+            try {
+                const response = await fetch('blogs.json');
+                
+                if (!response.ok) {
+                    throw new Error('No blogs found');
+                }
+                
+                const data = await response.json();
+                const blogs = data.blogs || [];
+                
+                if (blogs.length === 0) {
+                    container.innerHTML = '<p style="text-align: center; color: #6c757d;">No blog posts yet. Check back soon!</p>';
+                    return;
+                }
+                
+                // Show only the 3 most recent blogs
+                const recentBlogs = blogs.slice(0, 3);
+                
+                container.innerHTML = recentBlogs.map(blog => `
+                    <div style="background: white; padding: 24px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); cursor: pointer; transition: all 0.3s;" 
+                         onclick="window.location.href='blog-${blog.slug}.html'"
+                         onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 4px 20px rgba(102,126,234,0.15)'"
+                         onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 10px rgba(0,0,0,0.05)'">
+                        <span style="display: inline-block; padding: 6px 12px; background: #667eea; color: white; border-radius: 20px; font-size: 12px; font-weight: 600; text-transform: uppercase; margin-bottom: 12px;">
+                            ${blog.category || 'Blog'}
+                        </span>
+                        <h3 style="font-size: 22px; font-weight: 700; margin-bottom: 12px; color: #2c3e50;">${blog.title}</h3>
+                        <p style="color: #6c757d; margin-bottom: 16px; line-height: 1.6;">${blog.meta_description || blog.introduction.substring(0, 150) + '...'}</p>
+                        <div style="display: flex; justify-content: space-between; font-size: 14px; color: #86868b;">
+                            <span>📅 ${new Date(blog.published_at).toLocaleDateString()}</span>
+                            <span>⏱️ ${blog.reading_time || 5} min read</span>
+                        </div>
+                    </div>
+                `).join('');
+                
+            } catch (error) {
+                console.log('No blogs available yet');
+                container.innerHTML = '<p style="text-align: center; color: #6c757d;">No blog posts yet. Check back soon!</p>';
+            }
+        }
+        
+        // Load blogs when page loads
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', loadBlogPosts);
+        } else {
+            loadBlogPosts();
+        }
+    </script>
 </body>
 
 </html>

@@ -13,14 +13,59 @@ class ContentEditor {
     }
 
     init() {
+        // Don't initialize editor if no valid website ID
+        if (!this.websiteId || this.websiteId === null) {
+            console.log('⚠️  Editor not initialized - no valid website ID');
+            return;
+        }
+        
+        console.log('🎨 Initializing editor for website:', this.websiteId);
         this.createEditorUI();
         this.loadContent();
         this.attachEventListeners();
     }
 
     getWebsiteIdFromUrl() {
+        // First, check if website ID was injected by the server
+        if (window.WEBSITE_ID) {
+            console.log('✅ Using injected website ID:', window.WEBSITE_ID);
+            return window.WEBSITE_ID;
+        }
+        
+        // Try to get from query parameter (?id=...)
         const params = new URLSearchParams(window.location.search);
-        return params.get('id') || 'demo';
+        const idParam = params.get('id');
+        if (idParam && idParam !== 'demo') {
+            console.log('✅ Using website ID from query param:', idParam);
+            return idParam;
+        }
+        
+        // Try to get from URL path (/website/{id})
+        const pathMatch = window.location.pathname.match(/\/website\/([^\/]+)/);
+        if (pathMatch && pathMatch[1]) {
+            const websiteId = pathMatch[1];
+            
+            // Skip if it's a blog file (blogs.html, blogs.json, blog-*.html)
+            if (websiteId.includes('blog') || websiteId.endsWith('.html') || websiteId.endsWith('.json')) {
+                console.log('⚠️  Skipping editor for blog page:', websiteId);
+                return null; // Don't activate editor on blog pages
+            }
+            
+            console.log('✅ Using website ID from path:', websiteId);
+            return websiteId;
+        }
+        
+        // Check if we're on a blog page (disable editor)
+        if (window.location.pathname.includes('blogs.html') || 
+            window.location.pathname.includes('blog-') ||
+            window.location.pathname.includes('/website-ai/output/')) {
+            console.log('⚠️  Editor disabled on blog pages');
+            return null;
+        }
+        
+        // Fallback to demo
+        console.warn('⚠️  Could not determine website ID from URL, using demo mode');
+        return 'demo';
     }
 
     getCurrentTheme() {
@@ -278,14 +323,23 @@ class ContentEditor {
     async loadContent() {
         try {
             this.updateStatus('Loading...');
-            const response = await fetch(`/website-ai/api/content/${this.websiteId}`);
+            const response = await fetch(`/api/v1/content/${this.websiteId}`);
 
             if (response.ok) {
                 const data = await response.json();
+                console.log('✅ Loaded saved content:', data);
                 this.originalContent = data;
-                this.populateContent(data);
-                this.updateStatus('Content loaded');
+                
+                // If full HTML was saved, we don't need to populate individual fields
+                // The HTML is already loaded from the server with edits applied
+                if (data.content && data.content.html) {
+                    this.updateStatus('Loaded saved version');
+                } else {
+                    this.populateContent(data);
+                    this.updateStatus('Content loaded');
+                }
             } else {
+                console.log('No saved content found, using default');
                 this.updateStatus('Using default content');
             }
         } catch (error) {
@@ -312,31 +366,46 @@ class ContentEditor {
     async saveContent() {
         try {
             this.updateStatus('Saving...');
+            console.log('💾 Saving content for website:', this.websiteId);
 
-            const content = this.extractContent();
+            // Save the entire HTML document
+            const fullHtml = document.documentElement.outerHTML;
+            console.log('📄 HTML length:', fullHtml.length);
 
-            const response = await fetch(`/website-ai/api/content/${this.websiteId}`, {
+            const url = `/api/v1/content/${this.websiteId}`;
+            console.log('🌐 Saving to:', url);
+
+            const response = await fetch(url, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    content: content,
-                    theme: this.currentTheme,
-                    website_id: this.websiteId
+                    content: {
+                        html: fullHtml  // Save full HTML
+                    },
+                    theme: this.currentTheme
                 })
             });
 
+            console.log('📡 Response status:', response.status, response.statusText);
+
             if (response.ok) {
+                const result = await response.json();
+                console.log('✅ Content saved successfully:', result);
                 this.showNotification('✅ Content saved successfully!');
                 this.updateStatus('Saved');
-                this.originalContent = content;
+                
+                // Update original content
+                this.originalContent = { html: fullHtml };
             } else {
-                throw new Error('Save failed');
+                const errorText = await response.text();
+                console.error('❌ Save failed:', response.status, errorText);
+                throw new Error(`Save failed (${response.status}): ${errorText}`);
             }
         } catch (error) {
-            console.error('Failed to save content:', error);
-            this.showNotification('❌ Failed to save content', 'error');
+            console.error('❌ Failed to save content:', error);
+            this.showNotification('❌ Failed to save: ' + error.message, 'error');
             this.updateStatus('Save failed');
         }
     }

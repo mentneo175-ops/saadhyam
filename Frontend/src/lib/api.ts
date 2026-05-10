@@ -23,6 +23,13 @@ export interface User {
   id: number;
   email: string;
   name?: string;
+  auth_provider?: string;
+  profile_picture?: string;
+  business_name?: string;
+  business_type?: string;
+  business_location?: string;
+  business_description?: string;
+  business_setup_completed?: boolean;
   created_at: string;
 }
 
@@ -289,6 +296,13 @@ class ApiClient {
       id: data.id,
       email: data.email,
       name: data.name,
+      auth_provider: data.auth_provider || 'google',
+      profile_picture: data.profile_picture,
+      business_name: data.business_name,
+      business_type: data.business_type,
+      business_location: data.business_location,
+      business_description: data.business_description,
+      business_setup_completed: data.business_setup_completed,
       created_at: data.created_at,
     };
 
@@ -311,6 +325,13 @@ class ApiClient {
       id: data.id,
       email: data.email,
       name: data.name,
+      auth_provider: data.auth_provider || 'email',
+      profile_picture: data.profile_picture,
+      business_name: data.business_name,
+      business_type: data.business_type,
+      business_location: data.business_location,
+      business_description: data.business_description,
+      business_setup_completed: data.business_setup_completed,
       created_at: data.created_at,
     };
 
@@ -333,6 +354,13 @@ class ApiClient {
       id: data.id,
       email: data.email,
       name: data.name,
+      auth_provider: data.auth_provider || 'email',
+      profile_picture: data.profile_picture,
+      business_name: data.business_name,
+      business_type: data.business_type,
+      business_location: data.business_location,
+      business_description: data.business_description,
+      business_setup_completed: data.business_setup_completed,
       created_at: data.created_at,
     };
 
@@ -353,6 +381,14 @@ class ApiClient {
     const user: User = {
       id: data.id,
       email: data.email,
+      name: data.name,
+      auth_provider: data.auth_provider,
+      profile_picture: data.profile_picture,
+      business_name: data.business_name,
+      business_type: data.business_type,
+      business_location: data.business_location,
+      business_description: data.business_description,
+      business_setup_completed: data.business_setup_completed,
       created_at: data.created_at,
     };
 
@@ -372,7 +408,22 @@ class ApiClient {
       // Still clear local token even if logout fails
       console.error("Logout error:", error);
     }
+    this.clearAuth();
+  }
+
+  /**
+   * Clear authentication data
+   */
+  clearAuth(): void {
     this.setToken(null);
+    if (typeof window !== "undefined") {
+      localStorage.removeItem(TOKEN_STORAGE_KEY);
+      localStorage.removeItem(USER_STORAGE_KEY);
+      // Clear other business-related data
+      localStorage.removeItem("businessInfo");
+      localStorage.removeItem("businessAnalysis");
+      localStorage.removeItem("businessProfile");
+    }
   }
 
   /**

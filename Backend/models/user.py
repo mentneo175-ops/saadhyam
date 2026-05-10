@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, DateTime, Integer, Text, Boolean
+from sqlalchemy import Column, String, DateTime, Integer, Text, Boolean, Float
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 from config.database import Base
@@ -27,12 +27,17 @@ class User(Base):
     business_name = Column(String(255), nullable=True)
     business_type = Column(String(100), nullable=True)
     business_location = Column(String(255), nullable=True)
+    latitude = Column(Float, nullable=True)  # Latitude coordinate
+    longitude = Column(Float, nullable=True)  # Longitude coordinate
     business_description = Column(Text, nullable=True)
     business_setup_completed = Column(Boolean, default=False, nullable=False)
     
     # Business Input Sources (for edit functionality)
     pdf_file_url = Column(Text, nullable=True)  # Path to uploaded PDF
     website_url = Column(Text, nullable=True)  # Imported website URL
+    
+    # Generated Website
+    last_generated_website_id = Column(String(36), nullable=True)  # UUID of last generated website
     
     created_at = Column(DateTime, server_default=func.now(), nullable=False)
     updated_at = Column(

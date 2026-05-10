@@ -217,6 +217,14 @@ except Exception as e:
     whatsapp_webhook_available = False
 
 try:
+    from routes.dashboard_analytics import router as dashboard_analytics_router
+    dashboard_analytics_available = True
+    logging.info("✅ Dashboard Analytics router imported successfully")
+except Exception as e:
+    logging.warning(f"Dashboard Analytics router not available: {e}")
+    dashboard_analytics_available = False
+
+try:
     from routes.whatsapp_messages import router as whatsapp_messages_router
     whatsapp_messages_available = True
     logging.info("✅ WhatsApp Messages router imported successfully")
@@ -316,7 +324,19 @@ async def lifespan(app: FastAPI):
         migrate_add_whatsapp_tables()
         from migrations.add_location_coordinates import migrate_add_location_coordinates
         migrate_add_location_coordinates()
+        from migrations.add_user_id_to_review_history import migrate_add_user_id_to_review_history
+        migrate_add_user_id_to_review_history()
         logger.info("✅ Migrations completed")
+        
+        # Start scheduler for processing scheduled Instagram posts
+        logger.info("🔄 Starting Instagram post scheduler...")
+        try:
+            from services.scheduler import start_scheduler
+            start_scheduler()
+            logger.info("✅ Instagram post scheduler started (checks every 1 minute)")
+        except Exception as e:
+            logger.error(f"❌ Failed to start scheduler: {e}")
+            logger.warning("⚠️  Scheduled posts will not be automatically processed")
         
         # NOTE: AI models configuration:
         # - Review Reply AI: TinyLlama loaded in main backend (port 8000)
@@ -361,6 +381,15 @@ async def lifespan(app: FastAPI):
     logger.info("=" * 60)
     
     try:
+        # Stop scheduler
+        logger.info("🔄 Stopping Instagram post scheduler...")
+        try:
+            from services.scheduler import stop_scheduler
+            stop_scheduler()
+            logger.info("✅ Scheduler stopped")
+        except Exception as e:
+            logger.error(f"❌ Error stopping scheduler: {e}")
+        
         # Close database
         logger.info("🔄 Closing database connections...")
         await close_db()
@@ -480,6 +509,9 @@ if whatsapp_automation_available:
 if b2b_network_available:
     app.include_router(b2b_network_router)
     logging.info("✅ B2B Network router included in app")
+if dashboard_analytics_available:
+    app.include_router(dashboard_analytics_router)
+    logging.info("✅ Dashboard Analytics router included in app")
 if website_ai_available:
     app.include_router(
         website_ai_generation.router,

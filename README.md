@@ -354,7 +354,37 @@ Database will auto-initialize on first run with automatic migrations.
 
 ### Start Backend Server
 
-### Start Redis
+### Option 1: Quick Start (All Services at Once) ⚡
+
+**Windows:**
+```bash
+# Double-click start_all.bat or run:
+start_all.bat
+```
+
+**macOS/Linux/Git Bash:**
+```bash
+# Make script executable (first time only):
+chmod +x start_all.sh
+
+# Run script:
+./start_all.sh
+```
+
+This will automatically:
+- ✅ Start Backend server on `http://localhost:8000`
+- ✅ Start AI Model Server on `http://localhost:9000` (TinyLlama for review replies)
+- ✅ Start Main Celery worker (Instagram posts + WhatsApp automation)
+- ✅ Start Website AI Celery worker (Website generation tasks)
+- ✅ Start Frontend server on `http://localhost:5173`
+- ✅ Open application in browser
+- ✅ Display server logs in separate windows (5 terminals on Windows)
+
+---
+
+### Option 2: Manual Start (Individual Services)
+
+#### Start Redis
 ```bash
 # Windows (if installed):
 redis-server
@@ -366,7 +396,7 @@ brew services start redis
 docker run -d -p 6379:6379 redis:alpine
 ```
 
-### Start Backend
+#### Start Backend
 ```bash
 cd Backend
 ..\.venv\Scripts\python.exe -m uvicorn main:app --reload --port 8000
@@ -389,6 +419,27 @@ INFO: Uvicorn running on http://127.0.0.1:8000
 ### Start Frontend Server
 
 ### Start Celery Worker (Optional - for background tasks)
+venv\Scripts\activate  # Windows
+# source venv/bin/activate  # macOS/Linux
+
+python main.py
+# Or with uvicorn:
+# python -m uvicorn main:app --reload --port 8000
+```
+
+#### Start AI Model Server (Optional - for Review Reply AI)
+```bash
+cd Backend
+venv\Scripts\activate  # Windows
+# source venv/bin/activate  # macOS/Linux
+
+python model_server.py
+# Runs on port 9000
+```
+
+#### Start Celery Workers (Optional - for background tasks)
+
+**Main Celery Worker (Instagram + WhatsApp):**
 ```bash
 cd Backend
 venv\Scripts\activate
@@ -400,7 +451,19 @@ celery -A celery_worker worker --loglevel=info --pool=solo
 celery -A celery_worker worker --loglevel=info
 ```
 
-### Start Frontend
+**Website AI Celery Worker (Website Generation):**
+```bash
+cd Backend
+venv\Scripts\activate
+
+# Windows:
+celery -A ai_models.website_ai.app.workers.celery_app worker --loglevel=info --pool=solo
+
+# macOS/Linux:
+celery -A ai_models.website_ai.app.workers.celery_app worker --loglevel=info
+```
+
+#### Start Frontend
 ```bash
 cd Frontend
 npm run dev
@@ -727,8 +790,9 @@ This project is proprietary software. All rights reserved.
 
 | Service | URL | Purpose |
 |---------|-----|---------|
-| Frontend | http://localhost:8080 | React application |
+| Frontend | http://localhost:5173 | React application |
 | Backend API | http://localhost:8000 | FastAPI server |
+| AI Model Server | http://localhost:9000 | TinyLlama inference |
 | API Docs | http://localhost:8000/docs | Swagger documentation |
 | Redis | localhost:6379 | Message broker |
 

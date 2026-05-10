@@ -271,6 +271,10 @@ export default function AssistantWidget() {
   // Show widget ONLY on dashboard pages when user is logged in
   const isDashboardPage = location.pathname.startsWith('/dashboard');
   const shouldShow = isDashboardPage && user;
+  // Hide widget ONLY on landing page and auth pages
+  // Show everywhere else inside the application (after login)
+  const hideOnPages = ['/login', '/signup', '/'];
+  const shouldHide = hideOnPages.includes(location.pathname) || !user;
 
   // Don't render if should not be shown
   if (!shouldShow) {
@@ -281,7 +285,7 @@ export default function AssistantWidget() {
     <>
       {/* Widget Panel - Positioned above button */}
       {isOpen && (
-        <div className="fixed bottom-24 right-6 z-50 w-[380px] overflow-hidden rounded-2xl border border-border bg-card shadow-xl">
+        <div className="fixed bottom-24 right-6 w-[380px] overflow-hidden rounded-2xl border border-border bg-card shadow-xl">
           {/* Header with Mode Toggle */}
           <div className="border-b border-border">
             <div className="flex items-center justify-between px-4 py-3">

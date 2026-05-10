@@ -59,15 +59,16 @@ class InstagramGraphAPIService:
             logger.error(f"❌ Error validating image URL: {e}")
             return False
 
-    async def create_media(self, ig_user_id: str, image_url: str, caption: str, access_token: str) -> Optional[str]:
+    async def create_media(self, ig_user_id: str, image_url: str, caption: str, access_token: str, media_type: str = "IMAGE") -> Optional[str]:
         """
-        Create Instagram media container.
+        Create Instagram media container (supports images and reels).
         
         Args:
             ig_user_id: Instagram Business Account ID
-            image_url: Publicly accessible image URL
+            image_url: Publicly accessible image/video URL
             caption: Post caption
             access_token: Facebook access token with instagram_content_publish permission
+            media_type: "IMAGE" or "REELS" (default: "IMAGE")
             
         Returns:
             Media creation_id for publishing
@@ -84,9 +85,17 @@ class InstagramGraphAPIService:
             
             # Prepare data - ensure caption is properly encoded
             data = {
-                "image_url": image_url,
                 "access_token": access_token,
+                "media_type": media_type,
             }
+            
+            # Use appropriate URL parameter based on media type
+            if media_type == "REELS":
+                data["video_url"] = image_url
+                # Reels require share_to_feed parameter
+                data["share_to_feed"] = True
+            else:
+                data["image_url"] = image_url
             
             # Add caption if provided (Instagram allows empty captions)
             if caption and caption.strip():
@@ -95,7 +104,8 @@ class InstagramGraphAPIService:
             logger.info(f"📤 Creating Instagram media container...")
             logger.info(f"   URL: {url}")
             logger.info(f"   IG User ID: {ig_user_id}")
-            logger.info(f"   Image URL: {image_url}")
+            logger.info(f"   Media Type: {media_type}")
+            logger.info(f"   Media URL: {image_url}")
             logger.info(f"   Caption length: {len(caption) if caption else 0} chars")
             
             response = requests.post(url, data=data, timeout=30)
@@ -151,22 +161,85 @@ class InstagramGraphAPIService:
             logger.error(f"❌ Unexpected error creating media: {e}")
             return None
 
-    async def publish_media(self, ig_user_id: str, creation_id: str, access_token: str) -> Optional[str]:
+    async def check_media_status(self, creation_id: str, access_token: str, max_retries: int = 30) -> bool:
         """
-        Publish Instagram media.
+        Check if media container is ready for publishing (especially important for videos).
+        Videos need processing time before they can be published.
+        
+        Args:
+            creation_id: Media container ID
+            access_token: Facebook access token
+            max_retries: Maximum number of status checks (default: 30)
+            
+        Returns:
+            True if media is ready, False otherwise
+        """
+        try:
+            url = f"https://graph.facebook.com/{self.api_version}/{creation_id}"
+            params = {
+                "fields": "status_code",
+                "access_token": access_token
+            }
+            
+            for attempt in range(max_retries):
+                logger.info(f"🔍 Checking media status (attempt {attempt + 1}/{max_retries})...")
+                
+                response = requests.get(url, params=params, timeout=10)
+                
+                if response.status_code == 200:
+                    result = response.json()
+                    status_code = result.get("status_code")
+                    
+                    logger.info(f"   Status code: {status_code}")
+                    
+                    if status_code == "FINISHED":
+                        logger.info("✅ Media is ready for publishing!")
+                        return True
+                    elif status_code == "ERROR":
+                        logger.error("❌ Media processing failed")
+                        return False
+                    elif status_code in ["IN_PROGRESS", "PUBLISHED"]:
+                        logger.info(f"⏳ Media is {status_code}, waiting...")
+                        time.sleep(2)  # Wait 2 seconds before next check
+                    else:
+                        logger.warning(f"⚠️ Unknown status: {status_code}")
+                        time.sleep(2)
+                else:
+                    logger.warning(f"⚠️ Status check failed: HTTP {response.status_code}")
+                    time.sleep(2)
+            
+            logger.warning("⚠️ Max retries reached, media might not be ready")
+            return False
+            
+        except Exception as e:
+            logger.error(f"❌ Error checking media status: {e}")
+            return False
+
+    async def publish_media(self, ig_user_id: str, creation_id: str, access_token: str, is_video: bool = False) -> Optional[str]:
+        """
+        Publish Instagram media (supports images and reels).
         
         Args:
             ig_user_id: Instagram Business Account ID
             creation_id: Media container ID from create_media
             access_token: Facebook access token
+            is_video: Whether the media is a reel (requires status check)
             
         Returns:
             Published media ID
         """
         try:
-            # Add a small delay to ensure media container is ready
-            logger.info("⏳ Waiting 2 seconds for media container to be ready...")
-            time.sleep(2)
+            # For reels, check if media is ready before publishing
+            if is_video:
+                logger.info("🎥 Reel detected, checking processing status...")
+                is_ready = await self.check_media_status(creation_id, access_token)
+                if not is_ready:
+                    logger.error("❌ Reel is not ready for publishing")
+                    return None
+            else:
+                # For images, add a small delay to ensure media container is ready
+                logger.info("⏳ Waiting 2 seconds for media container to be ready...")
+                time.sleep(2)
             
             url = f"https://graph.facebook.com/{self.api_version}/{ig_user_id}/media_publish"
 
@@ -230,9 +303,16 @@ class InstagramGraphAPIService:
             logger.error(f"❌ Unexpected error publishing media: {e}")
             return None
 
-    async def post_to_instagram(self, ig_user_id: str, image_url: str, caption: str, access_token: str) -> Dict[str, Any]:
+    async def post_to_instagram(self, ig_user_id: str, image_url: str, caption: str, access_token: str, media_type: str = "IMAGE") -> Dict[str, Any]:
         """
-        Complete flow to post image to Instagram.
+        Complete flow to post image or reel to Instagram.
+        
+        Args:
+            ig_user_id: Instagram Business Account ID
+            image_url: Publicly accessible media URL
+            caption: Post caption
+            access_token: Facebook access token
+            media_type: "IMAGE" or "REELS" (default: "IMAGE")
 
         Returns:
             Dict with success status and post ID
@@ -240,7 +320,8 @@ class InstagramGraphAPIService:
         try:
             logger.info(f"🚀 Starting Instagram post flow...")
             logger.info(f"   IG User ID: {ig_user_id}")
-            logger.info(f"   Image URL: {image_url}")
+            logger.info(f"   Media Type: {media_type}")
+            logger.info(f"   Media URL: {image_url}")
             logger.info(f"   Caption: {caption[:50]}..." if len(caption) > 50 else f"   Caption: {caption}")
             
             # Step 1: Validate access token permissions
@@ -250,14 +331,15 @@ class InstagramGraphAPIService:
                 return {"success": False, "error": "Access token validation failed"}
 
             # Step 2: Create media container
-            logger.info("📦 Creating media container...")
-            creation_id = await self.create_media(ig_user_id, image_url, caption, access_token)
+            logger.info(f"📦 Creating {media_type.lower()} media container...")
+            creation_id = await self.create_media(ig_user_id, image_url, caption, access_token, media_type)
             if not creation_id:
                 return {"success": False, "error": "Failed to create media container"}
 
             # Step 3: Publish media
             logger.info("📤 Publishing media...")
-            post_id = await self.publish_media(ig_user_id, creation_id, access_token)
+            is_video = media_type == "REELS"
+            post_id = await self.publish_media(ig_user_id, creation_id, access_token, is_video)
             if not post_id:
                 return {"success": False, "error": "Failed to publish media"}
 
@@ -266,6 +348,7 @@ class InstagramGraphAPIService:
                 "success": True,
                 "post_id": post_id,
                 "creation_id": creation_id,
+                "media_type": media_type,
             }
 
         except Exception as e:
@@ -357,27 +440,42 @@ class InstagramGraphAPIService:
             logger.error(f"Error getting media insights: {e}")
             return {}
 
-    def post_to_instagram_sync(self, ig_user_id: str, image_url: str, caption: str, access_token: str) -> Dict[str, Any]:
+    def post_to_instagram_sync(self, ig_user_id: str, image_url: str, caption: str, access_token: str, media_type: str = "IMAGE") -> Dict[str, Any]:
         """
-        Synchronous wrapper for posting to Instagram.
+        Synchronous wrapper for posting to Instagram (supports images and reels).
         Used by APScheduler which runs in a synchronous context.
+        
+        Args:
+            ig_user_id: Instagram Business Account ID
+            image_url: Publicly accessible media URL
+            caption: Post caption
+            access_token: Facebook access token
+            media_type: "IMAGE" or "REELS" (default: "IMAGE")
         
         This is a simplified version that directly calls the API without async/await.
         """
         try:
             logger.info(f"🚀 [SYNC] Starting Instagram post flow...")
             logger.info(f"   IG User ID: {ig_user_id}")
-            logger.info(f"   Image URL: {image_url[:60]}...")
+            logger.info(f"   Media Type: {media_type}")
+            logger.info(f"   Media URL: {image_url[:60]}...")
             logger.info(f"   Caption: {caption[:50]}..." if len(caption) > 50 else f"   Caption: {caption}")
             
             # Step 1: Create media container
-            logger.info("📦 [SYNC] Creating media container...")
+            logger.info(f"📦 [SYNC] Creating {media_type.lower()} media container...")
             url = f"https://graph.facebook.com/{self.api_version}/{ig_user_id}/media"
             
             data = {
-                "image_url": image_url,
                 "access_token": access_token,
+                "media_type": media_type,
             }
+            
+            # Use appropriate URL parameter based on media type
+            if media_type == "REELS":
+                data["video_url"] = image_url
+                data["share_to_feed"] = True  # Reels require this parameter
+            else:
+                data["image_url"] = image_url
             
             if caption and caption.strip():
                 data["caption"] = caption.strip()
@@ -403,9 +501,46 @@ class InstagramGraphAPIService:
             
             logger.info(f"✅ [SYNC] Media container created: {creation_id}")
             
-            # Step 2: Wait for media container to be ready
-            logger.info("⏳ [SYNC] Waiting 2 seconds for media container to be ready...")
-            time.sleep(2)
+            # Step 2: Check media status for reels
+            if media_type == "REELS":
+                logger.info("🎥 [SYNC] Reel detected, checking processing status...")
+                status_url = f"https://graph.facebook.com/{self.api_version}/{creation_id}"
+                status_params = {
+                    "fields": "status_code",
+                    "access_token": access_token
+                }
+                
+                max_retries = 30
+                for attempt in range(max_retries):
+                    logger.info(f"🔍 [SYNC] Checking reel status (attempt {attempt + 1}/{max_retries})...")
+                    
+                    status_response = requests.get(status_url, params=status_params, timeout=10)
+                    
+                    if status_response.status_code == 200:
+                        status_result = status_response.json()
+                        status_code = status_result.get("status_code")
+                        
+                        logger.info(f"   Status code: {status_code}")
+                        
+                        if status_code == "FINISHED":
+                            logger.info("✅ [SYNC] Reel is ready for publishing!")
+                            break
+                        elif status_code == "ERROR":
+                            logger.error("❌ [SYNC] Reel processing failed")
+                            return {"success": False, "error": "Reel processing failed"}
+                        elif status_code in ["IN_PROGRESS", "PUBLISHED"]:
+                            logger.info(f"⏳ [SYNC] Reel is {status_code}, waiting...")
+                            time.sleep(2)
+                        else:
+                            logger.warning(f"⚠️ [SYNC] Unknown status: {status_code}")
+                            time.sleep(2)
+                    else:
+                        logger.warning(f"⚠️ [SYNC] Status check failed: HTTP {status_response.status_code}")
+                        time.sleep(2)
+            else:
+                # For images, wait 2 seconds
+                logger.info("⏳ [SYNC] Waiting 2 seconds for media container to be ready...")
+                time.sleep(2)
             
             # Step 3: Publish media
             logger.info("📤 [SYNC] Publishing media...")

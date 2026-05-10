@@ -187,6 +187,22 @@ except Exception as e:
     business_input_available = False
 
 try:
+    from routes.partnership_agent import router as partnership_agent_router
+    partnership_agent_available = True
+    logging.info("✅ Partnership Agent router imported successfully")
+except Exception as e:
+    logging.warning(f"Partnership Agent router not available: {e}")
+    partnership_agent_available = False
+
+try:
+    from routes.customer_retention import router as customer_retention_router
+    customer_retention_available = True
+    logging.info("✅ Customer Retention Agent router imported successfully")
+except Exception as e:
+    logging.warning(f"Customer Retention Agent router not available: {e}")
+    customer_retention_available = False
+
+try:
     from ai_models.website_ai.app.api.v1.routes import generation as website_ai_generation
     from ai_models.website_ai.app.api.v1.routes import jobs as website_ai_jobs
     from ai_models.website_ai.app.routes import website as website_ai_website
@@ -384,6 +400,12 @@ if website_serving_available:
 if business_input_available:
     app.include_router(business_input_router)
     logging.info("✅ Business Input router included in app")
+if partnership_agent_available:
+    app.include_router(partnership_agent_router)
+    logging.info("✅ Partnership Agent router included in app")
+if customer_retention_available:
+    app.include_router(customer_retention_router)
+    logging.info("✅ Customer Retention Agent router included in app")
 if website_ai_available:
     app.include_router(
         website_ai_generation.router,

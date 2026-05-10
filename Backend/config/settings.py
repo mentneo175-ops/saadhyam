@@ -52,6 +52,21 @@ class Settings(BaseSettings):
     # Google AI Studio (Gemini API)
     GEMINI_API_KEY: str = ""
 
+    # RapidAPI Configuration (for Partnership Agent)
+    RAPIDAPI_KEY: str = ""
+
+    # Apify API Configuration (for Instagram Scraper)
+    APIFY_API_TOKEN: str = ""
+
+    # Resend API Configuration (for Email Sending)
+    RESEND_API_KEY: str = ""
+
+    # Tavily API Configuration (for Real-time Web Search)
+    TAVILY_API_KEY: str = ""
+
+    # SerpAPI Configuration (for Google Search Results)
+    SERPAPI_KEY: str = ""
+
     # Token Encryption Key
     ENCRYPTION_KEY: str = "your-32-char-encryption-key-here"
 

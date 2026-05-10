@@ -187,6 +187,20 @@ except Exception as e:
     business_input_available = False
 
 try:
+    from routes.partnership_agent import router as partnership_agent_router
+    partnership_agent_available = True
+    logging.info("✅ Partnership Agent router imported successfully")
+except Exception as e:
+    logging.warning(f"Partnership Agent router not available: {e}")
+    partnership_agent_available = False
+
+try:
+    from routes.customer_retention import router as customer_retention_router
+    customer_retention_available = True
+    logging.info("✅ Customer Retention Agent router imported successfully")
+except Exception as e:
+    logging.warning(f"Customer Retention Agent router not available: {e}")
+    customer_retention_available = False
     from routes.aeo_geo import router as aeo_geo_router
     aeo_geo_available = True
     logging.info("✅ AEO/GEO router imported successfully")
@@ -487,6 +501,12 @@ if website_serving_available:
 if business_input_available:
     app.include_router(business_input_router)
     logging.info("✅ Business Input router included in app")
+if partnership_agent_available:
+    app.include_router(partnership_agent_router)
+    logging.info("✅ Partnership Agent router included in app")
+if customer_retention_available:
+    app.include_router(customer_retention_router)
+    logging.info("✅ Customer Retention Agent router included in app")
 if aeo_geo_available:
     app.include_router(aeo_geo_router)
     logging.info("✅ AEO/GEO router included in app")

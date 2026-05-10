@@ -18,6 +18,7 @@ import {
   Calendar,
   Search,
   Target,
+  Bot,
   Brain,
   Zap,
   BookOpen,
@@ -34,6 +35,7 @@ type NavItem = {
 const items: NavItem[] = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { to: "/dashboard/business-analysis", label: "Business Analysis", icon: Sparkles },
+  { to: "/dashboard/agents", label: "AI Agents", icon: Bot },
   { to: "/dashboard/competitor-analysis", label: "Competitor Analysis", icon: Users },
   { to: "/dashboard/daily-ask", label: "Daily Suggestions", icon: Calendar },
   { to: "/dashboard/aeo-geo", label: "AEO & GEO", icon: Brain },

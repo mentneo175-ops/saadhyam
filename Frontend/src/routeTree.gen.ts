@@ -42,7 +42,10 @@ import { Route as DashboardB2bNetworkRouteImport } from './routes/dashboard.b2b-
 import { Route as DashboardAutomationRouteImport } from './routes/dashboard.automation'
 import { Route as DashboardAeoGeoRouteImport } from './routes/dashboard.aeo-geo'
 import { Route as DashboardActionsRouteImport } from './routes/dashboard.actions'
+import { Route as DashboardAgentsIndexRouteImport } from './routes/dashboard.agents.index'
 import { Route as DashboardBusinessAnalysisOldRouteImport } from './routes/dashboard.business-analysis.old'
+import { Route as DashboardAgentsPartnershipRouteImport } from './routes/dashboard.agents.partnership'
+import { Route as DashboardAgentsCustomerRetentionRouteImport } from './routes/dashboard.agents.customer-retention'
 
 const VerifyRoute = VerifyRouteImport.update({
   id: '/verify',
@@ -212,11 +215,28 @@ const DashboardActionsRoute = DashboardActionsRouteImport.update({
   path: '/actions',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardAgentsIndexRoute = DashboardAgentsIndexRouteImport.update({
+  id: '/agents/',
+  path: '/agents/',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardBusinessAnalysisOldRoute =
   DashboardBusinessAnalysisOldRouteImport.update({
     id: '/old',
     path: '/old',
     getParentRoute: () => DashboardBusinessAnalysisRoute,
+  } as any)
+const DashboardAgentsPartnershipRoute =
+  DashboardAgentsPartnershipRouteImport.update({
+    id: '/agents/partnership',
+    path: '/agents/partnership',
+    getParentRoute: () => DashboardRoute,
+  } as any)
+const DashboardAgentsCustomerRetentionRoute =
+  DashboardAgentsCustomerRetentionRouteImport.update({
+    id: '/agents/customer-retention',
+    path: '/agents/customer-retention',
+    getParentRoute: () => DashboardRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -253,7 +273,10 @@ export interface FileRoutesByFullPath {
   '/dashboard/whatsapp-sales': typeof DashboardWhatsappSalesRoute
   '/website/$websiteId': typeof WebsiteWebsiteIdRoute
   '/dashboard/': typeof DashboardIndexRoute
+  '/dashboard/agents/customer-retention': typeof DashboardAgentsCustomerRetentionRoute
+  '/dashboard/agents/partnership': typeof DashboardAgentsPartnershipRoute
   '/dashboard/business-analysis/old': typeof DashboardBusinessAnalysisOldRoute
+  '/dashboard/agents/': typeof DashboardAgentsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -288,7 +311,10 @@ export interface FileRoutesByTo {
   '/dashboard/whatsapp-sales': typeof DashboardWhatsappSalesRoute
   '/website/$websiteId': typeof WebsiteWebsiteIdRoute
   '/dashboard': typeof DashboardIndexRoute
+  '/dashboard/agents/customer-retention': typeof DashboardAgentsCustomerRetentionRoute
+  '/dashboard/agents/partnership': typeof DashboardAgentsPartnershipRoute
   '/dashboard/business-analysis/old': typeof DashboardBusinessAnalysisOldRoute
+  '/dashboard/agents': typeof DashboardAgentsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -325,7 +351,10 @@ export interface FileRoutesById {
   '/dashboard/whatsapp-sales': typeof DashboardWhatsappSalesRoute
   '/website/$websiteId': typeof WebsiteWebsiteIdRoute
   '/dashboard/': typeof DashboardIndexRoute
+  '/dashboard/agents/customer-retention': typeof DashboardAgentsCustomerRetentionRoute
+  '/dashboard/agents/partnership': typeof DashboardAgentsPartnershipRoute
   '/dashboard/business-analysis/old': typeof DashboardBusinessAnalysisOldRoute
+  '/dashboard/agents/': typeof DashboardAgentsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -363,7 +392,10 @@ export interface FileRouteTypes {
     | '/dashboard/whatsapp-sales'
     | '/website/$websiteId'
     | '/dashboard/'
+    | '/dashboard/agents/customer-retention'
+    | '/dashboard/agents/partnership'
     | '/dashboard/business-analysis/old'
+    | '/dashboard/agents/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -398,7 +430,10 @@ export interface FileRouteTypes {
     | '/dashboard/whatsapp-sales'
     | '/website/$websiteId'
     | '/dashboard'
+    | '/dashboard/agents/customer-retention'
+    | '/dashboard/agents/partnership'
     | '/dashboard/business-analysis/old'
+    | '/dashboard/agents'
   id:
     | '__root__'
     | '/'
@@ -434,7 +469,10 @@ export interface FileRouteTypes {
     | '/dashboard/whatsapp-sales'
     | '/website/$websiteId'
     | '/dashboard/'
+    | '/dashboard/agents/customer-retention'
+    | '/dashboard/agents/partnership'
     | '/dashboard/business-analysis/old'
+    | '/dashboard/agents/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -680,12 +718,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardActionsRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/agents/': {
+      id: '/dashboard/agents/'
+      path: '/agents'
+      fullPath: '/dashboard/agents/'
+      preLoaderRoute: typeof DashboardAgentsIndexRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/business-analysis/old': {
       id: '/dashboard/business-analysis/old'
       path: '/old'
       fullPath: '/dashboard/business-analysis/old'
       preLoaderRoute: typeof DashboardBusinessAnalysisOldRouteImport
       parentRoute: typeof DashboardBusinessAnalysisRoute
+    }
+    '/dashboard/agents/partnership': {
+      id: '/dashboard/agents/partnership'
+      path: '/agents/partnership'
+      fullPath: '/dashboard/agents/partnership'
+      preLoaderRoute: typeof DashboardAgentsPartnershipRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/agents/customer-retention': {
+      id: '/dashboard/agents/customer-retention'
+      path: '/agents/customer-retention'
+      fullPath: '/dashboard/agents/customer-retention'
+      preLoaderRoute: typeof DashboardAgentsCustomerRetentionRouteImport
+      parentRoute: typeof DashboardRoute
     }
   }
 }
@@ -731,6 +790,9 @@ interface DashboardRouteChildren {
   DashboardWhatsappRoute: typeof DashboardWhatsappRoute
   DashboardWhatsappSalesRoute: typeof DashboardWhatsappSalesRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
+  DashboardAgentsCustomerRetentionRoute: typeof DashboardAgentsCustomerRetentionRoute
+  DashboardAgentsPartnershipRoute: typeof DashboardAgentsPartnershipRoute
+  DashboardAgentsIndexRoute: typeof DashboardAgentsIndexRoute
 }
 
 const DashboardRouteChildren: DashboardRouteChildren = {
@@ -760,6 +822,9 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardWhatsappRoute: DashboardWhatsappRoute,
   DashboardWhatsappSalesRoute: DashboardWhatsappSalesRoute,
   DashboardIndexRoute: DashboardIndexRoute,
+  DashboardAgentsCustomerRetentionRoute: DashboardAgentsCustomerRetentionRoute,
+  DashboardAgentsPartnershipRoute: DashboardAgentsPartnershipRoute,
+  DashboardAgentsIndexRoute: DashboardAgentsIndexRoute,
 }
 
 const DashboardRouteWithChildren = DashboardRoute._addFileChildren(

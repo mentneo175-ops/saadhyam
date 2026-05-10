@@ -268,13 +268,9 @@ export default function AssistantWidget() {
     }
   };
 
-  // Show widget ONLY on dashboard pages when user is logged in
-  const isDashboardPage = location.pathname.startsWith('/dashboard');
-  const shouldShow = isDashboardPage && user;
-  // Hide widget ONLY on landing page and auth pages
-  // Show everywhere else inside the application (after login)
-  const hideOnPages = ['/login', '/signup', '/'];
-  const shouldHide = hideOnPages.includes(location.pathname) || !user;
+  // Show widget ONLY on the main dashboard page (not in other features)
+  const isMainDashboard = location.pathname === '/dashboard' || location.pathname === '/dashboard/';
+  const shouldShow = isMainDashboard && user;
 
   // Don't render if should not be shown
   if (!shouldShow) {

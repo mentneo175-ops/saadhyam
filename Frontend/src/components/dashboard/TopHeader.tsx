@@ -2,7 +2,7 @@ import { Bell, ChevronDown, Sparkles, Building2, Settings, LogOut, RefreshCw } f
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { apiClient } from "@/lib/api";
-import { useNavigate, useRouter } from "@tanstack/react-router";
+import { useNavigate, useRouter, useLocation } from "@tanstack/react-router";
 import { useDashboardContext } from "@/contexts/DashboardContext";
 
 interface BusinessProfile {
@@ -17,6 +17,7 @@ export function TopHeader() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const router = useRouter();
+  const location = useLocation();
   const { refreshDashboard, isRefreshing: contextRefreshing } = useDashboardContext();
   const [isHydrated, setIsHydrated] = useState(false);
   const [businessProfile, setBusinessProfile] = useState<BusinessProfile | null>(null);
@@ -26,6 +27,14 @@ export function TopHeader() {
   const [isLocalRefreshing, setIsLocalRefreshing] = useState(false);
 
   const isRefreshing = contextRefreshing || isLocalRefreshing;
+
+  // Only show TopHeader on the main dashboard page
+  const isMainDashboard = location.pathname === '/dashboard' || location.pathname === '/dashboard/';
+  
+  // Don't render if not on main dashboard
+  if (!isMainDashboard) {
+    return null;
+  }
 
   useEffect(() => {
     setIsHydrated(true);

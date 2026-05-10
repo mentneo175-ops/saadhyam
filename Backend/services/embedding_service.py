@@ -5,10 +5,18 @@ Converts text to vector embeddings using Sentence Transformers
 
 import logging
 from typing import List, Union
-from sentence_transformers import SentenceTransformer
-from config.pinecone_config import EMBEDDING_MODEL
 
 logger = logging.getLogger(__name__)
+
+# Try to import sentence_transformers, but make it optional
+try:
+    from sentence_transformers import SentenceTransformer
+    from config.pinecone_config import EMBEDDING_MODEL
+    SENTENCE_TRANSFORMERS_AVAILABLE = True
+except ImportError:
+    logger.warning("⚠️ sentence-transformers not available. Embedding features will be disabled.")
+    SENTENCE_TRANSFORMERS_AVAILABLE = False
+    EMBEDDING_MODEL = None
 
 # Global model instance (loaded once)
 _model = None
@@ -19,9 +27,13 @@ def get_embedding_model():
     Get or load the embedding model (singleton pattern)
     
     Returns:
-        SentenceTransformer model
+        SentenceTransformer model or None if not available
     """
     global _model
+    
+    if not SENTENCE_TRANSFORMERS_AVAILABLE:
+        logger.warning("⚠️ Sentence transformers not available")
+        return None
     
     if _model is None:
         try:

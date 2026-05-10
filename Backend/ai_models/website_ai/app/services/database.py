@@ -146,11 +146,15 @@ def save_content(website_id: str, content: dict, theme: Optional[str] = None) ->
 
     now = datetime.now().isoformat()
 
+    # Store the edited content
+    # If 'html' key exists, it means the entire HTML was saved
+    # Otherwise, it's individual element edits
     db["content"][website_id] = {
         "website_id": website_id,
         "content": content,
         "theme": theme,
-        "updated_at": now
+        "updated_at": now,
+        "version": db["content"].get(website_id, {}).get("version", 0) + 1
     }
 
     _save_db(db)

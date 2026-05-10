@@ -201,6 +201,8 @@ try:
 except Exception as e:
     logging.warning(f"Blog router not available: {e}")
     blog_available = False
+
+try:
     from routes.whatsapp_auth import router as whatsapp_auth_router
     whatsapp_auth_available = True
     logging.info("✅ WhatsApp Auth router imported successfully")

@@ -10,6 +10,7 @@ import { apiClient } from "@/lib/api";
 import { useRealtimeBusiness } from "@/hooks/useRealtimeBusiness";
 import { formatCacheAge } from "@/lib/realtimeBusinessApi";
 import { getGrowthPlanData, type GrowthPlanData } from "@/lib/comprehensiveAnalysisApi";
+import { useDashboardContext } from "@/contexts/DashboardContext";
 import {
   Activity,
   Eye,
@@ -56,7 +57,7 @@ const iconMap: Record<string, any> = {
 
 function Overview() {
   const navigate = useNavigate();
-  const context = useRouteContext({ from: "/dashboard/" }) as { refreshTrigger?: number };
+  const { refreshTrigger } = useDashboardContext();
   
   // Use real-time business intelligence hook
   const {
@@ -86,10 +87,10 @@ function Overview() {
 
   // Listen to refresh trigger from context
   useEffect(() => {
-    if (context.refreshTrigger && context.refreshTrigger > 0) {
+    if (refreshTrigger && refreshTrigger > 0) {
       refreshAll();
     }
-  }, [context.refreshTrigger, refreshAll]);
+  }, [refreshTrigger, refreshAll]);
 
   // Check if business profile is complete
   useEffect(() => {

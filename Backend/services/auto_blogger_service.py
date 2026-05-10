@@ -223,7 +223,11 @@ Generate a blog post in this EXACT JSON format:
 
 Generate the blog post now:"""
 
-        # Apply rate limiting
+        # Apply rate limiting (5 requests per minute per API key)
+        # If you're hitting rate limits frequently, add more API keys to .env:
+        # GEMINI_API_KEY_2=your_second_key_here
+        # GEMINI_API_KEY_3=your_third_key_here
+        # This will give you 15 requests/minute instead of 5
         await gemini_rate_limiter.acquire()
         
         remaining = gemini_rate_limiter.get_remaining_requests()

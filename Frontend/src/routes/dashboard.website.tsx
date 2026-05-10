@@ -149,7 +149,11 @@ function WebsiteAIPage() {
         return;
       }
         
-        // Minimal navigation script - just handle hash links
+        // Add base URL for resolving relative links
+        const baseUrl = `http://localhost:8000/website-ai/output/`;
+        const baseTag = `<base href="${baseUrl}" target="_self">`;
+        
+        // Minimal navigation script - handle hash links and blog navigation
         const internalNavigationScript = `
           <script>
             console.log('🚀 Navigation script loaded');
@@ -173,7 +177,16 @@ function WebsiteAIPage() {
                   return;
                 }
                 
-                // Allow /api/ links (blog posts, etc.) - open in new tab
+                // Handle blog links (blogs.html, blog-*.html) - open in new tab
+                if (href && (href.includes('blogs.html') || href.includes('blog-'))) {
+                  e.preventDefault();
+                  const fullUrl = href.startsWith('http') ? href : 'http://localhost:8000/website-ai/output/' + href;
+                  console.log('📝 Opening blog page in new tab:', fullUrl);
+                  window.open(fullUrl, '_blank');
+                  return;
+                }
+                
+                // Allow /api/ links - open in new tab
                 if (href && href.startsWith('/api/')) {
                   e.preventDefault();
                   console.log('🔗 Opening API link in new tab:', href);
@@ -214,12 +227,13 @@ function WebsiteAIPage() {
         // Remove target="_blank" to keep navigation in same window
         html = html.replace(/target\s*=\s*["']_blank["']/gi, '');
         
-        // Add meta tags
+        // Add meta tags and base tag
         const safeMeta = `
           <meta name="viewport" content="width=device-width, initial-scale=1">
+          ${baseTag}
         `;
         
-        // Insert navigation script before </head>
+        // Insert navigation script and base tag before </head>
         html = html.replace('</head>', safeMeta + internalNavigationScript + '</head>');
         
         // Add minimal CSS

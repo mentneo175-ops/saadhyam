@@ -102,7 +102,7 @@ def get_content_type(file_path: str) -> str:
     "/{website_id}",
     response_class=HTMLResponse,
     summary="Serve website by ID",
-    description="Serve the main website page (index.html) for a given website ID"
+    description="Serve the main website page (index.html) for a given website ID with any saved edits applied"
 )
 async def serve_website(
     website_id: str,
@@ -110,11 +110,12 @@ async def serve_website(
     db: Session = Depends(get_sync_db)
 ):
     """
-    Serve website by ID
+    Serve website by ID with saved edits applied
     
     This endpoint serves the main website page (index.html) for a given website ID.
     It supports:
     - Direct website access via website_id
+    - Inline content edits (applies saved edits if they exist)
     - Future custom domain mapping
     - Proper error handling for missing websites
     
@@ -124,7 +125,7 @@ async def serve_website(
         db: Database session
     
     Returns:
-        HTML content of the website
+        HTML content of the website (with edits applied if any)
     
     Raises:
         404: Website not found or inactive
@@ -152,11 +153,70 @@ async def serve_website(
                 detail=f"Website files not found for {website_id}"
             )
         
-        # Read and return HTML content
+        # Read original HTML content
         with open(index_path, 'r', encoding='utf-8') as f:
             html_content = f.read()
         
+        # Check if there are saved content edits
+        try:
+            from ai_models.website_ai.app.services.database import get_content
+            saved_edits = get_content(website_id)
+            
+            if saved_edits and saved_edits.get('content'):
+                logger.info(f"✏️  Applying saved edits to website: {website_id} (version {saved_edits.get('version', 1)})")
+                
+                content_data = saved_edits.get('content', {})
+                
+                # Check if full HTML was saved
+                if 'html' in content_data and isinstance(content_data['html'], str):
+                    # Use the saved HTML directly
+                    html_content = content_data['html']
+                    logger.info(f"✅ Using saved HTML version for website: {website_id}")
+                else:
+                    # Apply individual element edits
+                    import re
+                    from html import escape, unescape
+                    
+                    edits_applied = 0
+                    for element_id, new_content in content_data.items():
+                        if isinstance(new_content, str):
+                            # Try to find and replace element content by ID
+                            # Pattern matches: <tag id="element_id">content</tag>
+                            pattern = f'(<[^>]*\\bid=["\']?{re.escape(element_id)}["\']?[^>]*>)(.*?)(</[^>]+>)'
+                            
+                            def replacer(match):
+                                nonlocal edits_applied
+                                edits_applied += 1
+                                return f'{match.group(1)}{new_content}{match.group(3)}'
+                            
+                            html_content = re.sub(
+                                pattern,
+                                replacer,
+                                html_content,
+                                flags=re.DOTALL | re.IGNORECASE
+                            )
+                    
+                    if edits_applied > 0:
+                        logger.info(f"✅ Applied {edits_applied} element edit(s) to website: {website_id}")
+                    else:
+                        logger.warning(f"⚠️  No edits could be applied (0/{len(content_data)} elements found)")
+        except Exception as e:
+            logger.warning(f"⚠️  Could not apply saved edits: {e}")
+            # Continue with original HTML if edits fail to apply
+        
         logger.info(f"✅ Successfully served website: {website_id}")
+        
+        # Inject website ID into HTML for editor
+        # Add a script tag with the website ID before </head>
+        website_id_script = f'''
+    <script>
+        // Website ID for editor
+        window.WEBSITE_ID = '{website_id}';
+        console.log('🆔 Website ID:', window.WEBSITE_ID);
+    </script>
+'''
+        html_content = html_content.replace('</head>', website_id_script + '</head>')
+        
         return HTMLResponse(content=html_content)
         
     except HTTPException:

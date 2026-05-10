@@ -9,6 +9,7 @@ export const Route = createFileRoute("/dashboard")({
     meta: [{ title: "Dashboard — Saadhyam AI" }],
   }),
   component: DashboardLayout,
+  // No context needed here - we'll use DashboardProvider instead
 });
 
 function DashboardLayout() {
@@ -28,13 +29,17 @@ function DashboardLayout() {
   }, []);
 
   return (
-    <DashboardProvider refreshDashboard={refreshDashboard} isRefreshing={isRefreshing}>
+    <DashboardProvider 
+      refreshDashboard={refreshDashboard} 
+      isRefreshing={isRefreshing}
+      refreshTrigger={refreshTrigger}
+    >
       <div className="flex min-h-screen w-full bg-muted/30">
         <Sidebar />
         <div className="flex-1 flex flex-col min-w-0">
           <TopHeader />
           <main className="flex-1 min-w-0">
-            <Outlet context={{ refreshTrigger }} />
+            <Outlet />
           </main>
         </div>
       </div>

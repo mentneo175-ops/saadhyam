@@ -201,6 +201,8 @@ try:
 except Exception as e:
     logging.warning(f"Customer Retention Agent router not available: {e}")
     customer_retention_available = False
+
+try:
     from routes.aeo_geo import router as aeo_geo_router
     aeo_geo_available = True
     logging.info("✅ AEO/GEO router imported successfully")

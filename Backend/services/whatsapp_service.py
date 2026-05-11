@@ -43,6 +43,13 @@ class WhatsAppCloudAPIService:
         try:
             url = f"{self.base_url}/{phone_number_id}/messages"
             
+            # Log request details (without full token for security)
+            logger.info(f"📤 Sending WhatsApp message:")
+            logger.info(f"   URL: {url}")
+            logger.info(f"   To: {to}")
+            logger.info(f"   Message length: {len(message)} chars")
+            logger.info(f"   Token: {access_token[:20]}..." if access_token else "   Token: None")
+            
             headers = {
                 "Authorization": f"Bearer {access_token}",
                 "Content-Type": "application/json"
@@ -59,7 +66,14 @@ class WhatsAppCloudAPIService:
                 }
             }
             
+            logger.info(f"   Payload: {payload}")
+            
             response = requests.post(url, json=payload, headers=headers, timeout=30)
+            
+            # Log response status
+            logger.info(f"📥 Response status: {response.status_code}")
+            logger.info(f"📥 Response body: {response.text}")
+            
             response.raise_for_status()
             
             data = response.json()
@@ -82,17 +96,31 @@ class WhatsAppCloudAPIService:
         except requests.exceptions.RequestException as e:
             logger.error(f"❌ Failed to send message: {e}")
             error_message = str(e)
+            error_details = {}
             
             if hasattr(e, 'response') and e.response is not None:
                 try:
                     error_data = e.response.json()
-                    error_message = error_data.get("error", {}).get("message", str(e))
+                    error_details = error_data.get("error", {})
+                    error_message = error_details.get("message", str(e))
+                    error_code = error_details.get("code")
+                    error_type = error_details.get("type")
+                    error_fbtrace_id = error_details.get("fbtrace_id")
+                    
+                    logger.error(f"❌ WhatsApp API Error Details:")
+                    logger.error(f"   Code: {error_code}")
+                    logger.error(f"   Type: {error_type}")
+                    logger.error(f"   Message: {error_message}")
+                    logger.error(f"   Trace ID: {error_fbtrace_id}")
+                    logger.error(f"   Full response: {error_data}")
                 except:
                     error_message = e.response.text or str(e)
+                    logger.error(f"❌ Response text: {error_message}")
             
             return {
                 "success": False,
-                "error": error_message
+                "error": error_message,
+                "error_details": error_details
             }
     
     def send_template_message(

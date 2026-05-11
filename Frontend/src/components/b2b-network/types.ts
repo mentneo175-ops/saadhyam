@@ -17,6 +17,8 @@ export interface Business {
   source: "saadhyam" | "external";
   website?: string;
   connections?: string[]; // IDs of connected businesses
+  distance?: number; // Distance in meters
+  distance_km?: number; // Distance in kilometers
 }
 
 export interface ServiceFlow {

@@ -966,15 +966,50 @@ async def disconnect_whatsapp_account(
         if not account:
             raise HTTPException(status_code=404, detail="No active WhatsApp account found")
         
-        # Deactivate account (don't delete to preserve message history)
+        logger.info(f"🔄 Disconnecting WhatsApp account: {account.phone_number}")
+        
+        # Option 1: Soft delete - Deactivate account but keep data
+        # This preserves message history and analytics
         account.is_active = False
+        
+        # Option 2: Hard delete - Remove all related data (uncomment if you want this)
+        # WARNING: This will delete ALL messages, campaigns, and automations
+        
+        # Delete all messages
+        # from models.whatsapp_message import WhatsAppMessage
+        # db.query(WhatsAppMessage).filter(
+        #     WhatsAppMessage.account_id == account.id
+        # ).delete(synchronize_session=False)
+        # logger.info(f"   Deleted messages for account {account.id}")
+        
+        # Delete all campaigns
+        # from models.whatsapp_campaign import WhatsAppCampaign
+        # db.query(WhatsAppCampaign).filter(
+        #     WhatsAppCampaign.account_id == account.id
+        # ).delete(synchronize_session=False)
+        # logger.info(f"   Deleted campaigns for account {account.id}")
+        
+        # Delete all automations
+        # from models.whatsapp_automation import WhatsAppAutomation
+        # db.query(WhatsAppAutomation).filter(
+        #     WhatsAppAutomation.account_id == account.id
+        # ).delete(synchronize_session=False)
+        # logger.info(f"   Deleted automations for account {account.id}")
+        
+        # Delete the account itself
+        # db.delete(account)
+        # logger.info(f"   Deleted account {account.id}")
+        
         db.commit()
         
         logger.info(f"✅ Disconnected WhatsApp account: {account.phone_number}")
+        logger.info(f"   Account deactivated (data preserved)")
+        logger.info(f"   To permanently delete data, use the 'Delete Account' option")
         
         return {
             "success": True,
-            "message": "WhatsApp account disconnected successfully"
+            "message": "WhatsApp account disconnected successfully",
+            "note": "Account deactivated. Message history preserved. Use 'Delete Account' to remove all data."
         }
         
     except HTTPException:
@@ -986,3 +1021,93 @@ async def disconnect_whatsapp_account(
 
 
 from datetime import datetime
+
+
+@router.delete("/disconnect/permanent")
+async def disconnect_whatsapp_permanent(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_sync_db)
+):
+    """
+    Permanently disconnect WhatsApp account and DELETE ALL DATA
+    
+    ⚠️ WARNING: This will permanently delete:
+    - All messages and conversations
+    - All campaigns
+    - All automations
+    - The WhatsApp account connection
+    
+    This action CANNOT be undone!
+    """
+    try:
+        account = db.query(WhatsAppAccount).filter(
+            WhatsAppAccount.user_id == current_user.id,
+            WhatsAppAccount.is_active == True
+        ).first()
+        
+        if not account:
+            raise HTTPException(status_code=404, detail="No active WhatsApp account found")
+        
+        logger.warning(f"⚠️  PERMANENT DELETE requested for WhatsApp account: {account.phone_number}")
+        
+        account_id = account.id
+        phone_number = account.phone_number
+        
+        # Delete all messages
+        from models.whatsapp_message import WhatsAppMessage
+        message_count = db.query(WhatsAppMessage).filter(
+            WhatsAppMessage.account_id == account_id
+        ).count()
+        db.query(WhatsAppMessage).filter(
+            WhatsAppMessage.account_id == account_id
+        ).delete(synchronize_session=False)
+        logger.info(f"   🗑️  Deleted {message_count} messages")
+        
+        # Delete all campaigns
+        from models.whatsapp_campaign import WhatsAppCampaign
+        campaign_count = db.query(WhatsAppCampaign).filter(
+            WhatsAppCampaign.account_id == account_id
+        ).count()
+        db.query(WhatsAppCampaign).filter(
+            WhatsAppCampaign.account_id == account_id
+        ).delete(synchronize_session=False)
+        logger.info(f"   🗑️  Deleted {campaign_count} campaigns")
+        
+        # Delete all automations
+        from models.whatsapp_automation import WhatsAppAutomation
+        automation_count = db.query(WhatsAppAutomation).filter(
+            WhatsAppAutomation.account_id == account_id
+        ).count()
+        db.query(WhatsAppAutomation).filter(
+            WhatsAppAutomation.account_id == account_id
+        ).delete(synchronize_session=False)
+        logger.info(f"   🗑️  Deleted {automation_count} automations")
+        
+        # Delete the account itself
+        db.delete(account)
+        logger.info(f"   🗑️  Deleted account {account_id}")
+        
+        db.commit()
+        
+        logger.warning(f"✅ PERMANENTLY DELETED WhatsApp account: {phone_number}")
+        logger.warning(f"   - {message_count} messages deleted")
+        logger.warning(f"   - {campaign_count} campaigns deleted")
+        logger.warning(f"   - {automation_count} automations deleted")
+        
+        return {
+            "success": True,
+            "message": "WhatsApp account and all data permanently deleted",
+            "deleted": {
+                "messages": message_count,
+                "campaigns": campaign_count,
+                "automations": automation_count,
+                "account": phone_number
+            }
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error permanently deleting WhatsApp account: {e}", exc_info=True)
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))

@@ -43,10 +43,18 @@ class NearbyBusinessService:
         external_businesses = await self._get_external_businesses(lat, lng, city_radius, category)
         businesses.extend(external_businesses)
         
+        # Calculate and add distance for each business
+        for business in businesses:
+            distance = self._calculate_distance(
+                lat, lng, 
+                business["location"]["lat"], 
+                business["location"]["lng"]
+            )
+            business["distance"] = round(distance)  # Distance in meters
+            business["distance_km"] = round(distance / 1000, 1)  # Distance in km
+        
         # Sort by distance
-        businesses.sort(key=lambda b: self._calculate_distance(
-            lat, lng, b["location"]["lat"], b["location"]["lng"]
-        ))
+        businesses.sort(key=lambda b: b["distance"])
         
         return businesses
     
@@ -58,12 +66,70 @@ class NearbyBusinessService:
         category: Optional[str] = None
     ) -> List[Dict]:
         """
-        Get businesses from Saadhyam database
-        TODO: Implement actual database query
+        Get businesses from Saadhyam database (registered partners)
         """
-        # For now, return empty list - will be populated from actual database later
-        # This allows real Overpass API data to show
-        return []
+        try:
+            from config.database import get_sync_db
+            from models.user import User
+            
+            # Get database session
+            db = next(get_sync_db())
+            
+            # Query all users with business profiles
+            query = db.query(User).filter(
+                User.business_name.isnot(None),
+                User.business_type.isnot(None),  # Changed from business_category
+                User.latitude.isnot(None),
+                User.longitude.isnot(None)
+            )
+            
+            # Filter by category if provided
+            if category:
+                query = query.filter(User.business_type == category)  # Changed from business_category
+            
+            users = query.all()
+            
+            businesses = []
+            for user in users:
+                # Calculate distance
+                distance = self._calculate_distance(lat, lng, user.latitude, user.longitude)
+                
+                # Skip if outside radius
+                if distance > radius:
+                    continue
+                
+                # Build business object
+                business = {
+                    "id": f"saadhyam-{user.id}",
+                    "name": user.business_name,
+                    "category": user.business_type or "Other",  # Changed from business_category
+                    "logo": None,  # TODO: Add logo support
+                    "description": user.business_description if hasattr(user, 'business_description') else None,
+                    "location": {
+                        "lat": user.latitude,
+                        "lng": user.longitude
+                    },
+                    "services": user.business_services.split(",") if hasattr(user, 'business_services') and user.business_services else [],
+                    "employees": None,
+                    "ai_score": 95,  # Saadhyam partners get high AI score
+                    "is_partner": True,  # ✅ This is a Saadhyam partner
+                    "is_verified": True,  # ✅ Verified Saadhyam business
+                    "is_satellite": False,
+                    "source": "saadhyam",  # Mark as Saadhyam source
+                    "website": user.business_website if hasattr(user, 'business_website') else None,
+                    "connections": []
+                }
+                
+                businesses.append(business)
+            
+            print(f"✅ Found {len(businesses)} Saadhyam partner businesses")
+            return businesses
+            
+        except Exception as e:
+            print(f"❌ Error fetching Saadhyam businesses: {e}")
+            import traceback
+            traceback.print_exc()
+            return []
     
     async def _get_external_businesses(
         self,

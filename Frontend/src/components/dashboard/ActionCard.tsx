@@ -34,9 +34,7 @@ export function ActionCard({ icon: Icon, title, desc, impact, bg, iconColor }: A
       </div>
       <p className="font-semibold text-sm mb-1">{title}</p>
       <p className="text-xs text-muted-foreground leading-relaxed">{desc}</p>
-      <button className="mt-4 text-xs font-semibold text-foreground hover:text-primary transition">
-        Take action →
-      </button>
+     
     </div>
   );
 }

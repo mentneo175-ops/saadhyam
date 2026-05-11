@@ -15,6 +15,7 @@ import { CategoryNode } from "./nodes/CategoryNode";
 import { BusinessNode } from "./nodes/BusinessNode";
 import { AnimatedBackground } from "./AnimatedBackground";
 import { PremiumSearchBar } from "./PremiumSearchBar";
+import { FilterPanel } from "./FilterPanel";
 import { BusinessDetailPanel } from "./BusinessDetailPanel";
 import { AINetworkLoadingAnimation } from "./AINetworkLoadingAnimation";
 import { useBusiness } from "@/hooks/useBusiness";
@@ -25,6 +26,19 @@ import type { Business } from "./types";
 const nodeTypes = {
   category: CategoryNode,
   business: BusinessNode,
+};
+
+// Category configuration - Move outside component to prevent re-creation
+const categoryConfig: Record<string, { icon: string; gradient: string }> = {
+  Technology: { icon: "💻", gradient: "from-blue-500 to-cyan-500" },
+  Marketing: { icon: "📢", gradient: "from-pink-500 to-rose-500" },
+  Consulting: { icon: "💼", gradient: "from-purple-500 to-indigo-500" },
+  Healthcare: { icon: "🏥", gradient: "from-red-500 to-pink-500" },
+  Education: { icon: "📚", gradient: "from-green-500 to-emerald-500" },
+  Retail: { icon: "🛍️", gradient: "from-yellow-500 to-orange-500" },
+  Finance: { icon: "💰", gradient: "from-emerald-500 to-teal-500" },
+  Hospitality: { icon: "🏨", gradient: "from-orange-500 to-red-500" },
+  Other: { icon: "🏢", gradient: "from-gray-500 to-slate-500" },
 };
 
 interface CategoryData {
@@ -41,6 +55,11 @@ export function NeuralNetworkExplorer() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showFilters, setShowFilters] = useState(false);
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
+  
+  // Filter states - Multiple categories support
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [showSaadhyamOnly, setShowSaadhyamOnly] = useState(false);
+  const [showVerifiedOnly, setShowVerifiedOnly] = useState(false);
 
   const { business: userBusiness, loading: businessLoading } = useBusiness();
   const { businesses: nearbyBusinesses, loading: businessesLoading, error } = useNearbyBusinesses();
@@ -50,24 +69,58 @@ export function NeuralNetworkExplorer() {
 
   const isLoading = businessLoading || businessesLoading;
 
-  // Category configuration
-  const categoryConfig: Record<string, { icon: string; gradient: string }> = {
-    Technology: { icon: "💻", gradient: "from-blue-500 to-cyan-500" },
-    Marketing: { icon: "📢", gradient: "from-pink-500 to-rose-500" },
-    Consulting: { icon: "💼", gradient: "from-purple-500 to-indigo-500" },
-    Healthcare: { icon: "🏥", gradient: "from-red-500 to-pink-500" },
-    Education: { icon: "📚", gradient: "from-green-500 to-emerald-500" },
-    Retail: { icon: "🛍️", gradient: "from-yellow-500 to-orange-500" },
-    Finance: { icon: "💰", gradient: "from-emerald-500 to-teal-500" },
-    Hospitality: { icon: "🏨", gradient: "from-orange-500 to-red-500" },
-    Other: { icon: "🏢", gradient: "from-gray-500 to-slate-500" },
-  };
+  // Filter businesses FIRST (before categories)
+  const filteredBusinesses = useMemo(() => {
+    let filtered = nearbyBusinesses;
 
-  // Group businesses by category
+    console.log('🔍 Filtering businesses:', {
+      total: nearbyBusinesses.length,
+      searchQuery,
+      selectedCategories,
+      showSaadhyamOnly,
+      showVerifiedOnly
+    });
+
+    // Apply search query
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(
+        (b) =>
+          b.name.toLowerCase().includes(query) ||
+          b.category.toLowerCase().includes(query) ||
+          b.services.some((s) => s.toLowerCase().includes(query))
+      );
+      console.log('  After search:', filtered.length);
+    }
+
+    // Apply category filter - Multiple categories (OR logic)
+    if (selectedCategories.length > 0) {
+      filtered = filtered.filter((b) => selectedCategories.includes(b.category));
+      console.log('  After category filter:', filtered.length, 'categories:', selectedCategories);
+    }
+
+    // Apply Saadhyam only filter
+    if (showSaadhyamOnly) {
+      filtered = filtered.filter((b) => b.source === "saadhyam");
+      console.log('  After Saadhyam filter:', filtered.length);
+    }
+
+    // Apply verified only filter
+    if (showVerifiedOnly) {
+      filtered = filtered.filter((b) => b.isVerified);
+      console.log('  After verified filter:', filtered.length);
+    }
+
+    console.log('✅ Final filtered:', filtered.length);
+    return filtered;
+  }, [nearbyBusinesses, searchQuery, selectedCategories, showSaadhyamOnly, showVerifiedOnly]);
+
+  // Group businesses by category - Use filtered businesses
   const categories = useMemo(() => {
     const categoryMap = new Map<string, number>();
 
-    nearbyBusinesses.forEach((business) => {
+    // Use filteredBusinesses to show accurate counts
+    filteredBusinesses.forEach((business) => {
       const category = business.category || "Other";
       categoryMap.set(category, (categoryMap.get(category) || 0) + 1);
     });
@@ -81,21 +134,9 @@ export function NeuralNetworkExplorer() {
         gradient: categoryConfig[name]?.gradient || categoryConfig.Other.gradient,
         expanded: expandedCategories.has(name),
       }))
+      .filter((cat) => cat.count > 0) // Only show categories with businesses
       .sort((a, b) => b.count - a.count);
-  }, [nearbyBusinesses, expandedCategories]);
-
-  // Filter businesses
-  const filteredBusinesses = useMemo(() => {
-    if (!searchQuery) return nearbyBusinesses;
-
-    const query = searchQuery.toLowerCase();
-    return nearbyBusinesses.filter(
-      (b) =>
-        b.name.toLowerCase().includes(query) ||
-        b.category.toLowerCase().includes(query) ||
-        b.services.some((s) => s.toLowerCase().includes(query))
-    );
-  }, [nearbyBusinesses, searchQuery]);
+  }, [filteredBusinesses, expandedCategories]);
 
   // Generate network nodes and edges
   useEffect(() => {
@@ -219,19 +260,34 @@ export function NeuralNetworkExplorer() {
   }
 
   return (
-    <div className="relative h-screen w-full overflow-hidden">
+    <div className="relative h-full w-full overflow-hidden">
       <AnimatedBackground />
 
       {/* Premium Search Bar */}
-      <PremiumSearchBar
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        onFilterClick={() => setShowFilters(!showFilters)}
-        showFilters={showFilters}
+      <div className="relative z-10">
+        <PremiumSearchBar
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          onFilterClick={() => setShowFilters(!showFilters)}
+          showFilters={showFilters}
+          activeFilterCount={selectedCategories.length + (showSaadhyamOnly ? 1 : 0) + (showVerifiedOnly ? 1 : 0)}
+        />
+      </div>
+
+      {/* Filter Panel - Rendered at top level with high z-index */}
+      <FilterPanel
+        show={showFilters}
+        onClose={() => setShowFilters(false)}
+        selectedCategories={selectedCategories}
+        onCategoriesChange={setSelectedCategories}
+        showSaadhyamOnly={showSaadhyamOnly}
+        onSaadhyamOnlyChange={setShowSaadhyamOnly}
+        showVerifiedOnly={showVerifiedOnly}
+        onVerifiedOnlyChange={setShowVerifiedOnly}
       />
 
       {/* Neural Network Visualization */}
-      <div className="relative h-[calc(100vh-80px)]">
+      <div className="relative h-[calc(100%-80px)]">
         <ReactFlow
           nodes={nodes}
           edges={edges}
@@ -284,8 +340,36 @@ export function NeuralNetworkExplorer() {
           Business Network
         </h3>
         <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-          {nearbyBusinesses.length} businesses • {categories.length} categories
+          {filteredBusinesses.length} businesses • {categories.length} categories
         </p>
+        
+        {/* Active Filters */}
+        {(showSaadhyamOnly || showVerifiedOnly || selectedCategories.length > 0) && (
+          <div className="mb-4 p-3 bg-purple-50 dark:bg-purple-900/20 rounded-xl border border-purple-200 dark:border-purple-800">
+            <p className="text-xs font-semibold text-purple-900 dark:text-purple-100 mb-2">
+              Active Filters:
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {showSaadhyamOnly && (
+                <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 text-white text-[10px] font-bold">
+                  <Sparkles className="w-3 h-3" />
+                  Saadhyam Only
+                </span>
+              )}
+              {showVerifiedOnly && (
+                <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-emerald-600 text-white text-[10px] font-bold">
+                  Verified
+                </span>
+              )}
+              {selectedCategories.map((category) => (
+                <span key={category} className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-blue-600 text-white text-[10px] font-bold">
+                  {category}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+        
         <div className="space-y-2">
           <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
             <div className="w-3 h-3 rounded-full bg-gradient-to-r from-purple-500 to-pink-500" />

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Building2,
@@ -15,6 +15,7 @@ import {
   Loader2,
   CheckCircle2,
 } from "lucide-react";
+import { apiClient } from "@/lib/api";
 
 interface WizardProps {
   onComplete: (data: FormData) => void;
@@ -140,6 +141,40 @@ export default function PartnershipWizard({ onComplete, isLoading }: WizardProps
     location: "",
   });
   const [direction, setDirection] = useState(1);
+  const [isLoadingProfile, setIsLoadingProfile] = useState(true);
+
+  // Auto-fill business details from database
+  useEffect(() => {
+    const loadBusinessProfile = async () => {
+      try {
+        if (apiClient.isAuthenticated()) {
+          const profile = await apiClient.getBusinessProfile();
+          
+          // Auto-fill form data from user's business profile
+          setFormData((prev) => ({
+            ...prev,
+            businessName: profile.business_name || prev.businessName,
+            industry: profile.business_type || prev.industry,
+            location: profile.business_location || prev.location,
+            // Keep other fields empty for user to fill
+          }));
+          
+          console.log("✅ Auto-filled business profile:", {
+            businessName: profile.business_name,
+            industry: profile.business_type,
+            location: profile.business_location,
+          });
+        }
+      } catch (error) {
+        console.error("Failed to load business profile:", error);
+        // Continue with empty form if profile fetch fails
+      } finally {
+        setIsLoadingProfile(false);
+      }
+    };
+
+    loadBusinessProfile();
+  }, []);
 
   const currentStepData = steps[currentStep];
   const progress = ((currentStep + 1) / steps.length) * 100;
@@ -202,6 +237,18 @@ export default function PartnershipWizard({ onComplete, isLoading }: WizardProps
 
   const Icon = currentStepData.icon;
 
+  // Show loading state while fetching profile
+  if (isLoadingProfile) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 flex items-center justify-center p-4">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 text-purple-600 animate-spin mx-auto mb-4" />
+          <p className="text-gray-600">Loading your business profile...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 flex items-center justify-center p-4 md:min-h-0 md:py-8">
       <div className="w-full max-w-2xl">
@@ -253,6 +300,15 @@ export default function PartnershipWizard({ onComplete, isLoading }: WizardProps
 
               {/* Input Field */}
               <div className="mb-8">
+                {/* Auto-filled indicator */}
+                {(currentStepData.id === "businessName" || currentStepData.id === "industry" || currentStepData.id === "location") && 
+                 formData[currentStepData.id as keyof FormData] && (
+                  <div className="mb-3 flex items-center gap-2 text-sm text-green-600 bg-green-50 px-4 py-2 rounded-lg border border-green-200">
+                    <CheckCircle2 size={16} />
+                    <span>Auto-filled from your business profile</span>
+                  </div>
+                )}
+                
                 {currentStepData.type === "text" && (
                   <input
                     type="text"

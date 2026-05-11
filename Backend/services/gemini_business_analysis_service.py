@@ -105,7 +105,7 @@ Provide a comprehensive, data-driven analysis in this EXACT JSON format:
     "business_name": "{business_name}",
     "business_type": "{business_type}",
     "location": "{location}",
-    "services": {json.dumps(services if isinstance(services, list) else [])},
+    "services": ["List 3-5 specific services this {business_type} business likely offers based on industry standards and local market"],
     "summary": "2-3 sentence AI-generated summary of the business and its market position"
   }},
   "strengths": [

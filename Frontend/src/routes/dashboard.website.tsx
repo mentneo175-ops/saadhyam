@@ -102,7 +102,7 @@ function WebsiteAIPage() {
           setShowForm(false);  // Hide form
           setWebsiteResult({ 
             website_id: profile.last_generated_website_id,
-            preview_url: `/website/${profile.last_generated_website_id}`
+            preview_url: `/saadhyam/${profile.last_generated_website_id}`
           });
           await fetchWebsiteHtml(profile.last_generated_website_id);
         }
@@ -120,7 +120,7 @@ function WebsiteAIPage() {
       console.log("🔍 Fetching website HTML for preview:", websiteId);
       console.log("🔑 Token:", apiClient.getToken() ? "Present" : "Missing");
       
-      const url = `http://localhost:8000/website/${websiteId}`;
+      const url = `http://localhost:8000/saadhyam/${websiteId}`;
       console.log("🌐 Fetching from URL:", url);
       
       const response = await fetch(url, {
@@ -278,7 +278,7 @@ function WebsiteAIPage() {
   // Download website HTML file
   const downloadWebsiteHtml = async (websiteId: string, businessName: string) => {
     try {
-      const response = await fetch(`http://localhost:8000/website/${websiteId}`, {
+      const response = await fetch(`http://localhost:8000/saadhyam/${websiteId}`, {
         headers: {
           "Authorization": `Bearer ${apiClient.getToken()}`,
         },
@@ -304,8 +304,8 @@ function WebsiteAIPage() {
 
   // View website source code
   const viewWebsiteCode = async (websiteId: string) => {
-    try {
-      const response = await fetch(`http://localhost:8000/website/${websiteId}`, {
+    try:
+      const response = await fetch(`http://localhost:8000/saadhyam/${websiteId}`, {
         headers: {
           "Authorization": `Bearer ${apiClient.getToken()}`,
         },
@@ -963,9 +963,9 @@ function WebsiteAIPage() {
                         value={websiteResult?.preview_url ? `http://localhost:8000${websiteResult.preview_url}${currentPreviewPath}` : ''}
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                           const newUrl = e.target.value;
-                          if (newUrl.includes('localhost:8000/website/')) {
+                          if (newUrl.includes('localhost:8000/saadhyam/')) {
                             // Extract website ID and path from URL
-                            const urlParts = newUrl.split('/website/')[1];
+                            const urlParts = newUrl.split('/saadhyam/')[1];
                             if (urlParts) {
                               const [websiteId, ...pathParts] = urlParts.split('/');
                               const path = pathParts.length > 0 ? '/' + pathParts.join('/') : '/';
@@ -980,8 +980,8 @@ function WebsiteAIPage() {
                         onKeyPress={(e: React.KeyboardEvent<HTMLInputElement>) => {
                           if (e.key === 'Enter') {
                             const newUrl = (e.target as HTMLInputElement).value;
-                            if (newUrl.includes('localhost:8000/website/')) {
-                              const urlParts = newUrl.split('/website/')[1];
+                            if (newUrl.includes('localhost:8000/saadhyam/')) {
+                              const urlParts = newUrl.split('/saadhyam/')[1];
                               if (urlParts) {
                                 const [websiteId, ...pathParts] = urlParts.split('/');
                                 const path = pathParts.length > 0 ? '/' + pathParts.join('/') : '/';

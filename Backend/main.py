@@ -201,6 +201,8 @@ try:
 except Exception as e:
     logging.warning(f"Customer Retention Agent router not available: {e}")
     customer_retention_available = False
+
+try:
     from routes.aeo_geo import router as aeo_geo_router
     aeo_geo_available = True
     logging.info("✅ AEO/GEO router imported successfully")
@@ -362,6 +364,8 @@ async def lifespan(app: FastAPI):
         migrate_add_instagram_analytics_tables()
         from migrations.add_task_tracking_tables import migrate_add_task_tracking_tables
         migrate_add_task_tracking_tables()
+        from migrations.add_slug_to_websites import run_migration as migrate_add_slug_to_websites
+        migrate_add_slug_to_websites()
         logger.info("✅ Migrations completed")
         
         # Start scheduler for processing scheduled Instagram posts

@@ -13,6 +13,12 @@ class ContentEditor {
     }
 
     init() {
+        // Check if we're running inside an iframe (preview mode)
+        if (window.self !== window.top) {
+            console.log('⚠️  Editor disabled - running in iframe (preview mode)');
+            return;
+        }
+        
         // Don't initialize editor if no valid website ID
         if (!this.websiteId || this.websiteId === null) {
             console.log('⚠️  Editor not initialized - no valid website ID');
@@ -83,15 +89,20 @@ class ContentEditor {
           top: 20px;
           right: 20px;
           z-index: 10000;
-          background: color-mix(in oklab, var(--website-ai-card) 92%, transparent);
+          background: #ffffff;
           padding: 12px 16px;
           border-radius: 12px;
           box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
           display: flex;
+          flex-wrap: wrap;
           gap: 10px;
           align-items: center;
-          font-family: var(--website-ai-font);
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
           backdrop-filter: blur(10px);
+          max-width: 500px;
+        }
+        #editor-toolbar * {
+          pointer-events: auto;
         }
         #editor-toolbar button {
           padding: 8px 16px;
@@ -103,14 +114,14 @@ class ContentEditor {
           transition: all 0.2s;
         }
         #editor-toolbar #toggle-edit {
-          background: var(--website-ai-primary);
+          background: #4f46e5;
           color: white;
         }
         #editor-toolbar #toggle-edit.active {
-          background: var(--website-ai-accent);
+          background: #10b981;
         }
         #editor-toolbar #save-content {
-          background: var(--website-ai-secondary);
+          background: #f59e0b;
           color: white;
           display: none;
         }
@@ -123,7 +134,7 @@ class ContentEditor {
         }
         #editor-toolbar select {
           padding: 8px 12px;
-          border: 2px solid var(--website-ai-border);
+          border: 2px solid #e5e7eb;
           border-radius: 8px;
           font-size: 14px;
           cursor: pointer;
@@ -135,24 +146,24 @@ class ContentEditor {
           margin-left: 8px;
         }
         [contenteditable="true"] {
-          outline: 2px dashed var(--website-ai-primary);
+          outline: 2px dashed #4f46e5;
           outline-offset: 4px;
           transition: outline 0.2s;
           min-height: 20px;
           cursor: text;
         }
         [contenteditable="true"]:hover {
-          outline-color: var(--website-ai-accent);
+          outline-color: #10b981;
         }
         [contenteditable="true"]:focus {
-          outline: 2px solid var(--website-ai-secondary);
+          outline: 2px solid #f59e0b;
         }
         .editor-notification {
           position: fixed;
           top: 100px;
           right: 20px;
           z-index: 10001;
-          background: var(--website-ai-secondary);
+          background: #f59e0b;
           color: white;
           padding: 12px 20px;
           border-radius: 8px;
@@ -301,6 +312,9 @@ class ContentEditor {
                 // Skip if already editable
                 if (el.hasAttribute('contenteditable')) return;
 
+                // Skip if it's inside the editor toolbar
+                if (el.closest('#editor-toolbar')) return;
+
                 // Skip if it's inside navigation (keep nav functional)
                 if (el.closest('nav:not(.footer-section)')) return;
 
@@ -323,7 +337,7 @@ class ContentEditor {
     async loadContent() {
         try {
             this.updateStatus('Loading...');
-            const response = await fetch(`/api/v1/content/${this.websiteId}`);
+            const response = await fetch(`/website-ai/api/content/${this.websiteId}`);
 
             if (response.ok) {
                 const data = await response.json();
@@ -368,11 +382,29 @@ class ContentEditor {
             this.updateStatus('Saving...');
             console.log('💾 Saving content for website:', this.websiteId);
 
-            // Save the entire HTML document
-            const fullHtml = document.documentElement.outerHTML;
+            // Clone the HTML to avoid modifying the live page
+            const htmlClone = document.documentElement.cloneNode(true);
+            
+            // Remove editor toolbar from the clone
+            const toolbar = htmlClone.querySelector('#editor-toolbar');
+            if (toolbar) {
+                toolbar.remove();
+            }
+            
+            // Remove any editor notifications from the clone
+            htmlClone.querySelectorAll('.editor-notification').forEach(el => el.remove());
+            
+            // Remove contenteditable attributes from the clone
+            htmlClone.querySelectorAll('[contenteditable]').forEach(el => {
+                el.removeAttribute('contenteditable');
+                el.removeAttribute('data-original-content');
+            });
+            
+            // Get the cleaned HTML
+            const fullHtml = htmlClone.outerHTML;
             console.log('📄 HTML length:', fullHtml.length);
 
-            const url = `/api/v1/content/${this.websiteId}`;
+            const url = `/website-ai/api/content/${this.websiteId}`;
             console.log('🌐 Saving to:', url);
 
             const response = await fetch(url, {
@@ -382,7 +414,7 @@ class ContentEditor {
                 },
                 body: JSON.stringify({
                     content: {
-                        html: fullHtml  // Save full HTML
+                        html: fullHtml  // Save cleaned HTML
                     },
                     theme: this.currentTheme
                 })

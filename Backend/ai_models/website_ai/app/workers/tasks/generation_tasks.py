@@ -18,6 +18,7 @@ from ai_models.website_ai.app.core.services.generation_service import Generation
 from ai_models.website_ai.app.core.services.storage_service import StorageService
 from ai_models.website_ai.app.utils.logger import get_logger
 from ai_models.website_ai.app.utils.uuid_helpers import validate_and_convert_uuid, uuid_to_string
+from utils.slug import generate_unique_slug
 
 
 logger = get_logger(__name__)
@@ -142,8 +143,11 @@ def generate_website_task(
             db.add(website)
             db.flush()  # Get the ID without committing
             
+            # Generate unique slug from business name
+            website.slug = generate_unique_slug(db, Website, business_data["business_name"])
+            
             website_id_str = uuid_to_string(website.id)
-            logger.info(f"✅ Created website record with ID: {website_id_str}")
+            logger.info(f"✅ Created website record with ID: {website_id_str}, slug: {website.slug}")
 
             # Save files using the new website ID-based system
             file_path, s3_key = storage_service.save_website_files(

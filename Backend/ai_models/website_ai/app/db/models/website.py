@@ -55,6 +55,7 @@ class Website(Base):
 
     id = Column(GUID(), primary_key=True, default=uuid.uuid4)
     business_name = Column(String(120), nullable=False, index=True)
+    slug = Column(String(150), nullable=True, unique=True, index=True)  # URL-friendly slug
     business_type = Column(String(80), nullable=False)
     description = Column(Text, nullable=True)
 
@@ -89,6 +90,7 @@ class Website(Base):
         return {
             "id": str(self.id),
             "business_name": self.business_name,
+            "slug": self.slug,
             "business_type": self.business_type,
             "description": self.description,
             "services": self.services,

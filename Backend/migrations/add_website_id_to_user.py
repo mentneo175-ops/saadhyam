@@ -21,14 +21,20 @@ def run_migration():
         engine = create_engine(database_url)
         
         with engine.connect() as conn:
-            # Check if column already exists
-            result = conn.execute(text("""
-                SELECT column_name 
-                FROM information_schema.columns 
-                WHERE table_name='users' AND column_name='last_generated_website_id';
-            """))
+            # Check if column already exists (SQLite compatible)
+            if "sqlite" in database_url:
+                result = conn.execute(text("PRAGMA table_info(users);"))
+                columns = [row[1] for row in result.fetchall()]
+                column_exists = 'last_generated_website_id' in columns
+            else:
+                result = conn.execute(text("""
+                    SELECT column_name 
+                    FROM information_schema.columns 
+                    WHERE table_name='users' AND column_name='last_generated_website_id';
+                """))
+                column_exists = result.fetchone() is not None
             
-            if result.fetchone():
+            if column_exists:
                 logger.info("   ⏭️  Column 'last_generated_website_id' already exists")
                 return
             

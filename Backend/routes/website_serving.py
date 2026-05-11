@@ -59,20 +59,54 @@ def get_website_file_path(website_id: str, file_path: str = "index.html") -> Pat
     return website_dir / file_path
 
 
-async def get_website_from_db(website_id: str, db: Session) -> Optional[Website]:
-    """Get website record from database"""
+async def get_website_from_db(identifier: str, db: Session) -> Optional[Website]:
+    """
+    Get website record from database by ID, slug, or business name
+    Tries in order: slug -> UUID -> business name
+    """
     if not website_ai_available:
         return None
     
     try:
-        website_uuid = validate_and_convert_uuid(website_id)
+        # Try 1: Look up by slug (most common for user-friendly URLs)
         website = db.query(Website).filter(
-            Website.id == website_uuid,
+            Website.slug == identifier,
             Website.status == "active"
         ).first()
-        return website
+        
+        if website:
+            logger.info(f"✅ Found website by slug: {identifier}")
+            return website
+        
+        # Try 2: Look up by UUID
+        try:
+            website_uuid = validate_and_convert_uuid(identifier)
+            website = db.query(Website).filter(
+                Website.id == website_uuid,
+                Website.status == "active"
+            ).first()
+            
+            if website:
+                logger.info(f"✅ Found website by UUID: {identifier}")
+                return website
+        except:
+            pass  # Not a valid UUID, continue to business name lookup
+        
+        # Try 3: Look up by business name (fallback)
+        website = db.query(Website).filter(
+            Website.business_name == identifier,
+            Website.status == "active"
+        ).first()
+        
+        if website:
+            logger.info(f"✅ Found website by business name: {identifier}")
+            return website
+        
+        logger.warning(f"❌ Website not found for identifier: {identifier}")
+        return None
+        
     except Exception as e:
-        logger.error(f"Error fetching website {website_id}: {e}")
+        logger.error(f"Error fetching website {identifier}: {e}")
         return None
 
 
@@ -101,8 +135,8 @@ def get_content_type(file_path: str) -> str:
 @router.get(
     "/{website_id}",
     response_class=HTMLResponse,
-    summary="Serve website by ID",
-    description="Serve the main website page (index.html) for a given website ID with any saved edits applied"
+    summary="Serve website by ID or slug",
+    description="Serve the main website page (index.html) for a given website ID/slug with any saved edits applied"
 )
 async def serve_website(
     website_id: str,
@@ -110,17 +144,19 @@ async def serve_website(
     db: Session = Depends(get_sync_db)
 ):
     """
-    Serve website by ID with saved edits applied
+    Serve website by ID, slug, or business name with saved edits applied
     
-    This endpoint serves the main website page (index.html) for a given website ID.
+    This endpoint serves the main website page (index.html) for a given website.
     It supports:
-    - Direct website access via website_id
+    - Slug-based URLs (e.g., /saadhyam/apple-store)
+    - Direct website access via UUID
+    - Business name lookup (fallback)
     - Inline content edits (applies saved edits if they exist)
     - Future custom domain mapping
     - Proper error handling for missing websites
     
     Args:
-        website_id: UUID string of the website
+        website_id: Slug, UUID string, or business name of the website
         request: FastAPI request object (for future domain mapping)
         db: Database session
     
@@ -134,7 +170,7 @@ async def serve_website(
     logger.info(f"🌐 Serving website: {website_id}")
     
     try:
-        # Validate website exists and is active
+        # Validate website exists and is active (supports slug, UUID, or business name)
         website = await get_website_from_db(website_id, db)
         if not website:
             logger.warning(f"❌ Website not found or inactive: {website_id}")
@@ -143,8 +179,12 @@ async def serve_website(
                 detail=f"Website {website_id} not found or is not active"
             )
         
+        # Use the actual website UUID for file operations
+        from ai_models.website_ai.app.utils.uuid_helpers import uuid_to_string
+        actual_website_id = uuid_to_string(website.id)
+        
         # Get website file path
-        index_path = get_website_file_path(website_id, "index.html")
+        index_path = get_website_file_path(actual_website_id, "index.html")
         
         if not index_path.exists():
             logger.error(f"❌ Website files not found: {index_path}")
@@ -160,10 +200,10 @@ async def serve_website(
         # Check if there are saved content edits
         try:
             from ai_models.website_ai.app.services.database import get_content
-            saved_edits = get_content(website_id)
+            saved_edits = get_content(actual_website_id)
             
             if saved_edits and saved_edits.get('content'):
-                logger.info(f"✏️  Applying saved edits to website: {website_id} (version {saved_edits.get('version', 1)})")
+                logger.info(f"✏️  Applying saved edits to website: {actual_website_id} (version {saved_edits.get('version', 1)})")
                 
                 content_data = saved_edits.get('content', {})
                 
@@ -171,7 +211,7 @@ async def serve_website(
                 if 'html' in content_data and isinstance(content_data['html'], str):
                     # Use the saved HTML directly
                     html_content = content_data['html']
-                    logger.info(f"✅ Using saved HTML version for website: {website_id}")
+                    logger.info(f"✅ Using saved HTML version for website: {actual_website_id}")
                 else:
                     # Apply individual element edits
                     import re
@@ -197,21 +237,21 @@ async def serve_website(
                             )
                     
                     if edits_applied > 0:
-                        logger.info(f"✅ Applied {edits_applied} element edit(s) to website: {website_id}")
+                        logger.info(f"✅ Applied {edits_applied} element edit(s) to website: {actual_website_id}")
                     else:
                         logger.warning(f"⚠️  No edits could be applied (0/{len(content_data)} elements found)")
         except Exception as e:
             logger.warning(f"⚠️  Could not apply saved edits: {e}")
             # Continue with original HTML if edits fail to apply
         
-        logger.info(f"✅ Successfully served website: {website_id}")
+        logger.info(f"✅ Successfully served website: {website_id} (UUID: {actual_website_id})")
         
         # Inject website ID into HTML for editor
         # Add a script tag with the website ID before </head>
         website_id_script = f'''
     <script>
         // Website ID for editor
-        window.WEBSITE_ID = '{website_id}';
+        window.WEBSITE_ID = '{actual_website_id}';
         console.log('🆔 Website ID:', window.WEBSITE_ID);
     </script>
 '''
@@ -251,7 +291,7 @@ async def serve_website_asset(
     - Other static resources
     
     Args:
-        website_id: UUID string of the website
+        website_id: Slug, UUID string, or business name of the website
         file_path: Path to the asset file within the website directory
         request: FastAPI request object
         db: Database session
@@ -267,7 +307,7 @@ async def serve_website_asset(
     logger.info(f"📁 Serving asset: {website_id}/{file_path}")
     
     try:
-        # Validate website exists and is active
+        # Validate website exists and is active (supports slug, UUID, or business name)
         website = await get_website_from_db(website_id, db)
         if not website:
             logger.warning(f"❌ Website not found for asset: {website_id}")
@@ -276,8 +316,12 @@ async def serve_website_asset(
                 detail=f"Website {website_id} not found"
             )
         
+        # Use the actual website UUID for file operations
+        from ai_models.website_ai.app.utils.uuid_helpers import uuid_to_string
+        actual_website_id = uuid_to_string(website.id)
+        
         # Get asset file path (with security validation)
-        asset_path = get_website_file_path(website_id, file_path)
+        asset_path = get_website_file_path(actual_website_id, file_path)
         
         if not asset_path.exists():
             logger.warning(f"❌ Asset not found: {asset_path}")

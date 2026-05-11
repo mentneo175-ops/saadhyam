@@ -342,6 +342,8 @@ async def lifespan(app: FastAPI):
         migrate_add_location_coordinates()
         from migrations.add_user_id_to_review_history import migrate_add_user_id_to_review_history
         migrate_add_user_id_to_review_history()
+        from migrations.add_slug_to_websites import run_migration as migrate_add_slug_to_websites
+        migrate_add_slug_to_websites()
         logger.info("✅ Migrations completed")
         
         # Start scheduler for processing scheduled Instagram posts

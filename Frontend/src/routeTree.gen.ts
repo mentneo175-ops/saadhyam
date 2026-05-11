@@ -13,6 +13,7 @@ import { Route as VerifyRouteImport } from './routes/verify'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as InstagramOauthCallbackRouteImport } from './routes/instagram-oauth-callback'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
@@ -27,6 +28,7 @@ import { Route as DashboardReviewReplyRouteImport } from './routes/dashboard.rev
 import { Route as DashboardReportsRouteImport } from './routes/dashboard.reports'
 import { Route as DashboardPricingRouteImport } from './routes/dashboard.pricing'
 import { Route as DashboardMessagesRouteImport } from './routes/dashboard.messages'
+import { Route as DashboardInstagramAnalyticsRouteImport } from './routes/dashboard.instagram-analytics'
 import { Route as DashboardInstagramRouteImport } from './routes/dashboard.instagram'
 import { Route as DashboardInsightsRouteImport } from './routes/dashboard.insights'
 import { Route as DashboardGrowthRouteImport } from './routes/dashboard.growth'
@@ -43,6 +45,7 @@ import { Route as DashboardAutomationRouteImport } from './routes/dashboard.auto
 import { Route as DashboardAeoGeoRouteImport } from './routes/dashboard.aeo-geo'
 import { Route as DashboardActionsRouteImport } from './routes/dashboard.actions'
 import { Route as DashboardAgentsIndexRouteImport } from './routes/dashboard.agents.index'
+import { Route as DashboardInstagramAnalyticsPostsRouteImport } from './routes/dashboard.instagram-analytics.posts'
 import { Route as DashboardBusinessAnalysisOldRouteImport } from './routes/dashboard.business-analysis.old'
 import { Route as DashboardAgentsPartnershipRouteImport } from './routes/dashboard.agents.partnership'
 import { Route as DashboardAgentsCustomerRetentionRouteImport } from './routes/dashboard.agents.customer-retention'
@@ -65,6 +68,11 @@ const OnboardingRoute = OnboardingRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InstagramOauthCallbackRoute = InstagramOauthCallbackRouteImport.update({
+  id: '/instagram-oauth-callback',
+  path: '/instagram-oauth-callback',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardRoute = DashboardRouteImport.update({
@@ -137,6 +145,12 @@ const DashboardMessagesRoute = DashboardMessagesRouteImport.update({
   path: '/messages',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardInstagramAnalyticsRoute =
+  DashboardInstagramAnalyticsRouteImport.update({
+    id: '/instagram-analytics',
+    path: '/instagram-analytics',
+    getParentRoute: () => DashboardRoute,
+  } as any)
 const DashboardInstagramRoute = DashboardInstagramRouteImport.update({
   id: '/instagram',
   path: '/instagram',
@@ -220,6 +234,12 @@ const DashboardAgentsIndexRoute = DashboardAgentsIndexRouteImport.update({
   path: '/agents/',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardInstagramAnalyticsPostsRoute =
+  DashboardInstagramAnalyticsPostsRouteImport.update({
+    id: '/posts',
+    path: '/posts',
+    getParentRoute: () => DashboardInstagramAnalyticsRoute,
+  } as any)
 const DashboardBusinessAnalysisOldRoute =
   DashboardBusinessAnalysisOldRouteImport.update({
     id: '/old',
@@ -242,6 +262,7 @@ const DashboardAgentsCustomerRetentionRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRouteWithChildren
+  '/instagram-oauth-callback': typeof InstagramOauthCallbackRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/signup': typeof SignupRoute
@@ -261,6 +282,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/growth': typeof DashboardGrowthRoute
   '/dashboard/insights': typeof DashboardInsightsRoute
   '/dashboard/instagram': typeof DashboardInstagramRoute
+  '/dashboard/instagram-analytics': typeof DashboardInstagramAnalyticsRouteWithChildren
   '/dashboard/messages': typeof DashboardMessagesRoute
   '/dashboard/pricing': typeof DashboardPricingRoute
   '/dashboard/reports': typeof DashboardReportsRoute
@@ -276,10 +298,12 @@ export interface FileRoutesByFullPath {
   '/dashboard/agents/customer-retention': typeof DashboardAgentsCustomerRetentionRoute
   '/dashboard/agents/partnership': typeof DashboardAgentsPartnershipRoute
   '/dashboard/business-analysis/old': typeof DashboardBusinessAnalysisOldRoute
+  '/dashboard/instagram-analytics/posts': typeof DashboardInstagramAnalyticsPostsRoute
   '/dashboard/agents/': typeof DashboardAgentsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/instagram-oauth-callback': typeof InstagramOauthCallbackRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/signup': typeof SignupRoute
@@ -299,6 +323,7 @@ export interface FileRoutesByTo {
   '/dashboard/growth': typeof DashboardGrowthRoute
   '/dashboard/insights': typeof DashboardInsightsRoute
   '/dashboard/instagram': typeof DashboardInstagramRoute
+  '/dashboard/instagram-analytics': typeof DashboardInstagramAnalyticsRouteWithChildren
   '/dashboard/messages': typeof DashboardMessagesRoute
   '/dashboard/pricing': typeof DashboardPricingRoute
   '/dashboard/reports': typeof DashboardReportsRoute
@@ -314,12 +339,14 @@ export interface FileRoutesByTo {
   '/dashboard/agents/customer-retention': typeof DashboardAgentsCustomerRetentionRoute
   '/dashboard/agents/partnership': typeof DashboardAgentsPartnershipRoute
   '/dashboard/business-analysis/old': typeof DashboardBusinessAnalysisOldRoute
+  '/dashboard/instagram-analytics/posts': typeof DashboardInstagramAnalyticsPostsRoute
   '/dashboard/agents': typeof DashboardAgentsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRouteWithChildren
+  '/instagram-oauth-callback': typeof InstagramOauthCallbackRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/signup': typeof SignupRoute
@@ -339,6 +366,7 @@ export interface FileRoutesById {
   '/dashboard/growth': typeof DashboardGrowthRoute
   '/dashboard/insights': typeof DashboardInsightsRoute
   '/dashboard/instagram': typeof DashboardInstagramRoute
+  '/dashboard/instagram-analytics': typeof DashboardInstagramAnalyticsRouteWithChildren
   '/dashboard/messages': typeof DashboardMessagesRoute
   '/dashboard/pricing': typeof DashboardPricingRoute
   '/dashboard/reports': typeof DashboardReportsRoute
@@ -354,6 +382,7 @@ export interface FileRoutesById {
   '/dashboard/agents/customer-retention': typeof DashboardAgentsCustomerRetentionRoute
   '/dashboard/agents/partnership': typeof DashboardAgentsPartnershipRoute
   '/dashboard/business-analysis/old': typeof DashboardBusinessAnalysisOldRoute
+  '/dashboard/instagram-analytics/posts': typeof DashboardInstagramAnalyticsPostsRoute
   '/dashboard/agents/': typeof DashboardAgentsIndexRoute
 }
 export interface FileRouteTypes {
@@ -361,6 +390,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/dashboard'
+    | '/instagram-oauth-callback'
     | '/login'
     | '/onboarding'
     | '/signup'
@@ -380,6 +410,7 @@ export interface FileRouteTypes {
     | '/dashboard/growth'
     | '/dashboard/insights'
     | '/dashboard/instagram'
+    | '/dashboard/instagram-analytics'
     | '/dashboard/messages'
     | '/dashboard/pricing'
     | '/dashboard/reports'
@@ -395,10 +426,12 @@ export interface FileRouteTypes {
     | '/dashboard/agents/customer-retention'
     | '/dashboard/agents/partnership'
     | '/dashboard/business-analysis/old'
+    | '/dashboard/instagram-analytics/posts'
     | '/dashboard/agents/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/instagram-oauth-callback'
     | '/login'
     | '/onboarding'
     | '/signup'
@@ -418,6 +451,7 @@ export interface FileRouteTypes {
     | '/dashboard/growth'
     | '/dashboard/insights'
     | '/dashboard/instagram'
+    | '/dashboard/instagram-analytics'
     | '/dashboard/messages'
     | '/dashboard/pricing'
     | '/dashboard/reports'
@@ -433,11 +467,13 @@ export interface FileRouteTypes {
     | '/dashboard/agents/customer-retention'
     | '/dashboard/agents/partnership'
     | '/dashboard/business-analysis/old'
+    | '/dashboard/instagram-analytics/posts'
     | '/dashboard/agents'
   id:
     | '__root__'
     | '/'
     | '/dashboard'
+    | '/instagram-oauth-callback'
     | '/login'
     | '/onboarding'
     | '/signup'
@@ -457,6 +493,7 @@ export interface FileRouteTypes {
     | '/dashboard/growth'
     | '/dashboard/insights'
     | '/dashboard/instagram'
+    | '/dashboard/instagram-analytics'
     | '/dashboard/messages'
     | '/dashboard/pricing'
     | '/dashboard/reports'
@@ -472,12 +509,14 @@ export interface FileRouteTypes {
     | '/dashboard/agents/customer-retention'
     | '/dashboard/agents/partnership'
     | '/dashboard/business-analysis/old'
+    | '/dashboard/instagram-analytics/posts'
     | '/dashboard/agents/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DashboardRoute: typeof DashboardRouteWithChildren
+  InstagramOauthCallbackRoute: typeof InstagramOauthCallbackRoute
   LoginRoute: typeof LoginRoute
   OnboardingRoute: typeof OnboardingRoute
   SignupRoute: typeof SignupRoute
@@ -513,6 +552,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/instagram-oauth-callback': {
+      id: '/instagram-oauth-callback'
+      path: '/instagram-oauth-callback'
+      fullPath: '/instagram-oauth-callback'
+      preLoaderRoute: typeof InstagramOauthCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -611,6 +657,13 @@ declare module '@tanstack/react-router' {
       path: '/messages'
       fullPath: '/dashboard/messages'
       preLoaderRoute: typeof DashboardMessagesRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/instagram-analytics': {
+      id: '/dashboard/instagram-analytics'
+      path: '/instagram-analytics'
+      fullPath: '/dashboard/instagram-analytics'
+      preLoaderRoute: typeof DashboardInstagramAnalyticsRouteImport
       parentRoute: typeof DashboardRoute
     }
     '/dashboard/instagram': {
@@ -725,6 +778,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardAgentsIndexRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/instagram-analytics/posts': {
+      id: '/dashboard/instagram-analytics/posts'
+      path: '/posts'
+      fullPath: '/dashboard/instagram-analytics/posts'
+      preLoaderRoute: typeof DashboardInstagramAnalyticsPostsRouteImport
+      parentRoute: typeof DashboardInstagramAnalyticsRoute
+    }
     '/dashboard/business-analysis/old': {
       id: '/dashboard/business-analysis/old'
       path: '/old'
@@ -763,6 +823,21 @@ const DashboardBusinessAnalysisRouteWithChildren =
     DashboardBusinessAnalysisRouteChildren,
   )
 
+interface DashboardInstagramAnalyticsRouteChildren {
+  DashboardInstagramAnalyticsPostsRoute: typeof DashboardInstagramAnalyticsPostsRoute
+}
+
+const DashboardInstagramAnalyticsRouteChildren: DashboardInstagramAnalyticsRouteChildren =
+  {
+    DashboardInstagramAnalyticsPostsRoute:
+      DashboardInstagramAnalyticsPostsRoute,
+  }
+
+const DashboardInstagramAnalyticsRouteWithChildren =
+  DashboardInstagramAnalyticsRoute._addFileChildren(
+    DashboardInstagramAnalyticsRouteChildren,
+  )
+
 interface DashboardRouteChildren {
   DashboardActionsRoute: typeof DashboardActionsRoute
   DashboardAeoGeoRoute: typeof DashboardAeoGeoRoute
@@ -779,6 +854,7 @@ interface DashboardRouteChildren {
   DashboardGrowthRoute: typeof DashboardGrowthRoute
   DashboardInsightsRoute: typeof DashboardInsightsRoute
   DashboardInstagramRoute: typeof DashboardInstagramRoute
+  DashboardInstagramAnalyticsRoute: typeof DashboardInstagramAnalyticsRouteWithChildren
   DashboardMessagesRoute: typeof DashboardMessagesRoute
   DashboardPricingRoute: typeof DashboardPricingRoute
   DashboardReportsRoute: typeof DashboardReportsRoute
@@ -811,6 +887,8 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardGrowthRoute: DashboardGrowthRoute,
   DashboardInsightsRoute: DashboardInsightsRoute,
   DashboardInstagramRoute: DashboardInstagramRoute,
+  DashboardInstagramAnalyticsRoute:
+    DashboardInstagramAnalyticsRouteWithChildren,
   DashboardMessagesRoute: DashboardMessagesRoute,
   DashboardPricingRoute: DashboardPricingRoute,
   DashboardReportsRoute: DashboardReportsRoute,
@@ -834,6 +912,7 @@ const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DashboardRoute: DashboardRouteWithChildren,
+  InstagramOauthCallbackRoute: InstagramOauthCallbackRoute,
   LoginRoute: LoginRoute,
   OnboardingRoute: OnboardingRoute,
   SignupRoute: SignupRoute,

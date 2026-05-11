@@ -8,8 +8,21 @@ import json
 from typing import List, Dict, Any
 from openai import OpenAI
 
-# Initialize OpenAI client
-client = OpenAI(api_key=os.getenv("GROQ_API_KEY"))  # Using Groq as OpenAI-compatible API
+# Lazy client initialization
+_client = None
+
+def get_openai_client():
+    """Get OpenAI client lazily"""
+    global _client
+    if _client is None:
+        groq_key = os.getenv("GROQ_API_KEY")
+        if not groq_key:
+            raise ValueError("GROQ_API_KEY not configured")
+        _client = OpenAI(
+            api_key=groq_key,
+            base_url="https://api.groq.com/openai/v1"  # Groq OpenAI-compatible endpoint
+        )
+    return _client
 
 
 class PartnershipAnalysisService:
@@ -72,6 +85,7 @@ Return ONLY valid JSON:
 
 IMPORTANT: Base analysis ONLY on the real data provided. Do NOT invent additional information."""
 
+            client = get_openai_client()
             response = client.chat.completions.create(
                 model="llama-3.3-70b-versatile",
                 messages=[

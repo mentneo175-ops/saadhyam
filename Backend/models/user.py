@@ -4,6 +4,11 @@ from sqlalchemy.orm import relationship
 from config.database import Base
 from datetime import datetime
 
+# Import for type checking - avoid circular imports by using TYPE_CHECKING
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from models.instagram_analytics import InstagramBusinessAccount
+
 
 class User(Base):
     """User model for authentication."""
@@ -50,6 +55,18 @@ class User(Base):
     )
     scheduled_posts = relationship(
         "ScheduledPost", back_populates="user", cascade="all, delete-orphan"
+    )
+    instagram_business_accounts = relationship(
+        "InstagramBusinessAccount", 
+        back_populates="user", 
+        cascade="all, delete-orphan",
+        lazy="select"
+    )
+    daily_tasks = relationship(
+        "DailyTask", back_populates="user", cascade="all, delete-orphan"
+    )
+    growth_metrics = relationship(
+        "GrowthMetric", back_populates="user", cascade="all, delete-orphan"
     )
 
     def __repr__(self):

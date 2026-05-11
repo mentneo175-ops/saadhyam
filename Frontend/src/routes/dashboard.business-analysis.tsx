@@ -491,7 +491,7 @@ function BusinessAnalysisPage() {
           <Sparkles size={48} className="animate-spin text-purple-600 mb-4" />
           <p className="text-lg font-semibold text-gray-900">Analyzing your business...</p>
           <p className="text-sm text-gray-600 mt-2">This may take 2-3 minutes</p>
-          <p className="text-xs text-gray-500 mt-1">Using Google AI Studio Gemini with Search Grounding</p>
+          {/* <p className="text-xs text-gray-500 mt-1">Using Google AI Studio Gemini with Search Grounding</p> */}
           <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4 max-w-md">
             <p className="text-sm text-blue-900 text-center">
               💡 We're making ONE comprehensive API call to gather all your business insights.

@@ -273,6 +273,22 @@ except Exception as e:
     b2b_network_available = False
 
 try:
+    from routes.instagram_analytics import router as instagram_analytics_router
+    instagram_analytics_available = True
+    logging.info("✅ Instagram Analytics router imported successfully")
+except Exception as e:
+    logging.warning(f"Instagram Analytics router not available: {e}")
+    instagram_analytics_available = False
+
+try:
+    from routes.task_tracking import router as task_tracking_router
+    task_tracking_available = True
+    logging.info("✅ Task Tracking router imported successfully")
+except Exception as e:
+    logging.warning(f"Task Tracking router not available: {e}")
+    task_tracking_available = False
+
+try:
     from ai_models.website_ai.app.api.v1.routes import generation as website_ai_generation
     from ai_models.website_ai.app.api.v1.routes import jobs as website_ai_jobs
     from ai_models.website_ai.app.routes import website as website_ai_website
@@ -342,6 +358,10 @@ async def lifespan(app: FastAPI):
         migrate_add_location_coordinates()
         from migrations.add_user_id_to_review_history import migrate_add_user_id_to_review_history
         migrate_add_user_id_to_review_history()
+        from migrations.add_instagram_analytics_tables import migrate_add_instagram_analytics_tables
+        migrate_add_instagram_analytics_tables()
+        from migrations.add_task_tracking_tables import migrate_add_task_tracking_tables
+        migrate_add_task_tracking_tables()
         logger.info("✅ Migrations completed")
         
         # Start scheduler for processing scheduled Instagram posts
@@ -531,6 +551,12 @@ if whatsapp_automation_available:
 if b2b_network_available:
     app.include_router(b2b_network_router)
     logging.info("✅ B2B Network router included in app")
+if instagram_analytics_available:
+    app.include_router(instagram_analytics_router)
+    logging.info("✅ Instagram Analytics router included in app")
+if task_tracking_available:
+    app.include_router(task_tracking_router)
+    logging.info("✅ Task Tracking router included in app")
 if dashboard_analytics_available:
     app.include_router(dashboard_analytics_router)
     logging.info("✅ Dashboard Analytics router included in app")

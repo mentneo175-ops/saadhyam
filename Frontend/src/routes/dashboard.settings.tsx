@@ -103,12 +103,23 @@ function SettingsPage() {
     auto_generate_captions: false,
   });
 
+  // WhatsApp state
+  const [whatsappLoading, setWhatsappLoading] = useState(false);
+  const [whatsappStatus, setWhatsappStatus] = useState({
+    is_connected: false,
+    phone_number: null as string | null,
+    business_name: null as string | null,
+  });
+
   // Simple useEffect - no dependencies to avoid loops
   useEffect(() => {
     setMounted(true);
     
     // Load user settings on mount
     loadUserSettings();
+    
+    // Load WhatsApp status on mount
+    loadWhatsAppStatus();
     
     // Check for Instagram OAuth success
     const params = new URLSearchParams(window.location.search);
@@ -281,6 +292,45 @@ function SettingsPage() {
       console.error("Failed to load Instagram status:", error);
     } finally {
       setInstagramLoading(false);
+    }
+  };
+
+  const loadWhatsAppStatus = async () => {
+    if (whatsappLoading) {
+      console.log("WhatsApp status already loading, skipping...");
+      return;
+    }
+    
+    try {
+      setWhatsappLoading(true);
+      const token = localStorage.getItem("saadhyam_token");
+      
+      if (!token) {
+        console.log("No token found, skipping WhatsApp status load");
+        setWhatsappLoading(false);
+        return;
+      }
+
+      const response = await fetch("http://localhost:8000/api/whatsapp/status", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        
+        setWhatsappStatus({
+          is_connected: data.is_connected || false,
+          phone_number: data.phone_number || null,
+          business_name: data.business_name || null,
+        });
+      }
+    } catch (error) {
+      console.error("Failed to load WhatsApp status:", error);
+    } finally {
+      setWhatsappLoading(false);
     }
   };
 
@@ -765,11 +815,17 @@ function SettingsPage() {
                   className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
                     integration.name === "Instagram" && instagramStatus.is_connected
                       ? "bg-success/15 text-success"
+                      : integration.name === "WhatsApp Business" && whatsappStatus.is_connected
+                      ? "bg-success/15 text-success"
                       : "bg-muted text-muted-foreground"
                   }`}
                 >
                   {integration.name === "Instagram"
                     ? instagramStatus.is_connected
+                      ? "Connected"
+                      : "Not connected"
+                    : integration.name === "WhatsApp Business"
+                    ? whatsappStatus.is_connected
                       ? "Connected"
                       : "Not connected"
                     : "Not connected"}

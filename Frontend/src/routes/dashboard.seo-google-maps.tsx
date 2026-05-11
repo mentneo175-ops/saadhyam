@@ -146,7 +146,7 @@ function SEOGoogleMapsPage() {
           <Sparkles size={48} className="animate-spin text-teal-600 mb-4" />
           <p className="text-lg font-semibold text-gray-900">Analyzing SEO opportunities...</p>
           <p className="text-sm text-gray-600 mt-2">This may take 2-3 minutes</p>
-          <p className="text-xs text-gray-500 mt-1">Using Google AI Studio Gemini with Search Grounding</p>
+          {/* <p className="text-xs text-gray-500 mt-1">Using Google AI Studio Gemini with Search Grounding</p> */}
         </div>
       </div>
     );

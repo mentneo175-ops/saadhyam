@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Tooltip,
   TooltipContent,
@@ -42,6 +43,8 @@ import {
   Settings,
   Sparkles,
   Wand2,
+  BarChart3,
+  TrendingUp,
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { apiClient } from "@/lib/api";
@@ -49,6 +52,7 @@ import { toast } from "sonner";
 import { InstagramConnectionWizard } from "@/components/instagram/InstagramConnectionWizard";
 import { InstagramSettingsModal } from "@/components/instagram/InstagramSettingsModal";
 import { InstagramConnectionSuccess } from "@/components/instagram/InstagramConnectionSuccess";
+import { InstagramAnalyticsDashboard } from "@/components/instagram/InstagramAnalyticsDashboard";
 
 export const Route = createFileRoute("/dashboard/instagram")({
   head: () => ({ meta: [{ title: "Instagram — Saadhyam AI" }] }),
@@ -826,7 +830,7 @@ function InstagramPage() {
   }
 
   return (
-    <div className="p-4 md:p-6 lg:p-8 space-y-6 max-w-6xl">
+    <div className="p-4 md:p-6 lg:p-8 space-y-6 w-full">
       <div className="flex items-center justify-between">
         <PageHeader
           title="Instagram"
@@ -849,7 +853,22 @@ function InstagramPage() {
         </div>
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-6">
+      {/* Tabs for Posting and Analytics */}
+      <Tabs defaultValue="posting" className="w-full">
+        <TabsList className="grid w-full max-w-md grid-cols-2">
+          <TabsTrigger value="posting" className="flex items-center gap-2">
+            <Send className="w-4 h-4" />
+            Posting
+          </TabsTrigger>
+          <TabsTrigger value="analytics" className="flex items-center gap-2">
+            <BarChart3 className="w-4 h-4" />
+            Analytics
+          </TabsTrigger>
+        </TabsList>
+
+        {/* Posting Tab - Existing Functionality */}
+        <TabsContent value="posting" className="mt-6">
+          <div className="grid lg:grid-cols-2 gap-6">
         {/* Post Creation */}
         <Card>
           <CardHeader>
@@ -1281,6 +1300,13 @@ function InstagramPage() {
           </CardContent>
         </Card>
       </div>
+        </TabsContent>
+
+        {/* Analytics Tab - New Feature */}
+        <TabsContent value="analytics" className="mt-6">
+          <InstagramAnalyticsDashboard />
+        </TabsContent>
+      </Tabs>
 
       {/* Settings Modal */}
       <InstagramSettingsModal

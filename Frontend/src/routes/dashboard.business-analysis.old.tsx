@@ -94,7 +94,7 @@ function BusinessAnalysisPage() {
         <div className="flex flex-col items-center justify-center py-20">
           <Sparkles size={48} className="animate-spin text-purple-600 mb-4" />
           <p className="text-lg font-semibold text-gray-900">Analyzing your business...</p>
-          <p className="text-sm text-gray-600 mt-2">Using Google AI Studio Gemini with Search Grounding</p>
+          {/* <p className="text-sm text-gray-600 mt-2">Using Google AI Studio Gemini with Search Grounding</p> */}
         </div>
       </div>
     );

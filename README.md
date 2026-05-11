@@ -1,56 +1,82 @@
-# Saadhyam AI - Complete Business Intelligence Platform
+# 🚀 Saadhyam AI - Complete Business Intelligence Platform
 
-> **AI-Powered Business Management & Content Creation Platform**
+> **AI-Powered Business Management, Content Creation & Automation Platform**
 
-Saadhyam AI is a comprehensive platform that helps businesses with intelligent content creation, business analysis, blog generation, website creation, and social media management.
+A comprehensive platform that helps businesses with intelligent content creation, business analysis, social media management, WhatsApp automation, task tracking, and B2B networking.
 
 ---
 
 ## 📋 Table of Contents
 
-- [Features](#features)
-- [Tech Stack](#tech-stack)
-- [Prerequisites](#prerequisites)
-- [Installation](#installation)
-- [Configuration](#configuration)
-- [Running the Application](#running-the-application)
-- [Project Structure](#project-structure)
-- [API Documentation](#api-documentation)
-- [Troubleshooting](#troubleshooting)
+- [Features](#-features)
+- [Tech Stack](#-tech-stack)
+- [Prerequisites](#-prerequisites)
+- [Installation](#-installation)
+- [Configuration](#-configuration)
+- [Running the Application](#-running-the-application)
+- [Project Structure](#-project-structure)
+- [API Documentation](#-api-documentation)
+- [Troubleshooting](#-troubleshooting)
+- [License](#-license)
 
 ---
-**Saadhyam AI** is a comprehensive business automation platform that combines AI-powered content creation, social media management, business analysis, WhatsApp automation, and B2B networking tools in one unified solution.
 
----
+## ✨ Features
 
-## ✨ Core Features
-
-### 🤖 AI-Powered Features
-- **Business Analysis** - Comprehensive business intelligence using Gemini AI
+### 🤖 AI-Powered Intelligence
+- **Business Analysis** - Comprehensive business insights using Gemini AI with Google Search grounding
 - **Blog Generation** - SEO-optimized blog posts with web research (Tavily/Serper)
-- **Content Creation** - Social media content for Instagram, Facebook, WhatsApp
-- **Image Generation** - AI-generated images using FLUX/Stable Diffusion
-- **Review Reply AI** - Automated professional review responses
+- **Content Creation** - AI-generated social media content for Instagram, Facebook, WhatsApp
+- **Image Generation** - AI-powered images using FLUX/Stable Diffusion
+- **Review Reply AI** - Automated professional review responses using TinyLlama
 - **Personal Assistant** - AI-powered business assistant using Groq
 
-### 🌐 Website & Content
+### 📊 Business Management
+- **Business Profile** - Comprehensive business information management
+- **Analytics Dashboard** - Real-time business intelligence and metrics
+- **Task Tracking System** - AI-suggested daily tasks with growth journey visualization
+- **Competitor Analysis** - Track and analyze competitor strategies
+- **Growth Metrics** - Track completion rates, streaks, and growth scores
+
+### 📱 Social Media & Content
+- **Instagram Analytics** - Complete analytics dashboard with AI-powered insights
+  - Account metrics and performance tracking
+  - Post, Reel, and Story analytics
+  - AI recommendations and growth predictions
+  - Trend detection and content suggestions
+- **Instagram Posting** - Post scheduling and automated publishing
+- **Content Calendar** - Schedule and manage social media posts
+- **Engagement Tracking** - Monitor post performance and engagement
+
+### 💬 WhatsApp Business Automation
+- **WhatsApp Business Integration** - Official Meta WhatsApp Cloud API
+- **Customer Chat Management** - CRM-style conversation dashboard
+- **Broadcast Campaigns** - Send bulk messages to multiple customers
+- **Smart Automations** - Auto-replies, follow-ups, and scheduled messages
+- **AI-Powered Responses** - Gemini-powered intelligent reply generation
+- **Analytics & Reporting** - Track delivery, read rates, and engagement
+- **Template Messages** - Support for approved WhatsApp templates
+
+### 🌐 Website & SEO
 - **Website Generator** - AI-generated business websites with 6 templates
 - **Blog Publishing** - Automatic blog publishing to customer websites
 - **AEO/GEO Optimization** - Answer Engine & Generative Engine Optimization
 - **SEO Tools** - Keyword research and optimization
 
-### 📊 Business Management
-- **Business Profile** - Comprehensive business information management
-- **Analytics Dashboard** - Real-time business intelligence
-- **Task Management** - AI-suggested tasks and workflows
-- **Competitor Analysis** - Track and analyze competitors
+### 🤝 B2B Business Network
+- **Neural Network Visualization** - Interactive AI-style business discovery
+- **City-Wide Search** - Find businesses across your entire city (50km radius)
+- **Real Business Data** - OpenStreetMap integration via Overpass API
+- **Category Explorer** - Browse businesses by industry categories
+- **AI Loading Animation** - Futuristic network connection visualization
+- **Business Details** - View services, location, and contact information
 
-### 🔗 Integrations
-- **Instagram** - Post scheduling and management
-- **Firebase Auth** - Google OAuth authentication
-- **Cloudinary** - Image storage and management
-- **NeonDB** - PostgreSQL database
-- **Pinecone** - Vector database for semantic search
+### 🔐 Authentication & Security
+- **Dual Authentication** - Email/password and Google OAuth support
+- **Firebase Integration** - Secure, scalable authentication system
+- **Account Merging** - Seamless integration between auth methods
+- **Business Profile Management** - Comprehensive user onboarding
+- **Secure Logout** - Complete data cleanup on sign out
 
 ---
 
@@ -67,12 +93,15 @@ Saadhyam AI is a comprehensive platform that helps businesses with intelligent c
 - **Web Search:** Tavily AI, Serper API
 - **Task Queue:** Celery + Redis
 - **Authentication:** Firebase Admin SDK + JWT
+- **Cloud Storage:** Cloudinary
+- **APIs:** Meta WhatsApp Cloud API, OpenStreetMap Overpass API
 
 ### Frontend
 - **Framework:** React 19 + TanStack Start
 - **Styling:** Tailwind CSS 4.2
 - **UI Components:** Radix UI
-- **State Management:** TanStack Query
+- **State Management:** TanStack Query + React Context
+- **Visualization:** Recharts (Growth Charts), React Flow (B2B Network)
 - **Build Tool:** Vite 7
 
 ---
@@ -83,6 +112,7 @@ Saadhyam AI is a comprehensive platform that helps businesses with intelligent c
 - **Python:** 3.11 or higher
 - **Node.js:** 18 or higher
 - **npm:** 9 or higher
+- **Redis:** Latest version (for background tasks)
 - **Git:** Latest version
 
 ### Required API Keys
@@ -98,6 +128,7 @@ Saadhyam AI is a comprehensive platform that helps businesses with intelligent c
 ### Optional API Keys
 - **Cloudinary** (Image Storage)
 - **Instagram** (Social Media)
+- **WhatsApp** (Meta Business Platform)
 - **OpenAI** (Alternative AI)
 
 ---
@@ -106,105 +137,6 @@ Saadhyam AI is a comprehensive platform that helps businesses with intelligent c
 
 ### 1. Clone the Repository
 
-### 🤖 AI-Powered Content Creation
-- **Smart Content Generator**: Create engaging posts with AI-generated captions and images
-- **Multi-Platform Publishing**: Direct posting to Instagram with automated scheduling
-- **Image Generation**: FLUX-powered AI image generation with custom prompts
-- **Content Optimization**: AI-driven content suggestions based on business type
-- **Review Reply AI**: Generate professional responses to customer reviews
-
-### 📊 Business Intelligence
-- **Business Analysis AI**: Comprehensive business insights powered by Google Gemini API
-- **Real-time Market Data**: Live competitor analysis with Google Search grounding
-- **Website AI Generator**: Create professional websites with AI assistance
-- **Performance Analytics**: Detailed metrics and growth tracking
-- **Competitor Tracking**: Monitor and analyze competitor strategies
-
-### 💬 WhatsApp Sales & Automation
-- **WhatsApp Business Integration**: Official Meta WhatsApp Cloud API
-- **Customer Chat Management**: CRM-style conversation dashboard
-- **Broadcast Campaigns**: Send bulk messages to multiple customers
-- **Smart Automations**: Auto-replies, follow-ups, and scheduled messages
-- **AI-Powered Responses**: Gemini-powered intelligent reply generation
-- **Analytics & Reporting**: Track delivery, read rates, and engagement
-- **Template Messages**: Support for approved WhatsApp templates
-
-### 🌐 B2B Business Network
-- **Neural Network Visualization**: Interactive AI-style business discovery
-- **City-Wide Search**: Find businesses across your entire city (50km radius)
-- **Real Business Data**: OpenStreetMap integration via Overpass API
-- **Category Explorer**: Browse businesses by industry categories
-- **AI Loading Animation**: Futuristic network connection visualization
-- **Business Details**: View services, location, and contact information
-
-### 🔐 Authentication & Security
-- **Dual Authentication**: Email/password and Google OAuth support
-- **Firebase Integration**: Secure, scalable authentication system
-- **Account Merging**: Seamless integration between auth methods
-- **Business Profile Management**: Comprehensive user onboarding
-- **Secure Logout**: Complete data cleanup on sign out
-
-### 📱 Social Media Management
-- **Instagram Integration**: Direct posting with image and caption generation
-- **Content Calendar**: Schedule and manage social media posts
-- **Engagement Tracking**: Monitor post performance and engagement
-- **Multi-Account Support**: Manage multiple social media accounts
-
----
-
-## 🛠️ Technology Stack
-
-### Backend
-- **Framework**: FastAPI (Python 3.10+)
-- **Database**: PostgreSQL (Neon DB)
-- **Authentication**: Firebase Admin SDK
-- **AI/ML**: 
-  - Google Gemini API (Business Analysis)
-  - TinyLlama (Review Replies)
-  - GROQ API (Image Generation)
-  - HuggingFace Transformers
-- **Task Queue**: Celery with Redis
-- **Cloud Storage**: Cloudinary
-- **APIs**: Meta WhatsApp Cloud API, OpenStreetMap Overpass API
-
-### Frontend
-- **Framework**: React 18 with TypeScript
-- **Routing**: TanStack Router
-- **Styling**: Tailwind CSS
-- **UI Components**: Custom component library with Framer Motion
-- **Visualization**: React Flow (B2B Network)
-- **State Management**: React Context + Hooks
-- **Build Tool**: Vite
-
-### Infrastructure
-- **Database**: Neon PostgreSQL
-- **Cache**: Redis
-- **File Storage**: Cloudinary
-- **Authentication**: Firebase
-- **Deployment**: Docker-ready
-
----
-
-## 🚀 Quick Start
-
-### Prerequisites
-- **Python 3.10+**
-- **Node.js 18+**
-- **PostgreSQL** (or Neon DB account)
-- **Redis server**
-- **Firebase project**
-- **Git**
-
-### System Requirements
-- **RAM**: Minimum 8GB (16GB recommended)
-- **Storage**: 5GB free space
-- **OS**: Windows 10+, macOS 10.15+, or Linux
-
----
-
-## 📦 Installation
-
-### 1. Clone Repository
 ```bash
 git clone https://github.com/yourusername/saadhyam-ai.git
 cd saadhyam-ai
@@ -217,19 +149,20 @@ cd saadhyam-ai
 cd Backend
 
 # Create virtual environment
-python -m venv ../.venv
+python -m venv venv
 
 # Activate virtual environment
 # On Windows:
-..\.venv\Scripts\activate
+venv\Scripts\activate
 # On macOS/Linux:
-source ../.venv/bin/activate
+source venv/bin/activate
 
 # Install dependencies
 pip install -r requirements.txt
 
 # Copy environment template
-copy .env.example .env
+copy .env.example .env  # Windows
+# cp .env.example .env  # macOS/Linux
 
 # Edit .env file with your API keys (see Configuration section)
 ```
@@ -242,6 +175,34 @@ cd ../Frontend
 
 # Install dependencies
 npm install
+
+# Copy environment template
+copy .env.example .env  # Windows
+# cp .env.example .env  # macOS/Linux
+
+# Edit .env file with your configuration
+```
+
+### 4. Redis Setup
+
+**Windows:**
+```bash
+# Download Redis for Windows from:
+# https://github.com/microsoftarchive/redis/releases
+# Or use Docker:
+docker run -d -p 6379:6379 redis:alpine
+```
+
+**macOS:**
+```bash
+brew install redis
+brew services start redis
+```
+
+**Linux:**
+```bash
+sudo apt-get install redis-server
+sudo systemctl start redis
 ```
 
 ---
@@ -253,33 +214,68 @@ npm install
 Edit `Backend/.env` with your API keys:
 
 ```env
+# ============================================
 # Database (REQUIRED)
+# ============================================
 DATABASE_URL=postgresql+asyncpg://user:password@host/database
 
-# Firebase Authentication (REQUIRED for Google OAuth)
+# ============================================
+# Firebase Authentication (REQUIRED)
+# ============================================
 GOOGLE_APPLICATION_CREDENTIALS=./firebase-adminsdk.json
 FIREBASE_PROJECT_ID=your-project-id
 
+# ============================================
+# JWT Security (REQUIRED)
+# ============================================
+SECRET_KEY=your-super-secret-jwt-key-change-this
+ACCESS_TOKEN_EXPIRE_MINUTES=10080
+
+# ============================================
 # AI Services (REQUIRED)
+# ============================================
 GEMINI_API_KEY=your_gemini_api_key
 GROQ_API_KEY=your_groq_api_key
 HUGGINGFACE_TOKEN=your_huggingface_token
 
+# ============================================
 # Web Search APIs (REQUIRED for Blog Generation)
+# ============================================
 TAVILY_API_KEY=your_tavily_api_key
 SERPER_API_KEY=your_serper_api_key
 
+# ============================================
 # Vector Database (REQUIRED for Business Analysis)
+# ============================================
 PINECONE_API_KEY=your_pinecone_api_key
 PINECONE_ENVIRONMENT=us-east-1
 PINECONE_INDEX_NAME=saadhyam-aeo-geo
 
+# ============================================
+# Redis (REQUIRED for Background Tasks)
+# ============================================
+REDIS_URL=redis://localhost:6379
+
+# ============================================
 # Optional Services
+# ============================================
 CLOUDINARY_CLOUD_NAME=your_cloud_name
 CLOUDINARY_API_KEY=your_api_key
 CLOUDINARY_API_SECRET=your_api_secret
+
 INSTAGRAM_APP_ID=your_instagram_app_id
 INSTAGRAM_APP_SECRET=your_instagram_app_secret
+
+WHATSAPP_APP_ID=your_whatsapp_app_id
+WHATSAPP_APP_SECRET=your_whatsapp_app_secret
+WHATSAPP_VERIFY_TOKEN=your_verify_token
+
+# ============================================
+# Server Configuration
+# ============================================
+DEBUG=True
+ENVIRONMENT=development
+CORS_ORIGINS=["http://localhost:5173"]
 ```
 
 ### Firebase Setup
@@ -307,52 +303,10 @@ VITE_FIREBASE_STORAGE_BUCKET=your-project.firebasestorage.app
 VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
 VITE_FIREBASE_APP_ID=your_app_id
 ```
-python -m venv venv
-
-# Activate virtual environment
-# Windows:
-venv\Scripts\activate
-# macOS/Linux:
-source venv/bin/activate
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Copy environment file
-cp .env.example .env
-# Edit .env with your configuration
-```
-
-### 3. Frontend Setup
-
-```bash
-cd Frontend
-
-# Install dependencies
-npm install
-
-# Copy environment file
-cp .env.example .env
-# Edit .env with your configuration
-```
-
-### 4. Firebase Setup (Required)
-
-1. Create Firebase project at [Firebase Console](https://console.firebase.google.com/)
-2. Enable Authentication > Google Sign-in
-3. Download service account key (Project Settings > Service Accounts)
-4. Save as `Backend/firebase-adminsdk.json`
-5. Copy Firebase config to `Frontend/.env`
-
-### 5. Database Setup
-
-Database will auto-initialize on first run with automatic migrations.
 
 ---
 
 ## 🏃 Running the Application
-
-### Start Backend Server
 
 ### Option 1: Quick Start (All Services at Once) ⚡
 
@@ -373,18 +327,15 @@ chmod +x start_all.sh
 
 This will automatically:
 - ✅ Start Backend server on `http://localhost:8000`
-- ✅ Start AI Model Server on `http://localhost:9000` (TinyLlama for review replies)
-- ✅ Start Main Celery worker (Instagram posts + WhatsApp automation)
-- ✅ Start Website AI Celery worker (Website generation tasks)
 - ✅ Start Frontend server on `http://localhost:5173`
 - ✅ Open application in browser
-- ✅ Display server logs in separate windows (5 terminals on Windows)
+- ✅ Display server logs
 
 ---
 
 ### Option 2: Manual Start (Individual Services)
 
-#### Start Redis
+#### 1. Start Redis (Required for background tasks)
 ```bash
 # Windows (if installed):
 redis-server
@@ -396,29 +347,9 @@ brew services start redis
 docker run -d -p 6379:6379 redis:alpine
 ```
 
-#### Start Backend
+#### 2. Start Backend
 ```bash
 cd Backend
-..\.venv\Scripts\python.exe -m uvicorn main:app --reload --port 8000
-```
-
-**Expected output:**
-```
-✅ Firebase Admin SDK: INITIALIZED
-✅ Profile router included in app
-✅ Business Input router included in app
-✅ Application startup complete
-INFO: Uvicorn running on http://127.0.0.1:8000
-```
-
-**Backend URLs:**
-- API: http://localhost:8000
-- API Docs: http://localhost:8000/docs
-- Health Check: http://localhost:8000/health
-
-### Start Frontend Server
-
-### Start Celery Worker (Optional - for background tasks)
 venv\Scripts\activate  # Windows
 # source venv/bin/activate  # macOS/Linux
 
@@ -427,19 +358,28 @@ python main.py
 # python -m uvicorn main:app --reload --port 8000
 ```
 
-#### Start AI Model Server (Optional - for Review Reply AI)
-```bash
-cd Backend
-venv\Scripts\activate  # Windows
-# source venv/bin/activate  # macOS/Linux
-
-python model_server.py
-# Runs on port 9000
+**Expected output:**
+```
+✅ Firebase Admin SDK: INITIALIZED
+✅ Task Tracking router included in app
+✅ Instagram Analytics router included in app
+✅ Application startup complete
+INFO: Uvicorn running on http://0.0.0.0:8000
 ```
 
-#### Start Celery Workers (Optional - for background tasks)
+#### 3. Start Frontend
+```bash
+cd Frontend
+npm run dev
+```
 
-**Main Celery Worker (Instagram + WhatsApp):**
+**Expected output:**
+```
+VITE ready in XXX ms
+Local: http://localhost:5173/
+```
+
+#### 4. Start Celery Worker (Optional - for background tasks)
 ```bash
 cd Backend
 venv\Scripts\activate
@@ -451,31 +391,14 @@ celery -A celery_worker worker --loglevel=info --pool=solo
 celery -A celery_worker worker --loglevel=info
 ```
 
-**Website AI Celery Worker (Website Generation):**
-```bash
-cd Backend
-venv\Scripts\activate
+---
 
-# Windows:
-celery -A ai_models.website_ai.app.workers.celery_app worker --loglevel=info --pool=solo
+### Access Application
 
-# macOS/Linux:
-celery -A ai_models.website_ai.app.workers.celery_app worker --loglevel=info
-```
-
-#### Start Frontend
-```bash
-cd Frontend
-npm run dev
-```
-
-**Expected output:**
-```
-VITE ready in XXX ms
-Local: http://localhost:8080/
-```
-
-**Frontend URL:** http://localhost:8080
+- **Frontend:** http://localhost:5173
+- **Backend API:** http://localhost:8000
+- **API Docs:** http://localhost:8000/docs
+- **Health Check:** http://localhost:8000/health
 
 ---
 
@@ -484,125 +407,66 @@ Local: http://localhost:8080/
 ```
 Saadhyam/
 ├── Backend/
-│   ├── ai_models/           # AI model implementations
-│   │   ├── content_creator/ # Content generation
-│   │   ├── review_reply_ai/ # Review reply AI
-│   │   └── website_ai/      # Website generation
-│   ├── config/              # Configuration files
-│   ├── db/                  # Database models
-### Access Application
-- **Frontend**: http://localhost:8080
-- **Backend API**: http://localhost:8000
-- **API Docs**: http://localhost:8000/docs
-
----
-
-## 🔧 Environment Configuration
-
-### Backend (.env)
-```env
-# Database
-DATABASE_URL=postgresql+asyncpg://user:password@host/database
-
-# Firebase (REQUIRED)
-GOOGLE_APPLICATION_CREDENTIALS=./firebase-adminsdk.json
-FIREBASE_PROJECT_ID=your-firebase-project-id
-
-# Redis
-REDIS_URL=redis://localhost:6379
-
-# JWT
-SECRET_KEY=your-super-secret-jwt-key
-ACCESS_TOKEN_EXPIRE_MINUTES=10080
-
-# AI Services
-GEMINI_API_KEY=your-google-ai-studio-api-key
-GROQ_API_KEY=your-groq-api-key
-HUGGINGFACE_TOKEN=your-huggingface-token
-
-# Cloud Storage
-CLOUDINARY_CLOUD_NAME=your-cloudinary-name
-CLOUDINARY_API_KEY=your-cloudinary-key
-CLOUDINARY_API_SECRET=your-cloudinary-secret
-
-# WhatsApp (Meta Business Platform)
-WHATSAPP_APP_ID=your-whatsapp-app-id
-WHATSAPP_APP_SECRET=your-whatsapp-app-secret
-WHATSAPP_VERIFY_TOKEN=your-verify-token
-
-# Instagram
-INSTAGRAM_APP_ID=your-instagram-app-id
-INSTAGRAM_APP_SECRET=your-instagram-app-secret
-
-# Server
-DEBUG=True
-ENVIRONMENT=development
-CORS_ORIGINS=["http://localhost:8080"]
-```
-
-### Frontend (.env)
-```env
-# Backend API
-VITE_API_URL=http://localhost:8000
-
-# Firebase Configuration
-VITE_FIREBASE_API_KEY=your-firebase-api-key
-VITE_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
-VITE_FIREBASE_PROJECT_ID=your-firebase-project-id
-VITE_FIREBASE_STORAGE_BUCKET=your-project.appspot.com
-VITE_FIREBASE_MESSAGING_SENDER_ID=your-sender-id
-VITE_FIREBASE_APP_ID=your-firebase-app-id
-```
-
----
-
-## 📁 Project Structure
-
-```
-Sadhyam/
-├── Backend/
-│   ├── ai_models/           # AI model implementations
-│   ├── config/              # Database and app configuration
-│   ├── migrations/          # Database migrations
-│   ├── models/              # SQLAlchemy models
-│   ├── routes/              # API endpoints
-│   ├── services/            # Business logic
-│   │   ├── auto_blogger_service.py
-│   │   ├── web_search_service.py
-│   │   ├── blog_service.py
-│   │   └── business_pinecone_service.py
-│   ├── utils/               # Utility functions
-│   ├── .env                 # Environment variables
-│   ├── main.py              # FastAPI application
-│   ├── tasks/               # Celery background tasks
-│   ├── utils/               # Utility functions
-│   ├── main.py              # Application entry point
-│   └── requirements.txt     # Python dependencies
+│   ├── ai_models/              # AI model implementations
+│   │   ├── content_creator/    # Content generation
+│   │   ├── review_reply_ai/    # Review reply AI (TinyLlama)
+│   │   └── website_ai/         # Website generation
+│   ├── config/                 # Configuration files
+│   │   └── database.py         # Database connection
+│   ├── migrations/             # Database migrations
+│   ├── models/                 # SQLAlchemy models
+│   │   ├── user.py
+│   │   ├── task_tracking.py
+│   │   ├── instagram_analytics.py
+│   │   └── ...
+│   ├── routes/                 # API endpoints
+│   │   ├── auth.py
+│   │   ├── task_tracking.py
+│   │   ├── instagram_analytics.py
+│   │   ├── whatsapp_messages.py
+│   │   ├── b2b_network.py
+│   │   └── ...
+│   ├── services/               # Business logic
+│   │   ├── task_tracking_service.py
+│   │   ├── task_generation_service.py
+│   │   ├── instagram_analytics_service.py
+│   │   ├── instagram_ai_service.py
+│   │   ├── gemini_business_analysis_service.py
+│   │   └── ...
+│   ├── utils/                  # Utility functions
+│   ├── .env                    # Environment variables
+│   ├── main.py                 # Application entry point
+│   └── requirements.txt        # Python dependencies
 │
 ├── Frontend/
 │   ├── src/
-│   │   ├── routes/          # Page routes
-│   │   ├── components/      # React components
-│   │   ├── lib/             # API clients & utilities
-│   │   └── styles/          # CSS styles
-│   ├── .env                 # Environment variables
-│   ├── package.json         # Node dependencies
-│   └── vite.config.ts       # Vite configuration
+│   │   ├── components/         # Reusable UI components
+│   │   │   ├── dashboard/      # Dashboard components
+│   │   │   │   ├── DailyTasksWidget.tsx
+│   │   │   │   ├── GrowthChart.tsx
+│   │   │   │   └── ...
+│   │   │   ├── instagram/      # Instagram components
+│   │   │   │   └── InstagramAnalyticsDashboard.tsx
+│   │   │   └── b2b-network/    # B2B network components
+│   │   ├── routes/             # Page components
+│   │   │   ├── dashboard.index.tsx
+│   │   │   ├── dashboard.daily-ask.tsx
+│   │   │   ├── dashboard.instagram.tsx
+│   │   │   ├── dashboard.whatsapp.tsx
+│   │   │   └── ...
+│   │   ├── lib/                # API client and utilities
+│   │   ├── hooks/              # Custom React hooks
+│   │   └── styles.css          # Global styles
+│   ├── package.json            # Node.js dependencies
+│   └── vite.config.ts          # Vite configuration
 │
-├── README.md                # This file
-├── ARCHITECTURE_DIAGRAM.md  # System architecture
-├── DATABASE_ARCHITECTURE.md # Database schema
-├── BLOG_SYSTEM_COMPLETE.md  # Blog system docs
-└── ADDING_API_KEYS_GUIDE.md # API key setup guide
-│   │   ├── components/      # Reusable UI components
-│   │   ├── routes/          # Page components
-│   │   ├── lib/             # API client and utilities
-│   │   ├── hooks/           # Custom React hooks
-│   │   └── styles.css       # Global styles
-│   ├── package.json         # Node.js dependencies
-│   └── vite.config.ts       # Vite configuration
-│
-└── README.md                # This file
+├── .gitignore                  # Git ignore rules
+├── README.md                   # This file
+├── REDIS_SETUP.md              # Redis setup guide
+├── start_all.bat               # Windows startup script
+├── start_all.sh                # Unix startup script
+├── stop_all.bat                # Windows stop script
+└── stop_all.sh                 # Unix stop script
 ```
 
 ---
@@ -612,56 +476,57 @@ Sadhyam/
 ### Authentication Endpoints
 
 ```
-POST   /auth/register        - Register new user
-POST   /auth/login           - Login with email/password
-POST   /auth/google          - Login with Google OAuth
-POST   /auth/logout          - Logout user
-GET    /me                   - Get current user
+POST   /auth/register           - Register new user
+POST   /auth/login              - Login with email/password
+POST   /auth/google             - Login with Google OAuth
+POST   /auth/logout             - Logout user
+GET    /me                      - Get current user
 ```
 
-### Profile Endpoints
+### Task Tracking Endpoints
 
 ```
-GET    /api/profile/                    - Get complete profile
-GET    /api/profile/business            - Get business profile
-PUT    /api/profile/business            - Update business profile
-GET    /api/profile/business/setup-status - Check setup status
+GET    /api/tasks/today         - Get today's tasks
+GET    /api/tasks/history       - Get task history
+POST   /api/tasks               - Create new task
+PUT    /api/tasks/{id}/complete - Mark task as complete
+DELETE /api/tasks/{id}          - Delete task
+GET    /api/tasks/growth/chart-data - Get growth chart data
+POST   /api/tasks/generate-daily - Generate AI-powered daily tasks
 ```
 
-### Business Input Endpoints
+### Instagram Analytics Endpoints
 
 ```
-POST   /api/business/upload-pdf         - Upload PDF
-POST   /api/business/import-website     - Import from website
-GET    /api/business/profile            - Get business profile
-PUT    /api/business/profile            - Update profile
-DELETE /api/business/profile/file       - Delete uploaded file
+GET    /api/instagram-analytics/account/{account_id}        - Get account analytics
+GET    /api/instagram-analytics/posts/{account_id}          - Get post analytics
+GET    /api/instagram-analytics/ai-insights/{account_id}    - Get AI insights
+POST   /api/instagram-analytics/sync/{account_id}           - Sync Instagram data
 ```
 
-### Blog Endpoints
+### WhatsApp Endpoints
 
 ```
-GET    /api/blogs/                      - List all blogs
-POST   /api/blogs/generate              - Generate new blog
-GET    /api/blogs/{id}                  - Get blog by ID
-PUT    /api/blogs/{id}                  - Update blog
-DELETE /api/blogs/{id}                  - Delete blog
-POST   /api/blogs/{id}/publish          - Publish blog
+GET    /api/whatsapp/chats      - Get all chats
+POST   /api/whatsapp/send-message - Send message
+POST   /api/whatsapp/broadcast  - Send broadcast
+GET    /api/whatsapp/analytics  - Get analytics
 ```
 
-### Content Creation Endpoints
+### B2B Network Endpoints
 
 ```
-POST   /content/generate                - Generate content
-POST   /content/generate-image          - Generate image
+GET    /api/b2b-network/nearby/me - Get nearby businesses (city-wide)
+GET    /api/b2b-network/nearby    - Get businesses by coordinates
+GET    /api/b2b-network/categories - Get business categories
 ```
 
 ### Business Analysis Endpoints
 
 ```
-POST   /ai/business-analysis            - Analyze business
+POST   /ai/business-analysis    - Analyze business
 GET    /api/comprehensive-analysis/business-analysis - Get analysis
-GET    /business/analysis/realtime      - Real-time intelligence
+GET    /business/analysis/realtime - Real-time intelligence
 ```
 
 **Full API Documentation:** http://localhost:8000/docs
@@ -677,7 +542,7 @@ GET    /business/analysis/realtime      - Real-time intelligence
 **Solution:**
 ```bash
 cd Backend
-..\.venv\Scripts\pip.exe install -r requirements.txt
+venv\Scripts\pip.exe install -r requirements.txt
 ```
 
 **Problem:** Database connection error
@@ -707,40 +572,31 @@ npm install
 1. Verify backend is running on port 8000
 2. Check `VITE_API_URL` in `Frontend/.env`
 
-### 404 Errors on API Calls
+### Task Tracking Issues
 
-**Problem:** Routes not found
+**Problem:** Tasks not loading (405 error)
 
-**Solution:** Restart backend server
-```bash
-# Stop with Ctrl+C, then restart:
-cd Backend
-..\.venv\Scripts\python.exe -m uvicorn main:app --reload --port 8000
-```
+**Solution:** Restart backend server to load task tracking router
 
-**Verify routes loaded:**
-- Check logs for "✅ Profile router included in app"
-- Check logs for "✅ Business Input router included in app"
-- Visit http://localhost:8000/docs to see all endpoints
-
-### Blog Generation Fails
-
-**Problem:** "All API keys exhausted"
+**Problem:** Growth chart not updating
 
 **Solution:** 
-1. Check `GEMINI_API_KEY` in `.env`
-2. Verify Tavily/Serper API keys are set
-3. Wait for quota reset (midnight PT for Gemini)
+1. Complete at least one task to generate first metric
+2. Check browser console for errors
+3. Verify token: `localStorage.getItem("saadhyam_token")`
 
-**Problem:** Web search not working
+### Instagram Analytics Issues
+
+**Problem:** Analytics not loading
 
 **Solution:**
-1. Verify `TAVILY_API_KEY` and `SERPER_API_KEY` in `.env`
-2. Check package installed: `pip install tavily-python beautifulsoup4`
+1. Verify Instagram account is connected in Settings
+2. Click "Sync Data" to fetch latest analytics
+3. Check backend logs for API errors
 
 ### Port Already in Use
 
-**Problem:** Port 8000 or 8080 already in use
+**Problem:** Port 8000 or 5173 already in use
 
 **Solution:**
 ```bash
@@ -748,158 +604,8 @@ cd Backend
 netstat -ano | findstr :8000
 taskkill /PID <PID> /F
 
-# Or use different ports:
-# Backend:
-uvicorn main:app --reload --port 8001
-
-# Frontend: Edit vite.config.ts to change port
-```
-
----
-
-## 📞 Support
-
-For issues and questions:
-1. Check the [Troubleshooting](#troubleshooting) section
-2. Review API documentation at http://localhost:8000/docs
-3. Check logs for error messages
-4. Verify all API keys are configured correctly
-
----
-
-## 📄 License
-
-This project is proprietary software. All rights reserved.
-
----
-
-## 🙏 Acknowledgments
-
-- **Google Gemini** - AI-powered business analysis and content generation
-- **Tavily AI** - Web search and research
-- **Serper API** - Google search integration
-- **Firebase** - Authentication services
-- **NeonDB** - Serverless PostgreSQL
-- **Pinecone** - Vector database
-- **HuggingFace** - AI model hosting
-
----
-
-**Built with ❤️ by the Saadhyam AI Team**
-## 🌐 Service URLs
-
-| Service | URL | Purpose |
-|---------|-----|---------|
-| Frontend | http://localhost:5173 | React application |
-| Backend API | http://localhost:8000 | FastAPI server |
-| AI Model Server | http://localhost:9000 | TinyLlama inference |
-| API Docs | http://localhost:8000/docs | Swagger documentation |
-| Redis | localhost:6379 | Message broker |
-
----
-
-## 📱 Key API Endpoints
-
-### Authentication
-- `POST /auth/register` - Email registration
-- `POST /auth/login` - Email login
-- `POST /auth/google` - Google OAuth
-- `POST /auth/logout` - User logout
-- `GET /me` - Get current user
-
-### Content Creation
-- `POST /content/generate` - Generate AI content
-- `POST /instagram/schedule-post` - Schedule Instagram post
-- `GET /instagram/posts` - Get scheduled posts
-
-### Business Analysis
-- `POST /ai/business-analysis` - Analyze business
-- `GET /api/business/latest` - Get latest analysis
-
-### WhatsApp
-- `GET /api/whatsapp/chats` - Get all chats
-- `POST /api/whatsapp/send-message` - Send message
-- `POST /api/whatsapp/broadcast` - Send broadcast
-- `GET /api/whatsapp/analytics` - Get analytics
-
-### B2B Network
-- `GET /api/b2b-network/nearby/me` - Get nearby businesses (city-wide)
-- `GET /api/b2b-network/nearby` - Get businesses by coordinates
-- `GET /api/b2b-network/categories` - Get business categories
-
-### Profile
-- `GET /api/profile/business` - Get business profile
-- `PUT /api/profile/business` - Update business profile
-
----
-
-## 🤖 AI Models & Services
-
-### Google Gemini API (Cloud-Based)
-- **Business Analysis**: Gemini 2.5 Flash with Google Search grounding
-- **Real-time Insights**: Live market data and competitor analysis
-- **Fast Response**: 2-5 seconds per request
-- **Get API Key**: https://aistudio.google.com/app/apikey
-
-### TinyLlama (Local - CPU Optimized)
-- **Review Reply AI**: Professional customer review responses
-- **Load Time**: 30-60 seconds on first start
-- **Memory Usage**: ~2-4GB RAM
-
-### GROQ API (Cloud-Based)
-- **Image Generation**: FLUX-powered AI image creation
-- **Fast Generation**: 5-10 seconds per image
-
-### OpenStreetMap Overpass API
-- **B2B Network Data**: Real business information
-- **City-Wide Coverage**: 50km radius search
-- **Free & Open**: No API key required
-
----
-
-## 🐛 Troubleshooting
-
-### Common Issues
-
-#### Firebase Authentication Errors
-```bash
-# Check firebase-adminsdk.json exists
-# Verify FIREBASE_PROJECT_ID matches your project
-```
-
-#### AI Model Loading Issues
-```bash
-# Ensure sufficient RAM (8GB+)
-# Check internet connection for model downloads
-# Clear cache: rm -rf ~/.cache/huggingface/
-```
-
-#### Celery Worker Issues
-```bash
-# Ensure Redis is running
-# Check REDIS_URL in .env
-# Use --pool=solo on Windows
-```
-
-#### Database Connection Issues
-```bash
-# Check DATABASE_URL format
-# Ensure PostgreSQL/Neon DB is accessible
-# Run migrations: python main.py
-```
-
-#### Port Conflicts
-```bash
-# Kill existing processes
-# Windows: netstat -ano | findstr :8000
-# macOS/Linux: lsof -ti:8000 | xargs kill
-```
-
-#### B2B Network Not Loading
-```bash
-# Set business location in profile
-# Check Overpass API is accessible
-# Verify 50km radius search is working
+# macOS/Linux
+lsof -ti:8000 | xargs kill
 ```
 
 ---
@@ -917,46 +623,6 @@ This project is proprietary software. All rights reserved.
 - [ ] Set up proper backup strategy
 - [ ] Configure rate limiting
 - [ ] Enable security headers
-
----
-
-## 🚀 Deployment
-
-### Docker Deployment (Recommended)
-```bash
-# Build and run
-docker-compose up --build -d
-
-# View logs
-docker-compose logs -f
-
-# Stop services
-docker-compose down
-```
-
-### Manual Production Deployment
-
-#### Backend
-```bash
-# Set production environment
-export DEBUG=False
-export ENVIRONMENT=production
-
-# Run with Gunicorn
-gunicorn main:app -w 4 -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000
-
-# Start Celery worker
-celery -A celery_worker worker --loglevel=info
-```
-
-#### Frontend
-```bash
-# Build for production
-npm run build
-
-# Serve with nginx or deploy to CDN
-# Built files in dist/ directory
-```
 
 ---
 
@@ -988,13 +654,20 @@ npm run build
 
 ## 📄 License
 
-This project is licensed under the MIT License.
+This project is proprietary software. All rights reserved.
 
 ---
 
-## 🆘 Support
+## 🙏 Acknowledgments
 
-For support, email support@saadhyam.ai
+- **Google Gemini** - AI-powered business analysis and content generation
+- **Tavily AI** - Web search and research
+- **Serper API** - Google search integration
+- **Firebase** - Authentication services
+- **NeonDB** - Serverless PostgreSQL
+- **Pinecone** - Vector database
+- **HuggingFace** - AI model hosting
+- **OpenStreetMap** - Business location data
 
 ---
 

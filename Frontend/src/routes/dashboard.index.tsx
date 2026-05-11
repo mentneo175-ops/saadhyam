@@ -4,6 +4,8 @@ import { GrowthChart } from "@/components/dashboard/GrowthChart";
 import { InsightsPanel } from "@/components/dashboard/InsightsPanel";
 import { ContentTabs } from "@/components/dashboard/ContentTabs";
 import { ActionCard } from "@/components/dashboard/ActionCard";
+import { InstagramAnalyticsCard } from "@/components/dashboard/InstagramAnalyticsCard";
+import { DailyTasksWidget } from "@/components/dashboard/DailyTasksWidget";
 import { Button } from "@/components/ui/button";
 import { BusinessOnboarding } from "@/components/dashboard/BusinessOnboarding";
 import { apiClient } from "@/lib/api";
@@ -142,7 +144,7 @@ function Overview() {
     const loadGrowthPlan = async () => {
       setGrowthPlanLoading(true);
       try {
-        const token = localStorage.getItem("token");
+        const token = localStorage.getItem("saadhyam_token");
         if (token) {
           const data = await getGrowthPlanData(token);
           setGrowthPlan(data);
@@ -389,18 +391,30 @@ function Overview() {
                 ))}
               </div>
 
-              {/* Growth journey */}
-              <div className="bg-card rounded-2xl border border-border/60 shadow-soft p-5">
-                <div className="flex items-center justify-between mb-2">
-                  <div>
-                    <h3 className="font-semibold">Your growth journey</h3>
-                    <p className="text-xs text-muted-foreground">From January → today → projected goal</p>
-                  </div>
-                  <Button variant="outline" size="sm">
-                    View full report <ArrowRight size={14} />
+              {/* Instagram Analytics Preview Card */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                <div className="lg:col-span-1">
+                  <InstagramAnalyticsCard />
+                </div>
+                
+                {/* Growth journey with integrated daily task */}
+                <div className="lg:col-span-2 bg-card rounded-2xl border border-border/60 shadow-soft p-5">
+                  <div className="flex items-center justify-between mb-2">
+                    <div>
+                      <h3 className="font-semibold">Your growth journey</h3>
+                      <p className="text-xs text-muted-foreground">Track your progress with daily tasks</p>
+                    </div>
+                    <Button variant="outline" size="sm" onClick={() => navigate({ to: "/dashboard/daily-ask" })}>
+                      View full report <ArrowRight size={14} />
                   </Button>
                 </div>
+                
+                {/* Daily Task Section - Integrated */}
+                <DailyTasksWidget />
+                
+                {/* Growth Chart */}
                 <GrowthChart />
+              </div>
               </div>
 
               {/* Recommended actions */}

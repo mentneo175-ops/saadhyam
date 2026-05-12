@@ -17,7 +17,7 @@ aiosqlite==0.19.0
 # ============================================
 # Data Validation & Settings
 # ============================================
-pydantic==2.5.3
+pydantic==2.7.1
 pydantic-settings==2.1.0
 pydantic-extra-types==2.4.1
 pydantic_core==2.14.6
@@ -76,6 +76,12 @@ flower==2.0.1
 kombu==5.6.2
 billiard==4.2.4
 vine==5.1.0
+
+# ============================================
+# Real-time Communication
+# ============================================
+python-socketio==5.11.0
+python-engineio==4.9.0
 
 # ============================================
 # Scheduling

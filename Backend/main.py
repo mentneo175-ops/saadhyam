@@ -10,12 +10,14 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from dotenv import load_dotenv
+import socketio
 
 # Load environment variables first
 load_dotenv()
 
 from config.database import init_db, close_db
 from migrations.add_name_column import migrate_add_name_column
+from services.realtime_service import realtime_service
 
 # Initialize Firebase Service
 try:
@@ -187,6 +189,14 @@ except Exception as e:
     business_input_available = False
 
 try:
+    from routes.business_compatibility import router as business_compatibility_router
+    business_compatibility_available = True
+    logging.info("✅ Business Compatibility router imported successfully")
+except Exception as e:
+    logging.warning(f"Business Compatibility router not available: {e}")
+    business_compatibility_available = False
+
+try:
     from routes.partnership_agent import router as partnership_agent_router
     partnership_agent_available = True
     logging.info("✅ Partnership Agent router imported successfully")
@@ -290,6 +300,8 @@ except Exception as e:
     logging.warning(f"Task Tracking router not available: {e}")
     task_tracking_available = False
 
+
+
 try:
     from ai_models.website_ai.app.api.v1.routes import generation as website_ai_generation
     from ai_models.website_ai.app.api.v1.routes import jobs as website_ai_jobs
@@ -331,14 +343,23 @@ async def lifespan(app: FastAPI):
         logger.error("   ❌ Please check FIREBASE_SETUP.md for configuration")
     logger.info("=" * 60)
     
+    # Real-time service status
+    logger.info("🔌 Real-time Communication Status:")
+    logger.info("   ✅ Socket.IO Server: INITIALIZED")
+    logger.info("   ✅ Real-time messaging: ENABLED")
+    logger.info("   ✅ Typing indicators: ENABLED")
+    logger.info("   ✅ Online presence: ENABLED")
+    logger.info("   ✅ Live updates: ENABLED")
+    logger.info("=" * 60)
+    
     try:
         # Initialize database
-        logger.info("🔄 Initializing database...")
+        logger.info("[*] Initializing database...")
         await init_db()
-        logger.info("✅ Database initialized")
+        logger.info("[OK] Database initialized")
         
         # Run migrations
-        logger.info("🔄 Running migrations...")
+        logger.info("[*] Running migrations...")
         migrate_add_name_column()
         from migrations.add_business_analysis_table import migrate_add_business_analysis_table
         migrate_add_business_analysis_table()
@@ -348,6 +369,7 @@ async def lifespan(app: FastAPI):
         migrate_add_comprehensive_business_analysis()
         from migrations.fix_description_nullable import migrate_fix_description_nullable
         migrate_fix_description_nullable()
+
         from migrations.add_aeo_geo_tables import migrate_add_aeo_geo_tables
         migrate_add_aeo_geo_tables()
         from migrations.add_blogs_table import migrate_add_blogs_table
@@ -366,7 +388,7 @@ async def lifespan(app: FastAPI):
         migrate_add_task_tracking_tables()
         from migrations.add_slug_to_websites import run_migration as migrate_add_slug_to_websites
         migrate_add_slug_to_websites()
-        logger.info("✅ Migrations completed")
+        logger.info("[OK] Migrations completed")
         
         # Start scheduler for processing scheduled Instagram posts
         logger.info("🔄 Starting Instagram post scheduler...")
@@ -446,9 +468,16 @@ async def lifespan(app: FastAPI):
 # Create FastAPI app
 app = FastAPI(
     title="Saadhyam AI",
-    description="Review Reply AI Service",
+    description="Review Reply AI Service with Real-time Communication",
     version="1.0.0",
     lifespan=lifespan
+)
+
+# Mount Socket.IO app for real-time communication
+sio_asgi_app = socketio.ASGIApp(
+    socketio_server=realtime_service.sio,
+    other_asgi_app=app,
+    socketio_path='/socket.io'
 )
 
 # Website AI static files - Simple direct mapping
@@ -525,6 +554,9 @@ if website_serving_available:
 if business_input_available:
     app.include_router(business_input_router)
     logging.info("✅ Business Input router included in app")
+if business_compatibility_available:
+    app.include_router(business_compatibility_router)
+    logging.info("✅ Business Compatibility router included in app")
 if partnership_agent_available:
     app.include_router(partnership_agent_router)
     logging.info("✅ Partnership Agent router included in app")
@@ -561,6 +593,7 @@ if instagram_analytics_available:
 if task_tracking_available:
     app.include_router(task_tracking_router)
     logging.info("✅ Task Tracking router included in app")
+
 if dashboard_analytics_available:
     app.include_router(dashboard_analytics_router)
     logging.info("✅ Dashboard Analytics router included in app")
@@ -662,8 +695,9 @@ async def global_exception_handler(request, exc):
 if __name__ == "__main__":
     import uvicorn
     
+    # Run with Socket.IO ASGI app
     uvicorn.run(
-        app,
+        sio_asgi_app,  # Use Socket.IO wrapped app
         host="0.0.0.0",
         port=8000,
         log_level="info"

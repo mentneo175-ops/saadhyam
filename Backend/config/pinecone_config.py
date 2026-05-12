@@ -5,8 +5,16 @@ Vector database for semantic search and embeddings
 
 import os
 import logging
-from pinecone import Pinecone, ServerlessSpec
 from dotenv import load_dotenv
+
+# Try to import pinecone, make it optional
+try:
+    from pinecone import Pinecone, ServerlessSpec
+    PINECONE_AVAILABLE = True
+except ImportError:
+    Pinecone = None
+    ServerlessSpec = None
+    PINECONE_AVAILABLE = False
 
 # Load environment variables
 load_dotenv()
@@ -39,8 +47,12 @@ def get_pinecone_client():
     Get Pinecone client instance
     
     Returns:
-        Pinecone client or None if not configured
+        Pinecone client or None if not configured or not available
     """
+    if not PINECONE_AVAILABLE:
+        logger.warning("⚠️ Pinecone not installed. Install with: pip install pinecone-client")
+        return None
+    
     if not PINECONE_API_KEY or PINECONE_API_KEY == "your_pinecone_api_key_here":
         logger.warning("Pinecone API key not configured")
         return None

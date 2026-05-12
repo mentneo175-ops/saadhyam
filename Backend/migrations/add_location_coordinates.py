@@ -10,7 +10,7 @@ def migrate_add_location_coordinates():
     db = next(get_sync_db())
     
     try:
-        print("🔄 Adding location coordinate columns...")
+        print("[*] Adding location coordinate columns...")
         
         # Check database type
         from config.settings import settings
@@ -40,10 +40,10 @@ def migrate_add_location_coordinates():
             """))
         
         db.commit()
-        print("✅ Location coordinate columns added successfully")
+        print("[OK] Location coordinate columns added successfully")
         
     except Exception as e:
-        print(f"❌ Migration failed: {e}")
+        print(f"[ERROR] Migration failed: {e}")
         db.rollback()
         raise
     finally:

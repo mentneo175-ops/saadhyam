@@ -304,7 +304,7 @@ function WebsiteAIPage() {
 
   // View website source code
   const viewWebsiteCode = async (websiteId: string) => {
-    try:
+    try {
       const response = await fetch(`http://localhost:8000/saadhyam/${websiteId}`, {
         headers: {
           "Authorization": `Bearer ${apiClient.getToken()}`,

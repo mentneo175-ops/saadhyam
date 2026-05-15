@@ -30,16 +30,18 @@ export function TopHeader() {
 
   // Only show TopHeader on the main dashboard page
   const isMainDashboard = location.pathname === '/dashboard' || location.pathname === '/dashboard/';
+
+  useEffect(() => {
+    setIsHydrated(true);
+    if (isMainDashboard) {
+      loadBusinessData();
+    }
+  }, [isMainDashboard]);
   
   // Don't render if not on main dashboard
   if (!isMainDashboard) {
     return null;
   }
-
-  useEffect(() => {
-    setIsHydrated(true);
-    loadBusinessData();
-  }, []);
 
   const loadBusinessData = async () => {
     try {

@@ -25,6 +25,7 @@ from models.task_tracking import (
     GrowthMetric,
     TaskTemplate,
 )
+from models.influencer import Influencer
 
 __all__ = [
     "User",
@@ -47,4 +48,5 @@ __all__ = [
     "DailyTask",
     "GrowthMetric",
     "TaskTemplate",
+    "Influencer",
 ]

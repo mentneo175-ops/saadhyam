@@ -37,6 +37,10 @@ class Settings(BaseSettings):
     INSTAGRAM_APP_SECRET: str = "your_instagram_app_secret"
     INSTAGRAM_REDIRECT_URI: str = "http://localhost:8000/auth/instagram/callback"
     INSTAGRAM_GRAPH_API_VERSION: str = "v19.0"
+    
+    # Instagram Graph API Access Token (for real data fetching)
+    INSTAGRAM_ACCESS_TOKEN: str = ""
+    INSTAGRAM_BUSINESS_ACCOUNT_ID: str = ""
 
     # WhatsApp API Configuration (Meta WhatsApp Cloud API)
     META_APP_ID: str = ""

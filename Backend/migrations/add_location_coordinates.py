@@ -10,25 +10,40 @@ def migrate_add_location_coordinates():
     db = next(get_sync_db())
     
     try:
-        print("🔄 Adding location coordinate columns...")
+        print("[*] Adding location coordinate columns...")
         
-        # Add latitude column
-        db.execute(text("""
-            ALTER TABLE users 
-            ADD COLUMN IF NOT EXISTS latitude FLOAT;
-        """))
+        # Check database type
+        from config.settings import settings
+        is_sqlite = "sqlite" in settings.DATABASE_URL
         
-        # Add longitude column
-        db.execute(text("""
-            ALTER TABLE users 
-            ADD COLUMN IF NOT EXISTS longitude FLOAT;
-        """))
+        if is_sqlite:
+            # SQLite doesn't support IF NOT EXISTS in ALTER TABLE
+            # Check if columns exist first
+            result = db.execute(text("PRAGMA table_info(users);"))
+            columns = [row[1] for row in result.fetchall()]
+            
+            if 'latitude' not in columns:
+                db.execute(text("ALTER TABLE users ADD COLUMN latitude FLOAT;"))
+            
+            if 'longitude' not in columns:
+                db.execute(text("ALTER TABLE users ADD COLUMN longitude FLOAT;"))
+        else:
+            # PostgreSQL supports IF NOT EXISTS
+            db.execute(text("""
+                ALTER TABLE users 
+                ADD COLUMN IF NOT EXISTS latitude FLOAT;
+            """))
+            
+            db.execute(text("""
+                ALTER TABLE users 
+                ADD COLUMN IF NOT EXISTS longitude FLOAT;
+            """))
         
         db.commit()
-        print("✅ Location coordinate columns added successfully")
+        print("[OK] Location coordinate columns added successfully")
         
     except Exception as e:
-        print(f"❌ Migration failed: {e}")
+        print(f"[ERROR] Migration failed: {e}")
         db.rollback()
         raise
     finally:

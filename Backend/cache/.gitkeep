@@ -1,0 +1,11 @@
+# Cache Directory
+
+This directory is used for caching Instagram session data and other temporary files.
+
+## Purpose
+- Instagram session storage (if login is used)
+- Temporary profile data cache
+- Rate limiting state
+
+## Note
+This directory should be excluded from version control (add to .gitignore).

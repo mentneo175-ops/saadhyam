@@ -45,7 +45,49 @@ class TriggerAnalysisResponse(BaseModel):
     analysis_id: Optional[int] = None
 
 
+class BusinessAnalysisResponse(BaseModel):
+    """Response model for business analysis data"""
+    success: bool
+    data: Optional[Dict[str, Any]] = None
+    message: Optional[str] = None
+
+
 # ============ Routes ============
+
+@router.get(
+    "/latest",
+    response_model=BusinessAnalysisResponse,
+    summary="Get latest business analysis (compatibility endpoint)",
+    description="Returns the latest comprehensive business analysis for the user"
+)
+async def get_latest_analysis(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_sync_db)
+) -> BusinessAnalysisResponse:
+    """
+    Get latest business analysis - compatibility endpoint for frontend
+    """
+    try:
+        # Get business analysis data
+        analysis_data = await get_business_analysis_data(current_user, db)
+        
+        if not analysis_data or "error" in analysis_data:
+            return BusinessAnalysisResponse(
+                success=False,
+                message="No analysis available. Please trigger analysis first."
+            )
+        
+        return BusinessAnalysisResponse(
+            success=True,
+            data=analysis_data
+        )
+    except Exception as e:
+        logger.error(f"Error getting latest analysis: {e}")
+        return BusinessAnalysisResponse(
+            success=False,
+            message=str(e)
+        )
+
 
 @router.post(
     "/trigger",

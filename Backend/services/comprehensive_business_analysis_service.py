@@ -8,6 +8,7 @@ ONE Gemini API call to populate ALL features:
 - SEO/Google Maps Feature
 
 This avoids rate limit issues by making only ONE API call and storing everything in database
+PLUS: Automatically stores in Pinecone for fast semantic retrieval
 """
 
 import logging
@@ -18,6 +19,8 @@ from sqlalchemy.orm import Session
 from db.models import BusinessAnalysis
 from models.user import User
 from services.gemini_business_analysis_service import generate_realtime_business_analysis
+from services.pinecone_business_store import pinecone_business_store
+from services.competitor_search_service import search_competitors_combined, format_competitors_for_gemini
 import asyncio
 
 logger = logging.getLogger(__name__)
@@ -96,6 +99,22 @@ async def trigger_comprehensive_analysis(
         if user.business_description:
             business_profile["description"] = user.business_description
         
+        # 🆕 SEARCH FOR REAL COMPETITORS using Tavily + Serper
+        logger.info(f"[ComprehensiveAnalysis] 🔍 Searching for real competitors...")
+        competitors_data = []
+        try:
+            if user.business_type and user.business_location:
+                competitors_data = search_competitors_combined(
+                    business_type=user.business_type,
+                    location=user.business_location
+                )
+                logger.info(f"[ComprehensiveAnalysis] ✅ Found {len(competitors_data)} competitors from web search")
+        except Exception as search_error:
+            logger.warning(f"[ComprehensiveAnalysis] ⚠️ Competitor search failed: {search_error}")
+        
+        # Add competitor data to business profile
+        business_profile["competitors_found"] = competitors_data
+        
         logger.info(f"[ComprehensiveAnalysis] Calling Gemini API for user {user.id}...")
         
         # Make ONE Gemini API call (now we can await it directly)
@@ -158,6 +177,39 @@ async def trigger_comprehensive_analysis(
             analysis.analysis_status = "completed"
             
             db.commit()
+            
+            # 🆕 AUTOMATICALLY STORE IN PINECONE FOR FAST SEMANTIC RETRIEVAL
+            logger.info(f"[ComprehensiveAnalysis] 📊 Storing analysis in Pinecone...")
+            try:
+                pinecone_success = await pinecone_business_store.store_business_analysis(
+                    user_id=user.id,
+                    analysis_data={
+                        'id': analysis.id,
+                        'business_name': analysis.business_name,
+                        'business_type': analysis.business_type,
+                        'location': analysis.location,
+                        'business_summary': analysis.business_summary,
+                        'strengths_data': analysis.strengths_data,
+                        'weaknesses_data': analysis.weaknesses_data,
+                        'growth_opportunities_data': analysis.growth_opportunities_data,
+                        'local_market_insights': analysis.local_market_insights,
+                        'competitor_analysis': analysis.competitor_analysis,
+                        'seo_google_maps_tips': analysis.seo_google_maps_tips,
+                        'thirty_day_growth_plan': analysis.thirty_day_growth_plan,
+                        'daily_suggestions': analysis.daily_suggestions,
+                        'health_score': analysis.health_score,
+                        'last_analyzed_at': analysis.last_analyzed_at.isoformat() if analysis.last_analyzed_at else None
+                    }
+                )
+                
+                if pinecone_success:
+                    logger.info(f"[ComprehensiveAnalysis] ✅ Analysis stored in Pinecone")
+                else:
+                    logger.warning(f"[ComprehensiveAnalysis] ⚠️ Failed to store in Pinecone (non-critical)")
+            except Exception as pinecone_error:
+                logger.error(f"[ComprehensiveAnalysis] ❌ Pinecone storage error: {pinecone_error}")
+                # Don't fail the entire analysis if Pinecone fails
+                pass
         
         logger.info(f"[ComprehensiveAnalysis] ✅ Analysis stored in database (ID: {analysis_id})")
         

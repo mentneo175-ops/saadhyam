@@ -46,6 +46,7 @@ const items: NavItem[] = [
   { to: "/dashboard/instagram", label: "Instagram", icon: Instagram },
   { to: "/dashboard/meta-ads", label: "Meta Ads", icon: Megaphone },
   { to: "/dashboard/whatsapp", label: "WhatsApp Sales", icon: MessageSquare },
+  { to: "/dashboard/voice-agent", label: "AI Voice Agent", icon: Phone },
   { to: "/dashboard/website", label: "Website AI", icon: FileText },
   { to: "/dashboard/review-reply", label: "Review Reply", icon: MessageSquare },
   // { to: "/dashboard/automation", label: "Automation", icon: Workflow },

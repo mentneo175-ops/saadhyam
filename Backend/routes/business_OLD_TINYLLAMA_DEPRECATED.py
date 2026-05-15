@@ -9,7 +9,7 @@ from fastapi import APIRouter, HTTPException, status, Depends
 from pydantic import BaseModel, Field
 from typing import List, Optional
 from sqlalchemy.orm import Session
-from config.database import get_sync_db
+from config.database import get_db_sync
 from utils.dependencies import get_current_user
 from models.user import User
 import httpx
@@ -146,7 +146,7 @@ class BusinessAnalysisHistoryResponse(BaseModel):
 async def analyze_business_endpoint(
     request: AnalyzeBusinessRequest,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db)
+    db: Session = Depends(get_db_sync)
 ) -> AnalyzeBusinessResponse:
     """
     Analyze a business description and provide insights
@@ -266,7 +266,7 @@ async def analyze_business_endpoint(
 async def analyze_batch_endpoint(
     request: BatchAnalysisRequest,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db)
+    db: Session = Depends(get_db_sync)
 ) -> BatchAnalysisResponse:
     """
     Analyze multiple business descriptions in batch
@@ -399,7 +399,7 @@ async def analyze_batch_endpoint(
 )
 async def get_business_analysis_history(
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db),
+    db: Session = Depends(get_db_sync),
     limit: int = 10
 ) -> List[BusinessAnalysisHistoryResponse]:
     """
@@ -465,7 +465,7 @@ async def get_business_analysis_history(
 )
 async def get_latest_business_analysis(
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db)
+    db: Session = Depends(get_db_sync)
 ) -> Optional[BusinessAnalysisHistoryResponse]:
     """
     Get the current user's most recent business analysis

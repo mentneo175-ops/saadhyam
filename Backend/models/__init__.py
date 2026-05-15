@@ -27,6 +27,19 @@ from models.task_tracking import (
 )
 from models.influencer import Influencer
 
+# Voice Agent Models
+from models.voice_agent import (
+    VoiceCampaign,
+    VoiceContact,
+    VoiceCall,
+    VoiceLead,
+    VoiceFollowUp,
+    CampaignStatus,
+    CallStatus,
+    LeadStatus,
+    Language
+)
+
 __all__ = [
     "User",
     "SocialAccount",
@@ -49,4 +62,9 @@ __all__ = [
     "GrowthMetric",
     "TaskTemplate",
     "Influencer",
+    "VoiceCampaign",
+    "VoiceContact",
+    "VoiceCall",
+    "VoiceLead",
+    "VoiceFollowUp",
 ]

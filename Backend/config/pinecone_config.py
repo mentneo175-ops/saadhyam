@@ -30,12 +30,25 @@ PINECONE_INDEX_NAME = os.getenv("PINECONE_INDEX_NAME", "saadhyam-aeo-geo")
 EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"  # Fast, good quality, free
 EMBEDDING_DIMENSION = 384  # Dimension for all-MiniLM-L6-v2
 
-# Pinecone namespaces
+# Pinecone namespaces - ALL business data stored here
 NAMESPACE_AEO_QUESTIONS = "aeo-questions"
 NAMESPACE_AEO_CONTENT = "aeo-content"
 NAMESPACE_BUSINESS_INSIGHTS = "business-insights"
 NAMESPACE_COMPETITOR_DATA = "competitor-data"
 NAMESPACE_MARKET_TRENDS = "market-trends"
+
+# Additional namespaces for comprehensive business data storage
+NAMESPACE_BUSINESS_PROFILE = "business-profile"
+NAMESPACE_BUSINESS_ANALYSIS = "business-analysis"
+NAMESPACE_REVIEW_HISTORY = "review-history"
+NAMESPACE_TASK_TRACKING = "task-tracking"
+NAMESPACE_GROWTH_METRICS = "growth-metrics"
+NAMESPACE_INSTAGRAM_ANALYTICS = "instagram-analytics"
+NAMESPACE_WHATSAPP_DATA = "whatsapp-data"
+NAMESPACE_VOICE_AGENT_DATA = "voice-agent-data"
+NAMESPACE_SCHEMA_MARKUP = "schema-markup"
+NAMESPACE_AI_VISIBILITY = "ai-visibility"
+NAMESPACE_CONTENT_DISTRIBUTION = "content-distribution"
 
 # Search configuration
 DEFAULT_TOP_K = 5  # Number of results to return

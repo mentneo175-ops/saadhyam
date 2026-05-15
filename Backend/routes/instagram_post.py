@@ -6,7 +6,7 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
 from sqlalchemy.orm import Session
 from sqlalchemy import select, and_
-from config.database import get_sync_db
+from config.database import get_db_sync
 from utils.dependencies import get_current_user
 from models.user import User
 from models.instagram import ScheduledPost
@@ -40,7 +40,7 @@ async def upload_and_post(
     media: UploadFile = File(..., description="Image or video file to upload and post"),
     caption: str = Form("", description="Caption for the Instagram post"),
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db),
+    db: Session = Depends(get_db_sync),
 ):
     """
     Upload image or video to Cloudinary and post immediately to Instagram.
@@ -233,7 +233,7 @@ async def schedule_post(
     caption: str = Form("", description="Caption for the Instagram post"),
     scheduled_time: str = Form(..., description="Scheduled time in ISO format (YYYY-MM-DDTHH:MM:SS)"),
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db),
+    db: Session = Depends(get_db_sync),
 ):
     """
     Upload image or video to Cloudinary and schedule Instagram post.
@@ -427,7 +427,7 @@ async def get_posts(
     limit: int = 20,
     page: int = 1,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db),
+    db: Session = Depends(get_db_sync),
 ):
     """
     Get user's Instagram posts with pagination.
@@ -564,7 +564,7 @@ async def get_upload_signature(
 )
 async def process_scheduled_posts(
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db),
+    db: Session = Depends(get_db_sync),
 ):
     """
     Manually trigger processing of scheduled posts for the current user.

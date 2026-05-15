@@ -40,7 +40,7 @@ if not exist "venv\Scripts\activate.bat" (
     exit /b 1
 )
 
-start "Saadhyam Backend" cmd /k "venv\Scripts\activate && python main.py"
+start "Saadhyam Backend" cmd /k "python -m uvicorn main:app --reload --port 8000"
 cd ..
 echo [SUCCESS] Backend server starting in virtual environment...
 echo.
@@ -48,12 +48,13 @@ echo.
 REM Start AI Model Server (Review Reply AI)
 echo ============================================
 echo   Starting AI Model Server (Port 9000)
-echo   (TinyLlama for Review Replies)
+echo   (TinyLlama for Review Replies - DEPRECATED)
 echo ============================================
-cd Backend
-start "Saadhyam AI Model Server" cmd /k "venv\Scripts\activate && python model_server.py"
-cd ..
-echo [SUCCESS] AI Model server starting...
+REM Skipping deprecated TinyLlama model server
+REM cd Backend
+REM start "Saadhyam AI Model Server" cmd /k "python model_server.py"
+REM cd ..
+echo [INFO] AI Model server skipped (using Gemini API instead)...
 echo.
 
 REM Start Main Celery Worker (Instagram + WhatsApp)
@@ -62,20 +63,31 @@ echo   Starting Main Celery Worker
 echo   (Instagram Posts + WhatsApp Automation)
 echo ============================================
 cd Backend
-start "Saadhyam Celery - Main" cmd /k "venv\Scripts\activate && celery -A celery_worker worker --loglevel=info --pool=solo"
+start "Saadhyam Celery - Worker" cmd /k "python -m celery -A celery_worker worker --loglevel=info --pool=solo"
 cd ..
 echo [SUCCESS] Main Celery worker starting...
 echo.
 
-REM Start Website AI Celery Worker
+REM Start Celery Beat (Task Scheduler)
 echo ============================================
-echo   Starting Website AI Celery Worker
-echo   (Website Generation Tasks)
+echo   Starting Celery Beat Scheduler
+echo   (Periodic Tasks)
 echo ============================================
 cd Backend
-start "Saadhyam Celery - Website AI" cmd /k "venv\Scripts\activate && celery -A ai_models.website_ai.app.workers.celery_app worker --loglevel=info --pool=solo"
+start "Saadhyam Celery - Beat" cmd /k "python -m celery -A celery_worker beat --loglevel=info"
 cd ..
-echo [SUCCESS] Website AI Celery worker starting...
+echo [SUCCESS] Celery Beat scheduler starting...
+echo.
+
+REM Start Content Creator AI (Image Generation)
+echo ============================================
+echo   Starting Content Creator AI
+echo   (Image Generation - Port 8001)
+echo ============================================
+cd Backend\ai_models\content_creator
+start "Saadhyam Content Creator AI" cmd /k "python -m uvicorn app.main:app --reload --port 8001"
+cd ..\..\..
+echo [SUCCESS] Content Creator AI starting...
 echo.
 
 REM Wait 3 seconds for backend to initialize
@@ -83,7 +95,7 @@ timeout /t 3 /nobreak >nul
 
 REM Start Frontend Server
 echo ============================================
-echo   Starting Frontend Server (Port 5173)
+echo   Starting Frontend Server (Port 8080)
 echo ============================================
 cd Frontend
 start "Saadhyam Frontend" cmd /k "npm run dev"
@@ -95,32 +107,28 @@ echo ============================================
 echo   All Services Started Successfully!
 echo ============================================
 echo.
-echo Backend:          http://localhost:8000
-echo AI Model Server:  http://localhost:9000
-echo Celery Main:      Running (Instagram + WhatsApp)
-echo Celery Web AI:    Running (Website Generation)
-echo Frontend:         http://localhost:5173
+echo Backend API:      http://localhost:8000
+echo Content Creator:  http://localhost:8001
+echo Celery Worker:    Running (Background Tasks)
+echo Celery Beat:      Running (Task Scheduler)
+echo Frontend:         http://localhost:8080
+echo Redis:            Running (Port 6379)
 echo.
 echo [INFO] 5 terminal windows opened:
 echo   1. Backend Server (FastAPI - Port 8000)
-echo   2. AI Model Server (TinyLlama - Port 9000)
-echo   3. Main Celery Worker (Instagram + WhatsApp)
-echo   4. Website AI Celery Worker (Website Generation)
-echo   5. Frontend Server (Vite - Port 5173)
+echo   2. Celery Worker (Background Tasks)
+echo   3. Celery Beat (Task Scheduler)
+echo   4. Content Creator AI (Image Generation - Port 8001)
+echo   5. Frontend Server (Vite - Port 8080)
 echo.
 echo Press any key to open the application in browser...
 pause >nul
 
 REM Open browser
-start http://localhost:5173
+start http://localhost:8080
 
 echo.
 echo [INFO] Application opened in browser
-echo [INFO] To stop all servers, close the 5 terminal windows:
-echo   - Backend Server (Port 8000)
-echo   - AI Model Server (Port 9000)
-echo   - Main Celery Worker (Instagram + WhatsApp)
-echo   - Website AI Celery Worker (Website Generation)
-echo   - Frontend Server (Port 5173)
+echo [INFO] To stop all servers, close the 5 terminal windows or run stop_all.bat
 echo.
 pause

@@ -8,7 +8,7 @@ from fastapi import APIRouter, HTTPException, status, Depends
 from pydantic import BaseModel
 from typing import Optional, List, Dict, Any
 from utils.dependencies import get_current_user
-from config.database import get_sync_db
+from config.database import get_db_sync
 from models.user import User
 from sqlalchemy.orm import Session
 from services.blog_service import (
@@ -51,7 +51,7 @@ class BlogPublishRequest(BaseModel):
 async def generate_blog(
     request: BlogGenerateRequest,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db)
+    db: Session = Depends(get_db_sync)
 ) -> Dict[str, Any]:
     """
     Generate and save blog post
@@ -91,7 +91,7 @@ async def generate_blog(
 async def publish_blog_endpoint(
     request: BlogPublishRequest,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db)
+    db: Session = Depends(get_db_sync)
 ) -> Dict[str, Any]:
     """
     Publish a blog post
@@ -126,7 +126,7 @@ async def get_blogs(
     limit: int = 20,
     offset: int = 0,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db)
+    db: Session = Depends(get_db_sync)
 ) -> Dict[str, Any]:
     """
     Get user's blogs
@@ -160,7 +160,7 @@ async def get_blogs(
 async def get_blog(
     blog_id: int,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db)
+    db: Session = Depends(get_db_sync)
 ) -> Dict[str, Any]:
     """
     Get blog by ID
@@ -192,7 +192,7 @@ async def get_blog(
 async def get_blog_by_slug_endpoint(
     slug: str,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db)
+    db: Session = Depends(get_db_sync)
 ) -> Dict[str, Any]:
     """
     Get blog by slug
@@ -224,7 +224,7 @@ async def get_blog_by_slug_endpoint(
 async def delete_blog_endpoint(
     blog_id: int,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db)
+    db: Session = Depends(get_db_sync)
 ) -> Dict[str, Any]:
     """
     Delete a blog post
@@ -253,7 +253,7 @@ async def delete_blog_endpoint(
 async def get_public_blog(
     user_id: int,
     slug: str,
-    db: Session = Depends(get_sync_db)
+    db: Session = Depends(get_db_sync)
 ):
     """
     Get published blog by user ID and slug (public access)

@@ -69,11 +69,11 @@ class NearbyBusinessService:
         Get businesses from Saadhyam database (registered partners)
         """
         try:
-            from config.database import get_sync_db
+            from config.database import get_db_sync
             from models.user import User
             
             # Get database session
-            db = next(get_sync_db())
+            db = next(get_db_sync())
             
             # Query all users with business profiles
             query = db.query(User).filter(

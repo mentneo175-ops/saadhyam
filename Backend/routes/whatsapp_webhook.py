@@ -8,7 +8,7 @@ import os
 from fastapi import APIRouter, Request, HTTPException, Query, Depends
 from fastapi.responses import PlainTextResponse
 from sqlalchemy.orm import Session
-from config.database import get_sync_db
+from config.database import get_db_sync
 from services.whatsapp_webhook_service import webhook_service
 from services.whatsapp_service import whatsapp_service
 from tasks.whatsapp_tasks import process_auto_reply
@@ -50,7 +50,7 @@ async def verify_webhook(
 @router.post("")
 async def receive_webhook(
     request: Request,
-    db: Session = Depends(get_sync_db)
+    db: Session = Depends(get_db_sync)
 ):
     """
     Receive webhook events from WhatsApp

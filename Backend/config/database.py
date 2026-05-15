@@ -3,8 +3,9 @@ Database Configuration
 """
 
 import logging
+from typing import Generator
 from sqlalchemy import create_engine, text
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.ext.declarative import declarative_base
 import os
@@ -96,19 +97,10 @@ else:
         logger.info("✅ Using PostgreSQL (Neon DB) database")
         
     except Exception as e:
-        logger.warning(f"⚠️  PostgreSQL connection failed: {e}")
-        logger.warning("🔄 Falling back to SQLite...")
-        
-        # Fallback to SQLite
-        DATABASE_URL = "sqlite:///./test.db"
-        IS_SQLITE = True
-        sync_engine = create_engine(
-            DATABASE_URL,
-            echo=False,
-            connect_args={"check_same_thread": False}
-        )
-        async_engine = None
-        logger.info("✅ Using SQLite as fallback database")
+        logger.error(f"❌ PostgreSQL (NeonDB) connection failed: {e}")
+        logger.error("❌ SQLite fallback is disabled. NeonDB connection is required!")
+        logger.error("Please check your DATABASE_URL in .env file")
+        raise Exception(f"NeonDB connection failed: {e}")
 
 # Session factories
 if not IS_SQLITE:
@@ -124,7 +116,7 @@ SyncSessionLocal = sessionmaker(
 )
 
 
-async def get_db():
+def get_db() -> Generator[Session, None, None]:
     """
     Get database session (sync for SQLite, sync for PostgreSQL)
     """
@@ -135,15 +127,25 @@ async def get_db():
         db.close()
 
 
-def get_sync_db():
+def get_db_sync() -> Generator[Session, None, None]:
     """
-    Get sync database session
+    Get sync database session for Depends()
+    Properly closes connection after use
     """
     db = SyncSessionLocal()
     try:
         yield db
     finally:
         db.close()
+
+
+def get_db_for_migration() -> Session:
+    """
+    Get sync database session for migrations
+    Returns session directly (not a generator)
+    Caller must close the session manually
+    """
+    return SyncSessionLocal()
 
 
 async def init_db():

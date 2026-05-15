@@ -225,6 +225,50 @@ function CompetitorAnalysisPage() {
         </Button>
       </div>
 
+      {/* Nearby Competitors */}
+      {analysis?.competitor_analysis?.nearby_competitors && 
+       analysis.competitor_analysis.nearby_competitors.length > 0 && (
+        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl border border-blue-200 shadow-sm p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="h-10 w-10 rounded-lg bg-blue-200 flex items-center justify-center">
+              <Users size={20} className="text-blue-700" />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold">Nearby Competitors</h3>
+              <p className="text-xs text-gray-600">Real businesses competing in your area</p>
+            </div>
+          </div>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {analysis.competitor_analysis.nearby_competitors.map((competitor, idx) => (
+              <div key={idx} className="bg-white rounded-xl border border-blue-200 shadow-sm p-4 hover:shadow-md transition-shadow">
+                <div className="flex items-start gap-3 mb-3">
+                  <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
+                    <span className="text-sm font-bold text-blue-700">{idx + 1}</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-semibold text-gray-900 truncate">{competitor.name}</h4>
+                    <p className="text-xs text-gray-600 truncate">{competitor.location}</p>
+                    <span className="inline-block mt-1 px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full">
+                      {competitor.type}
+                    </span>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <div className="bg-emerald-50 rounded-lg p-2 border border-emerald-100">
+                    <p className="text-xs font-semibold text-emerald-700 mb-1">Strengths:</p>
+                    <p className="text-xs text-gray-700">{competitor.strengths}</p>
+                  </div>
+                  <div className="bg-orange-50 rounded-lg p-2 border border-orange-100">
+                    <p className="text-xs font-semibold text-orange-700 mb-1">Weaknesses:</p>
+                    <p className="text-xs text-gray-700">{competitor.weaknesses}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Competitor Patterns */}
       {analysis?.competitor_analysis?.competitor_patterns && 
        analysis.competitor_analysis.competitor_patterns.length > 0 && (

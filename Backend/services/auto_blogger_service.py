@@ -480,11 +480,11 @@ async def publish_blog_to_website(
         
         # Integrate blog into user's confirmed website (if they have one)
         from services.website_blog_integrator import integrate_blog_into_website
-        from config.database import get_sync_db
+        from config.database import get_db_sync
         from ai_models.website_ai.app.db.session import get_db as get_website_db
         
         # Get both database sessions
-        user_db = next(get_sync_db())
+        user_db = next(get_db_sync())
         website_db = next(get_website_db())
         
         try:
@@ -620,3 +620,42 @@ def format_blog_content_html(blog_post: Dict[str, Any]) -> str:
 """
     
     return html
+
+
+
+async def generate_blog_content(
+    business_type: str,
+    topic: str,
+    keywords: list = None
+) -> Dict[str, Any]:
+    """
+    Generate SEO-optimized blog content
+    
+    Args:
+        business_type: Type of business
+        topic: Blog topic
+        keywords: Optional list of keywords
+    
+    Returns:
+        Dict with blog content
+    """
+    try:
+        logger.info(f"[AutoBlogger] Generating blog content for topic: {topic}")
+        
+        # Simple placeholder implementation
+        # TODO: Implement full blog generation with Gemini API
+        
+        return {
+            "status": "success",
+            "title": f"{topic} - {business_type} Guide",
+            "content": f"This is a placeholder blog post about {topic} for {business_type}. Full implementation coming soon.",
+            "keywords": keywords or [],
+            "seo_score": 75
+        }
+        
+    except Exception as e:
+        logger.error(f"[AutoBlogger] Error generating blog content: {e}")
+        return {
+            "status": "error",
+            "message": str(e)
+        }

@@ -8,7 +8,7 @@ from fastapi import APIRouter, HTTPException, status, Depends
 from pydantic import BaseModel
 from typing import Optional, Dict, Any
 from utils.dependencies import get_current_user
-from config.database import get_sync_db
+from config.database import get_db_sync
 from models.user import User
 from sqlalchemy.orm import Session
 from services.comprehensive_business_analysis_service import (
@@ -62,7 +62,7 @@ class BusinessAnalysisResponse(BaseModel):
 )
 async def get_latest_analysis(
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db)
+    db: Session = Depends(get_db_sync)
 ) -> BusinessAnalysisResponse:
     """
     Get latest business analysis - compatibility endpoint for frontend
@@ -97,7 +97,7 @@ async def get_latest_analysis(
 )
 async def trigger_analysis(
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db)
+    db: Session = Depends(get_db_sync)
 ) -> TriggerAnalysisResponse:
     """
     Trigger comprehensive business analysis
@@ -134,7 +134,7 @@ async def trigger_analysis(
 )
 async def get_status(
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db)
+    db: Session = Depends(get_db_sync)
 ) -> AnalysisStatusResponse:
     """
     Get current analysis status for the user
@@ -153,7 +153,7 @@ async def get_status(
 )
 async def get_business_analysis(
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db)
+    db: Session = Depends(get_db_sync)
 ) -> Dict[str, Any]:
     """
     Get Business Analysis data from database (no API call)
@@ -186,7 +186,7 @@ async def get_business_analysis(
 )
 async def get_competitor_analysis(
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db)
+    db: Session = Depends(get_db_sync)
 ) -> Dict[str, Any]:
     """
     Get Competitor Analysis data from database (no API call)
@@ -216,7 +216,7 @@ async def get_competitor_analysis(
 )
 async def get_growth_plan(
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db)
+    db: Session = Depends(get_db_sync)
 ) -> Dict[str, Any]:
     """
     Get 30-Day Growth Plan data from database (no API call)
@@ -244,7 +244,7 @@ async def get_growth_plan(
 )
 async def get_daily_suggestions(
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db)
+    db: Session = Depends(get_db_sync)
 ) -> Dict[str, Any]:
     """
     Get Daily Suggestions data from database (no API call)
@@ -272,7 +272,7 @@ async def get_daily_suggestions(
 )
 async def get_seo_google_maps(
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db)
+    db: Session = Depends(get_db_sync)
 ) -> Dict[str, Any]:
     """
     Get SEO & Google Maps Tips data from database (no API call)

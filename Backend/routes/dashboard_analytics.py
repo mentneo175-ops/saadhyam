@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import Dict, Any
 from datetime import datetime, timedelta
-from config.database import get_sync_db
+from config.database import get_db_sync
 from models.user import User
 from utils.dependencies import get_current_user
 from models.instagram import ScheduledPost
@@ -22,7 +22,7 @@ router = APIRouter(prefix="/api/dashboard", tags=["Dashboard Analytics"])
 @router.get("/analytics")
 async def get_dashboard_analytics(
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db)
+    db: Session = Depends(get_db_sync)
 ) -> Dict[str, Any]:
     """
     Get real-time analytics for dashboard AI Insights panel
@@ -167,7 +167,7 @@ async def get_dashboard_analytics(
 @router.get("/analytics/summary")
 async def get_analytics_summary(
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db)
+    db: Session = Depends(get_db_sync)
 ) -> Dict[str, Any]:
     """
     Get quick summary of key metrics

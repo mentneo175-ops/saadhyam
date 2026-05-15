@@ -3,11 +3,11 @@ Add latitude and longitude columns to users table
 """
 
 from sqlalchemy import text
-from config.database import get_sync_db
+from config.database import get_db_for_migration
 
 def migrate_add_location_coordinates():
     """Add latitude and longitude columns"""
-    db = next(get_sync_db())
+    db = get_db_for_migration()
     
     try:
         print("[*] Adding location coordinate columns...")

@@ -1,7 +1,7 @@
 import logging
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from config.database import get_sync_db
+from config.database import get_db_sync
 from utils.dependencies import get_current_user
 from models.user import User
 from schemas.instagram_schema import (
@@ -54,7 +54,7 @@ async def get_oauth_url():
 async def oauth_callback(
     request: InstagramOAuthRequest,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db),
+    db: Session = Depends(get_db_sync),
 ):
     """
     Handle OAuth callback from Instagram.
@@ -112,7 +112,7 @@ async def oauth_callback(
 )
 async def get_accounts(
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db),
+    db: Session = Depends(get_db_sync),
 ):
     """Get all connected social accounts for the current user."""
     accounts = await InstagramCRUD.get_user_social_accounts(db, current_user.id)
@@ -130,7 +130,7 @@ async def get_accounts(
 async def disconnect_account(
     account_id: int,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db),
+    db: Session = Depends(get_db_sync),
 ):
     """Disconnect a social media account."""
     account = await InstagramCRUD.get_social_account(db, account_id)
@@ -157,7 +157,7 @@ async def disconnect_account(
 async def post_immediately(
     request: InstantPostRequest,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db),
+    db: Session = Depends(get_db_sync),
 ):
     """
     Post image immediately to Instagram.
@@ -227,7 +227,7 @@ async def post_immediately(
 async def schedule_post(
     request: ScheduledPostRequest,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db),
+    db: Session = Depends(get_db_sync),
 ):
     """
     Schedule a post to be published at a specific time.
@@ -272,7 +272,7 @@ async def schedule_post(
 async def bulk_schedule(
     request: BulkScheduleRequest,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db),
+    db: Session = Depends(get_db_sync),
 ):
     """Schedule multiple posts at once."""
     # Verify account ownership
@@ -327,7 +327,7 @@ async def get_posts(
     limit: int = 50,
     page: int = 1,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db),
+    db: Session = Depends(get_db_sync),
 ):
     """Get user's scheduled posts with pagination."""
     offset = (page - 1) * limit
@@ -360,7 +360,7 @@ async def update_post_caption(
     post_id: int,
     request: UpdatePostCaptionRequest,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db),
+    db: Session = Depends(get_db_sync),
 ):
     """Update caption of a scheduled post (before posting)."""
     post = await InstagramCRUD.get_scheduled_post(db, post_id)
@@ -390,7 +390,7 @@ async def update_post_caption(
 async def delete_post(
     post_id: int,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db),
+    db: Session = Depends(get_db_sync),
 ):
     """Delete a scheduled post."""
     post = await InstagramCRUD.get_scheduled_post(db, post_id)
@@ -429,7 +429,7 @@ async def delete_post(
 async def generate_caption(
     request: GenerateCaptionRequest,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db),
+    db: Session = Depends(get_db_sync),
 ):
     """
     Generate caption using AI with smart content generator.
@@ -526,7 +526,7 @@ async def generate_caption(
 async def get_post_analytics(
     post_id: int,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db),
+    db: Session = Depends(get_db_sync),
 ):
     """Get analytics for a specific post."""
     post = await InstagramCRUD.get_scheduled_post(db, post_id)
@@ -556,7 +556,7 @@ async def get_post_analytics(
 async def get_account_analytics(
     account_id: int,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db),
+    db: Session = Depends(get_db_sync),
 ):
     """Get aggregated analytics for an account."""
     account = await InstagramCRUD.get_social_account(db, account_id)

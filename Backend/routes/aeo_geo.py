@@ -8,7 +8,7 @@ from fastapi import APIRouter, HTTPException, status, Depends
 from pydantic import BaseModel
 from typing import Optional, Dict, Any, List
 from utils.dependencies import get_current_user
-from config.database import get_sync_db
+from config.database import get_db_sync
 from models.user import User
 from sqlalchemy.orm import Session
 from services.aeo_geo_service import get_aeo_geo_overview, run_full_aeo_geo_optimization
@@ -60,7 +60,7 @@ class OptimizationResponse(BaseModel):
 )
 async def get_overview(
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db)
+    db: Session = Depends(get_db_sync)
 ) -> Dict[str, Any]:
     """
     Get comprehensive AEO/GEO overview
@@ -93,7 +93,7 @@ async def get_overview(
 )
 async def optimize(
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db)
+    db: Session = Depends(get_db_sync)
 ) -> OptimizationResponse:
     """
     Run full AEO/GEO optimization
@@ -123,7 +123,7 @@ async def optimize(
 )
 async def get_business_analysis(
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db)
+    db: Session = Depends(get_db_sync)
 ) -> Dict[str, Any]:
     """
     Get business analysis for AEO
@@ -155,7 +155,7 @@ async def get_business_analysis(
 async def discover_questions_endpoint(
     limit: int = 20,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db)
+    db: Session = Depends(get_db_sync)
 ) -> Dict[str, Any]:
     """
     Discover AI-search questions
@@ -187,7 +187,7 @@ async def get_questions(
     category: Optional[str] = None,
     limit: int = 50,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db)
+    db: Session = Depends(get_db_sync)
 ) -> Dict[str, Any]:
     """
     Get discovered questions
@@ -253,7 +253,7 @@ async def search_questions_semantic(
 async def generate_content(
     question_id: int,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db)
+    db: Session = Depends(get_db_sync)
 ) -> Dict[str, Any]:
     """
     Generate AEO content for a question
@@ -284,7 +284,7 @@ async def generate_content(
 async def get_content(
     limit: int = 20,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db)
+    db: Session = Depends(get_db_sync)
 ) -> Dict[str, Any]:
     """
     Get generated AEO content
@@ -307,7 +307,7 @@ async def get_content(
 async def generate_faq_schema_endpoint(
     content_id: int,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db)
+    db: Session = Depends(get_db_sync)
 ) -> Dict[str, Any]:
     """
     Generate FAQ schema for content
@@ -331,7 +331,7 @@ async def generate_faq_schema_endpoint(
 )
 async def generate_local_business_schema_endpoint(
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db)
+    db: Session = Depends(get_db_sync)
 ) -> Dict[str, Any]:
     """
     Generate LocalBusiness schema
@@ -355,7 +355,7 @@ async def generate_local_business_schema_endpoint(
 )
 async def get_schemas(
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db)
+    db: Session = Depends(get_db_sync)
 ) -> Dict[str, Any]:
     """
     Get all schema markups
@@ -377,7 +377,7 @@ async def get_schemas(
 )
 async def track_visibility(
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db)
+    db: Session = Depends(get_db_sync)
 ) -> Dict[str, Any]:
     """
     Track AI visibility
@@ -401,7 +401,7 @@ async def track_visibility(
 )
 async def get_visibility_dashboard_endpoint(
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db)
+    db: Session = Depends(get_db_sync)
 ) -> Dict[str, Any]:
     """
     Get visibility dashboard
@@ -477,7 +477,7 @@ class BlogGenerateRequest(BaseModel):
 async def generate_blog(
     request: BlogGenerateRequest,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db)
+    db: Session = Depends(get_db_sync)
 ) -> Dict[str, Any]:
     """
     Generate SEO-optimized blog post

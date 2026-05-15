@@ -1,8 +1,19 @@
 import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider } from "@/lib/AuthContext";
 import AssistantWidget from "@/components/AssistantWidget";
 
 import appCss from "../styles.css?url";
+
+// Create a client
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5, // 5 minutes
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 function NotFoundComponent() {
   return (
@@ -42,6 +53,10 @@ export const Route = createRootRoute({
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:site", content: "@SaadhyamAI" },
+      {
+        "http-equiv": "Content-Security-Policy",
+        content: "default-src 'self' 'unsafe-inline' 'unsafe-eval' https: http: data: blob:; connect-src 'self' 'unsafe-inline' 'unsafe-eval' https: http: localhost:* 127.0.0.1:* *.localhost:* ws: wss:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https: http: data: blob:; style-src 'self' 'unsafe-inline' https: http: data: blob:; img-src 'self' https: http: data: blob:; font-src 'self' https: http: data: blob:; frame-src 'self' https: http: localhost:* 127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'",
+      },
     ],
     links: [
       {
@@ -71,9 +86,11 @@ function RootShell({ children }: { children: React.ReactNode }) {
 
 function RootComponent() {
   return (
-    <AuthProvider>
-      <Outlet />
-      <AssistantWidget />
-    </AuthProvider>
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <Outlet />
+        <AssistantWidget />
+      </AuthProvider>
+    </QueryClientProvider>
   );
 }

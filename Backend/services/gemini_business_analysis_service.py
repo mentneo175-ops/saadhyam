@@ -72,13 +72,41 @@ async def generate_realtime_business_analysis(business_profile: Dict[str, Any]) 
         target_audience = business_profile.get("target_audience", "")
         goals = business_profile.get("goals", "")
         website_or_instagram = business_profile.get("website_or_instagram", "")
+        competitors_found = business_profile.get("competitors_found", [])
         
         logger.info(f"[BusinessAnalysis] Analyzing: {business_name} ({business_type}) in {location}")
+        
+        # Format competitor data if available
+        competitor_context = ""
+        if competitors_found:
+            from services.competitor_search_service import format_competitors_for_gemini
+            competitor_context = format_competitors_for_gemini(competitors_found)
+            logger.info(f"[BusinessAnalysis] Using {len(competitors_found)} real competitors from web search")
         
         # Build comprehensive Gemini prompt with Google Search grounding
         prompt = f"""You are a business intelligence expert with access to real-time web data through Google Search.
 
-Analyze this business using current market data, local trends, and competitor information:
+**STEP 1 - SEARCH FOR REAL COMPETITORS THAT ACTUALLY EXIST:**
+You MUST use Google Search to find REAL businesses that are PHYSICALLY OPERATING in {location}.
+
+{competitor_context}
+
+Search Google NOW with these exact queries:
+1. "{business_type} in {location}"
+2. "{business_type} near {location}"
+3. "best {business_type} {location}"
+4. "{location} {business_type} list"
+
+Find businesses that:
+- Have a real business name (not generic like "Competitor 1")
+- Have a physical address or area in {location}
+- Are currently operating (not closed)
+- Are the same type as {business_type}
+
+You MUST find at least 3-5 REAL competitor businesses before proceeding.
+
+**STEP 2 - ANALYZE THE BUSINESS:**
+Analyze this business using current market data, local trends, and the REAL competitors you found:
 
 **Business Details:**
 - Name: {business_name}
@@ -91,12 +119,35 @@ Analyze this business using current market data, local trends, and competitor in
 
 **Your Task:**
 Use Google Search to research:
-1. Current market trends for {business_type} businesses in {location}
-2. Local competition and market dynamics
-3. Customer preferences and behavior in this area
-4. Successful strategies used by similar businesses
-5. Local SEO and visibility opportunities
-6. Growth opportunities specific to {location}
+1. **CRITICAL - FIND REAL NEARBY COMPETITORS**: You MUST search Google for actual {business_type} businesses in {location}. Search queries like "{business_type} in {location}", "coworking spaces in {location}", "competitors of {business_name}". Find at least 3-5 real business names with their actual locations. This is MANDATORY.
+2. Current market trends for {business_type} businesses in {location}
+3. Local competition and market dynamics
+4. Customer preferences and behavior in this area
+5. Successful strategies used by similar businesses
+6. Local SEO and visibility opportunities
+7. Growth opportunities specific to {location}
+
+**IMPORTANT - NEARBY COMPETITORS MUST BE REAL BUSINESSES:**
+You MUST use Google Search to find businesses that ACTUALLY EXIST in {location}.
+
+DO NOT make up names. DO NOT use generic names like "Competitor A" or "Local Business 1".
+DO use Google Search to find REAL business names like:
+- For coworking spaces in Kakinada: "Regus Kakinada", "WorkHub Kakinada", "91Springboard", etc.
+- For restaurants in Mumbai: "Britannia & Co", "Cafe Mondegar", "Leopold Cafe", etc.
+- For gyms in Bangalore: "Cult.fit", "Gold's Gym", "Fitness First", etc.
+
+Steps to find REAL competitors:
+1. Search Google: "{business_type} in {location}"
+2. Look at Google Maps results
+3. Look at business directories
+4. Find 3-5 businesses with real names and addresses
+5. Include them in "nearby_competitors" array with their ACTUAL names
+
+Example search queries to use RIGHT NOW:
+- "coworking spaces in Kakinada"
+- "shared office spaces Kakinada"
+- "{business_type} near {location}"
+- "best {business_type} in {location}"
 
 Provide a comprehensive, data-driven analysis in this EXACT JSON format:
 
@@ -131,6 +182,29 @@ Provide a comprehensive, data-driven analysis in this EXACT JSON format:
     "trending_services": ["Service 1", "Service 2", "Service 3"]
   }},
   "competitor_analysis": {{
+    "nearby_competitors": [
+      {{
+        "name": "REAL Business Name from Google Search (e.g., 'Regus Kakinada', 'WorkHub Kakinada', '91Springboard Kakinada')",
+        "location": "ACTUAL address or area from Google Maps (e.g., 'Main Road, Kakinada', 'Suryarao Pet, Kakinada')",
+        "type": "Business type (e.g., 'Coworking Space', 'Shared Office', 'Business Center')",
+        "strengths": "What they do well based on Google reviews or website (e.g., 'Premium location, 24/7 access, meeting rooms')",
+        "weaknesses": "What they lack based on analysis (e.g., 'High pricing, limited parking, no community events')"
+      }},
+      {{
+        "name": "REAL Business Name 2 from Google Search",
+        "location": "ACTUAL address or area from Google Maps",
+        "type": "Business type",
+        "strengths": "What they do well",
+        "weaknesses": "What they lack"
+      }},
+      {{
+        "name": "REAL Business Name 3 from Google Search",
+        "location": "ACTUAL address or area from Google Maps",
+        "type": "Business type",
+        "strengths": "What they do well",
+        "weaknesses": "What they lack"
+      }}
+    ],
     "competitor_patterns": [
       "Pattern 1 observed in local competitors",
       "Pattern 2 observed in local competitors"
@@ -187,13 +261,21 @@ Provide a comprehensive, data-driven analysis in this EXACT JSON format:
 }}
 
 **CRITICAL REQUIREMENTS:**
-1. Use REAL data from Google Search - no generic advice
-2. Be specific to {location} and {business_type}
-3. Include actual market trends and competitor insights
-4. Provide actionable, measurable recommendations
-5. Health score (0-100) based on analysis
-6. Return ONLY valid JSON, no markdown formatting
-7. If you cannot find specific data, clearly state uncertainty
+1. **NEARBY COMPETITORS MUST BE REAL BUSINESSES THAT EXIST**: You MUST use Google Search RIGHT NOW to find actual businesses operating in {location}. Search "{business_type} in {location}" on Google and list the REAL business names you find. DO NOT make up names. DO NOT use generic placeholders. The "nearby_competitors" array MUST contain at least 3 REAL business names with their ACTUAL locations from Google Search or Google Maps. If you cannot find any, search harder with different queries like "best {business_type} {location}" or "{location} {business_type} directory".
+2. Use REAL data from Google Search - no generic advice
+3. Be specific to {location} and {business_type}
+4. Include actual market trends and competitor insights
+5. Provide actionable, measurable recommendations
+6. Health score (0-100) based on analysis
+7. Return ONLY valid JSON, no markdown formatting
+8. VERIFY: Before returning, check that "nearby_competitors" has real business names, not generic ones
+
+**VERIFY BEFORE RETURNING:**
+Check that "nearby_competitors" contains REAL business names from Google Search, not made-up names.
+Each competitor must have:
+- A real business name (searchable on Google)
+- An actual location/address in {location}
+- Real strengths and weaknesses based on online information
 
 Generate the analysis now:"""
 

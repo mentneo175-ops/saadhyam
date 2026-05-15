@@ -10,7 +10,7 @@ from typing import Optional
 from fastapi import APIRouter, HTTPException, Request, Response, Depends
 from fastapi.responses import HTMLResponse, FileResponse
 from sqlalchemy.orm import Session
-from config.database import get_sync_db
+from config.database import get_db_sync
 
 # Import website AI models
 try:
@@ -141,7 +141,7 @@ def get_content_type(file_path: str) -> str:
 async def serve_website(
     website_id: str,
     request: Request,
-    db: Session = Depends(get_sync_db)
+    db: Session = Depends(get_db_sync)
 ):
     """
     Serve website by ID, slug, or business name with saved edits applied
@@ -278,7 +278,7 @@ async def serve_website_asset(
     website_id: str,
     file_path: str,
     request: Request,
-    db: Session = Depends(get_sync_db)
+    db: Session = Depends(get_db_sync)
 ):
     """
     Serve website assets (CSS, JS, images, etc.)
@@ -362,7 +362,7 @@ async def serve_website_asset(
 async def serve_website_by_domain(
     domain: str,
     request: Request,
-    db: Session = Depends(get_sync_db)
+    db: Session = Depends(get_db_sync)
 ):
     """
     Serve website by custom domain (Future feature)
@@ -412,7 +412,7 @@ async def serve_website_by_domain(
 )
 async def get_website_info(
     website_id: str,
-    db: Session = Depends(get_sync_db)
+    db: Session = Depends(get_db_sync)
 ):
     """
     Get website information and metadata

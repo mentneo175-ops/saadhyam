@@ -300,6 +300,34 @@ except Exception as e:
     logging.warning(f"Task Tracking router not available: {e}")
     task_tracking_available = False
 
+try:
+    from routes.voice_agent import router as voice_agent_router
+    voice_agent_available = True
+    logging.info("✅ Voice Agent router imported successfully")
+except Exception as e:
+    logging.error(f"❌ Voice Agent router not available: {e}")
+    logging.error(f"❌ Error type: {type(e).__name__}")
+    logging.error(f"❌ Full traceback:", exc_info=True)
+    voice_agent_available = False
+
+try:
+    from routes.voice_agent_v2 import router as voice_agent_v2_router
+    voice_agent_v2_available = True
+    logging.info("✅ Voice Agent V2 router imported successfully")
+except Exception as e:
+    logging.error(f"❌ Voice Agent V2 router not available: {e}")
+    logging.error(f"❌ Error type: {type(e).__name__}")
+    logging.error(f"❌ Full traceback:", exc_info=True)
+    voice_agent_v2_available = False
+
+try:
+    from routes.webhooks import router as webhooks_router
+    webhooks_available = True
+    logging.info("✅ Webhooks router imported successfully")
+except Exception as e:
+    logging.warning(f"Webhooks router not available: {e}")
+    webhooks_available = False
+
 
 
 try:
@@ -375,35 +403,37 @@ async def lifespan(app: FastAPI):
         logger.info("[OK] Database initialized")
         
         # Run migrations
-        logger.info("[*] Running migrations...")
-        migrate_add_name_column()
-        from migrations.add_business_analysis_table import migrate_add_business_analysis_table
-        migrate_add_business_analysis_table()
-        from migrations.add_business_profile_fields import migrate_add_business_profile_fields
-        migrate_add_business_profile_fields()
-        from migrations.add_comprehensive_business_analysis import migrate_add_comprehensive_business_analysis
-        migrate_add_comprehensive_business_analysis()
-        from migrations.fix_description_nullable import migrate_fix_description_nullable
-        migrate_fix_description_nullable()
+        logger.info("[*] Skipping migrations (disabled for faster startup)...")
+        # migrate_add_name_column()
+        # from migrations.add_business_analysis_table import migrate_add_business_analysis_table
+        # migrate_add_business_analysis_table()
+        # from migrations.add_business_profile_fields import migrate_add_business_profile_fields
+        # migrate_add_business_profile_fields()
+        # from migrations.add_comprehensive_business_analysis import migrate_add_comprehensive_business_analysis
+        # migrate_add_comprehensive_business_analysis()
+        # from migrations.fix_description_nullable import migrate_fix_description_nullable
+        # migrate_fix_description_nullable()
 
-        from migrations.add_aeo_geo_tables import migrate_add_aeo_geo_tables
-        migrate_add_aeo_geo_tables()
-        from migrations.add_blogs_table import migrate_add_blogs_table
-        migrate_add_blogs_table()
-        from migrations.add_website_id_to_user import run_migration as migrate_add_website_id
-        migrate_add_website_id()
-        from migrations.add_whatsapp_tables import migrate_add_whatsapp_tables
-        migrate_add_whatsapp_tables()
-        from migrations.add_location_coordinates import migrate_add_location_coordinates
-        migrate_add_location_coordinates()
-        from migrations.add_user_id_to_review_history import migrate_add_user_id_to_review_history
-        migrate_add_user_id_to_review_history()
-        from migrations.add_instagram_analytics_tables import migrate_add_instagram_analytics_tables
-        migrate_add_instagram_analytics_tables()
-        from migrations.add_task_tracking_tables import migrate_add_task_tracking_tables
-        migrate_add_task_tracking_tables()
-        from migrations.add_slug_to_websites import run_migration as migrate_add_slug_to_websites
-        migrate_add_slug_to_websites()
+        # from migrations.add_aeo_geo_tables import migrate_add_aeo_geo_tables
+        # migrate_add_aeo_geo_tables()
+        # from migrations.add_blogs_table import migrate_add_blogs_table
+        # migrate_add_blogs_table()
+        # from migrations.add_website_id_to_user import run_migration as migrate_add_website_id
+        # migrate_add_website_id()
+        # from migrations.add_whatsapp_tables import migrate_add_whatsapp_tables
+        # migrate_add_whatsapp_tables()
+        # from migrations.add_location_coordinates import migrate_add_location_coordinates
+        # migrate_add_location_coordinates()
+        # from migrations.add_user_id_to_review_history import migrate_add_user_id_to_review_history
+        # migrate_add_user_id_to_review_history()
+        # from migrations.add_instagram_analytics_tables import migrate_add_instagram_analytics_tables
+        # migrate_add_instagram_analytics_tables()
+        # from migrations.add_task_tracking_tables import migrate_add_task_tracking_tables
+        # migrate_add_task_tracking_tables()
+        # from migrations.add_voice_agent_tables import migrate_add_voice_agent_tables
+        # migrate_add_voice_agent_tables()
+        # from migrations.add_slug_to_websites import run_migration as migrate_add_slug_to_websites
+        # migrate_add_slug_to_websites()
         logger.info("[OK] Migrations completed")
         from migrations.add_meta_ads_tables import migrate_add_meta_ads_tables
         migrate_add_meta_ads_tables()
@@ -497,11 +527,14 @@ app = FastAPI(
 )
 
 # Mount Socket.IO app for real-time communication
-sio_asgi_app = socketio.ASGIApp(
-    socketio_server=realtime_service.sio,
-    other_asgi_app=app,
-    socketio_path='/socket.io'
-)
+# NOTE: Temporarily disabled Socket.IO wrapper due to request timeout issues
+# The wrapper was preventing HTTP requests from reaching the FastAPI app
+# TODO: Fix Socket.IO integration to properly delegate HTTP requests
+# sio_asgi_app = socketio.ASGIApp(
+#     socketio_server=realtime_service.sio,
+#     other_asgi_app=app,
+#     socketio_path='/socket.io'
+# )
 
 # Website AI static files - Simple direct mapping
 BASE_DIR = Path(__file__).resolve().parent
@@ -523,17 +556,53 @@ app.mount("/output", StaticFiles(directory=str(BASE_DIR / "output")), name="outp
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
+    allow_origins=[
+        "http://localhost:8080",
+        "http://localhost:8081",
+        "http://127.0.0.1:8080",
+        "http://127.0.0.1:8081",
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "*"
+    ],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 # Include routers - only include those that loaded successfully
-if auth_available:
-    app.include_router(auth_router)
-if protected_available:
-    app.include_router(protected_router)
+print("=" * 60)
+print("REGISTERING ROUTERS...")
+print("=" * 60)
+
+try:
+    if auth_available:
+        print(f"Auth router available: {auth_router}")
+        print(f"Auth router prefix: {auth_router.prefix}")
+        print(f"Auth router routes: {len(auth_router.routes)}")
+        app.include_router(auth_router)
+        print("[OK] AUTH ROUTER INCLUDED SUCCESSFULLY")
+        logging.info("✅ Auth router included in app")
+    else:
+        print("[FAIL] AUTH ROUTER NOT AVAILABLE")
+        logging.error("❌ Auth router NOT available")
+except Exception as e:
+    print(f"[FAIL] FAILED TO INCLUDE AUTH ROUTER: {e}")
+    import traceback
+    traceback.print_exc()
+    
+try:
+    if protected_available:
+        app.include_router(protected_router)
+        print("[OK] PROTECTED ROUTER INCLUDED")
+        logging.info("✅ Protected router included in app")
+    else:
+        print("[FAIL] PROTECTED ROUTER NOT AVAILABLE")
+        logging.error("❌ Protected router NOT available")
+except Exception as e:
+    print(f"[FAIL] FAILED TO INCLUDE PROTECTED ROUTER: {e}")
+    import traceback
+    traceback.print_exc()
 if instagram_available:
     app.include_router(instagram_router)
 if instagram_oauth_available:
@@ -616,6 +685,15 @@ if instagram_analytics_available:
 if task_tracking_available:
     app.include_router(task_tracking_router)
     logging.info("✅ Task Tracking router included in app")
+if voice_agent_available:
+    app.include_router(voice_agent_router)
+    logging.info("✅ Voice Agent router included in app")
+if voice_agent_v2_available:
+    app.include_router(voice_agent_v2_router)
+    logging.info("✅ Voice Agent V2 router included in app")
+if webhooks_available:
+    app.include_router(webhooks_router)
+    logging.info("✅ Webhooks router included in app")
 
 if meta_oauth_available:
     app.include_router(meta_oauth_router)
@@ -650,6 +728,16 @@ if website_ai_available:
 
 
 # ============ Health Check Routes ============
+
+@app.get("/test", tags=["Health"])
+async def test():
+    """Simple test endpoint"""
+    return {"status": "ok", "message": "Backend is responding"}
+
+@app.get("/test-auth", tags=["Health"])
+async def test_auth(authorization: str = None):
+    """Test endpoint with auth header"""
+    return {"status": "ok", "authorization": authorization}
 
 @app.get("/", tags=["Health"])
 async def root():
@@ -724,9 +812,9 @@ async def global_exception_handler(request, exc):
 if __name__ == "__main__":
     import uvicorn
     
-    # Run with Socket.IO ASGI app
+    # Run FastAPI app directly (Socket.IO wrapper disabled due to timeout issues)
     uvicorn.run(
-        sio_asgi_app,  # Use Socket.IO wrapped app
+        app,  # Use FastAPI app directly
         host="0.0.0.0",
         port=8000,
         log_level="info"

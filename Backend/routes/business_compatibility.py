@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from typing import Optional, Dict, Any
 
-from config.database import get_sync_db
+from config.database import get_db_sync
 from models.user import User
 from utils.dependencies import get_current_user
 from services.comprehensive_business_analysis_service import get_business_analysis_data
@@ -21,7 +21,7 @@ router = APIRouter(prefix="/api/business", tags=["Business Compatibility"])
 @router.get("/latest")
 async def get_latest_business_analysis(
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db)
+    db: Session = Depends(get_db_sync)
 ):
     """
     Compatibility endpoint for /api/business/latest

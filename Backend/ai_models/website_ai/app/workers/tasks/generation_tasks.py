@@ -9,7 +9,6 @@ import uuid
 from celery import Task
 from sqlalchemy.orm import Session
 
-from ai_models.website_ai.app.workers.celery_app import celery_app
 from ai_models.website_ai.app.db.session import get_db_context
 from ai_models.website_ai.app.db.models.job import Job
 from ai_models.website_ai.app.db.models.website import Website
@@ -19,6 +18,9 @@ from ai_models.website_ai.app.core.services.storage_service import StorageServic
 from ai_models.website_ai.app.utils.logger import get_logger
 from ai_models.website_ai.app.utils.uuid_helpers import validate_and_convert_uuid, uuid_to_string
 from utils.slug import generate_unique_slug
+
+# Use the main Celery app from celery_worker instead of the separate website_ai celery_app
+from celery_worker import celery as celery_app
 
 
 logger = get_logger(__name__)
@@ -144,7 +146,7 @@ def generate_website_task(
             db.flush()  # Get the ID without committing
             
             # Generate unique slug from business name
-            website.slug = generate_unique_slug(db, Website, business_data["business_name"])
+            website.slug = generate_unique_slug(business_data["business_name"], db, "websites")
             
             website_id_str = uuid_to_string(website.id)
             logger.info(f"✅ Created website record with ID: {website_id_str}, slug: {website.slug}")

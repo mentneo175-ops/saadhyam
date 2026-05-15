@@ -9,7 +9,7 @@ from fastapi import APIRouter, HTTPException, status, Depends, Query
 from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any
 from sqlalchemy.orm import Session
-from config.database import get_sync_db
+from config.database import get_db_sync
 from utils.dependencies import get_current_user
 from models.user import User
 from templates.website_templates import get_template_by_theme
@@ -116,7 +116,7 @@ async def generate_website(
     request: WebsiteGenerationRequest,
     theme: str = Query("hero-split", description="Website theme template"),
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db)
+    db: Session = Depends(get_db_sync)
 ) -> WebsiteGenerationResponse:
     """
     Generate an AI-powered website based on business information
@@ -305,7 +305,7 @@ def generate_website_sections(request: WebsiteGenerationRequest, theme: str, ser
 async def get_website(
     website_id: str,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db)
+    db: Session = Depends(get_db_sync)
 ) -> WebsiteGenerationResponse:
     """Get a previously generated website by ID"""
     

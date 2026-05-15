@@ -26,7 +26,16 @@ export interface LocalMarketInsights {
   trending_services: string[];
 }
 
+export interface NearbyCompetitor {
+  name: string;
+  location: string;
+  type: string;
+  strengths: string;
+  weaknesses: string;
+}
+
 export interface CompetitorAnalysis {
+  nearby_competitors?: NearbyCompetitor[];
   competitor_patterns: string[];
   market_gaps: string[];
   differentiation_ideas: string[];

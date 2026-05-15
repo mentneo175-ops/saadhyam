@@ -10,7 +10,7 @@ from sqlalchemy import desc
 from pydantic import BaseModel
 from typing import Optional, List, Dict, Any
 from datetime import datetime
-from config.database import get_sync_db
+from config.database import get_db_sync
 from models.user import User
 from models.whatsapp_account import WhatsAppAccount
 from models.whatsapp_automation import WhatsAppAutomation, AutomationType, TriggerEvent
@@ -50,7 +50,7 @@ class UpdateAutomationRequest(BaseModel):
 async def create_automation(
     request: CreateAutomationRequest,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db)
+    db: Session = Depends(get_db_sync)
 ):
     """
     Create a new automation rule
@@ -122,7 +122,7 @@ async def create_automation(
 @router.get("")
 async def get_automations(
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db),
+    db: Session = Depends(get_db_sync),
     automation_type: Optional[str] = Query(None),
     is_enabled: Optional[bool] = Query(None),
     limit: int = Query(50, ge=1, le=100),
@@ -206,7 +206,7 @@ async def get_automations(
 async def get_automation(
     automation_id: int,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db)
+    db: Session = Depends(get_db_sync)
 ):
     """
     Get a specific automation by ID
@@ -253,7 +253,7 @@ async def update_automation(
     automation_id: int,
     request: UpdateAutomationRequest,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db)
+    db: Session = Depends(get_db_sync)
 ):
     """
     Update an automation
@@ -311,7 +311,7 @@ async def update_automation(
 async def toggle_automation(
     automation_id: int,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db)
+    db: Session = Depends(get_db_sync)
 ):
     """
     Toggle automation enabled/disabled status
@@ -348,7 +348,7 @@ async def toggle_automation(
 async def delete_automation(
     automation_id: int,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db)
+    db: Session = Depends(get_db_sync)
 ):
     """
     Delete an automation
@@ -378,7 +378,7 @@ async def delete_automation(
 @router.get("/stats/overview")
 async def get_automation_stats(
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db)
+    db: Session = Depends(get_db_sync)
 ):
     """
     Get automation statistics overview

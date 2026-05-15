@@ -1,4 +1,6 @@
 import logging
+import asyncio
+from typing import Optional
 
 import httpx
 from sqlalchemy.orm import Session
@@ -14,8 +16,11 @@ from services.business_pinecone_service import get_business_context_from_pinecon
 logger = logging.getLogger(__name__)
 
 GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
-GROQ_TIMEOUT_SECONDS = 20.0
+GROQ_TIMEOUT_SECONDS = 30.0  # Increased timeout
 GROQ_MODEL = "llama-3.3-70b-versatile"  # Updated to latest model
+FALLBACK_MODEL = "llama-3.1-8b-instant"  # Faster fallback model
+MAX_RETRIES = 3
+RETRY_DELAY_SECONDS = 2.0
 FALLBACK_MESSAGE = "I could not find enough information right now. Please try again with more details."
 
 
@@ -91,10 +96,100 @@ async def get_relevant_questions(user: User, query: str, top_k: int = 3) -> str:
         return ""
 
 
+async def call_groq_api_with_retry(
+    payload: dict,
+    headers: dict,
+    model: str,
+    max_retries: int = MAX_RETRIES
+) -> Optional[str]:
+    """
+    Call GROQ API with retry logic and exponential backoff for rate limits.
+    
+    Returns:
+        Response content or None if all retries failed
+    """
+    for attempt in range(max_retries):
+        try:
+            timeout = httpx.Timeout(GROQ_TIMEOUT_SECONDS)
+            async with httpx.AsyncClient(timeout=timeout) as client:
+                logger.info(f"Attempt {attempt + 1}/{max_retries}: Calling Groq API with model: {model}")
+                response = await client.post(GROQ_API_URL, json=payload, headers=headers)
+                
+                # Handle rate limit (429)
+                if response.status_code == 429:
+                    retry_after = int(response.headers.get("Retry-After", RETRY_DELAY_SECONDS * (2 ** attempt)))
+                    logger.warning(f"Rate limit hit (429). Retrying after {retry_after} seconds...")
+                    
+                    if attempt < max_retries - 1:
+                        await asyncio.sleep(retry_after)
+                        continue
+                    else:
+                        logger.error("Max retries reached for rate limit")
+                        return None
+                
+                # Handle other errors
+                if response.status_code != 200:
+                    error_detail = response.text
+                    logger.error(f"Groq API error (status {response.status_code}): {error_detail}")
+                    
+                    # Don't retry on client errors (except 429)
+                    if 400 <= response.status_code < 500:
+                        return None
+                    
+                    # Retry on server errors
+                    if attempt < max_retries - 1:
+                        await asyncio.sleep(RETRY_DELAY_SECONDS * (2 ** attempt))
+                        continue
+                    else:
+                        return None
+                
+                # Success
+                data = response.json()
+                content = (
+                    data.get("choices", [{}])[0]
+                    .get("message", {})
+                    .get("content", "")
+                    .strip()
+                )
+                
+                logger.info(f"Groq API response received: {content[:100]}...")
+                return content
+                
+        except httpx.TimeoutException:
+            logger.warning(f"Attempt {attempt + 1}/{max_retries}: Request timed out")
+            if attempt < max_retries - 1:
+                await asyncio.sleep(RETRY_DELAY_SECONDS * (2 ** attempt))
+                continue
+            else:
+                logger.error("Max retries reached for timeout")
+                return None
+                
+        except httpx.HTTPError as exc:
+            logger.warning(f"Attempt {attempt + 1}/{max_retries}: HTTP error: {exc}")
+            if attempt < max_retries - 1:
+                await asyncio.sleep(RETRY_DELAY_SECONDS * (2 ** attempt))
+                continue
+            else:
+                logger.error("Max retries reached for HTTP error")
+                return None
+                
+        except Exception as exc:
+            logger.error(f"Attempt {attempt + 1}/{max_retries}: Unexpected error: {exc}")
+            if attempt < max_retries - 1:
+                await asyncio.sleep(RETRY_DELAY_SECONDS * (2 ** attempt))
+                continue
+            else:
+                logger.error("Max retries reached for unexpected error")
+                return None
+    
+    return None
+
+
 async def generate_response(query: str, db: Session, user: User) -> str:
     """
     Generate AI response with business context from Pinecone, semantic search, and live search data.
     Optimized for voice interaction - concise and conversational.
+    Includes rate limit handling and automatic fallback to faster model.
     """
     # Get business context from Pinecone (NOT NeonDB)
     business_context_results = await get_business_context_from_pinecone(user.id, query, top_k=3)
@@ -147,6 +242,12 @@ LIVE MARKET DATA:
 
 Provide a helpful, concise response that addresses the query using the business context, related questions, and live data."""
 
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+    }
+
+    # Try primary model first
     payload = {
         "model": GROQ_MODEL,
         "messages": [
@@ -163,48 +264,18 @@ Provide a helpful, concise response that addresses the query using the business 
         "max_tokens": 500,  # Limit for concise voice responses
     }
 
-    headers = {
-        "Authorization": f"Bearer {api_key}",
-        "Content-Type": "application/json",
-    }
-
-    try:
-        timeout = httpx.Timeout(GROQ_TIMEOUT_SECONDS)
-        async with httpx.AsyncClient(timeout=timeout) as client:
-            logger.info(f"Sending request to Groq API with model: {GROQ_MODEL}")
-            response = await client.post(GROQ_API_URL, json=payload, headers=headers)
-            
-            # Log response details for debugging
-            logger.info(f"Groq API response status: {response.status_code}")
-            
-            if response.status_code != 200:
-                error_detail = response.text
-                logger.error(f"Groq API error response: {error_detail}")
-            
-            response.raise_for_status()
-
-        data = response.json()
-        content = (
-            data.get("choices", [{}])[0]
-            .get("message", {})
-            .get("content", "")
-            .strip()
-        )
-        
-        logger.info(f"Groq API response received: {content[:100]}...")
-        return content or FALLBACK_MESSAGE
-    except httpx.TimeoutException:
-        logger.warning("Groq request timed out")
-    except httpx.HTTPError as exc:
-        logger.warning("Groq request failed: %s", exc)
-        # Try to get more details from response
-        if hasattr(exc, 'response') and exc.response is not None:
-            try:
-                error_data = exc.response.json()
-                logger.error(f"Groq API error details: {error_data}")
-            except:
-                logger.error(f"Groq API error text: {exc.response.text}")
-    except Exception as exc:
-        logger.warning("Unexpected Groq error: %s", exc)
-
-    return FALLBACK_MESSAGE
+    logger.info(f"Attempting to generate response with primary model: {GROQ_MODEL}")
+    content = await call_groq_api_with_retry(payload, headers, GROQ_MODEL, max_retries=2)
+    
+    # If primary model failed, try fallback model
+    if not content:
+        logger.warning(f"Primary model failed, trying fallback model: {FALLBACK_MODEL}")
+        payload["model"] = FALLBACK_MODEL
+        content = await call_groq_api_with_retry(payload, headers, FALLBACK_MODEL, max_retries=2)
+    
+    # Return content or fallback message
+    if content:
+        return content
+    else:
+        logger.error("All attempts to generate response failed")
+        return "I'm experiencing high demand right now. Please try again in a moment."

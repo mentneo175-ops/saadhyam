@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, Path
 from pydantic import BaseModel, Field
 from typing import List, Optional
 from sqlalchemy.orm import Session
-from config.database import get_sync_db
+from config.database import get_db_sync
 from services.history_service import HistoryService
 import httpx
 
@@ -105,7 +105,7 @@ class StatsResponse(BaseModel):
 )
 async def generate_reply_endpoint(
     request: GenerateReplyRequest,
-    db: Session = Depends(get_sync_db)
+    db: Session = Depends(get_db_sync)
 ) -> GenerateReplyResponse:
     """
     Generate a professional reply to a customer review
@@ -225,7 +225,7 @@ Reply:"""
 async def get_history(
     limit: int = 20,
     offset: int = 0,
-    db: Session = Depends(get_sync_db)
+    db: Session = Depends(get_db_sync)
 ) -> List[HistoryItem]:
     """
     Get the last generated replies
@@ -274,7 +274,7 @@ async def get_history(
 async def get_history_by_business(
     business_type: str = Path(...),
     limit: int = 20,
-    db: Session = Depends(get_sync_db)
+    db: Session = Depends(get_db_sync)
 ) -> List[HistoryItem]:
     """
     Get replies for a specific business type
@@ -322,7 +322,7 @@ async def get_history_by_business(
 async def get_history_by_rating(
     rating: int = Path(..., ge=1, le=5),
     limit: int = 20,
-    db: Session = Depends(get_sync_db)
+    db: Session = Depends(get_db_sync)
 ) -> List[HistoryItem]:
     """
     Get replies for a specific rating
@@ -370,7 +370,7 @@ async def get_history_by_rating(
 async def save_feedback(
     history_id: int = Path(...),
     feedback: FeedbackRequest = None,
-    db: Session = Depends(get_sync_db)
+    db: Session = Depends(get_db_sync)
 ) -> dict:
     """
     Save user feedback on a generated reply
@@ -414,7 +414,7 @@ async def save_feedback(
     response_model=StatsResponse,
     summary="Get statistics"
 )
-async def get_stats(db: Session = Depends(get_sync_db)) -> StatsResponse:
+async def get_stats(db: Session = Depends(get_db_sync)) -> StatsResponse:
     """Get statistics about generated replies"""
     
     try:

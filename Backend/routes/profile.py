@@ -8,7 +8,7 @@ from fastapi import APIRouter, HTTPException, status, Depends
 from pydantic import BaseModel, Field
 from typing import Optional
 from sqlalchemy.orm import Session
-from config.database import get_sync_db
+from config.database import get_db_sync
 from models.user import User
 from utils.dependencies import get_current_user
 
@@ -79,7 +79,7 @@ class UserProfileResponse(BaseModel):
 )
 def get_profile(
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db)
+    db: Session = Depends(get_db_sync)
 ) -> UserProfileResponse:
     """
     Get complete user profile including business information
@@ -197,7 +197,7 @@ def get_business_profile(
 def update_business_profile(
     request: BusinessProfileRequest,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db)
+    db: Session = Depends(get_db_sync)
 ) -> BusinessProfileResponse:
     """
     Update business profile information
@@ -294,7 +294,7 @@ def get_business_setup_status(
 def confirm_website(
     request: dict,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db)
+    db: Session = Depends(get_db_sync)
 ) -> dict:
     """
     Confirm and save user's generated website

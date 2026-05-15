@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 
 from services.assistant_service import generate_response
 from services.demo_assistant_service import get_demo_response
-from config.database import get_sync_db
+from config.database import get_db_sync
 from utils.dependencies import get_current_user
 from models.user import User
 
@@ -40,7 +40,7 @@ async def assistant_demo(request: AssistantRequest):
 @router.post("/assistant", response_model=AssistantResponse)
 async def assistant_query(
     request: AssistantRequest,
-    db: Session = Depends(get_sync_db),
+    db: Session = Depends(get_db_sync),
     current_user: User = Depends(get_current_user),
 ):
     """

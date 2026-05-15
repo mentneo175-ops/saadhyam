@@ -1,14 +1,4 @@
 """
-Web Search Service using Tavily API
-Real-time influencer discovery from the web with progressive location expansion
-"""
-
-import os
-from typing import List, Dict, Any, Tuple
-from tavily import TavilyClient
-
-# Initialize Tavily client
-tavily_client = TavilyClient(api_key=os.getenv("TAVILY_API_KEY"))
 Web Search Service
 Provides web search functionality with multiple providers and automatic fallback
 Supports: Tavily AI, Serper API, Brave Search, Google Grounding
@@ -19,8 +9,12 @@ import os
 import requests
 from typing import List, Dict, Any, Optional
 from datetime import datetime
+from tavily import TavilyClient
 
 logger = logging.getLogger(__name__)
+
+# Initialize Tavily client
+tavily_client = TavilyClient(api_key=os.getenv("TAVILY_API_KEY"))
 
 
 class WebSearchService:
@@ -396,6 +390,10 @@ class WebSearchService:
         )
         
         return results
+
+
+class WebSearchService:
+    """
     Web search service with multiple providers and automatic fallback
     
     Priority order:

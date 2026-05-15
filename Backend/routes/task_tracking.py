@@ -10,7 +10,7 @@ from typing import List, Optional
 from datetime import datetime, timedelta
 from pydantic import BaseModel, Field
 
-from config.database import get_sync_db
+from config.database import get_db_sync
 from utils.dependencies import get_current_user
 from models.user import User
 from models.task_tracking import DailyTask, GrowthMetric
@@ -101,7 +101,7 @@ class CurrentStatsResponse(BaseModel):
 )
 async def get_today_tasks(
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db),
+    db: Session = Depends(get_db_sync),
 ):
     """Get all tasks assigned for today"""
     try:
@@ -137,7 +137,7 @@ async def get_today_tasks(
 async def get_task_history(
     days: int = 30,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db),
+    db: Session = Depends(get_db_sync),
 ):
     """Get task history for the last N days"""
     try:
@@ -179,7 +179,7 @@ async def get_task_history(
 async def create_task(
     task_data: TaskCreate,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db),
+    db: Session = Depends(get_db_sync),
 ):
     """Create a new daily task"""
     try:
@@ -215,7 +215,7 @@ async def create_task(
 async def complete_task(
     task_id: int,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db),
+    db: Session = Depends(get_db_sync),
 ):
     """Mark a task as completed"""
     try:
@@ -251,7 +251,7 @@ async def complete_task(
 async def uncomplete_task(
     task_id: int,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db),
+    db: Session = Depends(get_db_sync),
 ):
     """Mark a task as not completed"""
     try:
@@ -286,7 +286,7 @@ async def uncomplete_task(
 async def delete_task(
     task_id: int,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db),
+    db: Session = Depends(get_db_sync),
 ):
     """Delete a task"""
     try:
@@ -324,7 +324,7 @@ async def delete_task(
 async def get_growth_chart_data(
     days: int = 30,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db),
+    db: Session = Depends(get_db_sync),
 ):
     """Get growth metrics data for the growth journey chart"""
     try:
@@ -354,7 +354,7 @@ async def get_growth_chart_data(
 )
 async def get_current_stats(
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db),
+    db: Session = Depends(get_db_sync),
 ):
     """Get current user stats (points, streak, growth score)"""
     try:
@@ -376,7 +376,7 @@ async def get_current_stats(
 )
 async def update_daily_metrics(
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db),
+    db: Session = Depends(get_db_sync),
 ):
     """Manually trigger daily metrics calculation"""
     try:
@@ -408,7 +408,7 @@ async def update_daily_metrics(
 async def generate_daily_tasks(
     num_tasks: int = 5,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db),
+    db: Session = Depends(get_db_sync),
 ):
     """Generate AI-powered daily tasks based on user profile"""
     try:

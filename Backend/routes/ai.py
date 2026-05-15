@@ -3,7 +3,7 @@ from pydantic import BaseModel
 from typing import Optional, List, Dict, Any
 from models.user import User
 from utils.dependencies import get_current_user
-from config.database import get_sync_db
+from config.database import get_db_sync
 from services.history_service import HistoryService
 from sqlalchemy.orm import Session
 import logging
@@ -121,7 +121,7 @@ class ReviewHistoryListResponse(BaseModel):
 @router.post("/generate-review-reply", response_model=ReviewReplyResponse, tags=["Review Reply"])
 async def generate_review_reply(
     request: ReviewReplyRequest,
-    db: Session = Depends(get_sync_db),
+    db: Session = Depends(get_db_sync),
 ):
     """
     Generate a reply to a customer review using the AI model server
@@ -255,7 +255,7 @@ Reply:"""
 @router.get("/review-reply-history", response_model=ReviewHistoryListResponse, tags=["Review Reply"])
 async def get_review_reply_history(
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db),
+    db: Session = Depends(get_db_sync),
     limit: int = 4,
 ):
     """

@@ -11,7 +11,7 @@ from fastapi.responses import RedirectResponse, HTMLResponse
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from typing import Optional
-from config.database import get_sync_db
+from config.database import get_db_sync
 from models.user import User
 from models.whatsapp_account import WhatsAppAccount
 from utils.dependencies import get_current_user
@@ -95,7 +95,7 @@ async def whatsapp_callback(
     error_description: Optional[str] = Query(None),
     state: Optional[str] = Query(None),
     request: Request = None,
-    db: Session = Depends(get_sync_db)
+    db: Session = Depends(get_db_sync)
 ):
     """
     Handle OAuth callback from Meta
@@ -634,7 +634,7 @@ class ManualConnectRequest(BaseModel):
 async def connect_whatsapp_account(
     request: WhatsAppConnectRequest,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db)
+    db: Session = Depends(get_db_sync)
 ):
     """
     Connect WhatsApp Business Account
@@ -749,7 +749,7 @@ async def connect_whatsapp_account(
 async def connect_whatsapp_manual(
     request: ManualConnectRequest,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db)
+    db: Session = Depends(get_db_sync)
 ):
     """
     Manually connect WhatsApp Business Account with credentials
@@ -923,7 +923,7 @@ async def debug_token(
 @router.get("/connection-status", response_model=WhatsAppConnectionStatus)
 async def get_connection_status(
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db)
+    db: Session = Depends(get_db_sync)
 ):
     """
     Get WhatsApp connection status for current user
@@ -952,7 +952,7 @@ async def get_connection_status(
 @router.post("/disconnect")
 async def disconnect_whatsapp_account(
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db)
+    db: Session = Depends(get_db_sync)
 ):
     """
     Disconnect WhatsApp Business Account
@@ -1026,7 +1026,7 @@ from datetime import datetime
 @router.delete("/disconnect/permanent")
 async def disconnect_whatsapp_permanent(
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db)
+    db: Session = Depends(get_db_sync)
 ):
     """
     Permanently disconnect WhatsApp account and DELETE ALL DATA

@@ -11,6 +11,8 @@ export default defineConfig({
     server: {
       port: 8080,
       strictPort: false,
+      // Enable SPA fallback for client-side routing
+      proxy: {},
     },
   },
 });

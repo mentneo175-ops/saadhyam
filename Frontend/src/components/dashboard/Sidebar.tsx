@@ -23,6 +23,7 @@ import {
   Zap,
   BookOpen,
   Network,
+  Phone,
 } from "lucide-react";
 
 type NavItem = {
@@ -44,6 +45,7 @@ const items: NavItem[] = [
   { to: "/dashboard/content", label: "Content Creator", icon: Wand2 },
   { to: "/dashboard/instagram", label: "Instagram", icon: Instagram },
   { to: "/dashboard/whatsapp", label: "WhatsApp Sales", icon: MessageSquare },
+  { to: "/dashboard/voice-agent", label: "AI Voice Agent", icon: Phone },
   { to: "/dashboard/website", label: "Website AI", icon: FileText },
   { to: "/dashboard/review-reply", label: "Review Reply", icon: MessageSquare },
   { to: "/dashboard/automation", label: "Automation", icon: Workflow },

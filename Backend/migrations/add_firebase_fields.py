@@ -4,14 +4,14 @@ Database migration to add Firebase authentication fields
 
 import logging
 from sqlalchemy import text
-from config.database import get_sync_db
+from config.database import get_db_sync
 
 logger = logging.getLogger(__name__)
 
 def migrate_add_firebase_fields():
     """Add Firebase authentication fields to users table"""
     
-    db = next(get_sync_db())
+    db = get_db_sync()
     
     try:
         logger.info("🔄 Starting Firebase fields migration...")

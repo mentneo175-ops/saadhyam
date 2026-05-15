@@ -236,6 +236,19 @@ try:
 except ImportError as e:
     logger.warning(f"⚠️ Could not import website generation tasks: {e}")
 
+# Import voice call tasks to register them with Celery
+try:
+    from tasks.voice_call_tasks import (
+        start_campaign_calling,
+        process_campaign_calls,
+        process_single_call,
+        pause_campaign,
+        resume_campaign
+    )
+    logger.info("✅ Voice call tasks imported successfully")
+except ImportError as e:
+    logger.warning(f"⚠️ Could not import voice call tasks: {e}")
+
 
 # Periodic tasks configuration
 from celery.schedules import crontab

@@ -27,6 +27,7 @@ class User(Base):
     hashed_password = Column(String(255), nullable=True)
     
     name = Column(String(255), nullable=True)  # User's full name
+    is_active = Column(Boolean, default=True, nullable=False)  # Account active status
     
     # Business Profile Fields
     business_name = Column(String(255), nullable=True)

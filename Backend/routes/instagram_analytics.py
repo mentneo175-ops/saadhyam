@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 from datetime import datetime, timedelta
 
-from config.database import get_sync_db
+from config.database import get_db_sync
 from utils.dependencies import get_current_user
 from models.user import User
 from models.instagram_analytics import (
@@ -44,7 +44,7 @@ router = APIRouter(prefix="/api/instagram-analytics", tags=["Instagram Analytics
 )
 async def get_or_create_from_social(
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db),
+    db: Session = Depends(get_db_sync),
 ):
     """
     Get or create Instagram analytics accounts from existing social_accounts.
@@ -126,7 +126,7 @@ async def connect_instagram_account(
     request: ConnectAccountRequest,
     background_tasks: BackgroundTasks,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db),
+    db: Session = Depends(get_db_sync),
 ):
     """
     Connect Instagram Business account via OAuth
@@ -226,7 +226,7 @@ async def connect_instagram_account(
 )
 async def get_connected_accounts(
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db),
+    db: Session = Depends(get_db_sync),
 ):
     """Get all connected Instagram Business accounts for the current user"""
     try:
@@ -256,7 +256,7 @@ async def get_connected_accounts(
 async def disconnect_account(
     account_id: int,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db),
+    db: Session = Depends(get_db_sync),
 ):
     """Disconnect an Instagram Business account"""
     try:
@@ -293,7 +293,7 @@ async def disconnect_account(
 async def get_dashboard_overview(
     account_id: int,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db),
+    db: Session = Depends(get_db_sync),
 ):
     """
     Get complete dashboard overview with all key metrics
@@ -387,7 +387,7 @@ async def get_growth_analytics(
     account_id: int,
     days: int = 30,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db),
+    db: Session = Depends(get_db_sync),
 ):
     """Get follower growth analytics over time"""
     try:
@@ -445,7 +445,7 @@ async def get_engagement_analytics(
     account_id: int,
     days: int = 30,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db),
+    db: Session = Depends(get_db_sync),
 ):
     """Get engagement analytics and trends"""
     try:
@@ -510,7 +510,7 @@ async def get_post_analytics_list(
     limit: int = 50,
     skip: int = 0,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db),
+    db: Session = Depends(get_db_sync),
 ):
     """Get list of post analytics with pagination"""
     try:
@@ -552,7 +552,7 @@ async def get_top_posts(
     account_id: int,
     limit: int = 10,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db),
+    db: Session = Depends(get_db_sync),
 ):
     """Get top performing posts by engagement score"""
     try:
@@ -589,7 +589,7 @@ async def get_reel_analytics_list(
     account_id: int,
     limit: int = 50,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db),
+    db: Session = Depends(get_db_sync),
 ):
     """Get reel analytics"""
     try:
@@ -627,7 +627,7 @@ async def get_story_analytics_list(
     account_id: int,
     days: int = 7,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db),
+    db: Session = Depends(get_db_sync),
 ):
     """Get story analytics (last 7 days)"""
     try:
@@ -667,7 +667,7 @@ async def get_story_analytics_list(
 async def get_audience_insights(
     account_id: int,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db),
+    db: Session = Depends(get_db_sync),
 ):
     """Get audience demographics and behavior insights"""
     try:
@@ -713,7 +713,7 @@ async def get_recommendations(
     account_id: int,
     category: Optional[str] = None,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db),
+    db: Session = Depends(get_db_sync),
 ):
     """Get AI-powered recommendations for improving Instagram performance"""
     try:
@@ -755,7 +755,7 @@ async def get_recommendations(
 async def get_growth_predictions(
     account_id: int,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db),
+    db: Session = Depends(get_db_sync),
 ):
     """Get AI-powered growth predictions"""
     try:
@@ -806,7 +806,7 @@ async def trigger_manual_sync(
     account_id: int,
     background_tasks: BackgroundTasks,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db),
+    db: Session = Depends(get_db_sync),
 ):
     """Manually trigger analytics sync for an account"""
     try:
@@ -856,7 +856,7 @@ async def trigger_manual_sync(
 async def get_sync_status(
     account_id: int,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db),
+    db: Session = Depends(get_db_sync),
 ):
     """Get current sync status for an account"""
     try:
@@ -900,7 +900,7 @@ async def get_notifications(
     unread_only: bool = False,
     limit: int = 50,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db),
+    db: Session = Depends(get_db_sync),
 ):
     """Get notifications for the current user"""
     try:
@@ -929,7 +929,7 @@ async def get_notifications(
 async def mark_notification_read(
     notification_id: int,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db),
+    db: Session = Depends(get_db_sync),
 ):
     """Mark a notification as read"""
     try:

@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from config.database import get_sync_db
+from config.database import get_db
 from models.user import User
 from schemas.user_schema import UserRegister, UserLogin, TokenResponse, UserResponse
 from services.auth_service_sync import register_user, authenticate_user
@@ -15,6 +15,12 @@ import logging
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/auth", tags=["authentication"])
+
+
+@router.get("/health")
+async def auth_health():
+    """Simple health check for auth router"""
+    return {"status": "ok", "router": "auth"}
 
 
 class GoogleAuthRequest(BaseModel):
@@ -37,7 +43,7 @@ class GoogleAuthRequest(BaseModel):
 )
 async def google_auth(
     auth_request: GoogleAuthRequest,
-    db: Session = Depends(get_sync_db),
+    db: Session = Depends(get_db),
 ) -> TokenResponse:
     """
     Authenticate user with Google Firebase token - PRODUCTION ONLY.
@@ -154,9 +160,9 @@ async def google_auth(
         500: {"description": "Internal server error"},
     },
 )
-def register(
+async def register(
     user_data: UserRegister,
-    db: Session = Depends(get_sync_db),
+    db: Session = Depends(get_db),
 ) -> TokenResponse:
     """
     Register a new user with email and password.
@@ -205,9 +211,9 @@ def register(
         500: {"description": "Internal server error"},
     },
 )
-def login(
+async def login(
     credentials: UserLogin,
-    db: Session = Depends(get_sync_db),
+    db: Session = Depends(get_db),
 ) -> TokenResponse:
     """
     Authenticate user with email and password.
@@ -218,15 +224,18 @@ def login(
     Returns JWT access token for backend authentication.
     """
     try:
+        logger.info(f"🔐 Login attempt for: {credentials.email}")
+        
         # Authenticate user using auth service
         user = authenticate_user(db, credentials.email, credentials.password)
+        logger.info(f"✅ User authenticated: {user.email}, ID: {user.id}")
         
         # Create access token
         access_token = create_access_token(user.id, user.email)
+        logger.info(f"✅ Token created for user: {user.email}")
         
-        logger.info(f"User logged in successfully: {user.email}")
-        
-        return TokenResponse(
+        # Create response
+        response = TokenResponse(
             access_token=access_token,
             token_type="bearer",
             id=user.id,
@@ -234,14 +243,21 @@ def login(
             name=user.name,
             created_at=user.created_at,
         )
+        logger.info(f"✅ Response created successfully")
         
-    except HTTPException:
+        logger.info(f"✅ User logged in successfully: {user.email}")
+        return response
+        
+    except HTTPException as he:
+        logger.warning(f"⚠️  HTTP Exception in login: {he.status_code} - {he.detail}")
         raise
     except Exception as e:
-        logger.error(f"Unexpected error in login endpoint: {e}")
+        logger.error(f"❌ Unexpected error in login endpoint: {type(e).__name__}: {e}")
+        import traceback
+        logger.error(f"❌ Traceback: {traceback.format_exc()}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Login failed",
+            detail=f"Login failed: {str(e)}",
         )
 
 
@@ -254,7 +270,7 @@ def login(
         401: {"description": "Unauthorized"},
     },
 )
-def logout(
+async def logout(
     current_user: User = Depends(get_current_user),
     authorization: str = None,
 ) -> dict:

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Query, Request
 from fastapi.responses import RedirectResponse, HTMLResponse
 from sqlalchemy.orm import Session
-from config.database import get_sync_db
+from config.database import get_db_sync
 from services.instagram_crud import InstagramCRUD
 from services.instagram_service import InstagramGraphAPIService
 from utils.dependencies import get_current_user
@@ -189,7 +189,7 @@ async def connect_instagram(
 )
 async def instagram_callback(
     request: Request,
-    db: Session = Depends(get_sync_db),
+    db: Session = Depends(get_db_sync),
 ):
     """
     Handle Facebook OAuth callback for Instagram Graph API connection.
@@ -632,7 +632,7 @@ async def test_callback(
 )
 async def disconnect_instagram(
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db),
+    db: Session = Depends(get_db_sync),
 ):
     """
     Disconnect the user's Instagram account.

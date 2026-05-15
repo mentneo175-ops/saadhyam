@@ -1,0 +1,32 @@
+# Voice Agent Requirements - Free Open Source Models
+# Install with: pip install -r requirements_voice.txt
+
+# Speech-to-Text (Whisper by OpenAI)
+openai-whisper==20231117
+# Alternative: faster-whisper  # Faster implementation
+
+# Text-to-Speech (Coqui TTS)
+TTS==0.22.0
+
+# Audio Processing
+pydub==0.25.1
+soundfile==0.12.1
+librosa==0.10.1
+
+# Alternative TTS (simpler, requires internet)
+gTTS==2.5.0
+
+# Alternative STT (simpler, requires internet)
+SpeechRecognition==3.10.1
+
+# Voice Calling (Twilio)
+twilio==8.11.1
+
+# Background Tasks
+celery==5.3.4
+redis==5.0.1
+
+# Additional Dependencies
+numpy>=1.24.0
+torch>=2.0.0  # For Whisper and TTS
+torchaudio>=2.0.0

@@ -9,7 +9,8 @@ from sqlalchemy.exc import IntegrityError
 from models.user import User
 from schemas.user_schema import UserRegister, TokenData
 from utils.security import hash_password, verify_password, create_access_token
-from fastapi import HTTPException, status
+from fastapi import HTTPException, status, Depends
+from config.database import get_db
 import logging
 
 logger = logging.getLogger(__name__)
@@ -153,4 +154,46 @@ def get_user_by_id(db: Session, user_id: int) -> User:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error",
+        )
+
+
+def get_current_user(db: Session = Depends(get_db), user_id: int = None) -> User:
+    """
+    Get current authenticated user (sync version).
+    Used by voice agent and other services that need current user.
+    
+    Args:
+        db: Database session
+        user_id: User ID from JWT token
+    
+    Returns:
+        User object
+    
+    Raises:
+        HTTPException: If user not found or inactive
+    """
+    try:
+        user = db.query(User).filter(User.id == user_id).first()
+        
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found"
+            )
+        
+        if not user.is_active:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="User account is inactive"
+            )
+        
+        return user
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error fetching current user: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal server error"
         )

@@ -4,14 +4,14 @@ Migration: Add user_id column to review_history table
 
 import logging
 from sqlalchemy import text
-from config.database import get_sync_db
+from config.database import get_db_for_migration
 
 logger = logging.getLogger(__name__)
 
 
 def migrate_add_user_id_to_review_history():
     """Add user_id column to review_history table"""
-    db = next(get_sync_db())
+    db = get_db_for_migration()
     
     try:
         logger.info("🔄 Checking review_history table for user_id column...")

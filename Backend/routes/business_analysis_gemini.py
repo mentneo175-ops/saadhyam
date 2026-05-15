@@ -9,7 +9,7 @@ from fastapi import APIRouter, HTTPException, status, Depends
 from pydantic import BaseModel
 from typing import Dict, Any, Optional, List
 from sqlalchemy.orm import Session
-from config.database import get_sync_db
+from config.database import get_db_sync
 from utils.dependencies import get_current_user
 from models.user import User
 from services.gemini_business_analysis_service import generate_realtime_business_analysis
@@ -59,7 +59,7 @@ class BusinessAnalysisResponse(BaseModel):
 )
 async def get_realtime_business_analysis(
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db)
+    db: Session = Depends(get_db_sync)
 ) -> BusinessAnalysisResponse:
     """
     Get real-time business analysis for logged-in user

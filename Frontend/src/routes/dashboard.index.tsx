@@ -97,17 +97,30 @@ function Overview() {
   // Check if business profile is complete
   useEffect(() => {
     const checkProfile = async () => {
+      // Set a timeout to prevent infinite loading
+      const timeout = setTimeout(() => {
+        console.warn("Profile check timeout - showing dashboard anyway");
+        setCheckingProfile(false);
+      }, 3000);
+
       if (apiClient.isAuthenticated()) {
         try {
           const status = await apiClient.getBusinessSetupStatus();
+          clearTimeout(timeout);
           if (!status.setup_completed) {
             setShowOnboarding(true);
           }
+          setCheckingProfile(false);
         } catch (error) {
           console.error("Error checking profile status:", error);
+          clearTimeout(timeout);
+          // Continue without showing onboarding if there's an error
+          setCheckingProfile(false);
         }
+      } else {
+        clearTimeout(timeout);
+        setCheckingProfile(false);
       }
-      setCheckingProfile(false);
     };
 
     checkProfile();
@@ -381,8 +394,8 @@ function Overview() {
             </div>
           )}
 
-          {/* Main content */}
-          {!checkingProfile && profile && (
+          {/* Main content - show even without profile */}
+          {!checkingProfile && (
             <>
               {/* Snapshot cards */}
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">

@@ -6,7 +6,7 @@ Handles Instagram automation settings, posting preferences, and notifications.
 import logging
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from config.database import get_sync_db
+from config.database import get_db_sync
 from utils.dependencies import get_current_user
 from models.user import User
 from services.settings_service import SettingsService
@@ -33,7 +33,7 @@ router = APIRouter(prefix="/settings", tags=["Settings"])
 )
 async def check_instagram_connection(
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db),
+    db: Session = Depends(get_db_sync),
 ):
     """
     Check if Instagram is connected and automation is enabled.
@@ -79,7 +79,7 @@ async def check_instagram_connection(
 )
 async def get_user_settings(
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db),
+    db: Session = Depends(get_db_sync),
 ):
     """Get all user settings and preferences."""
     try:
@@ -128,7 +128,7 @@ async def get_user_settings(
 async def update_instagram_automation(
     request: UpdateInstagramAutomationRequest,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db),
+    db: Session = Depends(get_db_sync),
 ):
     """
     Update Instagram automation settings.
@@ -191,7 +191,7 @@ async def update_instagram_automation(
 async def update_posting_preferences(
     request: UpdatePostingPreferencesRequest,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db),
+    db: Session = Depends(get_db_sync),
 ):
     """
     Update posting preferences.
@@ -252,7 +252,7 @@ async def update_posting_preferences(
 async def update_notification_settings(
     request: UpdateNotificationSettingsRequest,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db),
+    db: Session = Depends(get_db_sync),
 ):
     """
     Update notification preferences.
@@ -311,7 +311,7 @@ async def update_notification_settings(
 )
 async def disconnect_instagram(
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db),
+    db: Session = Depends(get_db_sync),
 ):
     """
     Disconnect Instagram account and remove all associated data.

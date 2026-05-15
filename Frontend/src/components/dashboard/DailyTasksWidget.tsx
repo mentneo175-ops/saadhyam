@@ -57,6 +57,37 @@ export function DailyTasksWidget() {
 
       if (response.ok) {
         const data: TasksResponse = await response.json();
+        
+        // If no tasks exist, auto-generate them
+        if (data.tasks.length === 0) {
+          await autoGenerateTasks(token);
+        } else {
+          setTasks(data.tasks);
+          setEarnedPoints(data.earned_points);
+          setTotalPoints(data.total_points);
+          // Find first incomplete task
+          const firstIncomplete = data.tasks.findIndex(t => !t.is_completed);
+          if (firstIncomplete !== -1) {
+            setCurrentTaskIndex(firstIncomplete);
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Error loading tasks:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const autoGenerateTasks = async (token: string) => {
+    try {
+      const response = await fetch("http://localhost:8000/api/tasks/generate-daily?num_tasks=5", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (response.ok) {
+        const data: TasksResponse = await response.json();
         setTasks(data.tasks);
         setEarnedPoints(data.earned_points);
         setTotalPoints(data.total_points);
@@ -67,9 +98,7 @@ export function DailyTasksWidget() {
         }
       }
     } catch (error) {
-      console.error("Error loading tasks:", error);
-    } finally {
-      setLoading(false);
+      console.error("Error auto-generating tasks:", error);
     }
   };
 
@@ -139,11 +168,11 @@ export function DailyTasksWidget() {
 
   const getCategoryColor = (category: string) => {
     const colors: Record<string, string> = {
-      marketing: "bg-pink-100 text-pink-700",
-      content: "bg-purple-100 text-purple-700",
-      engagement: "bg-blue-100 text-blue-700",
-      analytics: "bg-emerald-100 text-emerald-700",
-      growth: "bg-amber-100 text-amber-700",
+      marketing: "bg-blue-50 text-blue-900",
+      content: "bg-blue-50 text-blue-900",
+      engagement: "bg-blue-50 text-blue-900",
+      analytics: "bg-blue-50 text-blue-900",
+      growth: "bg-blue-50 text-blue-900",
     };
     return colors[category] || "bg-gray-100 text-gray-700";
   };
@@ -155,7 +184,7 @@ export function DailyTasksWidget() {
   if (loading) {
     return (
       <div className="py-4 flex items-center justify-center">
-        <Loader2 size={20} className="animate-spin text-pink-600" />
+        <Loader2 size={20} className="animate-spin text-blue-900" />
       </div>
     );
   }
@@ -181,11 +210,11 @@ export function DailyTasksWidget() {
   if (completedCount === tasks.length) {
     return (
       <div className="py-4">
-        <div className="bg-gradient-to-r from-emerald-100 to-teal-100 rounded-lg p-4 text-center mb-3">
-          <p className="text-sm font-semibold text-emerald-900">
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center mb-3">
+          <p className="text-sm font-semibold text-green-900">
             🎉 All tasks completed today!
           </p>
-          <p className="text-xs text-emerald-700 mt-1">
+          <p className="text-xs text-green-700 mt-1">
             +{earnedPoints} points earned
           </p>
         </div>
@@ -194,7 +223,7 @@ export function DailyTasksWidget() {
           <span>100%</span>
         </div>
         <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
-          <div className="bg-gradient-to-r from-pink-500 to-purple-500 h-full rounded-full" style={{ width: "100%" }} />
+          <div className="bg-green-600 h-full rounded-full" style={{ width: "100%" }} />
         </div>
       </div>
     );
@@ -207,11 +236,11 @@ export function DailyTasksWidget() {
       <div className="mb-3">
         <div className="flex items-center justify-between text-xs text-gray-600 mb-1">
           <span>Today's Progress ({completedCount}/{tasks.length})</span>
-          <span className="font-semibold text-pink-600">{earnedPoints}/{totalPoints} pts</span>
+          <span className="font-semibold text-blue-900">{earnedPoints}/{totalPoints} pts</span>
         </div>
         <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
           <div
-            className="bg-gradient-to-r from-pink-500 to-purple-500 h-full rounded-full transition-all duration-500"
+            className="bg-blue-900 h-full rounded-full transition-all duration-500"
             style={{ width: `${progressPercentage}%` }}
           />
         </div>
@@ -221,13 +250,13 @@ export function DailyTasksWidget() {
       {currentTask && (
         <div
           onClick={() => toggleTask(currentTask.id, currentTask.is_completed)}
-          className="flex items-start gap-3 p-3 rounded-lg border-2 bg-white border-gray-200 hover:border-pink-300 hover:bg-pink-50 cursor-pointer transition-all mb-3"
+          className="flex items-start gap-3 p-3 rounded-lg border-2 bg-white border-gray-200 hover:border-blue-300 hover:bg-blue-50 cursor-pointer transition-all mb-3"
         >
           <div className="shrink-0 mt-0.5">
             {completing === currentTask.id ? (
               <Loader2 size={18} className="animate-spin text-gray-400" />
             ) : currentTask.is_completed ? (
-              <CheckCircle2 size={18} className="text-emerald-600" />
+              <CheckCircle2 size={18} className="text-green-600" />
             ) : (
               <Circle size={18} className="text-gray-400" />
             )}
@@ -237,7 +266,7 @@ export function DailyTasksWidget() {
               <p className="text-sm font-medium leading-tight text-gray-900">
                 {currentTask.title}
               </p>
-              <span className="text-xs font-semibold text-pink-600 shrink-0">
+              <span className="text-xs font-semibold text-blue-900 shrink-0">
                 +{currentTask.points}
               </span>
             </div>

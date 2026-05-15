@@ -209,12 +209,12 @@ export function ContentTabs() {
   };
 
   return (
-    <div className="bg-card rounded-2xl border border-border/60 shadow-soft p-5">
+    <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-5">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="font-semibold">Ready-to-use content</h3>
+          <h3 className="font-semibold text-gray-900">Ready-to-use content</h3>
           {businessProfile && (
-            <p className="text-[11px] text-muted-foreground mt-0.5">
+            <p className="text-[11px] text-gray-600 mt-0.5">
               Personalized for {businessProfile.business_name}
             </p>
           )}
@@ -222,7 +222,7 @@ export function ContentTabs() {
         <button 
           onClick={() => generateContent()}
           disabled={loading}
-          className="text-xs font-semibold text-primary hover:underline flex items-center gap-1 disabled:opacity-50"
+          className="text-xs font-semibold text-blue-900 hover:underline flex items-center gap-1 disabled:opacity-50"
         >
           {loading ? (
             <>
@@ -257,50 +257,50 @@ export function ContentTabs() {
               setActive(t.key);
               setEditMode(false);
             }}
-            className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition ${
               active === t.key
-                ? "bg-gradient-primary text-primary-foreground shadow-soft"
-                : "bg-muted text-muted-foreground hover:bg-accent/50"
+                ? "bg-blue-900 text-white"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
             }`}
           >
             {t.label}
           </button>
         ))}
       </div>
-      <div className="mt-4 rounded-xl bg-muted/50 border border-border/40 p-4">
-        <p className="text-sm font-semibold mb-1">{currentContent.title}</p>
+      <div className="mt-4 rounded-lg bg-gray-50 border border-gray-200 p-4">
+        <p className="text-sm font-semibold text-gray-900 mb-1">{currentContent.title}</p>
         {editMode ? (
           <textarea
             value={editedBody}
             onChange={(e) => setEditedBody(e.target.value)}
-            className="w-full text-sm text-foreground/80 leading-relaxed bg-background border border-border rounded-lg p-2 min-h-[100px] focus:outline-none focus:ring-2 focus:ring-primary/50"
+            className="w-full text-sm text-gray-700 leading-relaxed bg-white border border-gray-300 rounded-lg p-2 min-h-[100px] focus:outline-none focus:ring-2 focus:ring-blue-900 focus:border-transparent"
             placeholder="Edit your content..."
           />
         ) : (
-          <p className="text-sm text-foreground/80 leading-relaxed whitespace-pre-line">
+          <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">
             {currentContent.body}
           </p>
         )}
-        <p className="text-[11px] text-muted-foreground mt-3">{currentContent.meta}</p>
+        <p className="text-[11px] text-gray-600 mt-3">{currentContent.meta}</p>
       </div>
       <div className="flex items-center gap-2 mt-3">
         <button
           onClick={copy}
-          className="flex-1 inline-flex items-center justify-center gap-1.5 h-9 rounded-xl text-xs font-semibold border border-border hover:bg-accent/40 transition"
+          className="flex-1 inline-flex items-center justify-center gap-1.5 h-9 rounded-lg text-xs font-semibold border border-gray-300 bg-white hover:bg-gray-50 text-gray-700 transition"
         >
           {copied ? <Check size={13} /> : <Copy size={13} />}
           {copied ? "Copied" : "Copy"}
         </button>
         <button 
           onClick={handleEdit}
-          className="flex-1 inline-flex items-center justify-center gap-1.5 h-9 rounded-xl text-xs font-semibold border border-border hover:bg-accent/40 transition"
+          className="flex-1 inline-flex items-center justify-center gap-1.5 h-9 rounded-lg text-xs font-semibold border border-gray-300 bg-white hover:bg-gray-50 text-gray-700 transition"
         >
           <Edit3 size={13} /> 
           {editMode ? "Save" : "Edit"}
         </button>
         <button 
           onClick={handleShare}
-          className="flex-1 inline-flex items-center justify-center gap-1.5 h-9 rounded-xl text-xs font-semibold bg-gradient-primary text-primary-foreground hover:brightness-110 transition"
+          className="flex-1 inline-flex items-center justify-center gap-1.5 h-9 rounded-lg text-xs font-semibold bg-blue-900 text-white hover:bg-blue-800 transition"
         >
           <Share2 size={13} /> Share
         </button>

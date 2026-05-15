@@ -4,10 +4,10 @@ Provides web search functionality with multiple providers and automatic fallback
 Supports: Tavily AI, Serper API, Brave Search, Google Grounding
 """
 
-import logging
 import os
+import logging
 import requests
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Tuple, Optional
 from datetime import datetime
 from tavily import TavilyClient
 
@@ -393,6 +393,7 @@ class WebSearchService:
 
 
 class WebSearchService:
+class WebSearchServiceMultiProvider:
     """
     Web search service with multiple providers and automatic fallback
     
@@ -617,4 +618,4 @@ class WebSearchService:
 
 
 # Global instance
-web_search_service = WebSearchService()
+web_search_service = WebSearchServiceMultiProvider()

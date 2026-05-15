@@ -54,12 +54,12 @@ const integrations = [
     icon: Mail,
     color: "from-blue-500 to-indigo-500",
   },
-  {
-    name: "Shopify",
-    desc: "Orders and customers",
-    icon: ShoppingBag,
-    color: "from-emerald-500 to-green-500",
-  },
+  // {
+  //   name: "Shopify",
+  //   desc: "Orders and customers",
+  //   icon: ShoppingBag,
+  //   color: "from-emerald-500 to-green-500",
+  // },
 ];
 
 function SettingsPage() {
@@ -311,7 +311,7 @@ function SettingsPage() {
         return;
       }
 
-      const response = await fetch("http://localhost:8000/api/whatsapp/status", {
+      const response = await fetch("http://localhost:8000/api/whatsapp/connection-status", {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
@@ -827,7 +827,7 @@ function SettingsPage() {
                     : integration.name === "WhatsApp Business"
                     ? whatsappStatus.is_connected
                       ? "Connected"
-                      : "Not connected"
+                      : "Not Connected"
                     : "Not connected"}
                 </span>
                 {integration.name === "Instagram" && (

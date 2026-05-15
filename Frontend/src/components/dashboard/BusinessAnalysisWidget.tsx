@@ -66,15 +66,15 @@ export function BusinessAnalysisWidget({ onTasksGenerated }: BusinessAnalysisWid
   };
 
   return (
-    <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl border border-purple-200/50 shadow-sm p-5">
+    <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-5">
       <div className="flex items-start justify-between mb-4">
         <div>
           <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-            <Sparkles size={18} className="text-purple-600" />
+            <Sparkles size={18} className="text-blue-900" />
             AI Business Analysis
           </h3>
           <p className="text-xs text-gray-600 mt-1">
-            Describe your business to get AI-powered insights and auto-generate daily tasks
+            Get AI insights and auto-generate tasks
           </p>
         </div>
       </div>
@@ -84,7 +84,7 @@ export function BusinessAnalysisWidget({ onTasksGenerated }: BusinessAnalysisWid
           value={businessDescription}
           onChange={(e) => setBusinessDescription(e.target.value)}
           placeholder="E.g., We are a restaurant in downtown area serving Italian cuisine. We have 50 seats, open 6 days a week. We have Instagram and Facebook but post irregularly..."
-          className="w-full rounded-lg border border-purple-200 bg-white px-3 py-2 text-sm focus:border-purple-400 focus:ring-2 focus:ring-purple-200 outline-none resize-none min-h-20"
+          className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-blue-900 focus:ring-2 focus:ring-blue-100 outline-none resize-none min-h-20"
         />
 
         {error && (
@@ -96,7 +96,7 @@ export function BusinessAnalysisWidget({ onTasksGenerated }: BusinessAnalysisWid
 
         <Button
           variant="hero"
-          className="w-full"
+          className="w-full bg-blue-900 hover:bg-blue-800"
           onClick={handleAnalyze}
           disabled={isAnalyzing || !businessDescription.trim()}
         >

@@ -23,7 +23,7 @@ import {
   Zap,
   BookOpen,
   Network,
-  Phone,
+  Megaphone,
 } from "lucide-react";
 
 type NavItem = {
@@ -44,11 +44,12 @@ const items: NavItem[] = [
   { to: "/dashboard/b2b-network", label: "B2B Network", icon: Network },
   { to: "/dashboard/content", label: "Content Creator", icon: Wand2 },
   { to: "/dashboard/instagram", label: "Instagram", icon: Instagram },
+  { to: "/dashboard/meta-ads", label: "Meta Ads", icon: Megaphone },
   { to: "/dashboard/whatsapp", label: "WhatsApp Sales", icon: MessageSquare },
   { to: "/dashboard/voice-agent", label: "AI Voice Agent", icon: Phone },
   { to: "/dashboard/website", label: "Website AI", icon: FileText },
   { to: "/dashboard/review-reply", label: "Review Reply", icon: MessageSquare },
-  { to: "/dashboard/automation", label: "Automation", icon: Workflow },
+  // { to: "/dashboard/automation", label: "Automation", icon: Workflow },
   { to: "/dashboard/settings", label: "Settings", icon: Settings },
 ];
 
@@ -57,11 +58,11 @@ export function Sidebar() {
 
   return (
     <aside className="hidden lg:flex flex-col w-64 shrink-0 border-r border-sidebar-border bg-sidebar h-screen sticky top-0">
-      <div className="px-5 h-16 flex items-center border-b border-sidebar-border">
-        <Logo />
+      <div className="px-4 h-14 flex items-center border-b border-sidebar-border">
+        <Logo size="sm" />
       </div>
       <nav 
-        className="flex-1 overflow-y-auto p-3 space-y-1" 
+        className="flex-1 overflow-y-auto p-3 space-y-1 scrollbar-hide" 
         style={{ 
           scrollbarWidth: 'none', 
           msOverflowStyle: 'none',
@@ -82,36 +83,36 @@ export function Sidebar() {
             <Link
               key={it.to}
               to={it.to as "/dashboard"}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all group ${
+              className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all group ${
                 active
                   ? "bg-gradient-primary text-primary-foreground shadow-glow"
                   : "text-sidebar-foreground hover:bg-sidebar-accent"
               }`}
             >
               <Icon
-                size={18}
+                size={16}
                 className={
                   active ? "" : "text-muted-foreground group-hover:text-sidebar-accent-foreground"
                 }
               />
-              <span className="flex-1">{it.label}</span>
-              {active && <ChevronRight size={14} />}
+              <span className="flex-1 text-sm">{it.label}</span>
+              {active && <ChevronRight size={12} />}
             </Link>
           );
         })}
       </nav>
-      <div className="p-3 border-t border-sidebar-border">
-        <div className="rounded-2xl p-4 bg-gradient-soft border border-border/60">
+      <div className="p-3 border-t border-sidebar-border mt-auto">
+        <div className="rounded-xl p-4 bg-gradient-soft border border-border/60 shadow-sm">
           <div className="flex items-center gap-2 mb-2">
-            <div className="h-7 w-7 rounded-lg bg-gradient-secondary flex items-center justify-center">
-              <Sparkles size={14} className="text-white" />
+            <div className="h-8 w-8 rounded-lg bg-gradient-secondary flex items-center justify-center shadow-glow-pink">
+              <Sparkles size={16} className="text-white" />
             </div>
             <p className="text-sm font-semibold">Upgrade to Pro</p>
           </div>
-          <p className="text-xs text-muted-foreground mb-3">
+          <p className="text-xs text-muted-foreground mb-3 leading-relaxed">
             Unlock unlimited AI generations and advanced insights.
           </p>
-          <button className="w-full text-xs font-semibold py-2 rounded-lg bg-gradient-primary text-primary-foreground hover:brightness-110 transition">
+          <button className="w-full text-xs font-semibold py-2 rounded-lg bg-gradient-primary text-primary-foreground hover:brightness-110 transition shadow-sm hover:shadow-glow">
             Upgrade
           </button>
         </div>

@@ -26,9 +26,13 @@ interface ChartDataPoint {
   date?: string;
 }
 
+type ViewMode = 'daily' | 'monthly';
+
 export function GrowthChart() {
   const [chartData, setChartData] = useState<ChartDataPoint[]>([]);
   const [loading, setLoading] = useState(true);
+  const [viewMode, setViewMode] = useState<ViewMode>('daily');
+  const [userTenure, setUserTenure] = useState<number>(0);
 
   useEffect(() => {
     fetchGrowthData();
@@ -58,7 +62,7 @@ export function GrowthChart() {
         return;
       }
 
-      const response = await fetch("http://localhost:8000/api/tasks/growth/chart-data?days=30", {
+      const response = await fetch("http://localhost:8000/api/tasks/growth/chart-data?days=90", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -72,14 +76,30 @@ export function GrowthChart() {
       console.log("Growth chart data received:", data);
       
       if (data.metrics && data.metrics.length > 0) {
-        // Transform real data into chart format
-        const transformedData = transformMetricsToChartData(data.metrics);
+        // Calculate user tenure (days since first metric)
+        const firstMetricDate = new Date(data.metrics[0].metric_date);
+        const today = new Date();
+        const tenure = Math.floor((today.getTime() - firstMetricDate.getTime()) / (1000 * 60 * 60 * 24));
+        setUserTenure(tenure);
+        
+        // Determine view mode based on tenure
+        const mode: ViewMode = tenure >= 30 ? 'monthly' : 'daily';
+        setViewMode(mode);
+        console.log(`User tenure: ${tenure} days, View mode: ${mode}`);
+        
+        // Transform data based on view mode
+        const transformedData = mode === 'monthly' 
+          ? transformMetricsToMonthlyData(data.metrics)
+          : transformMetricsToDailyData(data.metrics);
+        
         console.log("Transformed chart data:", transformedData);
         setChartData(transformedData);
       } else {
         // No data yet, show default
         console.log("No metrics data, showing empty state");
         setChartData(getDefaultData());
+        setViewMode('daily');
+        setUserTenure(0);
       }
     } catch (error) {
       console.error("Error fetching growth data:", error);
@@ -90,55 +110,59 @@ export function GrowthChart() {
     }
   };
 
-  const transformMetricsToChartData = (metrics: GrowthMetric[]): ChartDataPoint[] => {
-    const today = new Date();
+  const transformMetricsToDailyData = (metrics: GrowthMetric[]): ChartDataPoint[] => {
     const chartPoints: ChartDataPoint[] = [];
 
-    // Process historical data (last 30 days)
+    // Show daily data with "Day X" labels
     metrics.forEach((metric, index) => {
-      const date = new Date(metric.metric_date);
-      const label = formatDateLabel(date);
+      const dayNumber = index + 1;
       
       chartPoints.push({
-        label,
+        label: `Day ${dayNumber}`,
         value: Math.round(metric.growth_score),
         date: metric.metric_date,
         marker: index === metrics.length - 1 ? "Today" : undefined,
       });
     });
 
-    // Add projection for next 30 days if we have enough data
-    if (metrics.length >= 7) {
-      const recentMetrics = metrics.slice(-7);
-      const avgGrowth = recentMetrics.reduce((sum, m, i, arr) => {
-        if (i === 0) return 0;
-        return sum + (m.growth_score - arr[i - 1].growth_score);
-      }, 0) / (recentMetrics.length - 1);
+    return chartPoints;
+  };
 
-      const lastScore = metrics[metrics.length - 1].growth_score;
-      const projectionDays = 30;
+  const transformMetricsToMonthlyData = (metrics: GrowthMetric[]): ChartDataPoint[] => {
+    // Group metrics by month and calculate average
+    const monthlyData: { [key: string]: { scores: number[], date: string } } = {};
+    
+    metrics.forEach((metric) => {
+      const date = new Date(metric.metric_date);
+      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
       
-      for (let i = 1; i <= projectionDays; i += 5) {
-        const futureDate = new Date(today);
-        futureDate.setDate(futureDate.getDate() + i);
-        
-        const projectedScore = Math.min(
-          100,
-          Math.max(0, lastScore + (avgGrowth * i))
-        );
-        
-        chartPoints.push({
-          label: formatDateLabel(futureDate),
-          value: Math.round(projectedScore),
-          marker: i === projectionDays ? "Goal" : undefined,
-        });
+      if (!monthlyData[monthKey]) {
+        monthlyData[monthKey] = { scores: [], date: metric.metric_date };
       }
-    }
+      
+      monthlyData[monthKey].scores.push(metric.growth_score);
+    });
+
+    // Convert to chart points with month labels
+    const chartPoints: ChartDataPoint[] = Object.entries(monthlyData)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([monthKey, data], index, array) => {
+        const avgScore = data.scores.reduce((sum, s) => sum + s, 0) / data.scores.length;
+        const date = new Date(data.date);
+        const monthLabel = formatMonthLabel(date);
+        
+        return {
+          label: monthLabel,
+          value: Math.round(avgScore),
+          date: data.date,
+          marker: index === array.length - 1 ? "This Month" : undefined,
+        };
+      });
 
     return chartPoints;
   };
 
-  const formatDateLabel = (date: Date): string => {
+  const formatMonthLabel = (date: Date): string => {
     const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     return months[date.getMonth()];
   };
@@ -169,48 +193,67 @@ export function GrowthChart() {
   }
 
   return (
-    <div className="h-64 -mx-2">
-      <ResponsiveContainer width="100%" height="100%">
-        <AreaChart data={chartData}>
-          <defs>
-            <linearGradient id="growthFill" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="oklch(0.55 0.24 295)" stopOpacity={0.35} />
-              <stop offset="100%" stopColor="oklch(0.55 0.24 295)" stopOpacity={0} />
-            </linearGradient>
-          </defs>
-          <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.92 0.01 290)" vertical={false} />
-          <XAxis
-            dataKey="label"
-            tick={{ fill: "oklch(0.5 0.03 280)", fontSize: 11 }}
-            axisLine={false}
-            tickLine={false}
-          />
-          <YAxis
-            tick={{ fill: "oklch(0.5 0.03 280)", fontSize: 11 }}
-            axisLine={false}
-            tickLine={false}
-            domain={[0, 100]}
-          />
-          <Tooltip
-            contentStyle={{
-              borderRadius: 12,
-              border: "1px solid oklch(0.92 0.01 290)",
-              boxShadow: "0 12px 40px -12px oklch(0.3 0.05 280 / 0.18)",
-              fontSize: 12,
-            }}
-            formatter={(value: number) => [`${value}`, "Growth Score"]}
-          />
-          <Area
-            type="monotone"
-            dataKey="value"
-            stroke="oklch(0.55 0.24 295)"
-            strokeWidth={2.5}
-            fill="url(#growthFill)"
-            dot={{ r: 4, fill: "oklch(0.55 0.24 295)", strokeWidth: 2, stroke: "white" }}
-            activeDot={{ r: 6 }}
-          />
-        </AreaChart>
-      </ResponsiveContainer>
+    <div className="space-y-2">
+      {/* View Mode Indicator */}
+      <div className="flex items-center justify-between px-2">
+        <div className="flex items-center gap-2">
+          <div className="text-xs font-medium text-gray-600">
+            {viewMode === 'daily' ? '📅 Daily View' : '📊 Monthly View'}
+          </div>
+          <div className="text-xs text-gray-500">
+            {viewMode === 'daily' 
+              ? `${userTenure} day${userTenure !== 1 ? 's' : ''} of progress`
+              : `${Math.floor(userTenure / 30)} month${Math.floor(userTenure / 30) !== 1 ? 's' : ''} of progress`
+            }
+          </div>
+        </div>
+      </div>
+
+      {/* Chart */}
+      <div className="h-64 -mx-2">
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart data={chartData}>
+            <defs>
+              <linearGradient id="growthFill" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#1e3a8a" stopOpacity={0.15} />
+                <stop offset="100%" stopColor="#1e3a8a" stopOpacity={0} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
+            <XAxis
+              dataKey="label"
+              tick={{ fill: "#64748b", fontSize: 11 }}
+              axisLine={false}
+              tickLine={false}
+            />
+            <YAxis
+              tick={{ fill: "#64748b", fontSize: 11 }}
+              axisLine={false}
+              tickLine={false}
+              domain={[0, 100]}
+            />
+            <Tooltip
+              contentStyle={{
+                borderRadius: 8,
+                border: "1px solid #e2e8f0",
+                boxShadow: "0 4px 12px rgba(0, 0, 0, 0.08)",
+                fontSize: 12,
+                backgroundColor: "white",
+              }}
+              formatter={(value: number) => [`${value}`, "Growth Score"]}
+            />
+            <Area
+              type="monotone"
+              dataKey="value"
+              stroke="#1e3a8a"
+              strokeWidth={2.5}
+              fill="url(#growthFill)"
+              dot={{ r: 4, fill: "#1e3a8a", strokeWidth: 2, stroke: "white" }}
+              activeDot={{ r: 6 }}
+            />
+          </AreaChart>
+        </ResponsiveContainer>
+      </div>
     </div>
   );
 }

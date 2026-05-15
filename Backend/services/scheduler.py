@@ -126,17 +126,30 @@ def process_scheduled_posts():
                 if post_result.get("success"):
                     # Update post status to "posted"
                     logger.info(f"✅ Instagram posting succeeded")
-                    logger.info(f"   Instagram Post ID: {post_result.get('post_id')}")
                     
-                    # Update in database
+                    # Extract media ID from response
+                    media_id = post_result.get("post_id")  # This is the Instagram media ID
+                    creation_id = post_result.get("creation_id")
+                    
+                    logger.info(f"   Instagram Media ID: {media_id}")
+                    logger.info(f"   Creation ID: {creation_id}")
+                    
+                    # Update in database - IMPORTANT: Save media_id for Meta Ads promotion
                     post.status = "posted"
                     post.posted_time = datetime.utcnow()
-                    post.instagram_post_id = post_result.get("post_id")
+                    post.instagram_post_id = media_id  # Legacy field
+                    post.instagram_media_id = media_id  # REQUIRED for Meta Ads boosted posts
                     db.commit()
                     
-                    logger.info(f"✅ Database updated: status=posted, posted_time={post.posted_time}")
+                    logger.info(f"✅ Database updated:")
+                    logger.info(f"   status=posted")
+                    logger.info(f"   posted_time={post.posted_time}")
+                    logger.info(f"   instagram_post_id={media_id}")
+                    logger.info(f"   instagram_media_id={media_id}")
+                    
                     posted_count += 1
-                    logger.info(f"✅ Post {post.id} successfully posted!")
+                    logger.info(f"✅ Post {post.id} successfully posted and saved to database!")
+                    logger.info(f"✅ This post can now be promoted with Meta Ads!")
                     
                 else:
                     # Posting failed

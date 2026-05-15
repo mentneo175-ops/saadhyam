@@ -30,6 +30,7 @@ function ReviewReplyPage() {
   const [error, setError] = useState("");
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
+  const [copied, setCopied] = useState(false);
 
   const businessTypes = [
     "Restaurant",
@@ -201,6 +202,42 @@ function ReviewReplyPage() {
     setGeneratedReply(item.reply);
   };
 
+  const handleCopyReply = async () => {
+    if (!generatedReply) return;
+    
+    try {
+      await navigator.clipboard.writeText(generatedReply);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (error) {
+      console.error("Failed to copy:", error);
+      // Fallback for older browsers
+      const textArea = document.createElement("textarea");
+      textArea.value = generatedReply;
+      document.body.appendChild(textArea);
+      textArea.select();
+      try {
+        document.execCommand("copy");
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      } catch (err) {
+        console.error("Fallback copy failed:", err);
+      }
+      document.body.removeChild(textArea);
+    }
+  };
+
+  const handleCopyHistoryReply = async (reply: string, event: React.MouseEvent) => {
+    event.stopPropagation(); // Prevent loading the history item
+    
+    try {
+      await navigator.clipboard.writeText(reply);
+      // You could add a toast notification here
+    } catch (error) {
+      console.error("Failed to copy:", error);
+    }
+  };
+
   return (
     <div className="p-4 md:p-6 space-y-5">
       <PageHeader
@@ -318,9 +355,31 @@ function ReviewReplyPage() {
               size="sm"
               className="flex-1"
               disabled={!generatedReply}
-              onClick={() => navigator.clipboard?.writeText(generatedReply)}
+              onClick={handleCopyReply}
             >
-              <Copy size={13} /> Copy
+              {copied ? (
+                <>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="13"
+                    height="13"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="text-green-600"
+                  >
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                  <span className="text-green-600">Copied!</span>
+                </>
+              ) : (
+                <>
+                  <Copy size={13} /> Copy Reply
+                </>
+              )}
             </Button>
             <Button
               variant="outline"
@@ -349,7 +408,7 @@ function ReviewReplyPage() {
             {history.map((item) => (
               <div
                 key={item.id}
-                className="rounded-lg border border-border/40 p-3 hover:bg-accent/20 transition cursor-pointer"
+                className="rounded-lg border border-border/40 p-3 hover:bg-accent/20 transition cursor-pointer group"
                 onClick={() => loadFromHistory(item)}
               >
                 <div className="flex items-start justify-between gap-3 mb-2">
@@ -359,9 +418,18 @@ function ReviewReplyPage() {
                     </p>
                     <p className="text-sm line-clamp-2 text-foreground">{item.review}</p>
                   </div>
-                  <p className="text-[10px] text-muted-foreground whitespace-nowrap">
-                    {formatDate(item.created_at)}
-                  </p>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={(e) => handleCopyHistoryReply(item.reply, e)}
+                      className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 hover:bg-accent rounded-md"
+                      title="Copy reply"
+                    >
+                      <Copy size={14} className="text-muted-foreground hover:text-foreground" />
+                    </button>
+                    <p className="text-[10px] text-muted-foreground whitespace-nowrap">
+                      {formatDate(item.created_at)}
+                    </p>
+                  </div>
                 </div>
                 <p className="text-xs text-muted-foreground line-clamp-1 italic">
                   Reply: {item.reply}

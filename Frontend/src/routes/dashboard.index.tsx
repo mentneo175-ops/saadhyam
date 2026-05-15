@@ -162,6 +162,21 @@ function Overview() {
     }
   }, [profile, checkingProfile]);
 
+  // Helper function to render markdown text with bold
+  const renderMarkdown = (text: string) => {
+    // Split by ** to find bold sections
+    const parts = text.split(/(\*\*.*?\*\*)/g);
+    
+    return parts.map((part, idx) => {
+      if (part.startsWith('**') && part.endsWith('**')) {
+        // Remove ** and render as bold
+        const boldText = part.slice(2, -2);
+        return <strong key={idx} className="font-semibold text-gray-900">{boldText}</strong>;
+      }
+      return <span key={idx}>{part}</span>;
+    });
+  };
+
   // Handle onboarding completion
   const handleOnboardingComplete = () => {
     setShowOnboarding(false);
@@ -185,37 +200,25 @@ function Overview() {
 
   const getDescriptionForRecommendation = (rec: string) => {
     const lowerRec = rec.toLowerCase();
-    if (lowerRec.includes('social')) return "Boost your social media presence and engagement";
-    if (lowerRec.includes('review')) return "Improve your online reputation and ratings";
-    if (lowerRec.includes('seo') || lowerRec.includes('online')) return "Increase your online visibility and reach";
-    if (lowerRec.includes('customer')) return "Enhance customer relationships and retention";
-    return "AI-recommended action to grow your business";
+    if (lowerRec.includes('social')) return "Boost social media engagement";
+    if (lowerRec.includes('review')) return "Improve online reputation";
+    if (lowerRec.includes('seo') || lowerRec.includes('online')) return "Increase online visibility";
+    if (lowerRec.includes('customer')) return "Enhance customer retention";
+    return "AI-recommended action";
   };
 
   const getImpactLevel = (idx: number): "High" | "Medium" | "Low" => {
     return idx < 2 ? "High" : idx < 4 ? "Medium" : "Low";
   };
 
+  // Professional theme - all cards use white background with navy accents
   const getBackgroundColor = (idx: number) => {
-    const colors = [
-      "bg-gradient-to-br from-purple-50 to-fuchsia-50",
-      "bg-gradient-to-br from-pink-50 to-rose-50",
-      "bg-gradient-to-br from-blue-50 to-indigo-50",
-      "bg-gradient-to-br from-emerald-50 to-teal-50",
-      "bg-gradient-to-br from-amber-50 to-orange-50",
-    ];
-    return colors[idx % colors.length];
+    return "bg-white";
   };
 
   const getIconColor = (idx: number) => {
-    const colors = [
-      "text-purple-600",
-      "text-pink-600",
-      "text-blue-600",
-      "text-emerald-600",
-      "text-amber-600",
-    ];
-    return colors[idx % colors.length];
+    // Use navy blue as primary brand color for all icons
+    return "text-blue-900";
   };
 
   // Default snapshot cards
@@ -356,25 +359,29 @@ function Overview() {
         onComplete={handleOnboardingComplete}
       />
 
-      <div className="flex">
-        <div className="flex-1 min-w-0 p-4 md:p-6 lg:p-8 space-y-7">
+      <div className="flex min-h-screen bg-gradient-to-br from-purple-50 via-purple-100/30 to-fuchsia-50/20">
+        <div className="flex-1 min-w-0 p-4 md:p-6 lg:p-8 space-y-6">
           {/* Loading state */}
           {checkingProfile && (
-            <div className="text-center py-12">
-              <Sparkles size={32} className="animate-spin mx-auto text-purple-600 mb-4" />
-              <p className="text-gray-600">Loading your business intelligence...</p>
+            <div className="text-center py-16">
+              <div className="relative inline-block">
+                <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-fuchsia-600 rounded-full blur-xl opacity-30 animate-pulse"></div>
+                <Sparkles size={32} className="animate-spin mx-auto text-purple-600 relative z-10 mb-4" />
+              </div>
+              <p className="text-gray-700 text-base font-medium">Loading your business intelligence...</p>
+              <p className="text-gray-500 text-sm mt-1">Preparing insights powered by AI</p>
             </div>
           )}
 
           {/* Error state */}
           {profileError && !checkingProfile && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
-              <p className="text-red-600">{profileError}</p>
+            <div className="bg-red-50 border border-red-200 rounded-2xl p-5 text-center shadow-sm">
+              <p className="text-red-700 text-sm font-medium">{profileError}</p>
               <Button
                 variant="hero"
                 size="sm"
                 onClick={() => setShowOnboarding(true)}
-                className="mt-3"
+                className="mt-3 bg-gradient-to-r from-purple-600 to-fuchsia-600 hover:from-purple-700 hover:to-fuchsia-700 shadow-lg shadow-purple-500/30"
               >
                 Complete Business Setup
               </Button>
@@ -384,65 +391,77 @@ function Overview() {
           {/* Main content */}
           {!checkingProfile && profile && (
             <>
+              {/* Welcome Header */}
+              <div className="mb-6">
+                <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                  Welcome back, {profile.business_name || 'Business Owner'}
+                </h1>
+                <p className="text-gray-600">Here's what's happening with your business today</p>
+              </div>
+
               {/* Snapshot cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
                 {updatedSnapshots.map((s) => (
                   <SnapshotCard key={s.title} {...s} />
                 ))}
               </div>
 
               {/* Instagram Analytics Preview Card */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
                 <div className="lg:col-span-1">
                   <InstagramAnalyticsCard />
                 </div>
                 
                 {/* Growth journey with integrated daily task */}
-                <div className="lg:col-span-2 bg-card rounded-2xl border border-border/60 shadow-soft p-5">
-                  <div className="flex items-center justify-between mb-2">
+                <div className="lg:col-span-2 bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 shadow-xl shadow-gray-200/50 p-6 hover:shadow-2xl hover:shadow-gray-300/50 transition-all duration-300">
+                  <div className="flex items-center justify-between mb-4">
                     <div>
-                      <h3 className="font-semibold">Your growth journey</h3>
-                      <p className="text-xs text-muted-foreground">Track your progress with daily tasks</p>
+                      <h3 className="font-bold text-lg text-gray-900">Your Growth Journey</h3>
+                      <p className="text-sm text-gray-600">Track your progress with daily tasks</p>
                     </div>
-                    <Button variant="outline" size="sm" onClick={() => navigate({ to: "/dashboard/daily-ask" })}>
-                      View full report <ArrowRight size={14} />
-                  </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => navigate({ to: "/dashboard/daily-ask" })} 
+                      className="border-gray-300 text-gray-700 hover:bg-gray-50 transition-all"
+                    >
+                      View full report <ArrowRight size={14} className="ml-1" />
+                    </Button>
+                  </div>
+                
+                  {/* Daily Task Section - Integrated */}
+                  <DailyTasksWidget />
+                
+                  {/* Growth Chart */}
+                  <GrowthChart />
                 </div>
-                
-                {/* Daily Task Section - Integrated */}
-                <DailyTasksWidget />
-                
-                {/* Growth Chart */}
-                <GrowthChart />
-              </div>
               </div>
 
               {/* Recommended actions */}
               <div>
-                <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center justify-between mb-4">
                   <div>
-                    <h3 className="font-semibold">
-                      {dynamicActions.length > 0 ? "AI-Generated Action Plan" : "Recommended actions"}
+                    <h3 className="font-bold text-lg text-gray-900">
+                      {dynamicActions.length > 0 ? "🎯 AI-Generated Action Plan" : "Recommended Actions"}
                     </h3>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-sm text-gray-600">
                       {dynamicActions.length > 0 
                         ? "Personalized recommendations from Gemini AI with real-time insights"
                         : "AI-prioritized for maximum impact today"
                       }
                     </p>
                   </div>
-                  <button className="text-xs font-semibold text-primary hover:underline">See all</button>
                 </div>
                 
                 {insightsLoading ? (
-                  <div className="flex gap-4 overflow-x-auto pb-2">
+                  <div className="flex gap-5 overflow-x-auto pb-3">
                     {[1, 2, 3].map((i) => (
-                      <div key={i} className="min-w-[280px] h-32 bg-gray-100 rounded-xl animate-pulse" />
+                      <div key={i} className="min-w-[280px] h-36 bg-gradient-to-br from-gray-100 to-gray-50 rounded-2xl animate-pulse shadow-sm" />
                     ))}
                   </div>
                 ) : (
                   <div 
-                    className="flex gap-4 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-hide" 
+                    className="flex gap-5 overflow-x-auto pb-3 -mx-1 px-1 scrollbar-hide" 
                     style={{ 
                       scrollbarWidth: 'none', 
                       msOverflowStyle: 'none',
@@ -458,96 +477,108 @@ function Overview() {
 
               {/* 30-Day Growth Plan */}
               {growthPlan?.thirty_day_growth_plan && (
-                <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-border/60">
-                  <div className="bg-gradient-to-r from-purple-200 to-pink-200 p-5">
+                <div className="bg-white rounded-2xl shadow-xl shadow-gray-200/50 overflow-hidden border border-gray-200/50 backdrop-blur-sm hover:shadow-2xl hover:shadow-purple-300/50 transition-all duration-300">
+                  <div className="bg-gradient-to-r from-purple-600 to-fuchsia-600 p-6">
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="h-12 w-12 rounded-full bg-purple-300 flex items-center justify-center">
-                          <Target size={24} className="text-purple-800" />
+                      <div className="flex items-center gap-4">
+                        <div className="h-14 w-14 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg">
+                          <Target size={28} className="text-white" />
                         </div>
                         <div>
-                          <h3 className="font-semibold text-lg text-gray-900">30-Day Growth Plan</h3>
-                          <p className="text-sm text-gray-700">Your personalized roadmap to success</p>
+                          <h3 className="font-bold text-xl text-white">30-Day Growth Plan</h3>
+                          <p className="text-sm text-purple-100">Your personalized roadmap to success</p>
                         </div>
                       </div>
                       <Button 
                         variant="outline" 
                         size="sm"
                         onClick={() => navigate({ to: "/dashboard/daily-ask" })}
-                        className="bg-white/80 hover:bg-white"
+                        className="bg-white/10 backdrop-blur-sm hover:bg-white/20 border-white/30 text-white hover:border-white/50 transition-all"
                       >
-                        View All <ArrowRight size={14} />
+                        View All <ArrowRight size={14} className="ml-1" />
                       </Button>
                     </div>
                   </div>
-                  <div className="p-5 grid gap-3 md:grid-cols-2 lg:grid-cols-4">
+                  <div className="p-6 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                     {growthPlan.thirty_day_growth_plan.week_1 && growthPlan.thirty_day_growth_plan.week_1.length > 0 && (
-                      <div className="bg-gradient-to-br from-purple-50 to-fuchsia-50 rounded-xl p-4 border border-purple-100">
-                        <div className="flex items-center gap-2 mb-3">
-                          <div className="h-8 w-8 rounded-full bg-purple-200 flex items-center justify-center">
-                            <span className="text-sm font-bold text-purple-700">1</span>
+                      <div className="bg-white rounded-xl p-5 border border-gray-200 hover:border-blue-300 hover:shadow-lg transition-all duration-300 group">
+                        <div className="flex items-center gap-3 mb-4">
+                          <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center shadow-lg shadow-blue-500/30 group-hover:shadow-xl group-hover:shadow-blue-500/40 transition-all">
+                            <span className="text-base font-bold text-white">1</span>
                           </div>
-                          <h4 className="font-semibold text-sm text-gray-900">Week 1 · Foundations</h4>
+                          <div>
+                            <h4 className="font-bold text-sm text-gray-900">Week 1</h4>
+                            <p className="text-xs text-gray-600">Foundations</p>
+                          </div>
                         </div>
-                        <ul className="space-y-2">
+                        <ul className="space-y-2.5">
                           {growthPlan.thirty_day_growth_plan.week_1.slice(0, 2).map((action, idx) => (
                             <li key={idx} className="text-xs text-gray-700 flex items-start gap-2">
-                              <CheckCircle2 size={12} className="text-purple-600 shrink-0 mt-0.5" />
-                              <span className="line-clamp-2">{action}</span>
+                              <CheckCircle2 size={14} className="text-green-600 shrink-0 mt-0.5" />
+                              <span className="line-clamp-2 leading-relaxed">{renderMarkdown(action)}</span>
                             </li>
                           ))}
                         </ul>
                       </div>
                     )}
                     {growthPlan.thirty_day_growth_plan.week_2 && growthPlan.thirty_day_growth_plan.week_2.length > 0 && (
-                      <div className="bg-gradient-to-br from-pink-50 to-rose-50 rounded-xl p-4 border border-pink-100">
-                        <div className="flex items-center gap-2 mb-3">
-                          <div className="h-8 w-8 rounded-full bg-pink-200 flex items-center justify-center">
-                            <span className="text-sm font-bold text-pink-700">2</span>
+                      <div className="bg-white rounded-xl p-5 border border-gray-200 hover:border-purple-300 hover:shadow-lg transition-all duration-300 group">
+                        <div className="flex items-center gap-3 mb-4">
+                          <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-purple-500/30 group-hover:shadow-xl group-hover:shadow-purple-500/40 transition-all">
+                            <span className="text-base font-bold text-white">2</span>
                           </div>
-                          <h4 className="font-semibold text-sm text-gray-900">Week 2 · Engagement</h4>
+                          <div>
+                            <h4 className="font-bold text-sm text-gray-900">Week 2</h4>
+                            <p className="text-xs text-gray-600">Engagement</p>
+                          </div>
                         </div>
-                        <ul className="space-y-2">
+                        <ul className="space-y-2.5">
                           {growthPlan.thirty_day_growth_plan.week_2.slice(0, 2).map((action, idx) => (
                             <li key={idx} className="text-xs text-gray-700 flex items-start gap-2">
-                              <CheckCircle2 size={12} className="text-pink-600 shrink-0 mt-0.5" />
-                              <span className="line-clamp-2">{action}</span>
+                              <CheckCircle2 size={14} className="text-green-600 shrink-0 mt-0.5" />
+                              <span className="line-clamp-2 leading-relaxed">{renderMarkdown(action)}</span>
                             </li>
                           ))}
                         </ul>
                       </div>
                     )}
                     {growthPlan.thirty_day_growth_plan.week_3 && growthPlan.thirty_day_growth_plan.week_3.length > 0 && (
-                      <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-100">
-                        <div className="flex items-center gap-2 mb-3">
-                          <div className="h-8 w-8 rounded-full bg-blue-200 flex items-center justify-center">
-                            <span className="text-sm font-bold text-blue-700">3</span>
+                      <div className="bg-white rounded-xl p-5 border border-gray-200 hover:border-orange-300 hover:shadow-lg transition-all duration-300 group">
+                        <div className="flex items-center gap-3 mb-4">
+                          <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center shadow-lg shadow-orange-500/30 group-hover:shadow-xl group-hover:shadow-orange-500/40 transition-all">
+                            <span className="text-base font-bold text-white">3</span>
                           </div>
-                          <h4 className="font-semibold text-sm text-gray-900">Week 3 · Acceleration</h4>
+                          <div>
+                            <h4 className="font-bold text-sm text-gray-900">Week 3</h4>
+                            <p className="text-xs text-gray-600">Acceleration</p>
+                          </div>
                         </div>
-                        <ul className="space-y-2">
+                        <ul className="space-y-2.5">
                           {growthPlan.thirty_day_growth_plan.week_3.slice(0, 2).map((action, idx) => (
                             <li key={idx} className="text-xs text-gray-700 flex items-start gap-2">
-                              <CheckCircle2 size={12} className="text-blue-600 shrink-0 mt-0.5" />
-                              <span className="line-clamp-2">{action}</span>
+                              <CheckCircle2 size={14} className="text-green-600 shrink-0 mt-0.5" />
+                              <span className="line-clamp-2 leading-relaxed">{renderMarkdown(action)}</span>
                             </li>
                           ))}
                         </ul>
                       </div>
                     )}
                     {growthPlan.thirty_day_growth_plan.week_4 && growthPlan.thirty_day_growth_plan.week_4.length > 0 && (
-                      <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-xl p-4 border border-emerald-100">
-                        <div className="flex items-center gap-2 mb-3">
-                          <div className="h-8 w-8 rounded-full bg-emerald-200 flex items-center justify-center">
-                            <span className="text-sm font-bold text-emerald-700">4</span>
+                      <div className="bg-white rounded-xl p-5 border border-gray-200 hover:border-emerald-300 hover:shadow-lg transition-all duration-300 group">
+                        <div className="flex items-center gap-3 mb-4">
+                          <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-lg shadow-emerald-500/30 group-hover:shadow-xl group-hover:shadow-emerald-500/40 transition-all">
+                            <span className="text-base font-bold text-white">4</span>
                           </div>
-                          <h4 className="font-semibold text-sm text-gray-900">Week 4 · Optimization</h4>
+                          <div>
+                            <h4 className="font-bold text-sm text-gray-900">Week 4</h4>
+                            <p className="text-xs text-gray-600">Optimization</p>
+                          </div>
                         </div>
-                        <ul className="space-y-2">
+                        <ul className="space-y-2.5">
                           {growthPlan.thirty_day_growth_plan.week_4.slice(0, 2).map((action, idx) => (
                             <li key={idx} className="text-xs text-gray-700 flex items-start gap-2">
-                              <CheckCircle2 size={12} className="text-emerald-600 shrink-0 mt-0.5" />
-                              <span className="line-clamp-2">{action}</span>
+                              <CheckCircle2 size={14} className="text-green-600 shrink-0 mt-0.5" />
+                              <span className="line-clamp-2 leading-relaxed">{renderMarkdown(action)}</span>
                             </li>
                           ))}
                         </ul>

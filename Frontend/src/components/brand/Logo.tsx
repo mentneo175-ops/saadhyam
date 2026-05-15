@@ -1,5 +1,5 @@
-import { Sparkles } from "lucide-react";
 import { Link } from "@tanstack/react-router";
+import logoImage from "@/Icon/Saadhyam_Icon-removebg-preview.png";
 
 interface LogoProps {
   size?: "sm" | "md" | "lg";
@@ -8,15 +8,20 @@ interface LogoProps {
 }
 
 const sizeMap = {
-  sm: { box: "h-8 w-8", icon: 16, text: "text-base" },
-  md: { box: "h-10 w-10", icon: 20, text: "text-lg" },
-  lg: { box: "h-12 w-12", icon: 24, text: "text-xl" },
+  sm: { img: "h-10", text: "text-base", gap: "gap-2" },
+  md: { img: "h-12", text: "text-lg", gap: "gap-2" },
+  lg: { img: "h-16", text: "text-xl", gap: "gap-3" },
 };
 
 export function Logo({ size = "md", showText = true, to = "/" }: LogoProps) {
   const s = sizeMap[size];
   return (
-    <Link to={to} className="flex items-center gap-2.5 group">
+    <Link to={to} className={`flex items-center ${s.gap} group hover:opacity-80 transition-opacity`}>
+      <img 
+        src={logoImage} 
+        alt="Saadhyam AI Logo" 
+        className={`${s.img} w-auto object-contain`}
+      />
       {showText && (
         <span className={`font-bold ${s.text} tracking-tight`}>
           Saadhyam <span className="text-gradient">AI</span>

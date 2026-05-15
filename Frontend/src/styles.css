@@ -272,6 +272,9 @@
   * {
     border-color: var(--color-border);
   }
+  html {
+    font-size: 12.8px; /* 80% of 16px = 12.8px for true 80% scale */
+  }
   html,
   body {
     font-family: var(--font-sans);
@@ -281,6 +284,7 @@
     color: var(--color-foreground);
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
+    zoom: 0.2; /* Scale everything to 80% */
   }
 }
 
@@ -363,4 +367,19 @@
 
 .scrollbar-hide::-webkit-scrollbar {
   display: none;  /* Chrome, Safari and Opera */
+}
+
+/* Global zoom to make UI more compact (95% zoom effect at 100% browser zoom) */
+body {
+  zoom: 0.95;
+  -moz-transform: scale(0.95);
+  -moz-transform-origin: 0 0;
+}
+
+/* Ensure responsive zoom on different screen sizes */
+@media (max-width: 1024px) {
+  body {
+    zoom: 1;
+    -moz-transform: scale(1);
+  }
 }

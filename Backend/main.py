@@ -201,6 +201,8 @@ try:
 except Exception as e:
     logging.warning(f"Customer Retention Agent router not available: {e}")
     customer_retention_available = False
+
+try:
     from routes.aeo_geo import router as aeo_geo_router
     aeo_geo_available = True
     logging.info("✅ AEO/GEO router imported successfully")
@@ -289,6 +291,22 @@ except Exception as e:
     task_tracking_available = False
 
 try:
+    from routes.meta_oauth import router as meta_oauth_router
+    meta_oauth_available = True
+    logging.info("✅ Meta OAuth router imported successfully")
+except Exception as e:
+    logging.warning(f"Meta OAuth router not available: {e}")
+    meta_oauth_available = False
+
+try:
+    from routes.meta_ads import router as meta_ads_router
+    meta_ads_available = True
+    logging.info("✅ Meta Ads router imported successfully")
+except Exception as e:
+    logging.warning(f"Meta Ads router not available: {e}")
+    meta_ads_available = False
+
+try:
     from ai_models.website_ai.app.api.v1.routes import generation as website_ai_generation
     from ai_models.website_ai.app.api.v1.routes import jobs as website_ai_jobs
     from ai_models.website_ai.app.routes import website as website_ai_website
@@ -362,6 +380,12 @@ async def lifespan(app: FastAPI):
         migrate_add_instagram_analytics_tables()
         from migrations.add_task_tracking_tables import migrate_add_task_tracking_tables
         migrate_add_task_tracking_tables()
+        from migrations.add_meta_ads_tables import migrate_add_meta_ads_tables
+        migrate_add_meta_ads_tables()
+        from migrations.fix_campaign_status_enum import migrate_fix_campaign_status_enum
+        migrate_fix_campaign_status_enum()
+        from migrations.update_campaign_status_enum import migrate_update_campaign_status_enum
+        migrate_update_campaign_status_enum()
         logger.info("✅ Migrations completed")
         
         # Start scheduler for processing scheduled Instagram posts
@@ -557,6 +581,12 @@ if instagram_analytics_available:
 if task_tracking_available:
     app.include_router(task_tracking_router)
     logging.info("✅ Task Tracking router included in app")
+if meta_oauth_available:
+    app.include_router(meta_oauth_router)
+    logging.info("✅ Meta OAuth router included in app")
+if meta_ads_available:
+    app.include_router(meta_ads_router)
+    logging.info("✅ Meta Ads router included in app")
 if dashboard_analytics_available:
     app.include_router(dashboard_analytics_router)
     logging.info("✅ Dashboard Analytics router included in app")

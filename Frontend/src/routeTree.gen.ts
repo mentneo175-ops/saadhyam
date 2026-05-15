@@ -27,6 +27,7 @@ import { Route as DashboardSeoRouteImport } from './routes/dashboard.seo'
 import { Route as DashboardReviewReplyRouteImport } from './routes/dashboard.review-reply'
 import { Route as DashboardReportsRouteImport } from './routes/dashboard.reports'
 import { Route as DashboardPricingRouteImport } from './routes/dashboard.pricing'
+import { Route as DashboardMetaAdsRouteImport } from './routes/dashboard.meta-ads'
 import { Route as DashboardMessagesRouteImport } from './routes/dashboard.messages'
 import { Route as DashboardInstagramAnalyticsRouteImport } from './routes/dashboard.instagram-analytics'
 import { Route as DashboardInstagramRouteImport } from './routes/dashboard.instagram'
@@ -138,6 +139,11 @@ const DashboardReportsRoute = DashboardReportsRouteImport.update({
 const DashboardPricingRoute = DashboardPricingRouteImport.update({
   id: '/pricing',
   path: '/pricing',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardMetaAdsRoute = DashboardMetaAdsRouteImport.update({
+  id: '/meta-ads',
+  path: '/meta-ads',
   getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardMessagesRoute = DashboardMessagesRouteImport.update({
@@ -284,6 +290,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/instagram': typeof DashboardInstagramRoute
   '/dashboard/instagram-analytics': typeof DashboardInstagramAnalyticsRouteWithChildren
   '/dashboard/messages': typeof DashboardMessagesRoute
+  '/dashboard/meta-ads': typeof DashboardMetaAdsRoute
   '/dashboard/pricing': typeof DashboardPricingRoute
   '/dashboard/reports': typeof DashboardReportsRoute
   '/dashboard/review-reply': typeof DashboardReviewReplyRoute
@@ -325,6 +332,7 @@ export interface FileRoutesByTo {
   '/dashboard/instagram': typeof DashboardInstagramRoute
   '/dashboard/instagram-analytics': typeof DashboardInstagramAnalyticsRouteWithChildren
   '/dashboard/messages': typeof DashboardMessagesRoute
+  '/dashboard/meta-ads': typeof DashboardMetaAdsRoute
   '/dashboard/pricing': typeof DashboardPricingRoute
   '/dashboard/reports': typeof DashboardReportsRoute
   '/dashboard/review-reply': typeof DashboardReviewReplyRoute
@@ -368,6 +376,7 @@ export interface FileRoutesById {
   '/dashboard/instagram': typeof DashboardInstagramRoute
   '/dashboard/instagram-analytics': typeof DashboardInstagramAnalyticsRouteWithChildren
   '/dashboard/messages': typeof DashboardMessagesRoute
+  '/dashboard/meta-ads': typeof DashboardMetaAdsRoute
   '/dashboard/pricing': typeof DashboardPricingRoute
   '/dashboard/reports': typeof DashboardReportsRoute
   '/dashboard/review-reply': typeof DashboardReviewReplyRoute
@@ -412,6 +421,7 @@ export interface FileRouteTypes {
     | '/dashboard/instagram'
     | '/dashboard/instagram-analytics'
     | '/dashboard/messages'
+    | '/dashboard/meta-ads'
     | '/dashboard/pricing'
     | '/dashboard/reports'
     | '/dashboard/review-reply'
@@ -453,6 +463,7 @@ export interface FileRouteTypes {
     | '/dashboard/instagram'
     | '/dashboard/instagram-analytics'
     | '/dashboard/messages'
+    | '/dashboard/meta-ads'
     | '/dashboard/pricing'
     | '/dashboard/reports'
     | '/dashboard/review-reply'
@@ -495,6 +506,7 @@ export interface FileRouteTypes {
     | '/dashboard/instagram'
     | '/dashboard/instagram-analytics'
     | '/dashboard/messages'
+    | '/dashboard/meta-ads'
     | '/dashboard/pricing'
     | '/dashboard/reports'
     | '/dashboard/review-reply'
@@ -650,6 +662,13 @@ declare module '@tanstack/react-router' {
       path: '/pricing'
       fullPath: '/dashboard/pricing'
       preLoaderRoute: typeof DashboardPricingRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/meta-ads': {
+      id: '/dashboard/meta-ads'
+      path: '/meta-ads'
+      fullPath: '/dashboard/meta-ads'
+      preLoaderRoute: typeof DashboardMetaAdsRouteImport
       parentRoute: typeof DashboardRoute
     }
     '/dashboard/messages': {
@@ -856,6 +875,7 @@ interface DashboardRouteChildren {
   DashboardInstagramRoute: typeof DashboardInstagramRoute
   DashboardInstagramAnalyticsRoute: typeof DashboardInstagramAnalyticsRouteWithChildren
   DashboardMessagesRoute: typeof DashboardMessagesRoute
+  DashboardMetaAdsRoute: typeof DashboardMetaAdsRoute
   DashboardPricingRoute: typeof DashboardPricingRoute
   DashboardReportsRoute: typeof DashboardReportsRoute
   DashboardReviewReplyRoute: typeof DashboardReviewReplyRoute
@@ -890,6 +910,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardInstagramAnalyticsRoute:
     DashboardInstagramAnalyticsRouteWithChildren,
   DashboardMessagesRoute: DashboardMessagesRoute,
+  DashboardMetaAdsRoute: DashboardMetaAdsRoute,
   DashboardPricingRoute: DashboardPricingRoute,
   DashboardReportsRoute: DashboardReportsRoute,
   DashboardReviewReplyRoute: DashboardReviewReplyRoute,

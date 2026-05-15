@@ -51,14 +51,15 @@ def generate_smart_content(
         if api_key:
             logger.info(f"🔑 API key length: {len(api_key)} characters")
             logger.info(f"🔑 API key starts with: {api_key[:10]}...")
-        print(f"DEBUG: GROQ_API_KEY = {api_key}")
         
         if not api_key:
             logger.warning("⚠️ GROQ_API_KEY not set, using fallback")
             return _fallback_content(user_input, business_type, platform, goal, tone, language)
         
         logger.info("🚀 Attempting GROQ API call...")
+        logger.info(f"📝 Input: {user_input[:100]}...")
         client = Groq(api_key=api_key)
+        logger.info("✅ Groq client initialized successfully")
         
         # Extract context from user input
         context = _extract_context(user_input, business_type, platform, goal)
@@ -126,7 +127,13 @@ Context:
 - Language: {language}
 - Tone: {tone}
 
-Generate content in {language} language with {tone} tone.
+CRITICAL INSTRUCTION: The user has provided specific content above. You MUST use the details, offers, and context from their input. Do NOT generate generic business content. If they mention:
+- Specific products (handbags, watches, accessories) → Include those exact products
+- Specific discounts (30% OFF) → Include that exact discount
+- Specific events (Weekend Sale) → Include that exact event
+- Specific details → Use those exact details
+
+Generate content in {language} language with {tone} tone that DIRECTLY relates to what the user provided.
 Return ONLY the JSON response with headline, caption, subtext, cta, and hashtags.
 Make it SPECIFIC to this business and event. Avoid generic phrases.
 
@@ -137,8 +144,13 @@ If language is not English, translate the content appropriately while keeping ha
         
         # Call Groq API
         try:
+            # Get model names from env
+            primary_model = os.getenv("GROQ_CONTENT_MODEL", "llama-3.1-8b-instant")
+            fallback_model = os.getenv("GROQ_CONTENT_MODEL_FALLBACK", "llama3-8b-8192")
+            
+            logger.info(f"🤖 Calling Groq API with model: {primary_model}")
             response = client.chat.completions.create(
-                model="llama-3.1-8b-instant",
+                model=primary_model,
                 messages=[
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_message}
@@ -147,10 +159,12 @@ If language is not English, translate the content appropriately while keeping ha
                 max_tokens=600,
                 timeout=15
             )
+            logger.info("✅ Groq API call successful")
         except Exception as e:
-            logger.warning(f"⚠️ Primary model failed: {e}, trying fallback model")
+            logger.warning(f"⚠️ Primary model ({primary_model}) failed: {e}")
+            logger.info(f"🔄 Trying fallback model: {fallback_model}")
             response = client.chat.completions.create(
-                model="llama3-8b-8192",
+                model=fallback_model,
                 messages=[
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_message}
@@ -159,6 +173,7 @@ If language is not English, translate the content appropriately while keeping ha
                 max_tokens=600,
                 timeout=10
             )
+            logger.info("✅ Fallback model call successful")
         
         # Parse response
         content = response.choices[0].message.content.strip()

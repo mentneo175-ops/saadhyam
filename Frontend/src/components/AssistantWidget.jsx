@@ -268,9 +268,9 @@ export default function AssistantWidget() {
     }
   };
 
-  // Show widget ONLY on the main dashboard page (not in other features)
-  const isMainDashboard = location.pathname === '/dashboard' || location.pathname === '/dashboard/';
-  const shouldShow = isMainDashboard && user;
+  // Show widget on all dashboard pages except login/signup
+  const isDashboardPage = location.pathname.startsWith('/dashboard');
+  const shouldShow = isDashboardPage && user;
 
   // Don't render if should not be shown
   if (!shouldShow) {

@@ -54,6 +54,21 @@ function BusinessAnalysisPage() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Helper function to render markdown text with bold
+  const renderMarkdown = (text: string) => {
+    // Split by ** to find bold sections
+    const parts = text.split(/(\*\*.*?\*\*)/g);
+    
+    return parts.map((part, idx) => {
+      if (part.startsWith('**') && part.endsWith('**')) {
+        // Remove ** and render as bold
+        const boldText = part.slice(2, -2);
+        return <strong key={idx} className="font-bold text-gray-900">{boldText}</strong>;
+      }
+      return <span key={idx}>{part}</span>;
+    });
+  };
+
   // Prepare chart data - MUST be at top level before any returns
   const businessMetricsData = useMemo(() => {
     if (!analysis) return [];
@@ -86,13 +101,13 @@ function BusinessAnalysisPage() {
     if (!analysis) return [];
     
     return [
-      { name: "Strengths", value: analysis.strengths?.length || 0, color: "#10b981" },
-      { name: "Weaknesses", value: analysis.weaknesses?.length || 0, color: "#ef4444" },
-      { name: "Opportunities", value: analysis.growth_opportunities?.length || 0, color: "#8b5cf6" },
+      { name: "Strengths", value: analysis.strengths?.length || 0, color: "#8b5cf6" },
+      { name: "Weaknesses", value: analysis.weaknesses?.length || 0, color: "#06b6d4" },
+      { name: "Opportunities", value: analysis.growth_opportunities?.length || 0, color: "#a855f7" },
     ];
   }, [analysis]);
 
-  const COLORS = ["#10b981", "#ef4444", "#8b5cf6"];
+  const COLORS = ["#8b5cf6", "#06b6d4", "#a855f7"];
 
   // Get token from localStorage
   const getToken = () => {
@@ -310,9 +325,9 @@ function BusinessAnalysisPage() {
               border-radius: 8px;
               border-left: 4px solid #8b5cf6;
             }
-            .strengths .list-item { border-left-color: #10b981; }
-            .weaknesses .list-item { border-left-color: #ef4444; }
-            .opportunities .list-item { border-left-color: #8b5cf6; }
+            .strengths .list-item { border-left-color: #8b5cf6; }
+            .weaknesses .list-item { border-left-color: #06b6d4; }
+            .opportunities .list-item { border-left-color: #a855f7; }
             .insights-grid {
               display: grid;
               grid-template-columns: 1fr 1fr;
@@ -492,8 +507,8 @@ function BusinessAnalysisPage() {
           <p className="text-lg font-semibold text-gray-900">Analyzing your business...</p>
           <p className="text-sm text-gray-600 mt-2">This may take 2-3 minutes</p>
           {/* <p className="text-xs text-gray-500 mt-1">Using Google AI Studio Gemini with Search Grounding</p> */}
-          <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4 max-w-md">
-            <p className="text-sm text-blue-900 text-center">
+          <div className="mt-6 bg-purple-50 border border-purple-200 rounded-lg p-4 max-w-md">
+            <p className="text-sm text-purple-900 text-center">
               💡 We're making ONE comprehensive API call to gather all your business insights.
               After this, all pages will load instantly with no rate limits!
             </p>
@@ -537,10 +552,10 @@ function BusinessAnalysisPage() {
           title="Business Analysis"
           subtitle="AI-powered insights for your business"
         />
-        <div className="bg-red-50 border-red-200 border rounded-lg p-6 text-center">
-          <AlertCircle size={48} className="mx-auto text-red-600 mb-4" />
-          <p className="text-lg font-semibold text-red-900 mb-2">Analysis Failed</p>
-          <p className="text-red-700 mb-4">{error}</p>
+        <div className="bg-purple-50 border-purple-200 border rounded-lg p-6 text-center">
+          <AlertCircle size={48} className="mx-auto text-purple-600 mb-4" />
+          <p className="text-lg font-semibold text-purple-900 mb-2">Analysis Failed</p>
+          <p className="text-purple-700 mb-4">{error}</p>
           <Button variant="hero" onClick={handleAnalyze}>
             <RefreshCw size={16} />
             Try Again
@@ -602,7 +617,7 @@ function BusinessAnalysisPage() {
 
       {/* Business Overview Card - Full Width */}
       {analysis?.business_details && (
-        <div className="bg-gradient-to-br from-purple-600 to-pink-600 rounded-2xl shadow-lg p-6 text-white">
+        <div className="bg-gradient-to-br from-purple-600 to-cyan-500 rounded-2xl shadow-lg p-6 text-white">
           <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
             <div className="flex items-start gap-4 flex-1">
               <div className="h-16 w-16 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center flex-shrink-0">
@@ -652,38 +667,38 @@ function BusinessAnalysisPage() {
       {/* Key Metrics Grid - 4 Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Strengths Count */}
-        <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-xl border border-emerald-200 p-5 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer">
+        <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl border border-purple-200 p-5 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer">
           <div className="flex items-start justify-between mb-4">
-            <div className="h-12 w-12 rounded-xl bg-emerald-500 flex items-center justify-center flex-shrink-0">
+            <div className="h-12 w-12 rounded-xl bg-purple-500 flex items-center justify-center flex-shrink-0">
               <TrendingUp size={24} className="text-white" />
             </div>
             <div className="text-right">
-              <div className="text-4xl font-bold text-emerald-700 leading-none">
+              <div className="text-4xl font-bold text-purple-700 leading-none">
                 {analysis?.strengths?.length || 0}
               </div>
             </div>
           </div>
           <div>
-            <h3 className="text-base font-bold text-emerald-900 mb-1">Strengths</h3>
-            <p className="text-xs text-emerald-700">Key advantages identified</p>
+            <h3 className="text-base font-bold text-purple-900 mb-1">Strengths</h3>
+            <p className="text-xs text-purple-700">Key advantages identified</p>
           </div>
         </div>
 
         {/* Weaknesses Count */}
-        <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-xl border border-red-200 p-5 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer">
+        <div className="bg-gradient-to-br from-cyan-50 to-cyan-100 rounded-xl border border-cyan-200 p-5 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer">
           <div className="flex items-start justify-between mb-4">
-            <div className="h-12 w-12 rounded-xl bg-red-500 flex items-center justify-center flex-shrink-0">
+            <div className="h-12 w-12 rounded-xl bg-cyan-500 flex items-center justify-center flex-shrink-0">
               <TrendingDown size={24} className="text-white" />
             </div>
             <div className="text-right">
-              <div className="text-4xl font-bold text-red-700 leading-none">
+              <div className="text-4xl font-bold text-cyan-700 leading-none">
                 {analysis?.weaknesses?.length || 0}
               </div>
             </div>
           </div>
           <div>
-            <h3 className="text-base font-bold text-red-900 mb-1">Weaknesses</h3>
-            <p className="text-xs text-red-700">Areas to improve</p>
+            <h3 className="text-base font-bold text-cyan-900 mb-1">Weaknesses</h3>
+            <p className="text-xs text-cyan-700">Areas to improve</p>
           </div>
         </div>
 
@@ -706,20 +721,20 @@ function BusinessAnalysisPage() {
         </div>
 
         {/* Services Count */}
-        <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border border-blue-200 p-5 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer">
+        <div className="bg-gradient-to-br from-cyan-50 to-cyan-100 rounded-xl border border-cyan-200 p-5 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer">
           <div className="flex items-start justify-between mb-4">
-            <div className="h-12 w-12 rounded-xl bg-blue-500 flex items-center justify-center flex-shrink-0">
+            <div className="h-12 w-12 rounded-xl bg-cyan-600 flex items-center justify-center flex-shrink-0">
               <Activity size={24} className="text-white" />
             </div>
             <div className="text-right">
-              <div className="text-4xl font-bold text-blue-700 leading-none">
+              <div className="text-4xl font-bold text-cyan-800 leading-none">
                 {analysis?.business_details?.services?.length || 0}
               </div>
             </div>
           </div>
           <div>
-            <h3 className="text-base font-bold text-blue-900 mb-1">Services</h3>
-            <p className="text-xs text-blue-700">Offerings available</p>
+            <h3 className="text-base font-bold text-cyan-900 mb-1">Services</h3>
+            <p className="text-xs text-cyan-700">Offerings available</p>
           </div>
         </div>
       </div>
@@ -747,8 +762,8 @@ function BusinessAnalysisPage() {
         {/* SWOT Distribution Pie Chart */}
         <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 hover:shadow-lg transition-shadow">
           <div className="flex items-center gap-2 mb-4">
-            <div className="h-10 w-10 rounded-lg bg-emerald-100 flex items-center justify-center">
-              <Activity size={20} className="text-emerald-600" />
+            <div className="h-10 w-10 rounded-lg bg-cyan-100 flex items-center justify-center">
+              <Activity size={20} className="text-cyan-600" />
             </div>
             <h3 className="text-lg font-semibold">SWOT Distribution</h3>
           </div>
@@ -780,16 +795,16 @@ function BusinessAnalysisPage() {
         {analysis?.strengths && analysis.strengths.length > 0 && (
           <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 hover:shadow-lg transition-shadow">
             <div className="flex items-center gap-2 mb-4">
-              <div className="h-10 w-10 rounded-lg bg-emerald-100 flex items-center justify-center">
-                <TrendingUp size={20} className="text-emerald-600" />
+              <div className="h-10 w-10 rounded-lg bg-purple-100 flex items-center justify-center">
+                <TrendingUp size={20} className="text-purple-600" />
               </div>
               <h3 className="text-lg font-semibold">Strengths</h3>
             </div>
             <div className="space-y-3">
               {analysis.strengths.map((strength, idx) => (
-                <div key={idx} className="flex items-start gap-3 p-3 bg-emerald-50 rounded-lg hover:bg-emerald-100 transition-colors">
-                  <CheckCircle2 size={18} className="text-emerald-600 shrink-0 mt-0.5" />
-                  <span className="text-sm text-gray-700">{strength}</span>
+                <div key={idx} className="flex items-start gap-3 p-3 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors">
+                  <CheckCircle2 size={18} className="text-purple-600 shrink-0 mt-0.5" />
+                  <span className="text-sm text-gray-700">{renderMarkdown(strength)}</span>
                 </div>
               ))}
             </div>
@@ -800,16 +815,16 @@ function BusinessAnalysisPage() {
         {analysis?.weaknesses && analysis.weaknesses.length > 0 && (
           <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 hover:shadow-lg transition-shadow">
             <div className="flex items-center gap-2 mb-4">
-              <div className="h-10 w-10 rounded-lg bg-red-100 flex items-center justify-center">
-                <AlertCircle size={20} className="text-red-600" />
+              <div className="h-10 w-10 rounded-lg bg-cyan-100 flex items-center justify-center">
+                <AlertCircle size={20} className="text-cyan-600" />
               </div>
               <h3 className="text-lg font-semibold">Weaknesses</h3>
             </div>
             <div className="space-y-3">
               {analysis.weaknesses.map((weakness, idx) => (
-                <div key={idx} className="flex items-start gap-3 p-3 bg-red-50 rounded-lg hover:bg-red-100 transition-colors">
-                  <AlertCircle size={18} className="text-red-600 shrink-0 mt-0.5" />
-                  <span className="text-sm text-gray-700">{weakness}</span>
+                <div key={idx} className="flex items-start gap-3 p-3 bg-cyan-50 rounded-lg hover:bg-cyan-100 transition-colors">
+                  <AlertCircle size={18} className="text-cyan-600 shrink-0 mt-0.5" />
+                  <span className="text-sm text-gray-700">{renderMarkdown(weakness)}</span>
                 </div>
               ))}
             </div>
@@ -829,7 +844,7 @@ function BusinessAnalysisPage() {
               {analysis.growth_opportunities.map((opportunity, idx) => (
                 <div key={idx} className="flex items-start gap-3 p-3 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors">
                   <Sparkles size={18} className="text-purple-600 shrink-0 mt-0.5" />
-                  <span className="text-sm text-gray-700">{opportunity}</span>
+                  <span className="text-sm text-gray-700">{renderMarkdown(opportunity)}</span>
                 </div>
               ))}
             </div>
@@ -840,48 +855,48 @@ function BusinessAnalysisPage() {
         {analysis?.local_market_insights && (
           <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 hover:shadow-lg transition-shadow">
             <div className="flex items-center gap-2 mb-4">
-              <div className="h-10 w-10 rounded-lg bg-blue-100 flex items-center justify-center">
-                <Map size={20} className="text-blue-600" />
+              <div className="h-10 w-10 rounded-lg bg-cyan-100 flex items-center justify-center">
+                <Map size={20} className="text-cyan-600" />
               </div>
               <h3 className="text-lg font-semibold">Local Market Insights</h3>
             </div>
             <div className="space-y-4">
               {analysis.local_market_insights.local_demand && (
-                <div className="p-3 bg-blue-50 rounded-lg">
-                  <h4 className="text-sm font-semibold text-blue-900 mb-1 flex items-center gap-2">
+                <div className="p-3 bg-cyan-50 rounded-lg">
+                  <h4 className="text-sm font-semibold text-cyan-900 mb-1 flex items-center gap-2">
                     <Users size={14} />
                     Local Demand
                   </h4>
-                  <p className="text-sm text-gray-700">{analysis.local_market_insights.local_demand}</p>
+                  <p className="text-sm text-gray-700">{renderMarkdown(analysis.local_market_insights.local_demand)}</p>
                 </div>
               )}
               {analysis.local_market_insights.customer_behavior && (
-                <div className="p-3 bg-blue-50 rounded-lg">
-                  <h4 className="text-sm font-semibold text-blue-900 mb-1 flex items-center gap-2">
+                <div className="p-3 bg-cyan-50 rounded-lg">
+                  <h4 className="text-sm font-semibold text-cyan-900 mb-1 flex items-center gap-2">
                     <Activity size={14} />
                     Customer Behavior
                   </h4>
-                  <p className="text-sm text-gray-700">{analysis.local_market_insights.customer_behavior}</p>
+                  <p className="text-sm text-gray-700">{renderMarkdown(analysis.local_market_insights.customer_behavior)}</p>
                 </div>
               )}
               {analysis.local_market_insights.competition_level && (
-                <div className="p-3 bg-blue-50 rounded-lg">
-                  <h4 className="text-sm font-semibold text-blue-900 mb-1 flex items-center gap-2">
+                <div className="p-3 bg-cyan-50 rounded-lg">
+                  <h4 className="text-sm font-semibold text-cyan-900 mb-1 flex items-center gap-2">
                     <TrendingUp size={14} />
                     Competition Level
                   </h4>
-                  <p className="text-sm text-gray-700">{analysis.local_market_insights.competition_level}</p>
+                  <p className="text-sm text-gray-700">{renderMarkdown(analysis.local_market_insights.competition_level)}</p>
                 </div>
               )}
               {analysis.local_market_insights.trending_services && analysis.local_market_insights.trending_services.length > 0 && (
-                <div className="p-3 bg-blue-50 rounded-lg">
-                  <h4 className="text-sm font-semibold text-blue-900 mb-2 flex items-center gap-2">
+                <div className="p-3 bg-cyan-50 rounded-lg">
+                  <h4 className="text-sm font-semibold text-cyan-900 mb-2 flex items-center gap-2">
                     <Sparkles size={14} />
                     Trending Services
                   </h4>
                   <div className="flex flex-wrap gap-2">
                     {analysis.local_market_insights.trending_services.map((service, idx) => (
-                      <span key={idx} className="px-3 py-1 bg-blue-200 text-blue-800 rounded-full text-xs font-medium">
+                      <span key={idx} className="px-3 py-1 bg-cyan-200 text-cyan-800 rounded-full text-xs font-medium">
                         {service}
                       </span>
                     ))}

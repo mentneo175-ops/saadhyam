@@ -24,6 +24,7 @@ import {
   BookOpen,
   Network,
   Megaphone,
+  Phone,
 } from "lucide-react";
 
 type NavItem = {
@@ -67,13 +68,8 @@ export function Sidebar() {
           scrollbarWidth: 'none', 
           msOverflowStyle: 'none',
           WebkitOverflowScrolling: 'touch'
-        }}
+        } as React.CSSProperties}
       >
-        <style jsx>{`
-          nav::-webkit-scrollbar {
-            display: none;
-          }
-        `}</style>
         {items.map((it) => {
           const active = it.exact
             ? pathname === it.to

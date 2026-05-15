@@ -23,15 +23,22 @@ class AIAudienceService:
             raise ValueError("GEMINI_API_KEY not found in environment")
         
         genai.configure(api_key=api_key)
-        # Use gemini-1.5-flash (latest stable model)
+        # Use gemini-1.5-pro or gemini-pro as fallback
         # Note: If this fails, fallback recommendations will be used
         try:
-            self.model = genai.GenerativeModel('gemini-1.5-flash')
-            logger.info("✅ Gemini model initialized: gemini-1.5-flash")
+            # Try gemini-1.5-pro first
+            self.model = genai.GenerativeModel('gemini-1.5-pro')
+            logger.info("✅ Gemini model initialized: gemini-1.5-pro")
         except Exception as e:
-            logger.warning(f"⚠️ Failed to initialize gemini-1.5-flash: {e}")
-            logger.info("ℹ️ Will use fallback recommendations")
-            self.model = None
+            logger.warning(f"⚠️ Failed to initialize gemini-1.5-pro: {e}")
+            try:
+                # Fallback to gemini-pro
+                self.model = genai.GenerativeModel('gemini-pro')
+                logger.info("✅ Gemini model initialized: gemini-pro (fallback)")
+            except Exception as e2:
+                logger.warning(f"⚠️ Failed to initialize gemini-pro: {e2}")
+                logger.info("ℹ️ Will use fallback recommendations")
+                self.model = None
     
     async def generate_audience_recommendations(
         self,

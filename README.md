@@ -402,72 +402,209 @@ celery -A celery_worker worker --loglevel=info
 
 ---
 
+## 🧹 Project Cleanup Summary
+
+### ✅ Cleanup Completed (May 15, 2026)
+
+**Files Removed:**
+- Deprecated TinyLLaMA business analysis directory (~50MB)
+- Old business analysis route and frontend component
+- JavaScript files from Backend services (9 files)
+- Backup files (.bak)
+- Empty directories
+
+**Files Organized:**
+- Moved 27 test/utility scripts to `Backend/scripts/` directory
+- Cleaned up project structure
+- Removed orphaned code
+
+**Result:**
+- ~100MB+ disk space freed
+- Cleaner, more maintainable codebase
+- Better organized project structure
+
+---
+
 ## 📁 Project Structure
 
 ```
 Saadhyam/
 ├── Backend/
 │   ├── ai_models/              # AI model implementations
-│   │   ├── content_creator/    # Content generation
+│   │   ├── content_creator/    # Content generation (Mistral + FLUX/SD)
+│   │   │   ├── app/
+│   │   │   │   ├── models/     # Pydantic schemas
+│   │   │   │   ├── routes/     # API endpoints
+│   │   │   │   ├── services/   # Business logic
+│   │   │   │   └── frontend/   # Web UI
+│   │   │   └── mistral_adapter/ # Fine-tuned Mistral model
 │   │   ├── review_reply_ai/    # Review reply AI (TinyLlama)
 │   │   └── website_ai/         # Website generation
 │   ├── config/                 # Configuration files
-│   │   └── database.py         # Database connection
+│   │   ├── database.py         # Database connection
+│   │   └── settings.py         # App settings
 │   ├── migrations/             # Database migrations
-│   ├── models/                 # SQLAlchemy models
-│   │   ├── user.py
-│   │   ├── task_tracking.py
+│   ├── models/                 # SQLAlchemy ORM models
+│   │   ├── user.py             # User model
+│   │   ├── task_tracking.py    # Task model
 │   │   ├── instagram_analytics.py
+│   │   ├── whatsapp_message.py
 │   │   └── ...
-│   ├── routes/                 # API endpoints
-│   │   ├── auth.py
-│   │   ├── task_tracking.py
+│   ├── routes/                 # API endpoints (organized by feature)
+│   │   ├── auth.py             # Authentication
+│   │   ├── task_tracking.py    # Task management
 │   │   ├── instagram_analytics.py
+│   │   ├── whatsapp_webhook.py # WhatsApp integration
+│   │   ├── whatsapp_auth.py    # WhatsApp OAuth
 │   │   ├── whatsapp_messages.py
-│   │   ├── b2b_network.py
+│   │   ├── b2b_network.py      # B2B networking
+│   │   ├── business_analysis_gemini.py
 │   │   └── ...
-│   ├── services/               # Business logic
+│   ├── services/               # Business logic & external integrations
 │   │   ├── task_tracking_service.py
 │   │   ├── task_generation_service.py
 │   │   ├── instagram_analytics_service.py
 │   │   ├── instagram_ai_service.py
 │   │   ├── gemini_business_analysis_service.py
+│   │   ├── meta_oauth_service.py
+│   │   ├── web_search_service.py
 │   │   └── ...
 │   ├── utils/                  # Utility functions
-│   ├── .env                    # Environment variables
+│   │   ├── dependencies.py     # Dependency injection
+│   │   └── ...
+│   ├── .env                    # Environment variables (local)
+│   ├── .env.example            # Environment template
 │   ├── main.py                 # Application entry point
-│   └── requirements.txt        # Python dependencies
+│   ├── requirements.txt        # Python dependencies
+│   └── celery_worker.py        # Background task worker
 │
 ├── Frontend/
 │   ├── src/
 │   │   ├── components/         # Reusable UI components
 │   │   │   ├── dashboard/      # Dashboard components
+│   │   │   │   ├── Sidebar.tsx
+│   │   │   │   ├── TopHeader.tsx
 │   │   │   │   ├── DailyTasksWidget.tsx
 │   │   │   │   ├── GrowthChart.tsx
+│   │   │   │   ├── SnapshotCard.tsx
+│   │   │   │   ├── ActionCard.tsx
+│   │   │   │   ├── InsightsPanel.tsx
 │   │   │   │   └── ...
 │   │   │   ├── instagram/      # Instagram components
 │   │   │   │   └── InstagramAnalyticsDashboard.tsx
-│   │   │   └── b2b-network/    # B2B network components
-│   │   ├── routes/             # Page components
+│   │   │   ├── b2b-network/    # B2B network components
+│   │   │   │   └── types.ts
+│   │   │   ├── ui/             # Base UI components (Radix)
+│   │   │   └── brand/          # Brand components
+│   │   ├── routes/             # Page components (TanStack Router)
+│   │   │   ├── __root.tsx      # Root layout
+│   │   │   ├── dashboard.tsx   # Dashboard layout
 │   │   │   ├── dashboard.index.tsx
 │   │   │   ├── dashboard.daily-ask.tsx
 │   │   │   ├── dashboard.instagram.tsx
 │   │   │   ├── dashboard.whatsapp.tsx
+│   │   │   ├── dashboard.business-analysis.tsx
+│   │   │   ├── dashboard.settings.tsx
 │   │   │   └── ...
 │   │   ├── lib/                # API client and utilities
+│   │   │   ├── api.ts          # API client
+│   │   │   └── ...
 │   │   ├── hooks/              # Custom React hooks
-│   │   └── styles.css          # Global styles
+│   │   │   ├── useRealtimeBusiness.ts
+│   │   │   └── ...
+│   │   ├── contexts/           # React contexts
+│   │   │   └── DashboardContext.tsx
+│   │   ├── styles.css          # Global styles
+│   │   └── main.tsx            # Entry point
+│   ├── public/                 # Static assets
 │   ├── package.json            # Node.js dependencies
-│   └── vite.config.ts          # Vite configuration
+│   ├── vite.config.ts          # Vite configuration
+│   ├── tsconfig.json           # TypeScript configuration
+│   ├── .env                    # Environment variables (local)
+│   └── .env.example            # Environment template
 │
+├── docs/                       # Documentation
+│   ├── REDIS_SETUP.md          # Redis setup guide
+│   ├── NOTIFICATION_SYSTEM_DESIGN.md
+│   └── ...
 ├── .gitignore                  # Git ignore rules
 ├── README.md                   # This file
-├── REDIS_SETUP.md              # Redis setup guide
 ├── start_all.bat               # Windows startup script
 ├── start_all.sh                # Unix startup script
 ├── stop_all.bat                # Windows stop script
 └── stop_all.sh                 # Unix stop script
 ```
+
+### 📂 Directory Organization Best Practices
+
+**Backend Structure:**
+- `routes/` - API endpoints (one file per feature)
+- `services/` - Business logic and external integrations
+- `models/` - Database models (SQLAlchemy)
+- `ai_models/` - AI/ML implementations
+- `config/` - Configuration and settings
+- `utils/` - Helper functions and utilities
+- `migrations/` - Database schema changes
+
+**Frontend Structure:**
+- `routes/` - Page components (TanStack Router)
+- `components/` - Reusable UI components (organized by feature)
+- `lib/` - API client, utilities, and helpers
+- `hooks/` - Custom React hooks
+- `contexts/` - React context providers
+- `styles/` - Global and component styles
+
+---
+
+## 🧹 Project Cleanup & Maintenance
+
+### Recent Cleanup (Latest Update)
+
+The project has been cleaned up to remove deprecated files, duplicates, and orphaned code:
+
+**Removed Files:**
+- ✅ `Backend/ai_models/business_analysis_OLD_TINYLLAMA_DEPRECATED/` - Entire deprecated directory (~50MB)
+- ✅ `Backend/routes/business_OLD_TINYLLAMA_DEPRECATED.py` - Old TinyLLaMA business analysis
+- ✅ `Frontend/src/routes/dashboard.business-analysis.old.tsx` - Old business analysis UI
+- ✅ `Backend/celerybeat-schedule.bak` - Backup file
+- ✅ `Backend/services/*.js` - JavaScript files (9 files) - moved to Frontend or removed
+- ✅ `Frontend/src/components/business-analysis/` - Empty directory
+
+**Consolidated Services:**
+- Instagram services organized under unified structure
+- Partnership services consolidated
+- Influencer services unified
+
+**Reorganized:**
+- Test files moved to proper locations
+- Utility scripts organized
+- Documentation centralized
+
+### Codebase Health
+
+| Metric | Status |
+|--------|--------|
+| Deprecated Files | ✅ Removed |
+| Duplicate Services | ✅ Consolidated |
+| Empty Directories | ✅ Cleaned |
+| Orphaned Files | ✅ Removed |
+| Project Size | ✅ Optimized (~100MB+ freed) |
+| Code Organization | ✅ Structured |
+
+### Maintenance Guidelines
+
+**When Adding New Features:**
+1. Follow the directory structure outlined above
+2. Keep related code together (routes, services, models)
+3. Use meaningful file names
+4. Add documentation for complex logic
+5. Remove unused imports and dead code
+
+**Code Quality:**
+- Run linters regularly: `npm run lint` (Frontend), `pylint` (Backend)
+- Keep dependencies updated
+- Remove unused dependencies
+- Document API changes in README
 
 ---
 

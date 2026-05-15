@@ -54,7 +54,7 @@ export const Route = createRootRoute({
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:site", content: "@SaadhyamAI" },
       {
-        "http-equiv": "Content-Security-Policy",
+        httpEquiv: "Content-Security-Policy",
         content: "default-src 'self' 'unsafe-inline' 'unsafe-eval' https: http: data: blob:; connect-src 'self' 'unsafe-inline' 'unsafe-eval' https: http: localhost:* 127.0.0.1:* *.localhost:* ws: wss:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https: http: data: blob:; style-src 'self' 'unsafe-inline' https: http: data: blob:; img-src 'self' https: http: data: blob:; font-src 'self' https: http: data: blob:; frame-src 'self' https: http: localhost:* 127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'",
       },
     ],

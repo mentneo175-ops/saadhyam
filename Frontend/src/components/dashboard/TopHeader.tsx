@@ -142,21 +142,21 @@ export function TopHeader() {
       <div className="flex-1 justify-between">
         <div className="relative">
           {/* Business Greeting or Default Greeting */}
-          {!isLoading && businessProfile?.business_setup_completed && businessProfile.business_name ? (
+          {!isLoading && businessProfile && businessProfile.business_setup_completed && businessProfile.business_name ? (
             <div>
               <h1 className="text-base md:text-lg font-bold tracking-tight text-gray-900">
                 Welcome back, {businessProfile.business_name}! 👋
               </h1>
               <div className="flex items-center gap-2.5 mt-0.5">
                 <p className="text-[11px] text-gray-600">
-                  {businessProfile.business_type} • {businessProfile.business_location}
+                  {businessProfile.business_type || "Business"} • {businessProfile.business_location || "Location"}
                 </p>
                 {businessAnalysis && (
                   <div className="flex items-center gap-1">
-                    <Sparkles size={10} className="text-purple-600" />
+                    {/* <Sparkles size={10} className="text-purple-600" />
                     <p className="text-[11px] text-purple-700 font-medium">
                       AI Analysis Complete - {businessAnalysis.recommendations?.length || 0} recommendations ready
-                    </p>
+                    </p> */}
                   </div>
                 )}
               </div>

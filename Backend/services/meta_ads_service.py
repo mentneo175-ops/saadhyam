@@ -351,12 +351,20 @@ class MetaAdsService:
             
             # Use Instagram media if available
             if instagram_media_id:
-                # For Instagram posts, use object_story_spec with Instagram actor
-                payload["object_story_spec"] = {
-                    "page_id": meta_account.page_id,
-                    "instagram_actor_id": meta_account.instagram_business_id,
-                }
-                logger.info(f"   Using Instagram media creative")
+                # For Instagram posts, we need to use the media ID directly
+                # The correct approach is to use object_story_id with the Instagram media ID
+                # Format: instagram_business_account_id_media_id
+                try:
+                    # Try using the media ID directly as object_story_id
+                    payload["object_story_id"] = f"{meta_account.instagram_business_id}_{instagram_media_id}"
+                    logger.info(f"   Using Instagram media creative with object_story_id")
+                except Exception as e:
+                    logger.warning(f"   Failed to create with object_story_id: {e}")
+                    # Fallback: use simple image-based creative
+                    payload["object_story_spec"] = {
+                        "page_id": meta_account.page_id,
+                    }
+                    logger.info(f"   Using fallback page-based creative")
                 
             elif facebook_post_id:
                 # For Facebook posts, use object_story_id directly

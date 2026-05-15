@@ -55,7 +55,6 @@ import { Route as DashboardVoiceAgentConversationsRouteImport } from './routes/d
 import { Route as DashboardVoiceAgentCampaignsRouteImport } from './routes/dashboard.voice-agent.campaigns'
 import { Route as DashboardVoiceAgentAnalyticsRouteImport } from './routes/dashboard.voice-agent.analytics'
 import { Route as DashboardInstagramAnalyticsPostsRouteImport } from './routes/dashboard.instagram-analytics.posts'
-import { Route as DashboardBusinessAnalysisOldRouteImport } from './routes/dashboard.business-analysis.old'
 import { Route as DashboardAgentsPartnershipRouteImport } from './routes/dashboard.agents.partnership'
 import { Route as DashboardAgentsCustomerRetentionRouteImport } from './routes/dashboard.agents.customer-retention'
 import { Route as DashboardVoiceAgentCampaignsCampaignIdRouteImport } from './routes/dashboard.voice-agent.campaigns.$campaignId'
@@ -304,12 +303,6 @@ const DashboardInstagramAnalyticsPostsRoute =
     path: '/posts',
     getParentRoute: () => DashboardInstagramAnalyticsRoute,
   } as any)
-const DashboardBusinessAnalysisOldRoute =
-  DashboardBusinessAnalysisOldRouteImport.update({
-    id: '/old',
-    path: '/old',
-    getParentRoute: () => DashboardBusinessAnalysisRoute,
-  } as any)
 const DashboardAgentsPartnershipRoute =
   DashboardAgentsPartnershipRouteImport.update({
     id: '/agents/partnership',
@@ -348,7 +341,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/automation': typeof DashboardAutomationRoute
   '/dashboard/b2b-network': typeof DashboardB2bNetworkRoute
   '/dashboard/blogs': typeof DashboardBlogsRoute
-  '/dashboard/business-analysis': typeof DashboardBusinessAnalysisRouteWithChildren
+  '/dashboard/business-analysis': typeof DashboardBusinessAnalysisRoute
   '/dashboard/business-details': typeof DashboardBusinessDetailsRoute
   '/dashboard/competitor-analysis': typeof DashboardCompetitorAnalysisRoute
   '/dashboard/competitors': typeof DashboardCompetitorsRoute
@@ -374,7 +367,6 @@ export interface FileRoutesByFullPath {
   '/dashboard/': typeof DashboardIndexRoute
   '/dashboard/agents/customer-retention': typeof DashboardAgentsCustomerRetentionRoute
   '/dashboard/agents/partnership': typeof DashboardAgentsPartnershipRoute
-  '/dashboard/business-analysis/old': typeof DashboardBusinessAnalysisOldRoute
   '/dashboard/instagram-analytics/posts': typeof DashboardInstagramAnalyticsPostsRoute
   '/dashboard/voice-agent/analytics': typeof DashboardVoiceAgentAnalyticsRoute
   '/dashboard/voice-agent/campaigns': typeof DashboardVoiceAgentCampaignsRouteWithChildren
@@ -400,7 +392,7 @@ export interface FileRoutesByTo {
   '/dashboard/automation': typeof DashboardAutomationRoute
   '/dashboard/b2b-network': typeof DashboardB2bNetworkRoute
   '/dashboard/blogs': typeof DashboardBlogsRoute
-  '/dashboard/business-analysis': typeof DashboardBusinessAnalysisRouteWithChildren
+  '/dashboard/business-analysis': typeof DashboardBusinessAnalysisRoute
   '/dashboard/business-details': typeof DashboardBusinessDetailsRoute
   '/dashboard/competitor-analysis': typeof DashboardCompetitorAnalysisRoute
   '/dashboard/competitors': typeof DashboardCompetitorsRoute
@@ -426,7 +418,6 @@ export interface FileRoutesByTo {
   '/dashboard': typeof DashboardIndexRoute
   '/dashboard/agents/customer-retention': typeof DashboardAgentsCustomerRetentionRoute
   '/dashboard/agents/partnership': typeof DashboardAgentsPartnershipRoute
-  '/dashboard/business-analysis/old': typeof DashboardBusinessAnalysisOldRoute
   '/dashboard/instagram-analytics/posts': typeof DashboardInstagramAnalyticsPostsRoute
   '/dashboard/voice-agent/analytics': typeof DashboardVoiceAgentAnalyticsRoute
   '/dashboard/voice-agent/campaigns': typeof DashboardVoiceAgentCampaignsRouteWithChildren
@@ -454,7 +445,7 @@ export interface FileRoutesById {
   '/dashboard/automation': typeof DashboardAutomationRoute
   '/dashboard/b2b-network': typeof DashboardB2bNetworkRoute
   '/dashboard/blogs': typeof DashboardBlogsRoute
-  '/dashboard/business-analysis': typeof DashboardBusinessAnalysisRouteWithChildren
+  '/dashboard/business-analysis': typeof DashboardBusinessAnalysisRoute
   '/dashboard/business-details': typeof DashboardBusinessDetailsRoute
   '/dashboard/competitor-analysis': typeof DashboardCompetitorAnalysisRoute
   '/dashboard/competitors': typeof DashboardCompetitorsRoute
@@ -480,7 +471,6 @@ export interface FileRoutesById {
   '/dashboard/': typeof DashboardIndexRoute
   '/dashboard/agents/customer-retention': typeof DashboardAgentsCustomerRetentionRoute
   '/dashboard/agents/partnership': typeof DashboardAgentsPartnershipRoute
-  '/dashboard/business-analysis/old': typeof DashboardBusinessAnalysisOldRoute
   '/dashboard/instagram-analytics/posts': typeof DashboardInstagramAnalyticsPostsRoute
   '/dashboard/voice-agent/analytics': typeof DashboardVoiceAgentAnalyticsRoute
   '/dashboard/voice-agent/campaigns': typeof DashboardVoiceAgentCampaignsRouteWithChildren
@@ -535,7 +525,6 @@ export interface FileRouteTypes {
     | '/dashboard/'
     | '/dashboard/agents/customer-retention'
     | '/dashboard/agents/partnership'
-    | '/dashboard/business-analysis/old'
     | '/dashboard/instagram-analytics/posts'
     | '/dashboard/voice-agent/analytics'
     | '/dashboard/voice-agent/campaigns'
@@ -587,7 +576,6 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/dashboard/agents/customer-retention'
     | '/dashboard/agents/partnership'
-    | '/dashboard/business-analysis/old'
     | '/dashboard/instagram-analytics/posts'
     | '/dashboard/voice-agent/analytics'
     | '/dashboard/voice-agent/campaigns'
@@ -640,7 +628,6 @@ export interface FileRouteTypes {
     | '/dashboard/'
     | '/dashboard/agents/customer-retention'
     | '/dashboard/agents/partnership'
-    | '/dashboard/business-analysis/old'
     | '/dashboard/instagram-analytics/posts'
     | '/dashboard/voice-agent/analytics'
     | '/dashboard/voice-agent/campaigns'
@@ -990,13 +977,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardInstagramAnalyticsPostsRouteImport
       parentRoute: typeof DashboardInstagramAnalyticsRoute
     }
-    '/dashboard/business-analysis/old': {
-      id: '/dashboard/business-analysis/old'
-      path: '/old'
-      fullPath: '/dashboard/business-analysis/old'
-      preLoaderRoute: typeof DashboardBusinessAnalysisOldRouteImport
-      parentRoute: typeof DashboardBusinessAnalysisRoute
-    }
     '/dashboard/agents/partnership': {
       id: '/dashboard/agents/partnership'
       path: '/agents/partnership'
@@ -1027,20 +1007,6 @@ declare module '@tanstack/react-router' {
     }
   }
 }
-
-interface DashboardBusinessAnalysisRouteChildren {
-  DashboardBusinessAnalysisOldRoute: typeof DashboardBusinessAnalysisOldRoute
-}
-
-const DashboardBusinessAnalysisRouteChildren: DashboardBusinessAnalysisRouteChildren =
-  {
-    DashboardBusinessAnalysisOldRoute: DashboardBusinessAnalysisOldRoute,
-  }
-
-const DashboardBusinessAnalysisRouteWithChildren =
-  DashboardBusinessAnalysisRoute._addFileChildren(
-    DashboardBusinessAnalysisRouteChildren,
-  )
 
 interface DashboardInstagramAnalyticsRouteChildren {
   DashboardInstagramAnalyticsPostsRoute: typeof DashboardInstagramAnalyticsPostsRoute
@@ -1093,7 +1059,7 @@ interface DashboardRouteChildren {
   DashboardAutomationRoute: typeof DashboardAutomationRoute
   DashboardB2bNetworkRoute: typeof DashboardB2bNetworkRoute
   DashboardBlogsRoute: typeof DashboardBlogsRoute
-  DashboardBusinessAnalysisRoute: typeof DashboardBusinessAnalysisRouteWithChildren
+  DashboardBusinessAnalysisRoute: typeof DashboardBusinessAnalysisRoute
   DashboardBusinessDetailsRoute: typeof DashboardBusinessDetailsRoute
   DashboardCompetitorAnalysisRoute: typeof DashboardCompetitorAnalysisRoute
   DashboardCompetitorsRoute: typeof DashboardCompetitorsRoute
@@ -1135,7 +1101,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardAutomationRoute: DashboardAutomationRoute,
   DashboardB2bNetworkRoute: DashboardB2bNetworkRoute,
   DashboardBlogsRoute: DashboardBlogsRoute,
-  DashboardBusinessAnalysisRoute: DashboardBusinessAnalysisRouteWithChildren,
+  DashboardBusinessAnalysisRoute: DashboardBusinessAnalysisRoute,
   DashboardBusinessDetailsRoute: DashboardBusinessDetailsRoute,
   DashboardCompetitorAnalysisRoute: DashboardCompetitorAnalysisRoute,
   DashboardCompetitorsRoute: DashboardCompetitorsRoute,

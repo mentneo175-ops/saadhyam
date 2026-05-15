@@ -407,7 +407,7 @@ function Overview() {
               {/* Welcome Header */}
               <div className="mb-6">
                 <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                  Welcome back, {profile.business_name || 'Business Owner'}
+                  Welcome back, {profile?.business_name || 'Business Owner'}
                 </h1>
                 <p className="text-gray-600">Here's what's happening with your business today</p>
               </div>

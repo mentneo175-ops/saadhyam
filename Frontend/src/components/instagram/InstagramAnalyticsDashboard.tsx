@@ -17,8 +17,10 @@ import {
   BarChart3,
   Calendar,
   Target,
+  Megaphone,
 } from "lucide-react";
 import { toast } from "sonner";
+import { PromotePostModal } from "@/components/meta-ads/PromotePostModal";
 
 interface AnalyticsAccount {
   id: number;
@@ -62,6 +64,8 @@ export function InstagramAnalyticsDashboard() {
   const [syncing, setSyncing] = useState(false);
   const [account, setAccount] = useState<AnalyticsAccount | null>(null);
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
+  const [showPromoteModal, setShowPromoteModal] = useState(false);
+  const [selectedPostForPromotion, setSelectedPostForPromotion] = useState<any>(null);
 
   useEffect(() => {
     initializeAnalytics();
@@ -396,6 +400,23 @@ export function InstagramAnalyticsDashboard() {
                             <Badge variant="outline">
                               {post.engagement_rate.toFixed(1)}%
                             </Badge>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => {
+                                setSelectedPostForPromotion({
+                                  id: post.id,
+                                  media_id: post.media_id,
+                                  image_url: "",
+                                  caption: post.caption || "",
+                                });
+                                setShowPromoteModal(true);
+                              }}
+                              className="ml-2 bg-gradient-to-r from-purple-50 to-pink-50 border-purple-200 hover:from-purple-100 hover:to-pink-100 text-purple-700 hover:text-purple-900"
+                            >
+                              <Megaphone className="w-3 h-3 mr-1" />
+                              Promote
+                            </Button>
                           </div>
                         </div>
                       ))}
@@ -427,6 +448,21 @@ export function InstagramAnalyticsDashboard() {
             )}
           </Button>
         </div>
+      )}
+      
+      {/* Promote Post Modal */}
+      {selectedPostForPromotion && (
+        <PromotePostModal
+          isOpen={showPromoteModal}
+          onClose={() => {
+            setShowPromoteModal(false);
+            setSelectedPostForPromotion(null);
+          }}
+          post={selectedPostForPromotion}
+          onSuccess={() => {
+            toast.success("Campaign created! Check Meta Ads Manager.");
+          }}
+        />
       )}
     </div>
   );

@@ -95,6 +95,9 @@ class Settings(BaseSettings):
     # Token Encryption Key
     ENCRYPTION_KEY: str = "your-32-char-encryption-key-here"
 
+    # Meta Ads Configuration (Facebook/Instagram Ads)
+    META_REDIRECT_URI: str = "http://localhost:8000/auth/meta/callback"
+
     # Celery Configuration
     CELERY_BROKER_URL: str = "redis://localhost:6379/0"
     CELERY_RESULT_BACKEND: str = "redis://localhost:6379/1"
@@ -115,6 +118,15 @@ class Settings(BaseSettings):
     # HuggingFace Configuration (for FLUX Image Generation)
     HUGGINGFACE_TOKEN: str = ""
     HF_TOKEN: str = ""
+    
+    # Mistral Content Generation Configuration
+    MISTRAL_CONTENT_MODE: str = "api"
+    MISTRAL_TEXT_MODEL: str = "mistralai/Mistral-7B-Instruct-v0.3"
+    
+    # AI Model Configuration for Content Generation
+    GEMINI_CONTENT_MODEL: str = "gemini-1.5-flash"
+    GROQ_CONTENT_MODEL: str = "llama-3.1-8b-instant"
+    GROQ_CONTENT_MODEL_FALLBACK: str = "llama3-8b-8192"
 
     # Firebase Configuration (Optional - for Google OAuth)
     GOOGLE_APPLICATION_CREDENTIALS: str = ""

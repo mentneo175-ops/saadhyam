@@ -24,6 +24,10 @@ class WhatsAppAccount(Base):
     phone_number_id = Column(String(255), nullable=False, unique=True, index=True)
     waba_id = Column(String(255), nullable=False, index=True)  # WhatsApp Business Account ID
     
+    # Facebook/Meta User Information
+    facebook_user_id = Column(String(255), nullable=True, index=True)  # Facebook User ID from OAuth
+    token_type = Column(String(50), default="system_user", nullable=False)  # "system_user" or "user"
+    
     # Access Credentials (encrypted)
     access_token = Column(Text, nullable=False)  # Should be encrypted in production
     

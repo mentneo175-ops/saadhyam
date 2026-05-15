@@ -24,6 +24,21 @@ export function InsightsPanel({ businessAnalysis }: InsightsPanelProps) {
   const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<string>("Loading...");
 
+  // Helper function to render markdown text with bold
+  const renderMarkdown = (text: string) => {
+    // Split by ** to find bold sections
+    const parts = text.split(/(\*\*.*?\*\*)/g);
+    
+    return parts.map((part, idx) => {
+      if (part.startsWith('**') && part.endsWith('**')) {
+        // Remove ** and render as bold
+        const boldText = part.slice(2, -2);
+        return <strong key={idx} className="font-semibold text-gray-900">{boldText}</strong>;
+      }
+      return <span key={idx}>{part}</span>;
+    });
+  };
+
   // Fetch real analytics data
   useEffect(() => {
     const fetchAnalytics = async () => {
@@ -93,14 +108,14 @@ export function InsightsPanel({ businessAnalysis }: InsightsPanelProps) {
   ] : [];
 
   return (
-    <aside className="hidden xl:flex flex-col gap-5 w-80 shrink-0 border-l border-border/60 bg-background p-5 sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto">
+    <aside className="hidden xl:flex flex-col gap-5 w-80 shrink-0 border-l border-gray-200 bg-gray-50 p-5 sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto">
       <div>
         <div className="flex items-center justify-between mb-3">
           <div>
-            <h3 className="font-semibold">AI Insights</h3>
-            <p className="text-xs text-muted-foreground">{lastUpdated}</p>
+            <h3 className="font-semibold text-gray-900">AI Insights</h3>
+            <p className="text-xs text-gray-600">{lastUpdated}</p>
           </div>
-          <span className={`h-2 w-2 rounded-full ${loading ? 'bg-yellow-500' : 'bg-success'} animate-pulse`} />
+          <span className={`h-2 w-2 rounded-full ${loading ? 'bg-amber-500' : 'bg-green-500'} animate-pulse`} />
         </div>
         
         <div className="space-y-3">
@@ -110,16 +125,16 @@ export function InsightsPanel({ businessAnalysis }: InsightsPanelProps) {
               {[1, 2, 3].map((i) => (
                 <div
                   key={i}
-                  className="rounded-2xl border border-border/60 p-4 bg-card animate-pulse"
+                  className="rounded-lg border border-gray-200 p-4 bg-white animate-pulse"
                 >
                   <div className="flex items-center gap-2.5">
-                    <div className="h-9 w-9 rounded-xl bg-gray-200 dark:bg-gray-700" />
+                    <div className="h-9 w-9 rounded-lg bg-gray-200" />
                     <div className="flex-1 space-y-2">
-                      <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-24" />
-                      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-16" />
+                      <div className="h-3 bg-gray-200 rounded w-24" />
+                      <div className="h-4 bg-gray-200 rounded w-16" />
                     </div>
                   </div>
-                  <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-full mt-2" />
+                  <div className="h-3 bg-gray-200 rounded w-full mt-2" />
                 </div>
               ))}
             </>
@@ -128,20 +143,18 @@ export function InsightsPanel({ businessAnalysis }: InsightsPanelProps) {
             insights.map((it) => (
               <div
                 key={it.title}
-                className="rounded-2xl border border-border/60 p-4 bg-card hover-lift"
+                className="rounded-lg border border-gray-200 p-4 bg-white hover:shadow-md transition-shadow"
               >
                 <div className="flex items-center gap-2.5">
-                  <div
-                    className={`h-9 w-9 rounded-xl bg-gradient-to-br ${it.accent} flex items-center justify-center`}
-                  >
-                    <it.icon size={16} className="text-white" />
+                  <div className="h-9 w-9 rounded-lg bg-blue-50 flex items-center justify-center">
+                    <it.icon size={16} className="text-blue-900" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs text-muted-foreground">{it.title}</p>
-                    <p className="text-sm font-bold">{it.metric}</p>
+                    <p className="text-xs text-gray-600">{it.title}</p>
+                    <p className="text-sm font-bold text-gray-900">{it.metric}</p>
                   </div>
                 </div>
-                <p className="text-xs text-muted-foreground mt-2">{it.detail}</p>
+                <p className="text-xs text-gray-600 mt-2">{it.detail}</p>
               </div>
             ))
           )}
@@ -154,62 +167,62 @@ export function InsightsPanel({ businessAnalysis }: InsightsPanelProps) {
 
       {/* Business Analysis Section */}
       {businessAnalysis ? (
-        <div className="rounded-2xl bg-gradient-soft border border-border/60 p-4">
+        <div className="rounded-lg bg-white border border-gray-200 p-4 shadow-sm">
           <div className="flex items-center gap-2 mb-3">
-            <Sparkles size={16} className="text-purple-600" />
-            <p className="text-sm font-semibold">AI Business Analysis</p>
+            <Sparkles size={16} className="text-blue-900" />
+            <p className="text-sm font-semibold text-gray-900">AI Business Analysis</p>
           </div>
-          <p className="text-xs text-muted-foreground mb-4">Personalized insights for your business</p>
+          <p className="text-xs text-gray-600 mb-4">Personalized insights for your business</p>
           
           <div className="space-y-3">
             {/* Strengths */}
-            <div className="bg-card rounded-lg p-3 border border-border/60">
+            <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-sm">💪</span>
-                <h4 className="text-xs font-semibold text-foreground">Strengths</h4>
+                <h4 className="text-xs font-semibold text-gray-900">Strengths</h4>
               </div>
               <ul className="space-y-1">
                 {businessAnalysis.strengths?.slice(0, 2).map((strength: string, idx: number) => (
-                  <li key={idx} className="text-xs text-muted-foreground">• {strength}</li>
+                  <li key={idx} className="text-xs text-gray-700">• {renderMarkdown(strength)}</li>
                 ))}
               </ul>
             </div>
 
             {/* Weaknesses */}
-            <div className="bg-card rounded-lg p-3 border border-border/60">
+            <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-sm">⚠️</span>
-                <h4 className="text-xs font-semibold text-foreground">Weaknesses</h4>
+                <h4 className="text-xs font-semibold text-gray-900">Weaknesses</h4>
               </div>
               <ul className="space-y-1">
                 {businessAnalysis.weaknesses?.slice(0, 2).map((weakness: string, idx: number) => (
-                  <li key={idx} className="text-xs text-muted-foreground">• {weakness}</li>
+                  <li key={idx} className="text-xs text-gray-700">• {renderMarkdown(weakness)}</li>
                 ))}
               </ul>
             </div>
 
             {/* Opportunities */}
-            <div className="bg-card rounded-lg p-3 border border-border/60">
+            <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-sm">🚀</span>
-                <h4 className="text-xs font-semibold text-foreground">Opportunities</h4>
+                <h4 className="text-xs font-semibold text-gray-900">Opportunities</h4>
               </div>
               <ul className="space-y-1">
                 {businessAnalysis.opportunities?.slice(0, 2).map((opportunity: string, idx: number) => (
-                  <li key={idx} className="text-xs text-muted-foreground">• {opportunity}</li>
+                  <li key={idx} className="text-xs text-gray-700">• {renderMarkdown(opportunity)}</li>
                 ))}
               </ul>
             </div>
 
             {/* Threats */}
-            <div className="bg-card rounded-lg p-3 border border-border/60">
+            <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-sm">⚡</span>
-                <h4 className="text-xs font-semibold text-foreground">Threats</h4>
+                <h4 className="text-xs font-semibold text-gray-900">Threats</h4>
               </div>
               <ul className="space-y-1">
                 {businessAnalysis.threats?.slice(0, 2).map((threat: string, idx: number) => (
-                  <li key={idx} className="text-xs text-muted-foreground">• {threat}</li>
+                  <li key={idx} className="text-xs text-gray-700">• {threat}</li>
                 ))}
               </ul>
             </div>

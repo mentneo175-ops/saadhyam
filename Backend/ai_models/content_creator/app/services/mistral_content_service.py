@@ -35,6 +35,7 @@ def _build_prompt_text(data: ImageGenerationRequest) -> str:
 
 
 def _safe_fallback_content(data: ImageGenerationRequest) -> ContentCreatorOutput:
+    """Last resort fallback using simple template"""
     image_prompt = (
         f"{data.style} {data.use_case} for {data.business_type}, {data.prompt.strip()}, "
         "studio composition, premium lighting, high detail, marketing visual"
@@ -43,6 +44,59 @@ def _safe_fallback_content(data: ImageGenerationRequest) -> ContentCreatorOutput
         f"{data.business_type.title()} just got a premium glow-up. "
         "Crafted to stop the scroll and convert attention into action."
     )
+    return ContentCreatorOutput(image_prompt=image_prompt, caption=caption)
+
+
+def _from_groq_fallback(data: ImageGenerationRequest) -> ContentCreatorOutput:
+    """Groq API fallback - fast and reliable"""
+    from groq import Groq
+    
+    api_key = os.getenv("GROQ_API_KEY")
+    if not api_key:
+        raise RuntimeError("Missing GROQ_API_KEY")
+    
+    client = Groq(api_key=api_key)
+    
+    prompt = (
+        f"Create marketing content for an image campaign.\n"
+        f"Business type: {data.business_type}\n"
+        f"Use case: {data.use_case}\n"
+        f"Style: {data.style}\n"
+        f"Image model: {data.model}\n"
+        f"Campaign brief: {data.prompt.strip()}\n\n"
+        "Return ONLY valid JSON with keys image_prompt and caption.\n"
+        'Format: {"image_prompt": "...", "caption": "..."}'
+    )
+    
+    completion = client.chat.completions.create(
+        model="llama-3.1-70b-versatile",
+        messages=[
+            {
+                "role": "system",
+                "content": "You are an expert marketing content creator. Return only valid JSON with image_prompt and caption keys."
+            },
+            {
+                "role": "user",
+                "content": prompt
+            }
+        ],
+        temperature=0.7,
+        max_tokens=512,
+        response_format={"type": "json_object"}
+    )
+    
+    response_text = completion.choices[0].message.content
+    payload = _extract_json_payload(response_text)
+    
+    if payload is None:
+        raise RuntimeError("Groq response did not contain valid JSON payload")
+    
+    image_prompt = str(payload.get("image_prompt", "")).strip()
+    caption = str(payload.get("caption", "")).strip()
+    
+    if not image_prompt or not caption:
+        raise RuntimeError("Groq output missing image_prompt or caption")
+    
     return ContentCreatorOutput(image_prompt=image_prompt, caption=caption)
 
 
@@ -178,21 +232,45 @@ def _from_local_adapter(data: ImageGenerationRequest) -> ContentCreatorOutput:
 
 
 def generate_content_with_mistral_adapter(data: ImageGenerationRequest) -> ContentCreatorOutput:
+    """
+    Generate content with fallback chain:
+    1. HuggingFace Mistral API (primary)
+    2. Groq API (fast fallback)
+    3. Local adapter (if available)
+    4. Safe template (last resort)
+    """
     preferred_mode = os.getenv("MISTRAL_CONTENT_MODE", "api").strip().lower()
 
     if preferred_mode == "local":
         try:
+            logger.info("🤖 Trying local Mistral adapter...")
             return _from_local_adapter(data)
         except Exception as exc:
-            logger.warning("Local Mistral adapter failed, falling back to API mode: %s", exc)
-            try:
-                return _from_hf_inference(data)
-            except Exception as api_exc:
-                logger.warning("HF Mistral content generation failed, using safe template fallback: %s", api_exc)
-                return _safe_fallback_content(data)
-
+            logger.warning("Local Mistral adapter failed: %s", exc)
+            # Fall through to API mode
+    
+    # Try HuggingFace API first
     try:
+        logger.info("🤖 Trying HuggingFace Mistral API...")
         return _from_hf_inference(data)
-    except Exception as exc:
-        logger.warning("HF Mistral content generation failed, using safe template fallback: %s", exc)
-        return _safe_fallback_content(data)
+    except Exception as hf_exc:
+        logger.warning("HuggingFace Mistral failed: %s", hf_exc)
+        
+        # Try Groq as fallback
+        try:
+            logger.info("🚀 Falling back to Groq API...")
+            return _from_groq_fallback(data)
+        except Exception as groq_exc:
+            logger.warning("Groq API failed: %s", groq_exc)
+            
+            # Try local adapter if not already tried
+            if preferred_mode != "local":
+                try:
+                    logger.info("🔄 Trying local adapter as last resort...")
+                    return _from_local_adapter(data)
+                except Exception as local_exc:
+                    logger.warning("Local adapter failed: %s", local_exc)
+            
+            # Final fallback to safe template
+            logger.warning("All methods failed, using safe template fallback")
+            return _safe_fallback_content(data)

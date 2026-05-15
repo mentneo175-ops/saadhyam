@@ -2,6 +2,7 @@ import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { TopHeader } from "@/components/dashboard/TopHeader";
 import { DashboardProvider } from "@/contexts/DashboardContext";
+import AssistantWidget from "@/components/AssistantWidget";
 import { useState, useCallback } from "react";
 
 export const Route = createFileRoute("/dashboard")({
@@ -43,6 +44,9 @@ function DashboardLayout() {
           </main>
         </div>
       </div>
+      
+      {/* AI Assistant Widget - Available on all dashboard pages */}
+      <AssistantWidget />
     </DashboardProvider>
   );
 }

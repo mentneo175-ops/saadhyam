@@ -391,22 +391,42 @@ class TaskTrackingService:
         tasks_assigned: int,
         tasks: List[DailyTask]
     ) -> float:
-        """Calculate productivity score based on completion and efficiency"""
+        """
+        Calculate productivity score based on absolute completion and efficiency
+        This score focuses on WHAT you completed, not just the percentage
+        """
         if tasks_assigned == 0:
             return 0.0
         
-        # Base score from completion rate
-        completion_rate = tasks_completed / tasks_assigned
-        base_score = completion_rate * 70  # 70% weight
+        # Score based on absolute number of tasks completed (not just percentage)
+        # 1-2 tasks = 20-40, 3-4 tasks = 50-70, 5+ tasks = 80-100
+        if tasks_completed == 0:
+            return 0
+        elif tasks_completed == 1:
+            return 20
+        elif tasks_completed == 2:
+            return 40
+        elif tasks_completed == 3:
+            return 60
+        elif tasks_completed == 4:
+            return 75
+        elif tasks_completed >= 5:
+            base = 85
+            # Extra points for completing more than 5 tasks
+            extra = min((tasks_completed - 5) * 3, 15)  # Max 15 extra points
+            return min(base + extra, 100)
         
         # Bonus for completing high-priority tasks
         high_priority_completed = sum(
             1 for t in tasks 
             if t.is_completed and t.priority == 'high'
         )
-        priority_bonus = min(high_priority_completed * 5, 30)  # Max 30% bonus
         
-        return min(base_score + priority_bonus, 100)
+        # Add bonus but cap at 100
+        bonus = min(high_priority_completed * 5, 15)
+        return min(base + bonus, 100) if tasks_completed >= 5 else min(
+            [20, 40, 60, 75][min(tasks_completed - 1, 3)] + bonus, 100
+        )
     
     @staticmethod
     def _calculate_consistency_score(streak_days: int) -> float:
@@ -429,12 +449,21 @@ class TaskTrackingService:
         productivity_score: float,
         consistency_score: float
     ) -> float:
-        """Calculate overall growth score"""
-        # Weighted average
+        """
+        Calculate overall growth score
+        
+        This score rewards:
+        1. Absolute productivity (tasks completed)
+        2. Consistency (daily streaks)
+        3. Completion rate (as a bonus, not primary metric)
+        
+        This way, adding more tasks doesn't hurt your score!
+        """
+        # Weighted average - productivity and consistency are more important
         growth_score = (
-            completion_rate * 0.4 +  # 40% weight
-            productivity_score * 0.3 +  # 30% weight
-            consistency_score * 0.3  # 30% weight
+            productivity_score * 0.5 +    # 50% weight - rewards completing tasks
+            consistency_score * 0.35 +    # 35% weight - rewards daily habit
+            completion_rate * 0.15        # 15% weight - small bonus for completion rate
         )
         
         return round(growth_score, 2)

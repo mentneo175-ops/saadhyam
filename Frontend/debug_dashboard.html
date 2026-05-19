@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard Debug Tool</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .success { color: #10b981; font-weight: bold; }
+        .error { color: #ef4444; font-weight: bold; }
+        .warning { color: #f59e0b; font-weight: bold; }
+        button {
+            background: #8b5cf6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #7c3aed; }
+        pre {
+            background: #f3f4f6;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .status-online { background: #10b981; }
+        .status-offline { background: #ef4444; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Saadhyam Dashboard Debug Tool</h1>
+    
+    <div class="section">
+        <h2>1. Backend Connection Status</h2>
+        <div id="backend-status">Checking...</div>
+        <button onclick="checkBackend()">Recheck Backend</button>
+    </div>
+
+    <div class="section">
+        <h2>2. Authentication Status</h2>
+        <div id="auth-status">Checking...</div>
+        <button onclick="checkAuth()">Check Auth Token</button>
+    </div>
+
+    <div class="section">
+        <h2>3. Business Analysis Data</h2>
+        <div id="analysis-status">Not checked yet</div>
+        <button onclick="checkAnalysis()">Load Business Analysis</button>
+        <pre id="analysis-data" style="display:none;"></pre>
+    </div>
+
+    <div class="section">
+        <h2>4. Instagram Analytics Data</h2>
+        <div id="instagram-status">Not checked yet</div>
+        <button onclick="checkInstagram()">Load Instagram Data</button>
+        <pre id="instagram-data" style="display:none;"></pre>
+    </div>
+
+    <div class="section">
+        <h2>5. Dashboard Insights Data</h2>
+        <div id="insights-status">Not checked yet</div>
+        <button onclick="checkInsights()">Load Insights</button>
+        <pre id="insights-data" style="display:none;"></pre>
+    </div>
+
+    <div class="section">
+        <h2>6. LocalStorage Data</h2>
+        <button onclick="showLocalStorage()">Show LocalStorage</button>
+        <button onclick="clearCooldowns()">Clear All Cooldowns</button>
+        <pre id="localstorage-data" style="display:none;"></pre>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000';
+        
+        function getToken() {
+            return localStorage.getItem('saadhyam_token');
+        }
+
+        async function checkBackend() {
+            const statusDiv = document.getElementById('backend-status');
+            statusDiv.innerHTML = 'Checking...';
+            
+            try {
+                const response = await fetch(`${API_BASE}/health`, { method: 'GET' });
+                if (response.ok) {
+                    statusDiv.innerHTML = '<span class="status-indicator status-online"></span><span class="success">✅ Backend is ONLINE</span>';
+                } else {
+                    statusDiv.innerHTML = '<span class="status-indicator status-offline"></span><span class="error">❌ Backend returned error: ' + response.status + '</span>';
+                }
+            } catch (error) {
+                statusDiv.innerHTML = '<span class="status-indicator status-offline"></span><span class="error">❌ Backend is OFFLINE - ' + error.message + '</span>';
+            }
+        }
+
+        function checkAuth() {
+            const statusDiv = document.getElementById('auth-status');
+            const token = getToken();
+            
+            if (token) {
+                statusDiv.innerHTML = `<span class="success">✅ Token exists</span><br><small>Token: ${token.substring(0, 20)}...</small>`;
+            } else {
+                statusDiv.innerHTML = '<span class="error">❌ No auth token found - Please login first!</span>';
+            }
+        }
+
+        async function checkAnalysis() {
+            const statusDiv = document.getElementById('analysis-status');
+            const dataDiv = document.getElementById('analysis-data');
+            const token = getToken();
+            
+            if (!token) {
+                statusDiv.innerHTML = '<span class="error">❌ No auth token - Login first!</span>';
+                return;
+            }
+            
+            statusDiv.innerHTML = 'Loading...';
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/comprehensive-analysis/business-analysis`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    statusDiv.innerHTML = '<span class="success">✅ Business Analysis loaded successfully!</span>';
+                    dataDiv.style.display = 'block';
+                    dataDiv.textContent = JSON.stringify(data, null, 2);
+                    
+                    // Check for key fields
+                    if (data.strengths && data.strengths.length > 0) {
+                        statusDiv.innerHTML += '<br><span class="success">✅ Has ' + data.strengths.length + ' strengths</span>';
+                    }
+                    if (data.weaknesses && data.weaknesses.length > 0) {
+                        statusDiv.innerHTML += '<br><span class="success">✅ Has ' + data.weaknesses.length + ' weaknesses</span>';
+                    }
+                    if (data.growth_opportunities && data.growth_opportunities.length > 0) {
+                        statusDiv.innerHTML += '<br><span class="success">✅ Has ' + data.growth_opportunities.length + ' opportunities</span>';
+                    }
+                } else {
+                    const errorText = await response.text();
+                    statusDiv.innerHTML = '<span class="error">❌ Failed: ' + response.status + '</span>';
+                    dataDiv.style.display = 'block';
+                    dataDiv.textContent = errorText;
+                }
+            } catch (error) {
+                statusDiv.innerHTML = '<span class="error">❌ Error: ' + error.message + '</span>';
+            }
+        }
+
+        async function checkInstagram() {
+            const statusDiv = document.getElementById('instagram-status');
+            const dataDiv = document.getElementById('instagram-data');
+            const token = getToken();
+            
+            if (!token) {
+                statusDiv.innerHTML = '<span class="error">❌ No auth token - Login first!</span>';
+                return;
+            }
+            
+            statusDiv.innerHTML = 'Loading...';
+            
+            try {
+                // Check for Instagram accounts
+                const response = await fetch(`${API_BASE}/api/instagram-analytics/accounts/from-social`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    dataDiv.style.display = 'block';
+                    dataDiv.textContent = JSON.stringify(data, null, 2);
+                    
+                    if (data.accounts && data.accounts.length > 0) {
+                        statusDiv.innerHTML = '<span class="success">✅ Found ' + data.accounts.length + ' Instagram account(s)</span>';
+                        
+                        // Try to load dashboard data
+                        const accountId = data.accounts[0].id;
+                        const dashResponse = await fetch(`${API_BASE}/api/instagram-analytics/dashboard/${accountId}`, {
+                            headers: { 'Authorization': `Bearer ${token}` }
+                        });
+                        
+                        if (dashResponse.ok) {
+                            const dashData = await dashResponse.json();
+                            statusDiv.innerHTML += '<br><span class="success">✅ Dashboard data loaded</span>';
+                            statusDiv.innerHTML += '<br>Followers: ' + (dashData.overview?.followers_count || 0);
+                            dataDiv.textContent += '\n\n=== DASHBOARD DATA ===\n' + JSON.stringify(dashData, null, 2);
+                        }
+                    } else {
+                        statusDiv.innerHTML = '<span class="warning">⚠️ No Instagram accounts found</span>';
+                    }
+                } else {
+                    statusDiv.innerHTML = '<span class="error">❌ Failed: ' + response.status + '</span>';
+                }
+            } catch (error) {
+                statusDiv.innerHTML = '<span class="error">❌ Error: ' + error.message + '</span>';
+            }
+        }
+
+        async function checkInsights() {
+            const statusDiv = document.getElementById('insights-status');
+            const dataDiv = document.getElementById('insights-data');
+            const token = getToken();
+            
+            if (!token) {
+                statusDiv.innerHTML = '<span class="error">❌ No auth token - Login first!</span>';
+                return;
+            }
+            
+            statusDiv.innerHTML = 'Loading...';
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/realtime-business/insights`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    statusDiv.innerHTML = '<span class="success">✅ Insights loaded</span>';
+                    dataDiv.style.display = 'block';
+                    dataDiv.textContent = JSON.stringify(data, null, 2);
+                } else {
+                    statusDiv.innerHTML = '<span class="error">❌ Failed: ' + response.status + '</span>';
+                }
+            } catch (error) {
+                statusDiv.innerHTML = '<span class="error">❌ Error: ' + error.message + '</span>';
+            }
+        }
+
+        function showLocalStorage() {
+            const dataDiv = document.getElementById('localstorage-data');
+            const data = {};
+            
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                data[key] = localStorage.getItem(key);
+            }
+            
+            dataDiv.style.display = 'block';
+            dataDiv.textContent = JSON.stringify(data, null, 2);
+        }
+
+        function clearCooldowns() {
+            const cooldownKeys = [
+                'dashboard-refresh-cooldown',
+                'business-analysis-cooldown',
+                'competitor-analysis-cooldown',
+                'aeo-geo-optimize-cooldown',
+                'instagram-sync-cooldown'
+            ];
+            
+            cooldownKeys.forEach(key => localStorage.removeItem(key));
+            alert('✅ All cooldowns cleared! You can now refresh/regenerate immediately.');
+        }
+
+        // Auto-check on load
+        window.onload = function() {
+            checkBackend();
+            checkAuth();
+        };
+    </script>
+</body>
+</html>

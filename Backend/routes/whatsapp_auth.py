@@ -62,6 +62,17 @@ async def whatsapp_embedded_signup(
         
         # CORRECT WhatsApp Embedded Signup URL with proper scopes
         # Using Facebook's embedded signup flow for WhatsApp Business
+        # Required scopes for WhatsApp Business API:
+        # - business_management: Access to business accounts and settings
+        # - whatsapp_business_management: Manage WhatsApp Business accounts
+        # - whatsapp_business_messaging: Send and receive WhatsApp messages
+        scopes = [
+            "business_management",
+            "whatsapp_business_management", 
+            "whatsapp_business_messaging"
+        ]
+        scope_string = ",".join(scopes)
+        
         signup_url = (
             f"https://www.facebook.com/v21.0/dialog/oauth?"
             f"client_id={app_id}&"
@@ -69,16 +80,22 @@ async def whatsapp_embedded_signup(
             f"config_id={config_id}&"
             f"response_type=code&"
             f"state={state}&"
-            f"scope=business_management,whatsapp_business_management,whatsapp_business_messaging"
+            f"scope={scope_string}"
         )
         
-        logger.info(f"🔗 Generated signup URL with scopes: business_management,whatsapp_business_management,whatsapp_business_messaging")
+        logger.info(f"🔗 Generated WhatsApp OAuth URL")
+        logger.info(f"   App ID: {app_id}")
+        logger.info(f"   Redirect URI: {redirect_uri}")
+        logger.info(f"   Config ID: {config_id}")
+        logger.info(f"   Scopes: {scope_string}")
+        logger.info(f"   State: {state}")
         
         return {
             "success": True,
             "signup_url": signup_url,
             "state": state,
-            "scopes": ["business_management", "whatsapp_business_management", "whatsapp_business_messaging"]
+            "scopes": scopes,
+            "scope_string": scope_string
         }
         
     except HTTPException:
@@ -205,9 +222,13 @@ async def whatsapp_callback(
             )
         
         logger.info("✅ Access token obtained successfully")
+        logger.info(f"🔑 Access Token (first 20 chars): {access_token[:20]}...")
+        logger.info(f"🔑 Token Length: {len(access_token)} characters")
         
         # DEBUG: Inspect token and permissions
-        logger.info("🔍 Debugging token and permissions...")
+        logger.info("=" * 80)
+        logger.info("🔍 DEBUGGING TOKEN AND PERMISSIONS")
+        logger.info("=" * 80)
         
         # Get token info
         debug_token_url = f"https://graph.facebook.com/v21.0/debug_token"
@@ -230,21 +251,66 @@ async def whatsapp_callback(
                 logger.info(f"📊 Scopes: {token_data_info.get('scopes', [])}")
                 logger.info(f"📊 Expires At: {token_data_info.get('expires_at')}")
                 logger.info(f"📊 Is Valid: {token_data_info.get('is_valid')}")
+                
+                # Check for required scopes
+                granted_scopes = token_data_info.get('scopes', [])
+                required_scopes = ['business_management', 'whatsapp_business_management', 'whatsapp_business_messaging']
+                missing_scopes = [s for s in required_scopes if s not in granted_scopes]
+                
+                if missing_scopes:
+                    logger.warning(f"⚠️  Missing required scopes: {missing_scopes}")
+                else:
+                    logger.info(f"✅ All required scopes granted!")
         except Exception as e:
             logger.error(f"❌ Error debugging token: {e}")
         
         # Get /me permissions
+        logger.info("-" * 80)
+        logger.info("🔍 CHECKING USER PERMISSIONS")
+        logger.info("-" * 80)
         try:
             permissions_url = f"https://graph.facebook.com/v21.0/me/permissions"
             permissions_params = {"access_token": access_token}
             permissions_response = requests.get(permissions_url, params=permissions_params, timeout=30)
             permissions_response.raise_for_status()
             permissions_data = permissions_response.json()
-            logger.info(f"🔍 User Permissions: {permissions_data}")
+            logger.info(f"🔍 User Permissions Response: {permissions_data}")
+            
+            # Log each permission with its status
+            if permissions_data.get("data"):
+                logger.info("📋 Granted Permissions:")
+                for perm in permissions_data["data"]:
+                    permission_name = perm.get("permission")
+                    status = perm.get("status")
+                    if status == "granted":
+                        logger.info(f"   ✅ {permission_name}: {status}")
+                    else:
+                        logger.warning(f"   ❌ {permission_name}: {status}")
+                
+                # Check for business_management specifically
+                has_business_mgmt = any(
+                    p.get("permission") == "business_management" and p.get("status") == "granted"
+                    for p in permissions_data["data"]
+                )
+                has_whatsapp_mgmt = any(
+                    p.get("permission") == "whatsapp_business_management" and p.get("status") == "granted"
+                    for p in permissions_data["data"]
+                )
+                has_whatsapp_msg = any(
+                    p.get("permission") == "whatsapp_business_messaging" and p.get("status") == "granted"
+                    for p in permissions_data["data"]
+                )
+                
+                logger.info(f"🔐 business_management: {'✅ GRANTED' if has_business_mgmt else '❌ NOT GRANTED'}")
+                logger.info(f"🔐 whatsapp_business_management: {'✅ GRANTED' if has_whatsapp_mgmt else '❌ NOT GRANTED'}")
+                logger.info(f"🔐 whatsapp_business_messaging: {'✅ GRANTED' if has_whatsapp_msg else '❌ NOT GRANTED'}")
         except Exception as e:
             logger.error(f"❌ Error getting permissions: {e}")
         
         # Get /me info
+        logger.info("-" * 80)
+        logger.info("🔍 CHECKING USER INFO")
+        logger.info("-" * 80)
         try:
             me_url = f"https://graph.facebook.com/v21.0/me"
             me_params = {"access_token": access_token, "fields": "id,name,email"}
@@ -252,8 +318,16 @@ async def whatsapp_callback(
             me_response.raise_for_status()
             me_data = me_response.json()
             logger.info(f"🔍 User Info: {me_data}")
+            logger.info(f"👤 User ID: {me_data.get('id')}")
+            logger.info(f"👤 Name: {me_data.get('name')}")
+            logger.info(f"👤 Email: {me_data.get('email', 'N/A')}")
         except Exception as e:
             logger.error(f"❌ Error getting user info: {e}")
+        
+        # Get /me/businesses
+        logger.info("-" * 80)
+        logger.info("🔍 CHECKING BUSINESSES")
+        logger.info("-" * 80)
         
         logger.info("📱 Fetching WhatsApp Business Account details...")
         
@@ -263,11 +337,171 @@ async def whatsapp_callback(
         businesses_params = {"access_token": access_token}
         
         logger.info(f"🔍 Fetching businesses from: {businesses_url}")
-        businesses_response = requests.get(businesses_url, params=businesses_params, timeout=30)
-        businesses_response.raise_for_status()
-        businesses_data = businesses_response.json()
+        try:
+            businesses_response = requests.get(businesses_url, params=businesses_params, timeout=30)
+            businesses_response.raise_for_status()
+            businesses_data = businesses_response.json()
+            
+            logger.info(f"📊 Businesses Response: {businesses_data}")
+            
+            if businesses_data.get("data"):
+                logger.info(f"✅ Found {len(businesses_data['data'])} business(es)")
+                for idx, biz in enumerate(businesses_data["data"], 1):
+                    logger.info(f"   {idx}. Business ID: {biz.get('id')}, Name: {biz.get('name')}")
+            else:
+                logger.warning("⚠️  No businesses found in response")
+                logger.warning("⚠️  This might be a System User account")
+                
+                # Try alternative: Get businesses via owned_whatsapp_business_accounts
+                logger.info("🔄 Trying alternative method: Fetching WABAs directly...")
+                try:
+                    # Try to get WABAs directly from the user
+                    direct_waba_url = f"https://graph.facebook.com/v21.0/me/owned_whatsapp_business_accounts"
+                    direct_waba_params = {"access_token": access_token}
+                    direct_waba_response = requests.get(direct_waba_url, params=direct_waba_params, timeout=30)
+                    direct_waba_response.raise_for_status()
+                    direct_waba_data = direct_waba_response.json()
+                    
+                    logger.info(f"📊 Direct WABA Response: {direct_waba_data}")
+                    
+                    if direct_waba_data.get("data"):
+                        logger.info(f"✅ Found {len(direct_waba_data['data'])} WABA(s) directly!")
+                        # Skip business lookup and go straight to WABA processing
+                        waba = direct_waba_data["data"][0]
+                        waba_id = waba["id"]
+                        waba_name = waba.get("name", "WhatsApp Business")
+                        
+                        logger.info(f"📱 Selected WABA ID: {waba_id}, Name: {waba_name}")
+                        
+                        # Jump to phone number fetching
+                        phone_numbers_url = f"https://graph.facebook.com/v21.0/{waba_id}/phone_numbers"
+                        phone_numbers_params = {"access_token": access_token}
+                        
+                        logger.info(f"🔍 Fetching phone numbers from: {phone_numbers_url}")
+                        phone_numbers_response = requests.get(phone_numbers_url, params=phone_numbers_params, timeout=30)
+                        phone_numbers_response.raise_for_status()
+                        phone_numbers_data = phone_numbers_response.json()
+                        
+                        logger.info(f"📊 Phone Numbers Response: {phone_numbers_data}")
+                        
+                        if not phone_numbers_data.get("data"):
+                            raise Exception("No phone numbers found for this WABA")
+                        
+                        phone_data = phone_numbers_data["data"][0]
+                        phone_number_id = phone_data["id"]
+                        phone_number = phone_data.get("display_phone_number", "")
+                        
+                        logger.info(f"📞 Selected Phone Number ID: {phone_number_id}, Number: {phone_number}")
+                        logger.info("✅ WhatsApp OAuth successful via direct WABA access")
+                        
+                        # Return success
+                        return HTMLResponse(
+                            content=f"""
+                            <html>
+                                <head>
+                                    <style>
+                                        body {{
+                                            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                                            display: flex;
+                                            align-items: center;
+                                            justify-content: center;
+                                            min-height: 100vh;
+                                            margin: 0;
+                                            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                                        }}
+                                        .container {{
+                                            background: white;
+                                            padding: 2rem;
+                                            border-radius: 1rem;
+                                            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+                                            text-align: center;
+                                            max-width: 500px;
+                                        }}
+                                        .success-icon {{
+                                            width: 64px;
+                                            height: 64px;
+                                            background: #10b981;
+                                            border-radius: 50%;
+                                            display: flex;
+                                            align-items: center;
+                                            justify-content: center;
+                                            margin: 0 auto 1rem;
+                                        }}
+                                        .checkmark {{
+                                            color: white;
+                                            font-size: 32px;
+                                        }}
+                                        h2 {{
+                                            color: #1f2937;
+                                            margin: 0 0 0.5rem;
+                                        }}
+                                        p {{
+                                            color: #6b7280;
+                                            margin: 0 0 1rem;
+                                        }}
+                                        .details {{
+                                            background: #f3f4f6;
+                                            padding: 1rem;
+                                            border-radius: 0.5rem;
+                                            font-size: 0.875rem;
+                                            color: #4b5563;
+                                            text-align: left;
+                                            margin: 1rem 0;
+                                        }}
+                                        .details strong {{
+                                            color: #1f2937;
+                                        }}
+                                        .badge {{
+                                            display: inline-block;
+                                            background: #3b82f6;
+                                            color: white;
+                                            padding: 0.25rem 0.75rem;
+                                            border-radius: 9999px;
+                                            font-size: 0.75rem;
+                                            margin-top: 0.5rem;
+                                        }}
+                                    </style>
+                                </head>
+                                <body>
+                                    <div class="container">
+                                        <div class="success-icon">
+                                            <span class="checkmark">✓</span>
+                                        </div>
+                                        <h2>WhatsApp Connected!</h2>
+                                        <span class="badge">System User Access</span>
+                                        <p>Your WhatsApp Business account has been connected successfully.</p>
+                                        <div class="details">
+                                            <strong>Business:</strong> {waba_name}<br>
+                                            <strong>Phone:</strong> {phone_number}<br>
+                                            <strong>WABA ID:</strong> {waba_id}
+                                        </div>
+                                        <p style="font-size: 0.875rem;">Saving account details...</p>
+                                    </div>
+                                    <script>
+                                        window.opener.postMessage({{
+                                            type: 'WHATSAPP_OAUTH_SUCCESS',
+                                            data: {{
+                                                waba_id: '{waba_id}',
+                                                phone_number_id: '{phone_number_id}',
+                                                phone_number: '{phone_number}',
+                                                business_name: '{waba_name}',
+                                                access_token: '{access_token}'
+                                            }}
+                                        }}, '*');
+                                        setTimeout(() => window.close(), 3000);
+                                    </script>
+                                </body>
+                            </html>
+                            """
+                        )
+                except Exception as direct_error:
+                    logger.error(f"❌ Direct WABA access also failed: {direct_error}")
+                    # Continue to show the business manager error
+        except Exception as e:
+            logger.error(f"❌ Error fetching businesses: {e}")
+            businesses_data = {"data": []}
         
-        logger.info(f"📊 Businesses Response: {businesses_data}")
+        logger.info("=" * 80)
         
         if not businesses_data.get("data"):
             logger.error("❌ No businesses found for this account")
@@ -628,6 +862,184 @@ class ManualConnectRequest(BaseModel):
     access_token: str
     business_name: Optional[str] = None
     phone_number: Optional[str] = None
+    facebook_user_id: Optional[str] = None
+    token_type: Optional[str] = "system_user"
+
+
+class EmbeddedSignupCompleteRequest(BaseModel):
+    """Request model for completing Embedded Signup with data from JavaScript SDK"""
+    code: str  # OAuth code from callback
+    waba_id: str  # From JavaScript SDK response
+    phone_number_id: str  # From JavaScript SDK response
+    business_name: Optional[str] = None
+
+
+@router.post("/embedded-signup-complete")
+async def complete_embedded_signup(
+    request: EmbeddedSignupCompleteRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_sync_db)
+):
+    """
+    Complete Embedded Signup with WABA details from JavaScript SDK
+    
+    This endpoint receives:
+    - OAuth code (to exchange for access token)
+    - WABA ID (from JavaScript SDK callback)
+    - Phone Number ID (from JavaScript SDK callback)
+    
+    This is the CORRECT way to handle Meta Embedded Signup for System Users.
+    """
+    try:
+        logger.info("=" * 80)
+        logger.info("🚀 COMPLETING EMBEDDED SIGNUP WITH SDK DATA")
+        logger.info("=" * 80)
+        logger.info(f"📱 WABA ID: {request.waba_id}")
+        logger.info(f"📞 Phone Number ID: {request.phone_number_id}")
+        
+        # Exchange code for access token
+        app_id = os.getenv("META_APP_ID")
+        app_secret = os.getenv("META_APP_SECRET")
+        redirect_uri = os.getenv("WHATSAPP_REDIRECT_URI", "http://localhost:8000/api/whatsapp/callback")
+        
+        if not app_id or not app_secret:
+            raise HTTPException(status_code=500, detail="Meta app credentials not configured")
+        
+        logger.info("🔄 Exchanging code for access token...")
+        
+        token_url = "https://graph.facebook.com/v21.0/oauth/access_token"
+        token_params = {
+            "client_id": app_id,
+            "client_secret": app_secret,
+            "code": request.code,
+            "redirect_uri": redirect_uri
+        }
+        
+        token_response = requests.get(token_url, params=token_params, timeout=30)
+        token_response.raise_for_status()
+        token_data = token_response.json()
+        
+        access_token = token_data.get("access_token")
+        
+        if not access_token:
+            raise HTTPException(status_code=400, detail="Failed to obtain access token")
+        
+        logger.info("✅ Access token obtained")
+        
+        # Get token info for user ID and type
+        facebook_user_id = None
+        token_type = "system_user"
+        
+        try:
+            debug_token_url = f"https://graph.facebook.com/v21.0/debug_token"
+            debug_params = {
+                "input_token": access_token,
+                "access_token": f"{app_id}|{app_secret}"
+            }
+            debug_response = requests.get(debug_token_url, params=debug_params, timeout=30)
+            debug_response.raise_for_status()
+            debug_data = debug_response.json()
+            
+            if debug_data.get("data"):
+                token_type = debug_data["data"].get('type', 'system_user').lower()
+                facebook_user_id = debug_data["data"].get('user_id')
+                logger.info(f"📊 Token Type: {token_type}")
+                logger.info(f"📊 Facebook User ID: {facebook_user_id}")
+        except Exception as e:
+            logger.warning(f"⚠️  Could not get token debug info: {e}")
+        
+        # Get phone number details
+        phone_number = None
+        try:
+            phone_url = f"https://graph.facebook.com/v21.0/{request.phone_number_id}"
+            phone_params = {"access_token": access_token}
+            phone_response = requests.get(phone_url, params=phone_params, timeout=30)
+            phone_response.raise_for_status()
+            phone_data = phone_response.json()
+            phone_number = phone_data.get("display_phone_number", "")
+            logger.info(f"📞 Phone Number: {phone_number}")
+        except Exception as e:
+            logger.warning(f"⚠️  Could not get phone number details: {e}")
+        
+        # Check if account already exists for this user
+        existing_account = db.query(WhatsAppAccount).filter(
+            WhatsAppAccount.user_id == current_user.id,
+            WhatsAppAccount.is_active == True
+        ).first()
+        
+        business_name = request.business_name or "WhatsApp Business"
+        
+        if existing_account:
+            # Update existing account
+            existing_account.phone_number = phone_number or existing_account.phone_number
+            existing_account.phone_number_id = request.phone_number_id
+            existing_account.waba_id = request.waba_id
+            existing_account.access_token = access_token
+            existing_account.business_name = business_name
+            existing_account.facebook_user_id = facebook_user_id
+            existing_account.token_type = token_type
+            existing_account.connected_at = datetime.utcnow()
+            db.commit()
+            db.refresh(existing_account)
+            
+            logger.info(f"✅ Updated WhatsApp account for user {current_user.id}")
+            
+            return {
+                "success": True,
+                "message": "WhatsApp account updated successfully",
+                "account": {
+                    "id": existing_account.id,
+                    "phone_number": existing_account.phone_number,
+                    "business_name": existing_account.business_name,
+                    "waba_id": existing_account.waba_id,
+                    "phone_number_id": existing_account.phone_number_id,
+                    "token_type": existing_account.token_type,
+                    "connected_at": existing_account.connected_at.isoformat()
+                }
+            }
+        else:
+            # Create new account
+            new_account = WhatsAppAccount(
+                user_id=current_user.id,
+                business_name=business_name,
+                phone_number=phone_number or "Configured",
+                phone_number_id=request.phone_number_id,
+                waba_id=request.waba_id,
+                access_token=access_token,
+                facebook_user_id=facebook_user_id,
+                token_type=token_type,
+                is_active=True
+            )
+            
+            db.add(new_account)
+            db.commit()
+            db.refresh(new_account)
+            
+            logger.info(f"✅ Created WhatsApp account for user {current_user.id}")
+            logger.info(f"   WABA ID: {new_account.waba_id}")
+            logger.info(f"   Phone Number ID: {new_account.phone_number_id}")
+            logger.info(f"   Token Type: {new_account.token_type}")
+            
+            return {
+                "success": True,
+                "message": "WhatsApp account connected successfully",
+                "account": {
+                    "id": new_account.id,
+                    "phone_number": new_account.phone_number,
+                    "business_name": new_account.business_name,
+                    "waba_id": new_account.waba_id,
+                    "phone_number_id": new_account.phone_number_id,
+                    "token_type": new_account.token_type,
+                    "connected_at": new_account.connected_at.isoformat()
+                }
+            }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error completing embedded signup: {e}", exc_info=True)
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.post("/connect")
@@ -792,11 +1204,15 @@ async def connect_whatsapp_manual(
             existing_account.waba_id = request.waba_id
             existing_account.access_token = request.access_token
             existing_account.business_name = business_name or existing_account.business_name
+            existing_account.facebook_user_id = request.facebook_user_id
+            existing_account.token_type = request.token_type or "system_user"
             existing_account.connected_at = datetime.utcnow()
             db.commit()
             db.refresh(existing_account)
             
             logger.info(f"✅ Updated WhatsApp account manually: {phone_number}")
+            logger.info(f"   Token Type: {existing_account.token_type}")
+            logger.info(f"   Facebook User ID: {existing_account.facebook_user_id}")
             
             return {
                 "success": True,
@@ -805,7 +1221,8 @@ async def connect_whatsapp_manual(
                     "id": existing_account.id,
                     "phone_number": existing_account.phone_number,
                     "business_name": existing_account.business_name,
-                    "connected_at": existing_account.connected_at.isoformat()
+                    "connected_at": existing_account.connected_at.isoformat(),
+                    "token_type": existing_account.token_type
                 }
             }
         else:
@@ -817,6 +1234,8 @@ async def connect_whatsapp_manual(
                 phone_number_id=request.phone_number_id,
                 waba_id=request.waba_id,
                 access_token=request.access_token,
+                facebook_user_id=request.facebook_user_id,
+                token_type=request.token_type or "system_user",
                 is_active=True
             )
             
@@ -825,6 +1244,8 @@ async def connect_whatsapp_manual(
             db.refresh(new_account)
             
             logger.info(f"✅ Connected WhatsApp account manually: {phone_number}")
+            logger.info(f"   Token Type: {new_account.token_type}")
+            logger.info(f"   Facebook User ID: {new_account.facebook_user_id}")
             
             return {
                 "success": True,
@@ -833,7 +1254,8 @@ async def connect_whatsapp_manual(
                     "id": new_account.id,
                     "phone_number": new_account.phone_number,
                     "business_name": new_account.business_name,
-                    "connected_at": new_account.connected_at.isoformat()
+                    "connected_at": new_account.connected_at.isoformat(),
+                    "token_type": new_account.token_type
                 }
             }
         

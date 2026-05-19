@@ -19,6 +19,7 @@ export function TopHeader() {
   const router = useRouter();
   const location = useLocation();
   const { refreshDashboard, isRefreshing: contextRefreshing } = useDashboardContext();
+
   const [isHydrated, setIsHydrated] = useState(false);
   const [businessProfile, setBusinessProfile] = useState<BusinessProfile | null>(null);
   const [businessAnalysis, setBusinessAnalysis] = useState<any>(null);
@@ -29,7 +30,7 @@ export function TopHeader() {
   const isRefreshing = contextRefreshing || isLocalRefreshing;
 
   // Only show TopHeader on the main dashboard page
-  const isMainDashboard = location.pathname === '/dashboard' || location.pathname === '/dashboard/';
+  const isMainDashboard = location.pathname === "/dashboard" || location.pathname === "/dashboard/";
 
   useEffect(() => {
     setIsHydrated(true);
@@ -37,7 +38,7 @@ export function TopHeader() {
       loadBusinessData();
     }
   }, [isMainDashboard]);
-  
+
   // Don't render if not on main dashboard
   if (!isMainDashboard) {
     return null;
@@ -46,12 +47,12 @@ export function TopHeader() {
   const loadBusinessData = async () => {
     try {
       setIsLoading(true);
-      
+
       // Load business profile from API
       if (apiClient.isAuthenticated()) {
         const profile = await apiClient.getBusinessProfile();
         setBusinessProfile(profile);
-        
+
         // Load latest business analysis from API
         try {
           const analysis = await apiClient.getLatestBusinessAnalysis();
@@ -81,7 +82,7 @@ export function TopHeader() {
           business_setup_completed: true,
         });
       }
-      
+
       // Fallback to localStorage for business analysis
       const analysis = localStorage.getItem("businessAnalysis");
       if (analysis) {
@@ -124,49 +125,61 @@ export function TopHeader() {
   // Get user name (extract first name if full name)
   const firstName = user?.name?.split(" ")[0] || "User";
 
-  // Generate initials from name
-  const getInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase();
+  // Generate avatar letter from business name or user name
+  const getAvatarLetter = () => {
+    if (businessProfile?.business_name) {
+      return businessProfile.business_name.charAt(0).toUpperCase();
+    }
+    if (user?.name) {
+      return user.name.charAt(0).toUpperCase();
+    }
+    return "U";
   };
 
   const displayName = isHydrated ? user?.name || "User" : "User";
   const displayEmail = isHydrated ? user?.email || "user@example.com" : "user@example.com";
-  const initials = getInitials(displayName);
+  const avatarLetter = getAvatarLetter();
+
+  // Display business name in profile dropdown if available, otherwise user name
+  const profileDisplayName = businessProfile?.business_name || displayName;
+  const profileDisplaySubtext = businessProfile?.business_name
+    ? businessProfile.business_type || "Business"
+    : displayEmail;
 
   return (
-    <header className="h-16 border-b border-border/60 bg-background/80 backdrop-blur-md sticky top-0 z-40 flex items-center px-4 lg:px-8 gap-3">
+    <header className="h-12 border-b border-purple-200 bg-white/90 backdrop-blur-md sticky top-0 z-40 flex items-center px-2.5 lg:px-4 gap-2">
       <div className="flex-1 justify-between">
         <div className="relative">
           {/* Business Greeting or Default Greeting */}
-          {!isLoading && businessProfile?.business_setup_completed && businessProfile.business_name ? (
+          {!isLoading &&
+          businessProfile &&
+          businessProfile.business_setup_completed &&
+          businessProfile.business_name ? (
             <div>
-              <h1 className="text-xl md:text-2xl font-bold tracking-tight text-gray-900">
+              <h1 className="text-base md:text-lg font-bold tracking-tight text-gray-900">
                 Welcome back, {businessProfile.business_name}! 👋
               </h1>
-              <div className="flex items-center gap-4 mt-1">
-                <p className="text-sm text-gray-600">
-                  {businessProfile.business_type} • {businessProfile.business_location}
+              <div className="flex items-center gap-2.5 mt-0.5">
+                <p className="text-[11px] text-gray-600">
+                  {businessProfile.business_type || "Business"} •{" "}
+                  {businessProfile.business_location || "Location"}
                 </p>
                 {businessAnalysis && (
-                  <div className="flex items-center gap-2">
-                    <Sparkles size={14} className="text-purple-600" />
-                    <p className="text-xs text-purple-700 font-medium">
+                  <div className="flex items-center gap-1">
+                    {/* <Sparkles size={10} className="text-purple-600" />
+                    <p className="text-[11px] text-purple-700 font-medium">
                       AI Analysis Complete - {businessAnalysis.recommendations?.length || 0} recommendations ready
-                    </p>
+                    </p> */}
                   </div>
                 )}
               </div>
             </div>
           ) : (
             <div>
-              <h1 className="text-xl md:text-2xl font-bold tracking-tight">
+              <h1 className="text-base md:text-lg font-bold tracking-tight text-gray-900">
                 {greeting}, {isHydrated ? firstName : "User"} 👋
               </h1>
-              <p className="mt-1 text-sm text-muted-foreground">
+              <p className="mt-0.5 text-[11px] text-gray-600">
                 Here's what's happening with your business today.
               </p>
             </div>
@@ -179,89 +192,92 @@ export function TopHeader() {
         onClick={handleRefresh}
         disabled={isRefreshing}
         aria-label="Refresh Data"
-        className="h-10 px-3 rounded-xl border border-border hover:bg-accent/40 flex items-center justify-center gap-2 transition disabled:opacity-50 disabled:cursor-not-allowed"
+        className="h-7 px-2 rounded-lg border border-purple-200 hover:bg-purple-50 flex items-center justify-center gap-1 transition disabled:opacity-50 disabled:cursor-not-allowed"
         title="Refresh all dashboard data"
       >
-        <RefreshCw size={16} className={isRefreshing ? "animate-spin" : ""} />
-        <span className="hidden md:inline text-sm font-medium">Refresh</span>
+        <RefreshCw
+          size={12}
+          className={isRefreshing ? "animate-spin text-purple-600" : "text-purple-600"}
+        />
+        <span className="hidden md:inline text-[11px] font-medium text-gray-900">Refresh</span>
       </button>
 
       <button
         aria-label="Notifications"
-        className="relative h-10 w-10 rounded-xl border border-border hover:bg-accent/40 flex items-center justify-center transition"
+        className="relative h-7 w-7 rounded-lg border border-purple-200 hover:bg-purple-50 flex items-center justify-center transition"
       >
-        <Bell size={18} />
-        <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-secondary ring-2 ring-background" />
+        <Bell size={14} className="text-purple-600" />
+        <span className="absolute top-1 right-1 h-1.5 w-1.5 rounded-full bg-red-500 ring-2 ring-white" />
       </button>
 
       {/* Profile Dropdown */}
       <div className="relative">
-        <button 
+        <button
           onClick={() => setShowProfileMenu(!showProfileMenu)}
-          className="flex items-center gap-2 h-10 pl-1 pr-3 rounded-full border border-border hover:bg-accent/40 transition"
+          className="flex items-center gap-1 h-7 pl-0.5 pr-2 rounded-full border border-purple-200 hover:bg-purple-50 transition"
         >
-          <div className="h-8 w-8 rounded-full bg-gradient-brand text-white flex items-center justify-center text-xs font-bold">
-            {initials}
+          <div className="h-6 w-6 rounded-full bg-linear-to-br from-[#5D2F8F] to-[#A855F7] text-white flex items-center justify-center text-[10px] font-bold">
+            {avatarLetter}
           </div>
           <div className="hidden md:block text-left leading-tight">
-            <p className="text-xs font-semibold">{displayName}</p>
-            <p className="text-[10px] text-muted-foreground">{displayEmail}</p>
+            <p className="text-[11px] font-semibold text-gray-900">{profileDisplayName}</p>
+            <p className="text-[9px] text-gray-600">{profileDisplaySubtext}</p>
           </div>
-          <ChevronDown size={14} className="text-muted-foreground" />
+          <ChevronDown size={10} className="text-purple-600" />
         </button>
 
         {/* Dropdown Menu */}
         {showProfileMenu && (
           <>
             {/* Backdrop */}
-            <div 
-              className="fixed inset-0 z-40" 
-              onClick={() => setShowProfileMenu(false)}
-            />
-            
+            <div className="fixed inset-0 z-40" onClick={() => setShowProfileMenu(false)} />
+
             {/* Menu */}
-            <div className="absolute right-0 top-12 z-50 w-64 bg-white rounded-lg border border-gray-200 shadow-lg py-2">
+            <div className="absolute right-0 top-10 z-50 w-56 bg-white rounded-lg border border-gray-200 shadow-lg py-1.5">
               {/* User Info */}
-              <div className="px-4 py-3 border-b border-gray-100">
-                <p className="font-semibold text-gray-900">{displayName}</p>
-                <p className="text-sm text-gray-600">{displayEmail}</p>
+              <div className="px-3 py-2 border-b border-gray-100">
+                <p className="font-semibold text-sm text-gray-900">{profileDisplayName}</p>
+                <p className="text-xs text-gray-600">{profileDisplaySubtext}</p>
+                {businessProfile?.business_name && (
+                  <p className="text-xs text-gray-500 mt-1">{displayEmail}</p>
+                )}
               </div>
 
               {/* Menu Items */}
-              <div className="py-2">
+              <div className="py-1.5">
                 <button
                   onClick={() => {
                     setShowProfileMenu(false);
                     navigate({ to: "/dashboard/business-details" });
                   }}
-                  className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition"
+                  className="w-full flex items-center gap-2.5 px-3 py-1.5 text-sm text-gray-700 hover:bg-purple-50 transition"
                 >
-                  <Building2 size={16} />
+                  <Building2 size={14} className="text-purple-600" />
                   Business Details
                 </button>
-                
+
                 <button
                   onClick={() => {
                     setShowProfileMenu(false);
                     navigate({ to: "/dashboard/settings" });
                   }}
-                  className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition"
+                  className="w-full flex items-center gap-2.5 px-3 py-1.5 text-sm text-gray-700 hover:bg-purple-50 transition"
                 >
-                  <Settings size={16} />
+                  <Settings size={14} className="text-purple-600" />
                   Settings
                 </button>
               </div>
 
               {/* Logout */}
-              <div className="border-t border-gray-100 pt-2">
+              <div className="border-t border-purple-100 pt-1.5">
                 <button
                   onClick={() => {
                     setShowProfileMenu(false);
                     handleLogout();
                   }}
-                  className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition"
+                  className="w-full flex items-center gap-2.5 px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 transition"
                 >
-                  <LogOut size={16} />
+                  <LogOut size={14} className="text-red-600" />
                   Sign Out
                 </button>
               </div>

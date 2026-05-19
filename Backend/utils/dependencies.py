@@ -4,6 +4,7 @@ from jose import JWTError
 from config.database import get_db_sync
 from utils.security import decode_token
 from services.auth_service_sync import get_user_by_id
+from services.token_blacklist_service import token_blacklist_service
 from models.user import User
 from schemas.user_schema import TokenData
 import logging
@@ -18,6 +19,9 @@ def get_current_user(
 ) -> User:
     """
     Dependency to get current authenticated user.
+    
+    **Single Session Enforcement**: Validates that the token matches the user's active session.
+    If user logged in from another device/browser, this token will be rejected.
 
     Args:
         authorization: Authorization header with Bearer token
@@ -27,9 +31,9 @@ def get_current_user(
         Current user object
 
     Raises:
-        HTTPException: If token is invalid or user not found
+        HTTPException: If token is invalid, user not found, or session is invalid
     """
-    logger.info(f"🔐 Auth check - Authorization header provided: {authorization is not None}")
+    # Reduced logging - only log errors and warnings, not every successful auth
     
     if not authorization:
         logger.warning("❌ Authorization header missing")
@@ -37,8 +41,6 @@ def get_current_user(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Authorization header missing",
         )
-
-    logger.info(f"🔐 Authorization header: {authorization[:50]}...")
     
     # Extract token from "Bearer <token>"
     try:
@@ -46,7 +48,6 @@ def get_current_user(
         if len(parts) != 2 or parts[0].lower() != "bearer":
             raise ValueError("Invalid authorization header")
         token = parts[1]
-        logger.info(f"🔑 Token extracted successfully")
     except (ValueError, IndexError) as e:
         logger.warning(f"❌ Invalid authorization header format: {e}")
         raise HTTPException(
@@ -56,15 +57,11 @@ def get_current_user(
         )
 
     try:
-        logger.info(f"🔐 Decoding token...")
         # Decode and validate token
         payload = decode_token(token)
-        logger.info(f"🔐 Token decoded successfully")
         
         user_id: int = payload.get("user_id")
         email: str = payload.get("email")
-        
-        logger.info(f"✅ Token decoded - User ID: {user_id}, Email: {email}")
 
         if user_id is None or email is None:
             logger.warning("❌ Invalid token payload - missing user_id or email")
@@ -84,13 +81,26 @@ def get_current_user(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    # Note: Token blacklist check skipped for now (Redis not available)
-    # In production, implement proper Redis-based token blacklist
+    # Check if token is blacklisted (revoked)
+    if token_blacklist_service.is_token_blacklisted(token):
+        logger.warning(f"❌ Blacklisted token attempted to be used")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token has been revoked",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    # Check if user is blacklisted (all sessions revoked)
+    if token_blacklist_service.is_user_blacklisted(user_id):
+        logger.warning(f"❌ Blacklisted user {user_id} attempted to use token")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="All sessions have been revoked. Please login again",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
 
-    logger.info(f"🔐 Getting user from database...")
     # Get user from database (sync call, no await needed)
     user = get_user_by_id(db, token_data.user_id)
-    logger.info(f"🔐 User retrieved from database")
 
     if user is None:
         logger.warning(f"❌ User not found for ID: {token_data.user_id}")
@@ -100,7 +110,26 @@ def get_current_user(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    logger.info(f"✅ User authenticated: {user.email}")
+    # **SINGLE SESSION ENFORCEMENT**: Check if this token matches the active session
+    # CRITICAL: If active_session_token is NULL (e.g., after DB refresh), reject the request
+    if not user.active_session_token:
+        logger.warning(f"⚠️  No active session for user {user.email}. Session was cleared (DB refresh or logout).")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Your session has been cleared. Please login again.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    if user.active_session_token != token:
+        logger.warning(f"⚠️  Session mismatch for user {user.email}. User logged in from another device/browser.")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Your account is logged in from another device or browser. Please login again.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    # Only log successful auth at DEBUG level (won't show in production)
+    logger.debug(f"✅ User authenticated: {user.email}")
     return user
 
 

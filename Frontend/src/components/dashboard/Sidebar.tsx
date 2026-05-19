@@ -23,6 +23,7 @@ import {
   Zap,
   BookOpen,
   Network,
+  Megaphone,
   Phone,
 } from "lucide-react";
 
@@ -42,13 +43,15 @@ const items: NavItem[] = [
   { to: "/dashboard/aeo-geo", label: "AEO & GEO", icon: Brain },
   { to: "/dashboard/seo-google-maps", label: "SEO & Google Maps", icon: Search },
   { to: "/dashboard/b2b-network", label: "B2B Network", icon: Network },
+  { to: "/dashboard/b2b-chat", label: "B2B Chat", icon: MessageSquare },
   { to: "/dashboard/content", label: "Content Creator", icon: Wand2 },
   { to: "/dashboard/instagram", label: "Instagram", icon: Instagram },
+  { to: "/dashboard/meta-ads", label: "Meta Ads", icon: Megaphone },
   { to: "/dashboard/whatsapp", label: "WhatsApp Sales", icon: MessageSquare },
   { to: "/dashboard/voice-agent", label: "AI Voice Agent", icon: Phone },
   { to: "/dashboard/website", label: "Website AI", icon: FileText },
   { to: "/dashboard/review-reply", label: "Review Reply", icon: MessageSquare },
-  { to: "/dashboard/automation", label: "Automation", icon: Workflow },
+  // { to: "/dashboard/automation", label: "Automation", icon: Workflow },
   { to: "/dashboard/settings", label: "Settings", icon: Settings },
 ];
 
@@ -56,23 +59,20 @@ export function Sidebar() {
   const { pathname } = useLocation();
 
   return (
-    <aside className="hidden lg:flex flex-col w-64 shrink-0 border-r border-sidebar-border bg-sidebar h-screen sticky top-0">
-      <div className="px-5 h-16 flex items-center border-b border-sidebar-border">
-        <Logo />
+    <aside className="hidden lg:flex flex-col w-64 shrink-0 border-r border-purple-200 bg-white h-screen sticky top-0">
+      <div className="px-4 h-14 flex items-center border-b border-purple-200">
+        <Logo size="sm" />
       </div>
-      <nav 
-        className="flex-1 overflow-y-auto p-3 space-y-1" 
-        style={{ 
-          scrollbarWidth: 'none', 
-          msOverflowStyle: 'none',
-          WebkitOverflowScrolling: 'touch'
-        }}
+      <nav
+        className="flex-1 overflow-y-auto p-3 space-y-1 scrollbar-hide"
+        style={
+          {
+            scrollbarWidth: "none",
+            msOverflowStyle: "none",
+            WebkitOverflowScrolling: "touch",
+          } as React.CSSProperties
+        }
       >
-        <style jsx>{`
-          nav::-webkit-scrollbar {
-            display: none;
-          }
-        `}</style>
         {items.map((it) => {
           const active = it.exact
             ? pathname === it.to
@@ -84,38 +84,20 @@ export function Sidebar() {
               to={it.to as "/dashboard"}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all group ${
                 active
-                  ? "bg-gradient-primary text-primary-foreground shadow-glow"
-                  : "text-sidebar-foreground hover:bg-sidebar-accent"
+                  ? "bg-gradient-to-r from-[#8B5CF6] to-[#A855F7] text-white shadow-lg shadow-purple-500/20"
+                  : "text-gray-700 hover:bg-[#F9F7FF] hover:text-purple-700"
               }`}
             >
               <Icon
                 size={18}
-                className={
-                  active ? "" : "text-muted-foreground group-hover:text-sidebar-accent-foreground"
-                }
+                className={active ? "text-white" : "text-gray-400 group-hover:text-purple-600"}
               />
               <span className="flex-1">{it.label}</span>
-              {active && <ChevronRight size={14} />}
+              {active && <ChevronRight size={14} className="text-white" />}
             </Link>
           );
         })}
       </nav>
-      <div className="p-3 border-t border-sidebar-border">
-        <div className="rounded-2xl p-4 bg-gradient-soft border border-border/60">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="h-7 w-7 rounded-lg bg-gradient-secondary flex items-center justify-center">
-              <Sparkles size={14} className="text-white" />
-            </div>
-            <p className="text-sm font-semibold">Upgrade to Pro</p>
-          </div>
-          <p className="text-xs text-muted-foreground mb-3">
-            Unlock unlimited AI generations and advanced insights.
-          </p>
-          <button className="w-full text-xs font-semibold py-2 rounded-lg bg-gradient-primary text-primary-foreground hover:brightness-110 transition">
-            Upgrade
-          </button>
-        </div>
-      </div>
     </aside>
   );
 }

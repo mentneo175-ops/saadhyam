@@ -31,7 +31,7 @@ async def get_latest_business_analysis(
         logger.info(f"📊 Compatibility endpoint called: /api/business/latest for user {current_user.id}")
         
         # Get comprehensive business analysis data
-        analysis_data = await get_business_analysis_data(current_user, db)
+        analysis_data = get_business_analysis_data(current_user.id, db)
         
         if not analysis_data or "error" in analysis_data:
             return {

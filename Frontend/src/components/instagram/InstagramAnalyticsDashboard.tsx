@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useCooldown, formatCooldownTime } from "@/hooks/useCooldown";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -17,8 +18,10 @@ import {
   BarChart3,
   Calendar,
   Target,
+  Megaphone,
 } from "lucide-react";
 import { toast } from "sonner";
+import { PromotePostModal } from "@/components/meta-ads/PromotePostModal";
 
 interface AnalyticsAccount {
   id: number;
@@ -62,6 +65,14 @@ export function InstagramAnalyticsDashboard() {
   const [syncing, setSyncing] = useState(false);
   const [account, setAccount] = useState<AnalyticsAccount | null>(null);
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
+  const [showPromoteModal, setShowPromoteModal] = useState(false);
+  const [selectedPostForPromotion, setSelectedPostForPromotion] = useState<any>(null);
+  
+  // Cooldown for sync button (2 hours)
+  const syncCooldown = useCooldown({
+    cooldownMinutes: 120,
+    storageKey: 'instagram-sync-cooldown',
+  });
 
   useEffect(() => {
     initializeAnalytics();
@@ -115,6 +126,14 @@ export function InstagramAnalyticsDashboard() {
   };
 
   const triggerSync = async (accountId: number) => {
+    // Check cooldown
+    if (!syncCooldown.canExecute) {
+      toast.warning('Sync on Cooldown', {
+        description: `Please wait ${formatCooldownTime(syncCooldown.remainingTime)} before syncing again.`,
+      });
+      return;
+    }
+
     try {
       setSyncing(true);
       const token = localStorage.getItem("saadhyam_token");
@@ -138,15 +157,27 @@ export function InstagramAnalyticsDashboard() {
           duration: 5000,
         });
         
-        // Poll for sync completion
-        setTimeout(() => {
-          loadDashboard(accountId);
-          toast.success("✅ Data refreshed successfully!");
+        // Poll for sync completion and load data
+        setTimeout(async () => {
+          try {
+            await loadDashboard(accountId);
+            toast.success("✅ Data refreshed successfully!");
+            
+            // Start cooldown ONLY after successfully getting complete data
+            syncCooldown.execute();
+          } catch (error) {
+            console.error("Failed to load dashboard after sync:", error);
+            toast.error("Sync completed but failed to load data. Please try again.");
+            // Don't start cooldown if data loading failed
+          }
         }, 5000);
+      } else {
+        throw new Error("Sync request failed");
       }
     } catch (error) {
       console.error("Sync failed:", error);
       toast.error("Failed to sync analytics");
+      // Don't start cooldown if sync failed - user can retry
     } finally {
       setSyncing(false);
     }
@@ -213,13 +244,23 @@ export function InstagramAnalyticsDashboard() {
         </div>
         <Button
           onClick={() => triggerSync(account.id)}
-          disabled={syncing}
+          disabled={syncing || !syncCooldown.canExecute}
           className="flex items-center gap-2"
+          title={
+            !syncCooldown.canExecute
+              ? `Cooldown: ${formatCooldownTime(syncCooldown.remainingTime)}`
+              : "Refresh Instagram data"
+          }
         >
           {syncing ? (
             <>
               <Loader2 className="w-4 h-4 animate-spin" />
               Syncing...
+            </>
+          ) : !syncCooldown.canExecute ? (
+            <>
+              <RefreshCw className="w-4 h-4" />
+              {formatCooldownTime(syncCooldown.remainingTime).split(' ')[0]}
             </>
           ) : (
             <>
@@ -396,6 +437,23 @@ export function InstagramAnalyticsDashboard() {
                             <Badge variant="outline">
                               {post.engagement_rate.toFixed(1)}%
                             </Badge>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => {
+                                setSelectedPostForPromotion({
+                                  id: post.id,
+                                  media_id: post.media_id,
+                                  image_url: "",
+                                  caption: post.caption || "",
+                                });
+                                setShowPromoteModal(true);
+                              }}
+                              className="ml-2 bg-gradient-to-r from-purple-50 to-pink-50 border-purple-200 hover:from-purple-100 hover:to-pink-100 text-purple-700 hover:text-purple-900"
+                            >
+                              <Megaphone className="w-3 h-3 mr-1" />
+                              Promote
+                            </Button>
                           </div>
                         </div>
                       ))}
@@ -413,11 +471,16 @@ export function InstagramAnalyticsDashboard() {
           <p className="text-muted-foreground mb-4">
             Click "Refresh Data" to sync your Instagram analytics
           </p>
-          <Button onClick={() => triggerSync(account.id)} disabled={syncing}>
+          <Button onClick={() => triggerSync(account.id)} disabled={syncing || !syncCooldown.canExecute}>
             {syncing ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin mr-2" />
                 Syncing...
+              </>
+            ) : !syncCooldown.canExecute ? (
+              <>
+                <RefreshCw className="w-4 h-4 mr-2" />
+                {formatCooldownTime(syncCooldown.remainingTime).split(' ')[0]}
               </>
             ) : (
               <>
@@ -427,6 +490,21 @@ export function InstagramAnalyticsDashboard() {
             )}
           </Button>
         </div>
+      )}
+      
+      {/* Promote Post Modal */}
+      {selectedPostForPromotion && (
+        <PromotePostModal
+          isOpen={showPromoteModal}
+          onClose={() => {
+            setShowPromoteModal(false);
+            setSelectedPostForPromotion(null);
+          }}
+          post={selectedPostForPromotion}
+          onSuccess={() => {
+            toast.success("Campaign created! Check Meta Ads Manager.");
+          }}
+        />
       )}
     </div>
   );

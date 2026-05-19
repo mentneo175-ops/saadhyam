@@ -53,6 +53,8 @@ import { InstagramConnectionWizard } from "@/components/instagram/InstagramConne
 import { InstagramSettingsModal } from "@/components/instagram/InstagramSettingsModal";
 import { InstagramConnectionSuccess } from "@/components/instagram/InstagramConnectionSuccess";
 import { InstagramAnalyticsDashboard } from "@/components/instagram/InstagramAnalyticsDashboard";
+import { PromotePostModal } from "@/components/meta-ads/PromotePostModal";
+import { InstagramLoader } from "@/components/instagram/InstagramLoader";
 
 export const Route = createFileRoute("/dashboard/instagram")({
   head: () => ({ meta: [{ title: "Instagram — Saadhyam AI" }] }),
@@ -94,6 +96,10 @@ function InstagramPage() {
   const [connectionLoading, setConnectionLoading] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [showSuccessPage, setShowSuccessPage] = useState(false);
+  
+  // Promote Post Modal State
+  const [showPromoteModal, setShowPromoteModal] = useState(false);
+  const [selectedPostForPromotion, setSelectedPostForPromotion] = useState<InstagramPost | null>(null);
   
   // AI Caption Generation State
   const [showAIDialog, setShowAIDialog] = useState(false);
@@ -722,6 +728,11 @@ function InstagramPage() {
     }
   };
 
+  const handlePromotePost = (post: InstagramPost) => {
+    setSelectedPostForPromotion(post);
+    setShowPromoteModal(true);
+  };
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "posted":
@@ -796,6 +807,11 @@ function InstagramPage() {
   };
 
   if (!mounted) return null;
+
+  // Show full-page loader while checking connection status
+  if (connectionLoading) {
+    return <InstagramLoader />;
+  }
 
   // Show success page after connection
   if (showSuccessPage) {
@@ -1288,9 +1304,23 @@ function InstagramPage() {
                         </p>
                       )}
                       {post.posted_time && (
-                        <p className="text-xs text-green-600">
+                        <p className="text-xs text-green-600 mb-2">
                           Posted: {formatDate(post.posted_time)}
                         </p>
+                      )}
+                      {/* Promote Post Button */}
+                      {post.status === "posted" && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handlePromotePost(post)}
+                          className="mt-2 w-full bg-gradient-to-r from-purple-50 to-pink-50 border-purple-200 hover:from-purple-100 hover:to-pink-100 text-purple-700 hover:text-purple-900"
+                        >
+                          <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                          </svg>
+                          Promote Post
+                        </Button>
                       )}
                     </div>
                   </div>
@@ -1317,6 +1347,21 @@ function InstagramPage() {
         onReconnect={handleConnectInstagram}
         isLoading={connectionLoading}
       />
+
+      {/* Promote Post Modal */}
+      {selectedPostForPromotion && (
+        <PromotePostModal
+          isOpen={showPromoteModal}
+          onClose={() => {
+            setShowPromoteModal(false);
+            setSelectedPostForPromotion(null);
+          }}
+          post={selectedPostForPromotion}
+          onSuccess={() => {
+            loadPosts(false);
+          }}
+        />
+      )}
     </div>
   );
 }

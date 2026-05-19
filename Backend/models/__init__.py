@@ -40,6 +40,13 @@ from models.voice_agent import (
     Language
 )
 
+# B2B Chat Models
+from models.chat import (
+    ChatRoom,
+    ChatMessage,
+    ConnectionRequest,
+)
+
 __all__ = [
     "User",
     "SocialAccount",
@@ -67,4 +74,7 @@ __all__ = [
     "VoiceCall",
     "VoiceLead",
     "VoiceFollowUp",
+    "ChatRoom",
+    "ChatMessage",
+    "ConnectionRequest",
 ]

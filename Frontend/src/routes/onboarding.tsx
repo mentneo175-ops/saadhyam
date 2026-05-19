@@ -8,10 +8,15 @@ import { toast } from "sonner";
 import { PDFUpload } from "@/components/business/PDFUpload";
 import { VoiceInput } from "@/components/business/VoiceInput";
 import { WebsiteImport } from "@/components/business/WebsiteImport";
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 
 export const Route = createFileRoute("/onboarding")({
   head: () => ({ meta: [{ title: "Business Setup — Saadhyam AI" }] }),
-  component: OnboardingPage,
+  component: () => (
+    <ProtectedRoute>
+      <OnboardingPage />
+    </ProtectedRoute>
+  ),
 });
 
 const businessTypes = [
@@ -439,8 +444,12 @@ function OnboardingPage() {
         <div className="flex flex-col justify-center items-center p-8 lg:p-16">
           <div className="max-w-md animate-fade-in-down">
             {/* Logo */}
-            <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-gradient-to-br from-purple-500 to-pink-500 mb-8 shadow-2xl transform hover:scale-110 transition-transform duration-300">
-              <Sparkles size={36} className="text-white animate-pulse" />
+            <div className="mb-8">
+              <img 
+                src="/src/Icon/Saadhyam_Icon-removebg-preview.png" 
+                alt="Saadhyam AI" 
+                className="h-24 w-auto mx-auto transform hover:scale-110 transition-transform duration-300"
+              />
             </div>
             
             {/* Welcome Text */}

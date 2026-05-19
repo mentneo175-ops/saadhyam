@@ -66,25 +66,35 @@ class TaskGenerationService:
                 logger.warning(f"⚠️ No suitable templates found for user {user_id}")
                 return []
             
-            # Check if tasks already exist for today
+            # Get today's date range
             today_start = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
-            today_end = today_start + timedelta(days=1)
             
+            # Get existing tasks for today to avoid duplicates
             existing_tasks = db.query(DailyTask).filter(
                 and_(
                     DailyTask.user_id == user_id,
                     DailyTask.assigned_date >= today_start,
-                    DailyTask.assigned_date < today_end
+                    DailyTask.assigned_date < today_start + timedelta(days=1)
                 )
-            ).count()
+            ).all()
             
-            if existing_tasks > 0:
-                logger.info(f"⏭️  User {user_id} already has {existing_tasks} tasks for today")
-                return []
+            existing_titles = {task.title for task in existing_tasks}
+            logger.info(f"📋 User already has {len(existing_tasks)} tasks for today")
+            
+            # Filter out templates that are already assigned today
+            available_templates = [
+                t for t in templates 
+                if t.title not in existing_titles
+            ]
+            
+            if not available_templates:
+                logger.info(f"⚠️ All suitable tasks already assigned for today")
+                # Return existing tasks instead of empty list
+                return existing_tasks
             
             # Select diverse tasks from different categories
             selected_templates = TaskGenerationService._select_diverse_tasks(
-                templates, num_tasks
+                available_templates, num_tasks
             )
             
             # Create tasks

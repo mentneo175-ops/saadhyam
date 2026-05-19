@@ -69,7 +69,7 @@ async def get_latest_analysis(
     """
     try:
         # Get business analysis data
-        analysis_data = await get_business_analysis_data(current_user, db)
+        analysis_data = get_business_analysis_data(current_user.id, db)
         
         if not analysis_data or "error" in analysis_data:
             return BusinessAnalysisResponse(

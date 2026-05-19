@@ -29,6 +29,12 @@ class User(Base):
     name = Column(String(255), nullable=True)  # User's full name
     is_active = Column(Boolean, default=True, nullable=False)  # Account active status
     
+    # Session Tracking Fields (for single-session enforcement)
+    active_session_token = Column(String(500), nullable=True)  # Current active session token
+    session_created_at = Column(DateTime, nullable=True)  # When session was created
+    session_ip_address = Column(String(45), nullable=True)  # IP address of active session
+    session_user_agent = Column(Text, nullable=True)  # Browser/device info
+    
     # Business Profile Fields
     business_name = Column(String(255), nullable=True)
     business_type = Column(String(100), nullable=True)

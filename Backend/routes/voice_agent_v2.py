@@ -365,13 +365,26 @@ async def add_lead(
         campaign.total_contacts += 1
         campaign.calls_pending += 1
         db.commit()
+        db.refresh(contact)
         
         logger.info(f"✅ Lead added to campaign {campaign_id}")
         
         return {
             "success": True,
             "message": "Lead added successfully",
-            "contact_id": contact.id
+            "contact_id": contact.id,
+            "contact": {
+                "id": contact.id,
+                "name": contact.name,
+                "phone": contact.phone_number,
+                "email": contact.email,
+                "language": contact.custom_data.get("language") if contact.custom_data else None,
+                "location": contact.custom_data.get("location") if contact.custom_data else None,
+                "interest": contact.custom_data.get("interest") if contact.custom_data else None,
+                "call_attempts": 0,
+                "is_completed": False,
+                "created_at": contact.created_at.isoformat() if contact.created_at else None
+            }
         }
         
     except HTTPException:

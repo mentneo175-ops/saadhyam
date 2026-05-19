@@ -57,10 +57,18 @@ function DailyAskPage() {
     return token;
   };
 
-  // Load tasks on mount
+  // Load tasks on mount and auto-generate if none exist
   useEffect(() => {
     loadTasks();
   }, []);
+
+  // Auto-generate tasks if none exist (first time user)
+  useEffect(() => {
+    if (!isLoading && tasks.length === 0 && !error) {
+      // Auto-generate tasks for first-time users
+      generateTasks();
+    }
+  }, [isLoading, tasks.length, error]);
 
   const loadTasks = async () => {
     setIsLoading(true);
@@ -101,7 +109,19 @@ function DailyAskPage() {
 
       if (response.ok) {
         const data: TasksResponse = await response.json();
-        setTasks(data.tasks);
+        
+        // If we got new tasks, add them to existing tasks
+        if (data.tasks.length > 0) {
+          setTasks((prev) => {
+            // Combine existing and new tasks, removing duplicates by ID
+            const taskMap = new Map();
+            [...prev, ...data.tasks].forEach(task => taskMap.set(task.id, task));
+            return Array.from(taskMap.values());
+          });
+        } else {
+          // No new tasks available
+          setError("All available tasks for today have been assigned. Great job!");
+        }
       } else {
         throw new Error("Failed to generate tasks");
       }
@@ -193,16 +213,12 @@ function DailyAskPage() {
         />
         <div className="flex flex-col items-center justify-center py-20">
           <div className="h-20 w-20 rounded-full bg-pink-100 flex items-center justify-center mb-6">
-            <Calendar size={40} className="text-pink-600" />
+            <Sparkles size={40} className="text-pink-600 animate-pulse" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">No Tasks Found</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Generating Your Tasks...</h2>
           <p className="text-gray-600 mb-6 text-center max-w-md">
-            Generate your daily tasks to get started with your action plan.
+            We're creating personalized tasks based on your business profile.
           </p>
-          <Button variant="hero" size="lg" onClick={generateTasks}>
-            <Sparkles size={20} />
-            Generate Daily Tasks
-          </Button>
         </div>
       </div>
     );
@@ -248,7 +264,7 @@ function DailyAskPage() {
           disabled={isGenerating}
         >
           <RefreshCw size={14} className={isGenerating ? "animate-spin" : ""} />
-          Re-generate
+          Add More Tasks
         </Button>
       </div>
 

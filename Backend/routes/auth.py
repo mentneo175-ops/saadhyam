@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
 from config.database import get_db
 from models.user import User
@@ -6,15 +6,23 @@ from schemas.user_schema import UserRegister, UserLogin, TokenResponse, UserResp
 from services.auth_service_sync import register_user, authenticate_user
 from services.firebase_service import firebase_service
 from services.redis_service import blacklist_token
+from services.token_blacklist_service import token_blacklist_service
 from utils.security import create_access_token
 from utils.dependencies import get_current_user
+from utils.validators import validate_password_strength, validate_email
 from config.settings import settings
 from pydantic import BaseModel
+from slowapi import Limiter
+from slowapi.util import get_remote_address
+from datetime import datetime
 import logging
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/auth", tags=["authentication"])
+
+# Create limiter instance for this router
+limiter = Limiter(key_func=get_remote_address)
 
 
 @router.get("/health")
@@ -43,6 +51,7 @@ class GoogleAuthRequest(BaseModel):
 )
 async def google_auth(
     auth_request: GoogleAuthRequest,
+    request: Request,
     db: Session = Depends(get_db),
 ) -> TokenResponse:
     """
@@ -53,6 +62,9 @@ async def google_auth(
     Creates user automatically if not exists.
     Returns JWT access token for backend authentication.
     NO MOCK/DEMO TOKENS ACCEPTED.
+    
+    **Single Session Enforcement**: Only one active session allowed per user.
+    If user is already logged in elsewhere, that session will be invalidated.
     """
     try:
         # Check if Firebase is available FIRST
@@ -119,12 +131,28 @@ async def google_auth(
                 user.name = user_info['name']
             logger.info(f"✅ Firebase user updated: {user.email}")
         
-        db.commit()
-        db.refresh(user)
+        # Check if user already has an active session
+        if user.active_session_token:
+            logger.warning(f"⚠️  User {user.email} already has an active session. Invalidating old session.")
+            # Old session will be invalidated when new token is created
         
         # Create backend JWT token
         access_token = create_access_token(user.id, user.email)
         
+        # Get client info
+        client_ip = request.client.host if request.client else "unknown"
+        user_agent = request.headers.get("user-agent", "unknown")
+        
+        # Update user's active session info
+        user.active_session_token = access_token
+        user.session_created_at = datetime.utcnow()
+        user.session_ip_address = client_ip
+        user.session_user_agent = user_agent
+        
+        db.commit()
+        db.refresh(user)
+        
+        logger.info(f"✅ Session registered: IP={client_ip}, Device={user_agent[:50]}...")
         logger.info(f"🎉 REAL Google authentication successful for user: {user.email}")
         logger.info(f"👤 User ID: {user.id}")
         logger.info(f"🔑 Firebase UID: {user.firebase_uid}")
@@ -156,11 +184,15 @@ async def google_auth(
     summary="Register a new user with email/password",
     responses={
         201: {"description": "User registered successfully"},
-        400: {"description": "Email already registered"},
+        400: {"description": "Email already registered or validation failed"},
+        422: {"description": "Validation error"},
+        429: {"description": "Too many requests - rate limit exceeded"},
         500: {"description": "Internal server error"},
     },
 )
+@limiter.limit("3/minute")
 async def register(
+    request: Request,
     user_data: UserRegister,
     db: Session = Depends(get_db),
 ) -> TokenResponse:
@@ -168,12 +200,19 @@ async def register(
     Register a new user with email and password.
     
     - **email**: Valid email address
-    - **password**: Password (minimum 6 characters)
+    - **password**: Strong password (min 8 chars, uppercase, lowercase, number, special char)
     - **name**: Optional full name
     
+    Rate limited to 3 registrations per minute per IP address.
     Returns JWT access token for backend authentication.
     """
     try:
+        # Validate email format (raises HTTPException if invalid)
+        validate_email(user_data.email)
+        
+        # Validate password strength (raises HTTPException if invalid)
+        validate_password_strength(user_data.password)
+        
         # Register user using auth service
         user = register_user(db, user_data)
         
@@ -208,10 +247,13 @@ async def register(
     responses={
         200: {"description": "Login successful"},
         401: {"description": "Invalid credentials"},
+        429: {"description": "Too many requests - rate limit exceeded"},
         500: {"description": "Internal server error"},
     },
 )
+@limiter.limit("5/minute")
 async def login(
+    request: Request,
     credentials: UserLogin,
     db: Session = Depends(get_db),
 ) -> TokenResponse:
@@ -221,7 +263,11 @@ async def login(
     - **email**: User email address
     - **password**: User password
     
+    Rate limited to 5 attempts per minute per IP address.
     Returns JWT access token for backend authentication.
+    
+    **Single Session Enforcement**: Only one active session allowed per user.
+    If user is already logged in elsewhere, that session will be invalidated.
     """
     try:
         logger.info(f"🔐 Login attempt for: {credentials.email}")
@@ -230,9 +276,27 @@ async def login(
         user = authenticate_user(db, credentials.email, credentials.password)
         logger.info(f"✅ User authenticated: {user.email}, ID: {user.id}")
         
+        # Check if user already has an active session
+        if user.active_session_token:
+            logger.warning(f"⚠️  User {user.email} already has an active session. Invalidating old session.")
+            # Old session will be invalidated when new token is created
+        
         # Create access token
         access_token = create_access_token(user.id, user.email)
         logger.info(f"✅ Token created for user: {user.email}")
+        
+        # Get client info
+        client_ip = request.client.host if request.client else "unknown"
+        user_agent = request.headers.get("user-agent", "unknown")
+        
+        # Update user's active session info
+        user.active_session_token = access_token
+        user.session_created_at = datetime.utcnow()
+        user.session_ip_address = client_ip
+        user.session_user_agent = user_agent
+        db.commit()
+        
+        logger.info(f"✅ Session registered: IP={client_ip}, Device={user_agent[:50]}...")
         
         # Create response
         response = TokenResponse(
@@ -273,13 +337,23 @@ async def login(
 async def logout(
     current_user: User = Depends(get_current_user),
     authorization: str = None,
+    db: Session = Depends(get_db),
 ) -> dict:
     """
-    Logout user by blacklisting their token.
+    Logout user by clearing their active session.
 
-    Token is added to Redis blacklist and becomes invalid immediately.
+    Clears the user's active session token and session info.
     """
     try:
+        # Clear user's active session
+        current_user.active_session_token = None
+        current_user.session_created_at = None
+        current_user.session_ip_address = None
+        current_user.session_user_agent = None
+        db.commit()
+        
+        logger.info(f"✅ User logged out successfully: {current_user.email}")
+        
         # Extract token from authorization header
         if authorization and authorization.startswith("Bearer "):
             token = authorization.split(" ")[1]

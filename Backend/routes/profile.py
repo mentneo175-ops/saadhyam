@@ -218,6 +218,18 @@ def update_business_profile(
         current_user.business_description = request.business_description
         current_user.business_setup_completed = True
         
+        # Geocode the location and save coordinates
+        if request.business_location:
+            logger.info(f"📍 Geocoding location during onboarding: {request.business_location}")
+            from services.geocoding_service import get_city_coordinates
+            
+            coords = get_city_coordinates(request.business_location)
+            if coords:
+                current_user.latitude, current_user.longitude = coords
+                logger.info(f"✅ Saved coordinates: {current_user.latitude}, {current_user.longitude}")
+            else:
+                logger.warning(f"⚠️ Could not geocode '{request.business_location}'")
+        
         # Save to database
         db.commit()
         db.refresh(current_user)

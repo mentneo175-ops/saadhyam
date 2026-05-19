@@ -268,9 +268,9 @@ export default function AssistantWidget() {
     }
   };
 
-  // Show widget ONLY on the main dashboard page (not in other features)
-  const isMainDashboard = location.pathname === '/dashboard' || location.pathname === '/dashboard/';
-  const shouldShow = isMainDashboard && user;
+  // Show widget on all dashboard pages except login/signup
+  const isDashboardPage = location.pathname.startsWith('/dashboard');
+  const shouldShow = isDashboardPage && user;
 
   // Don't render if should not be shown
   if (!shouldShow) {
@@ -281,7 +281,7 @@ export default function AssistantWidget() {
     <>
       {/* Widget Panel - Positioned above button */}
       {isOpen && (
-        <div className="fixed bottom-24 right-6 w-[380px] overflow-hidden rounded-2xl border border-border bg-card shadow-xl">
+        <div className="fixed bottom-24 right-6 w-[380px] overflow-hidden rounded-2xl border border-border bg-card shadow-xl z-[60]">
           {/* Header with Mode Toggle */}
           <div className="border-b border-border">
             <div className="flex items-center justify-between px-4 py-3">
@@ -519,11 +519,11 @@ export default function AssistantWidget() {
       )}
 
       {/* AI Button - Fixed in corner */}
-      <div className="fixed bottom-6 right-6 z-50">
+      <div className="fixed bottom-6 right-6 z-[60]">
         <button
           type="button"
           onClick={() => setIsOpen((prev) => !prev)}
-          className="flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition hover:scale-105 hover:bg-primary/90"
+          className="flex h-14 w-14 items-center justify-center rounded-full bg-linear-to-br from-[#5D2F8F] to-[#A855F7] text-white shadow-lg shadow-purple-500/40 transition hover:scale-110 hover:shadow-xl hover:shadow-purple-500/60"
           aria-label="Toggle assistant"
         >
           {mode === "voice" && isListening ? "🎤" : mode === "voice" && isSpeaking ? "🔊" : "AI"}

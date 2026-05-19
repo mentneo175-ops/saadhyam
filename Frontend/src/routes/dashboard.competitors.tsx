@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { Button } from "@/components/ui/button";
-import { TrendingUp, TrendingDown, ExternalLink, Plus, Trash2 } from "lucide-react";
+import { TrendingUp, TrendingDown, ExternalLink, Plus, Trash2, Zap, Users, BarChart3, Target } from "lucide-react";
 import { useState, useEffect } from "react";
 import { apiClient } from "@/lib/api";
 import { toast } from "sonner";
@@ -249,3 +249,5 @@ function CompetitorsPage() {
     </div>
   );
 }
+
+

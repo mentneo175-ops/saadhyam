@@ -2,7 +2,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Link } from "@tanstack/react-router";
 import { Navbar } from "@/components/landing/Navbar";
 import { Footer } from "@/components/landing/Footer";
-import { HeroPreview } from "@/components/landing/HeroPreview";
 import { Button } from "@/components/ui/button";
 import {
   ArrowRight,
@@ -10,8 +9,6 @@ import {
   Sparkles,
   BarChart3,
   PenTool,
-  Megaphone,
-  Eye,
   MessageCircle,
   Check,
   Star,
@@ -21,7 +18,14 @@ import {
   TrendingUp,
   Globe,
   Bot,
+  Target,
+  PieChart,
+  Rocket,
+  Shield,
+  Users,
 } from "lucide-react";
+import { useState, useEffect } from "react";
+import LogoImage from "@/Icon/Saadhyam_Icon-removebg-preview.png";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -175,103 +179,306 @@ const tiers = [
 
 function Landing() {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen" style={{ background: 'linear-gradient(135deg, #F8F7FC 0%, #F3F1F9 50%, #EDE9F6 100%)' }}>
       <Navbar />
 
-      {/* Hero */}
-      <section className="relative overflow-hidden">
-        <div className="absolute inset-0 -z-10 bg-mesh" />
+      {/* Hero Section - Premium Design */}
+      <section className="relative overflow-hidden min-h-screen flex items-center">
         
-        <div className="container mx-auto px-4 lg:px-8 py-20 lg:py-28">
-          <div className="grid lg:grid-cols-2 gap-12 lg:gap-8 items-center">
-            <div className="space-y-7 animate-fade-in-up">
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full glass text-xs font-medium">
-                <Sparkles size={14} className="text-secondary" />
-                <span>Built for the AI Search Era</span>
+        {/* Large Flowing Logo Background */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          {/* Big flowing gradient shape with logo */}
+          <div className="absolute top-0 right-0 w-[900px] h-[700px] opacity-40"
+               style={{
+                 background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(168, 85, 247, 0.25) 50%, rgba(139, 92, 246, 0.1) 100%)',
+                 borderRadius: '40% 60% 70% 30% / 40% 50% 60% 50%',
+                 transform: 'rotate(-15deg) translate(20%, -10%)',
+                 filter: 'blur(60px)',
+               }}>
+          </div>
+          
+          {/* Large logo that merges with background */}
+          <div className="absolute top-1/4 right-1/4 transform translate-x-1/4 -translate-y-1/4">
+            <div className="relative">
+              {/* Glow layers behind logo */}
+              <div className="absolute inset-0 w-[450px] h-[450px] bg-gradient-to-br from-[#8B5CF6]/20 to-[#A855F7]/30 rounded-full blur-3xl"></div>
+              <div className="absolute inset-0 w-[450px] h-[450px] bg-gradient-to-tl from-[#A855F7]/15 to-transparent rounded-full blur-2xl"></div>
+              
+              {/* Large logo with original colors */}
+              <img 
+                src={LogoImage} 
+                alt="" 
+                className="relative w-[450px] h-[450px] object-contain animate-float3d"
+                style={{
+                  filter: 'drop-shadow(0 30px 60px rgba(139, 92, 246, 0.4))',
+                  opacity: 1,
+                }}
+              />
+            </div>
+          </div>
+
+          {/* Flowing curved shape */}
+          <svg className="absolute top-0 right-0 w-full h-full opacity-30" viewBox="0 0 800 800" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="flowGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#8B5CF6" stopOpacity="0.2" />
+                <stop offset="50%" stopColor="#A855F7" stopOpacity="0.3" />
+                <stop offset="100%" stopColor="#8B5CF6" stopOpacity="0.1" />
+              </linearGradient>
+            </defs>
+            <path 
+              d="M 400,0 Q 600,200 800,300 L 800,0 Z" 
+              fill="url(#flowGradient)"
+              style={{
+                animation: 'flowMove 20s ease-in-out infinite',
+              }}
+            />
+          </svg>
+
+          {/* Additional soft orbs */}
+          <div className="absolute top-20 left-20 w-64 h-64 bg-[#8B5CF6]/8 rounded-full blur-3xl animate-ambient-move"></div>
+          <div className="absolute bottom-32 right-32 w-48 h-48 bg-[#A855F7]/10 rounded-full blur-2xl animate-ambient-move" style={{ animationDelay: '2s' }}></div>
+          
+          {/* Subtle particles - Fixed positions to avoid hydration mismatch */}
+          {[...Array(20)].map((_, i) => {
+            // Use deterministic values based on index instead of Math.random()
+            const left = ((i * 37) % 100);
+            const top = ((i * 53) % 100);
+            const delay = ((i * 0.7) % 5);
+            const duration = 8 + ((i * 0.5) % 8);
+            
+            return (
+              <div
+                key={i}
+                className="absolute w-1 h-1 bg-[#8B5CF6]/40 rounded-full animate-particle-float"
+                style={{
+                  left: `${left}%`,
+                  top: `${top}%`,
+                  animationDelay: `${delay}s`,
+                  animationDuration: `${duration}s`,
+                }}
+              />
+            );
+          })}
+        </div>
+
+        <div className="container mx-auto px-4 lg:px-8 py-20 relative z-10">
+          <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+            
+            {/* Left Side - Content */}
+            <div className="space-y-8 animate-fade-in-up">
+              
+              {/* Logo + Brand */}
+              {/* <div className="flex items-center gap-3 mb-8">
+                <img 
+                  src={LogoImage} 
+                  alt="Saadhyam AI" 
+                  className="w-14 h-14 object-contain"
+                />
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">
+                    Saadhyam <span className="text-[#8B5CF6]">AI</span>
+                  </h2>
+                </div>
+              </div> */}
+
+              {/* Badge */}
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#F3EEFF] border border-[#E9D5FF]">
+                <Sparkles size={16} className="text-[#8B5CF6]" />
+                <span className="text-sm text-[#8B5CF6] font-semibold">Built for the AI Search Era</span>
               </div>
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.05]">
-                Get discovered by <span className="text-gradient">Google, ChatGPT</span> & AI search
+
+              {/* Hero Heading */}
+              <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.05] text-gray-900">
+                Get discovered by <span className="text-[#8B5CF6]">Google, ChatGPT</span> & AI search
               </h1>
-              <p className="text-lg text-muted-foreground max-w-lg">
+
+              {/* Description */}
+              <p className="text-xl text-gray-600 leading-relaxed max-w-xl">
                 The AI visibility platform that optimizes your business for traditional search, AI engines, voice assistants, and generative AI platforms.
               </p>
-              
+
               {/* AI Visibility Metrics Preview */}
-              <div className="grid grid-cols-2 gap-3 py-4">
-                <div className="p-4 rounded-xl bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20 border border-purple-200/50 dark:border-purple-800/50">
-                  <div className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">89%</div>
-                  <div className="text-xs text-muted-foreground mt-1">AI Visibility Score</div>
+              <div className="grid grid-cols-2 gap-4 py-4">
+                <div className="glass-card rounded-2xl p-5 shadow-3d-soft">
+                  <div className="text-3xl font-bold bg-gradient-to-r from-[#8B5CF6] to-[#A855F7] bg-clip-text text-transparent">89%</div>
+                  <div className="text-sm text-gray-600 mt-1">AI Visibility Score</div>
                 </div>
-                <div className="p-4 rounded-xl bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950/20 dark:to-cyan-950/20 border border-blue-200/50 dark:border-blue-800/50">
-                  <div className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">12.4K</div>
-                  <div className="text-xs text-muted-foreground mt-1">AI Mentions/Month</div>
+                <div className="glass-card rounded-2xl p-5 shadow-3d-soft">
+                  <div className="text-3xl font-bold bg-gradient-to-r from-[#8B5CF6] to-[#A855F7] bg-clip-text text-transparent">12.4K</div>
+                  <div className="text-sm text-gray-600 mt-1">AI Mentions/Month</div>
                 </div>
               </div>
-              
-              <div className="flex flex-wrap gap-3">
-                <Button variant="hero" size="xl" asChild>
+
+              {/* CTA Buttons */}
+              <div className="flex flex-wrap gap-4">
+                <Button 
+                  size="lg"
+                  className="h-14 px-8 text-base font-semibold bg-gradient-to-r from-[#8B5CF6] to-[#A855F7] hover:from-[#7C3AED] hover:to-[#9333EA] text-white rounded-xl shadow-lg shadow-[#8B5CF6]/25 hover:shadow-xl hover:shadow-[#8B5CF6]/30 transition-all"
+                  asChild
+                >
                   <Link to="/signup">
                     Optimize My AI Visibility <ArrowRight size={18} />
                   </Link>
                 </Button>
-                <Button variant="glass" size="xl" asChild>
+                <Button 
+                  variant="outline"
+                  size="lg"
+                  className="h-14 px-8 text-base font-semibold border-2 border-[#8B5CF6]/30 hover:border-[#8B5CF6] hover:bg-[#F9F7FF] rounded-xl transition-all"
+                  asChild
+                >
                   <Link to="/dashboard">
                     <Play size={16} /> View demo
                   </Link>
                 </Button>
               </div>
-              
+
               {/* AI Search Platforms Row */}
               <div className="pt-4">
-                <p className="text-xs text-muted-foreground mb-3 font-medium">Optimized for AI-powered discovery:</p>
-                <div className="flex items-center gap-4 flex-wrap">
-                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted/50 border border-border/50">
-                    <Globe size={14} className="text-blue-600" />
-                    <span className="text-xs font-medium">Google</span>
-                  </div>
-                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted/50 border border-border/50">
-                    <Bot size={14} className="text-emerald-600" />
-                    <span className="text-xs font-medium">ChatGPT</span>
-                  </div>
-                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted/50 border border-border/50">
-                    <Sparkles size={14} className="text-purple-600" />
-                    <span className="text-xs font-medium">Gemini</span>
-                  </div>
-                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted/50 border border-border/50">
-                    <Brain size={14} className="text-orange-600" />
-                    <span className="text-xs font-medium">Perplexity</span>
-                  </div>
-                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted/50 border border-border/50">
-                    <Search size={14} className="text-cyan-600" />
-                    <span className="text-xs font-medium">Claude</span>
-                  </div>
+                <p className="text-sm text-gray-600 mb-3 font-medium">Optimized for AI-powered discovery:</p>
+                <div className="flex items-center gap-3 flex-wrap">
+                  {[
+                    { icon: Globe, name: "Google", color: "text-blue-600" },
+                    { icon: Bot, name: "ChatGPT", color: "text-emerald-600" },
+                    { icon: Sparkles, name: "Gemini", color: "text-purple-600" },
+                    { icon: Brain, name: "Perplexity", color: "text-orange-600" },
+                    { icon: Search, name: "Claude", color: "text-cyan-600" },
+                  ].map((platform) => (
+                    <div key={platform.name} className="flex items-center gap-2 px-3 py-2 rounded-lg glass-card border border-[#E9D5FF]/50">
+                      <platform.icon size={14} className={platform.color} />
+                      <span className="text-xs font-medium text-gray-700">{platform.name}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
-              
-              <div className="flex items-center gap-6 pt-2">
+
+              {/* Social Proof */}
+              <div className="flex items-center gap-6 pt-4">
                 <div className="flex -space-x-2">
-                  {[0, 1, 2, 3].map((i) => (
+                  {[1, 2, 3, 4].map((i) => (
                     <div
                       key={i}
-                      className="h-8 w-8 rounded-full border-2 border-background bg-gradient-brand"
-                      style={{ filter: `hue-rotate(${i * 35}deg)` }}
+                      className="h-10 w-10 rounded-full border-2 border-white bg-gradient-to-br from-[#8B5CF6] to-[#A855F7]"
+                      style={{ filter: `hue-rotate(${i * 20}deg)` }}
                     />
                   ))}
                 </div>
-                <div className="text-sm">
-                  <div className="flex items-center gap-1">
+                <div>
+                  <div className="flex items-center gap-1 mb-1">
                     {Array.from({ length: 5 }).map((_, i) => (
-                      <Star key={i} size={14} className="fill-accent text-accent" />
+                      <Star key={i} size={14} className="fill-[#8B5CF6] text-[#8B5CF6]" />
                     ))}
-                    <span className="ml-1 font-semibold">4.9</span>
+                    <span className="ml-1 font-bold text-gray-900">4.9</span>
                   </div>
-                  <p className="text-xs text-muted-foreground">from 2,400+ businesses</p>
+                  <p className="text-sm text-gray-600">from 2,400+ businesses</p>
                 </div>
               </div>
             </div>
-            <div className="relative pt-10 lg:pt-0">
-              <HeroPreview />
+
+            {/* Right Side - 3D Floating Dashboard Cards */}
+            <div className="relative h-[600px] perspective-container hidden lg:block">
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="relative w-full max-w-lg h-full">
+                  
+                  {/* Business Overview Card - Center */}
+                  <div 
+                    className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-80 glass-premium rounded-3xl p-6 shadow-3d-float animate-float3d card-3d"
+                    style={{ transform: 'translate(-50%, -50%) rotateX(2deg) rotateY(-2deg)' }}
+                  >
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-sm font-semibold text-gray-700">Business Overview</h3>
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#8B5CF6] to-[#A855F7] flex items-center justify-center shadow-lg">
+                        <PieChart className="w-5 h-5 text-white" />
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-3 gap-4 mb-4">
+                      <div>
+                        <p className="text-xs text-gray-500 mb-1">Revenue</p>
+                        <p className="text-xl font-bold text-gray-900">₹24.8K</p>
+                        <p className="text-xs text-green-600 font-semibold">↑ 18.5%</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500 mb-1">Leads</p>
+                        <p className="text-xl font-bold text-gray-900">612</p>
+                        <p className="text-xs text-green-600 font-semibold">↑ 12.3%</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500 mb-1">Conversions</p>
+                        <p className="text-xl font-bold text-gray-900">98</p>
+                        <p className="text-xs text-green-600 font-semibold">↑ 8.7%</p>
+                      </div>
+                    </div>
+
+                    {/* Mini chart */}
+                    <svg className="w-full h-16" viewBox="0 0 300 60">
+                      <path 
+                        d="M0,50 Q75,25 150,30 T300,15" 
+                        fill="none" 
+                        stroke="url(#chartGradient)" 
+                        strokeWidth="2.5"
+                        strokeLinecap="round"
+                      />
+                      <defs>
+                        <linearGradient id="chartGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                          <stop offset="0%" stopColor="#8B5CF6" />
+                          <stop offset="100%" stopColor="#A855F7" />
+                        </linearGradient>
+                      </defs>
+                    </svg>
+                  </div>
+
+                  {/* AI Score Card - Top Right */}
+                  <div 
+                    className="absolute top-0 right-0 w-52 glass-premium rounded-2xl p-5 shadow-3d-soft animate-float3d-delayed card-3d"
+                    style={{ transform: 'rotateX(-3deg) rotateY(3deg)', animationDelay: '0.5s' }}
+                  >
+                    <div className="flex items-center justify-between mb-3">
+                      <p className="text-xs font-semibold text-gray-600">AI Score</p>
+                      <Zap className="w-5 h-5 text-[#8B5CF6]" />
+                    </div>
+                    <div className="flex items-baseline gap-1 mb-3">
+                      <span className="text-4xl font-bold bg-gradient-to-r from-[#8B5CF6] to-[#A855F7] bg-clip-text text-transparent">85</span>
+                      <span className="text-sm text-gray-400">/100</span>
+                    </div>
+                    <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                      <div className="h-full w-[85%] bg-gradient-to-r from-[#8B5CF6] to-[#A855F7] rounded-full animate-glow-pulse"></div>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-3">Your business is growing 18.6% this month</p>
+                  </div>
+
+                  {/* Monthly Goal Card - Bottom Left */}
+                  <div 
+                    className="absolute bottom-0 left-0 w-48 glass-premium rounded-2xl p-5 shadow-3d-soft animate-float3d-slow card-3d"
+                    style={{ transform: 'rotateX(3deg) rotateY(-3deg)', animationDelay: '1s' }}
+                  >
+                    <div className="flex items-center gap-2 mb-3">
+                      <Target className="w-5 h-5 text-[#8B5CF6]" />
+                      <p className="text-xs font-semibold text-gray-600">Monthly Goal</p>
+                    </div>
+                    <p className="text-3xl font-bold text-gray-900 mb-3">87%</p>
+                    <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                      <div className="h-full w-[87%] bg-gradient-to-r from-[#8B5CF6] to-[#A855F7] rounded-full"></div>
+                    </div>
+                  </div>
+
+                  {/* Growth Trend Card - Top Left */}
+                  <div 
+                    className="absolute top-12 left-0 w-44 glass-premium rounded-2xl p-4 shadow-3d-soft animate-float3d card-3d"
+                    style={{ transform: 'rotateX(-2deg) rotateY(-2deg)', animationDelay: '1.5s' }}
+                  >
+                    <div className="flex items-center gap-2 mb-2">
+                      <TrendingUp className="w-4 h-4 text-[#8B5CF6]" />
+                      <p className="text-xs font-semibold text-gray-600">Growth Trend</p>
+                    </div>
+                    <p className="text-2xl font-bold text-green-600 mb-1">+24.5%</p>
+                    <p className="text-xs text-gray-500">vs last month</p>
+                  </div>
+
+                </div>
+              </div>
             </div>
+
           </div>
         </div>
       </section>
@@ -279,36 +486,47 @@ function Landing() {
       {/* Features */}
       <section id="features" className="container mx-auto px-4 lg:px-8 py-20">
         <div className="text-center max-w-2xl mx-auto mb-14">
-          <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-3">
-            AI Search Capabilities
-          </p>
-          <h2 className="text-3xl md:text-4xl font-bold tracking-tight">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#F3EEFF] border border-[#E9D5FF] mb-4">
+            <Sparkles size={14} className="text-[#8B5CF6]" />
+            <span className="text-sm font-semibold text-[#8B5CF6] uppercase tracking-wider">
+              AI Search Capabilities
+            </span>
+          </div>
+          <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-gray-900 mb-4">
             Rank beyond Google — Dominate AI search
           </h2>
-          <p className="mt-4 text-muted-foreground">
+          <p className="text-lg text-gray-600">
             Six AI-powered capabilities designed to maximize your visibility across traditional search, AI engines, and voice assistants.
           </p>
         </div>
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {features.map((f) => (
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {features.map((f, idx) => (
             <div
               key={f.title}
-              className="group p-6 rounded-2xl bg-card border border-border/60 shadow-soft hover-lift relative overflow-hidden"
+              className="group glass-card rounded-2xl p-7 border border-[#E9D5FF]/50 shadow-3d-soft hover:shadow-3d-float transition-all duration-300 relative overflow-hidden"
+              style={{
+                animation: `fadeInUp 0.5s ease-out ${idx * 0.1}s both`,
+              }}
             >
               {/* Badge */}
-              <div className="absolute top-4 right-4">
-                <span className="text-[10px] font-bold px-2 py-1 rounded-full bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 text-purple-700 dark:text-purple-300 border border-purple-200/50 dark:border-purple-800/50">
+              <div className="absolute top-5 right-5">
+                <span className="text-xs font-bold px-3 py-1 rounded-full bg-gradient-to-r from-[#F3EEFF] to-[#EDE9FE] text-[#8B5CF6] border border-[#E9D5FF]">
                   {f.badge}
                 </span>
               </div>
               
-              <div
-                className={`h-12 w-12 rounded-xl bg-gradient-to-br ${f.color} flex items-center justify-center shadow-soft mb-4`}
-              >
-                <f.icon size={22} className="text-white" />
+              {/* Glow effect on hover */}
+              <div className="absolute inset-0 bg-gradient-to-br from-[#8B5CF6]/5 to-[#A855F7]/5 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl"></div>
+              
+              <div className="relative">
+                <div
+                  className={`h-14 w-14 rounded-xl bg-gradient-to-br ${f.color} flex items-center justify-center shadow-lg mb-5 group-hover:scale-110 transition-transform`}
+                >
+                  <f.icon size={24} className="text-white" />
+                </div>
+                <h3 className="font-bold text-xl mb-3 text-gray-900">{f.title}</h3>
+                <p className="text-sm text-gray-600 leading-relaxed">{f.desc}</p>
               </div>
-              <h3 className="font-semibold text-lg mb-2">{f.title}</h3>
-              <p className="text-sm text-muted-foreground leading-relaxed">{f.desc}</p>
             </div>
           ))}
         </div>
@@ -316,86 +534,86 @@ function Landing() {
 
       {/* Why AEO + GEO Section */}
       <section className="container mx-auto px-4 lg:px-8 py-20">
-        <div className="rounded-3xl bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 dark:from-purple-950/20 dark:via-pink-950/20 dark:to-blue-950/20 border border-border/60 p-8 md:p-14 relative overflow-hidden">
+        <div className="rounded-3xl glass-premium border border-[#E9D5FF] p-10 md:p-16 relative overflow-hidden shadow-3d-deep">
           {/* Decorative elements */}
-          <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-purple-400/20 to-pink-400/20 rounded-full blur-3xl"></div>
-          <div className="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-tr from-blue-400/20 to-cyan-400/20 rounded-full blur-3xl"></div>
+          <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-[#8B5CF6]/10 to-[#A855F7]/10 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-0 left-0 w-96 h-96 bg-gradient-to-tr from-[#A855F7]/10 to-[#8B5CF6]/10 rounded-full blur-3xl"></div>
           
           <div className="relative">
             <div className="text-center max-w-3xl mx-auto mb-12">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border border-purple-200/50 dark:border-purple-800/50 mb-4">
-                <TrendingUp size={16} className="text-purple-600" />
-                <span className="text-sm font-semibold text-purple-700 dark:text-purple-300">The Future of Search</span>
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card border border-[#E9D5FF] mb-6">
+                <TrendingUp size={16} className="text-[#8B5CF6]" />
+                <span className="text-sm font-semibold text-[#8B5CF6]">The Future of Search</span>
               </div>
-              <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">
+              <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-gray-900 mb-4">
                 Why businesses need AEO + GEO now
               </h2>
-              <p className="text-muted-foreground text-lg">
+              <p className="text-lg text-gray-600">
                 Search behavior is changing. AI-powered platforms are replacing traditional search engines. Your business needs to adapt or risk becoming invisible.
               </p>
             </div>
             
-            <div className="grid md:grid-cols-3 gap-6 mb-8">
+            <div className="grid md:grid-cols-3 gap-6 mb-10">
               {/* Stat Card 1 */}
               <div className="relative group">
-                <div className="absolute inset-0 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl blur-xl opacity-20 group-hover:opacity-30 transition-opacity"></div>
-                <div className="relative p-6 rounded-2xl bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm border border-white/50 dark:border-gray-800/50 shadow-lg">
-                  <div className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-2">
+                <div className="absolute inset-0 bg-gradient-to-br from-[#8B5CF6] to-[#A855F7] rounded-2xl blur-xl opacity-20 group-hover:opacity-30 transition-opacity"></div>
+                <div className="relative glass-premium rounded-2xl p-7 border border-[#E9D5FF] shadow-3d-soft">
+                  <div className="text-5xl font-bold bg-gradient-to-r from-[#8B5CF6] to-[#A855F7] bg-clip-text text-transparent mb-3">
                     40%+
                   </div>
-                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-1">Users now prefer AI search</p>
-                  <p className="text-xs text-muted-foreground">ChatGPT, Perplexity, and AI assistants are replacing Google for many queries</p>
+                  <p className="text-base font-semibold text-gray-900 mb-2">Users now prefer AI search</p>
+                  <p className="text-sm text-gray-600">ChatGPT, Perplexity, and AI assistants are replacing Google for many queries</p>
                 </div>
               </div>
               
               {/* Stat Card 2 */}
               <div className="relative group">
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl blur-xl opacity-20 group-hover:opacity-30 transition-opacity"></div>
-                <div className="relative p-6 rounded-2xl bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm border border-white/50 dark:border-gray-800/50 shadow-lg">
-                  <div className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent mb-2">
+                <div className="absolute inset-0 bg-gradient-to-br from-[#8B5CF6] to-[#A855F7] rounded-2xl blur-xl opacity-20 group-hover:opacity-30 transition-opacity"></div>
+                <div className="relative glass-premium rounded-2xl p-7 border border-[#E9D5FF] shadow-3d-soft">
+                  <div className="text-5xl font-bold bg-gradient-to-r from-[#8B5CF6] to-[#A855F7] bg-clip-text text-transparent mb-3">
                     58%
                   </div>
-                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-1">Voice search growth</p>
-                  <p className="text-xs text-muted-foreground">Conversational and voice-based queries continue to dominate mobile search</p>
+                  <p className="text-base font-semibold text-gray-900 mb-2">Voice search growth</p>
+                  <p className="text-sm text-gray-600">Conversational and voice-based queries continue to dominate mobile search</p>
                 </div>
               </div>
               
               {/* Stat Card 3 */}
               <div className="relative group">
-                <div className="absolute inset-0 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-2xl blur-xl opacity-20 group-hover:opacity-30 transition-opacity"></div>
-                <div className="relative p-6 rounded-2xl bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm border border-white/50 dark:border-gray-800/50 shadow-lg">
-                  <div className="text-4xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent mb-2">
+                <div className="absolute inset-0 bg-gradient-to-br from-[#8B5CF6] to-[#A855F7] rounded-2xl blur-xl opacity-20 group-hover:opacity-30 transition-opacity"></div>
+                <div className="relative glass-premium rounded-2xl p-7 border border-[#E9D5FF] shadow-3d-soft">
+                  <div className="text-5xl font-bold bg-gradient-to-r from-[#8B5CF6] to-[#A855F7] bg-clip-text text-transparent mb-3">
                     73%
                   </div>
-                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-1">Trust AI-generated answers</p>
-                  <p className="text-xs text-muted-foreground">Consumers trust and act on information from AI platforms when making decisions</p>
+                  <p className="text-base font-semibold text-gray-900 mb-2">Trust AI-generated answers</p>
+                  <p className="text-sm text-gray-600">Consumers trust and act on information from AI platforms when making decisions</p>
                 </div>
               </div>
             </div>
             
             <div className="grid md:grid-cols-2 gap-6">
-              <div className="p-6 rounded-2xl bg-white/70 dark:bg-gray-900/70 backdrop-blur-sm border border-white/50 dark:border-gray-800/50">
+              <div className="glass-card rounded-2xl p-7 border border-[#E9D5FF]/50">
                 <div className="flex items-start gap-4">
-                  <div className="p-3 rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 flex-shrink-0">
-                    <Search size={20} className="text-white" />
+                  <div className="p-4 rounded-xl bg-gradient-to-br from-[#8B5CF6] to-[#A855F7] flex-shrink-0 shadow-lg">
+                    <Search size={22} className="text-white" />
                   </div>
                   <div>
-                    <h3 className="font-semibold mb-2">Traditional SEO isn't enough</h3>
-                    <p className="text-sm text-muted-foreground">
+                    <h3 className="font-bold text-lg mb-2 text-gray-900">Traditional SEO isn't enough</h3>
+                    <p className="text-sm text-gray-600 leading-relaxed">
                       Ranking on Google is just the beginning. Your customers are asking ChatGPT, using voice search, and trusting AI-generated recommendations.
                     </p>
                   </div>
                 </div>
               </div>
               
-              <div className="p-6 rounded-2xl bg-white/70 dark:bg-gray-900/70 backdrop-blur-sm border border-white/50 dark:border-gray-800/50">
+              <div className="glass-card rounded-2xl p-7 border border-[#E9D5FF]/50">
                 <div className="flex items-start gap-4">
-                  <div className="p-3 rounded-xl bg-gradient-to-br from-violet-500 to-purple-500 flex-shrink-0">
-                    <Brain size={20} className="text-white" />
+                  <div className="p-4 rounded-xl bg-gradient-to-br from-[#8B5CF6] to-[#A855F7] flex-shrink-0 shadow-lg">
+                    <Brain size={22} className="text-white" />
                   </div>
                   <div>
-                    <h3 className="font-semibold mb-2">Future-proof your visibility</h3>
-                    <p className="text-sm text-muted-foreground">
+                    <h3 className="font-bold text-lg mb-2 text-gray-900">Future-proof your visibility</h3>
+                    <p className="text-sm text-gray-600 leading-relaxed">
                       Businesses optimized for AI search engines and generative platforms will dominate the next decade of digital discovery.
                     </p>
                   </div>
@@ -408,30 +626,33 @@ function Landing() {
 
       {/* How it works */}
       <section id="how" className="container mx-auto px-4 lg:px-8 py-20">
-        <div className="rounded-3xl bg-gradient-soft border border-border/60 p-8 md:p-14">
-          <div className="text-center max-w-2xl mx-auto mb-12">
-            <p className="text-sm font-semibold text-secondary uppercase tracking-wider mb-3">
-              How it works
-            </p>
-            <h2 className="text-3xl md:text-4xl font-bold tracking-tight">
+        <div className="rounded-3xl glass-premium border border-[#E9D5FF] p-10 md:p-16 shadow-3d-deep">
+          <div className="text-center max-w-2xl mx-auto mb-14">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#F3EEFF] border border-[#E9D5FF] mb-4">
+              <Rocket size={14} className="text-[#8B5CF6]" />
+              <span className="text-sm font-semibold text-[#8B5CF6] uppercase tracking-wider">
+                How it works
+              </span>
+            </div>
+            <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-gray-900 mb-4">
               From setup to AI visibility in 3 steps
             </h2>
-            <p className="mt-4 text-muted-foreground">
+            <p className="text-lg text-gray-600">
               Get discovered across Google, ChatGPT, voice search, and AI platforms in minutes
             </p>
           </div>
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-3 gap-8">
             {steps.map((s, i) => (
               <div key={s.num} className="relative">
-                <div className="bg-card rounded-2xl p-6 border border-border/60 shadow-soft hover-lift h-full">
-                  <div className="text-5xl font-bold text-gradient mb-3">{s.num}</div>
-                  <h3 className="font-semibold text-lg mb-2">{s.title}</h3>
-                  <p className="text-sm text-muted-foreground">{s.desc}</p>
+                <div className="glass-card rounded-2xl p-8 border border-[#E9D5FF]/50 shadow-3d-soft hover:shadow-3d-float transition-all h-full group">
+                  <div className="text-6xl font-bold bg-gradient-to-r from-[#8B5CF6] to-[#A855F7] bg-clip-text text-transparent mb-4 group-hover:scale-110 transition-transform">{s.num}</div>
+                  <h3 className="font-bold text-xl mb-3 text-gray-900">{s.title}</h3>
+                  <p className="text-sm text-gray-600 leading-relaxed">{s.desc}</p>
                 </div>
                 {i < steps.length - 1 && (
                   <ArrowRight
-                    size={24}
-                    className="hidden md:block absolute top-1/2 -right-4 -translate-y-1/2 text-primary/40"
+                    size={28}
+                    className="hidden md:block absolute top-1/2 -right-5 -translate-y-1/2 text-[#8B5CF6]/40"
                   />
                 )}
               </div>
@@ -442,31 +663,37 @@ function Landing() {
 
       {/* Testimonials */}
       <section id="testimonials" className="container mx-auto px-4 lg:px-8 py-20">
-        <div className="text-center max-w-2xl mx-auto mb-12">
-          <p className="text-sm font-semibold text-accent uppercase tracking-wider mb-3">
-            Loved by founders
-          </p>
-          <h2 className="text-3xl md:text-4xl font-bold tracking-tight">
+        <div className="text-center max-w-2xl mx-auto mb-14">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#F3EEFF] border border-[#E9D5FF] mb-4">
+            <Users size={14} className="text-[#8B5CF6]" />
+            <span className="text-sm font-semibold text-[#8B5CF6] uppercase tracking-wider">
+              Loved by founders
+            </span>
+          </div>
+          <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-gray-900 mb-4">
             Trusted by 2,400+ businesses
           </h2>
         </div>
-        <div className="grid md:grid-cols-3 gap-5">
-          {testimonials.map((t) => (
+        <div className="grid md:grid-cols-3 gap-6">
+          {testimonials.map((t, idx) => (
             <div
               key={t.name}
-              className="p-6 rounded-2xl bg-card border border-border/60 shadow-soft hover-lift"
+              className="glass-card rounded-2xl p-7 border border-[#E9D5FF]/50 shadow-3d-soft hover:shadow-3d-float transition-all"
+              style={{
+                animation: `fadeInUp 0.5s ease-out ${idx * 0.1}s both`,
+              }}
             >
-              <div className="flex gap-0.5 mb-3">
+              <div className="flex gap-1 mb-4">
                 {Array.from({ length: 5 }).map((_, i) => (
-                  <Star key={i} size={14} className="fill-accent text-accent" />
+                  <Star key={i} size={16} className="fill-[#8B5CF6] text-[#8B5CF6]" />
                 ))}
               </div>
-              <p className="text-sm leading-relaxed mb-5">"{t.quote}"</p>
+              <p className="text-sm leading-relaxed mb-6 text-gray-700">"{t.quote}"</p>
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-full bg-gradient-brand" />
+                <div className="h-12 w-12 rounded-full bg-gradient-to-br from-[#8B5CF6] to-[#A855F7]" />
                 <div>
-                  <p className="text-sm font-semibold">{t.name}</p>
-                  <p className="text-xs text-muted-foreground">{t.role}</p>
+                  <p className="text-sm font-bold text-gray-900">{t.name}</p>
+                  <p className="text-xs text-gray-600">{t.role}</p>
                 </div>
               </div>
             </div>
@@ -476,52 +703,55 @@ function Landing() {
 
       {/* Pricing */}
       <section id="pricing" className="container mx-auto px-4 lg:px-8 py-20">
-        <div className="text-center max-w-2xl mx-auto mb-12">
-          <p className="text-sm font-semibold text-primary uppercase tracking-wider mb-3">
-            Pricing
-          </p>
-          <h2 className="text-3xl md:text-4xl font-bold tracking-tight">
+        <div className="text-center max-w-2xl mx-auto mb-14">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#F3EEFF] border border-[#E9D5FF] mb-4">
+            <Zap size={14} className="text-[#8B5CF6]" />
+            <span className="text-sm font-semibold text-[#8B5CF6] uppercase tracking-wider">
+              Pricing
+            </span>
+          </div>
+          <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-gray-900 mb-4">
             Simple plans that grow with you
           </h2>
         </div>
-        <div className="grid md:grid-cols-3 gap-5 max-w-5xl mx-auto">
+        <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
           {tiers.map((t) => (
             <div
               key={t.name}
-              className={`relative rounded-2xl p-7 border shadow-soft hover-lift ${
+              className={`relative rounded-2xl p-8 border shadow-3d-soft hover:shadow-3d-float transition-all ${
                 t.highlighted
-                  ? "bg-gradient-primary text-primary-foreground border-transparent shadow-glow scale-[1.02]"
-                  : "bg-card border-border/60"
+                  ? "glass-premium border-[#8B5CF6] shadow-3d-deep scale-[1.05] bg-gradient-to-br from-white to-[#F9F7FF]"
+                  : "glass-card border-[#E9D5FF]/50"
               }`}
             >
               {t.highlighted && (
-                <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-accent text-accent-foreground text-xs font-bold">
+                <span className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full bg-gradient-to-r from-[#8B5CF6] to-[#A855F7] text-white text-xs font-bold shadow-lg">
                   MOST POPULAR
                 </span>
               )}
-              <h3 className="font-semibold text-lg">{t.name}</h3>
-              <div className="mt-3 mb-1">
-                <span className="text-4xl font-bold">{t.price}</span>
-                <span
-                  className={`text-sm ${t.highlighted ? "opacity-80" : "text-muted-foreground"}`}
-                >
-                  /mo
-                </span>
+              <h3 className="font-bold text-xl text-gray-900">{t.name}</h3>
+              <div className="mt-4 mb-2">
+                <span className="text-5xl font-bold text-gray-900">{t.price}</span>
+                <span className="text-base text-gray-600">/mo</span>
               </div>
-              <p
-                className={`text-sm mb-6 ${t.highlighted ? "opacity-90" : "text-muted-foreground"}`}
+              <p className="text-sm mb-7 text-gray-600">{t.desc}</p>
+              <Button 
+                className={`w-full mb-7 h-12 text-base font-semibold rounded-xl transition-all ${
+                  t.highlighted 
+                    ? "bg-gradient-to-r from-[#8B5CF6] to-[#A855F7] hover:from-[#7C3AED] hover:to-[#9333EA] text-white shadow-lg shadow-[#8B5CF6]/25" 
+                    : "border-2 border-[#8B5CF6]/30 hover:border-[#8B5CF6] hover:bg-[#F9F7FF]"
+                }`}
+                variant={t.highlighted ? "default" : "outline"}
+                asChild
               >
-                {t.desc}
-              </p>
-              <Button variant={t.highlighted ? "glass" : t.variant} className="w-full mb-6" asChild>
                 <Link to="/signup">{t.cta}</Link>
               </Button>
-              <ul className="space-y-2.5">
+              <ul className="space-y-3">
                 {t.features.map((f) => (
-                  <li key={f} className="flex items-start gap-2 text-sm">
+                  <li key={f} className="flex items-start gap-3 text-sm text-gray-700">
                     <Check
-                      size={16}
-                      className={`mt-0.5 shrink-0 ${t.highlighted ? "" : "text-success"}`}
+                      size={18}
+                      className="mt-0.5 shrink-0 text-[#8B5CF6]"
                     />
                     <span>{f}</span>
                   </li>
@@ -534,26 +764,41 @@ function Landing() {
 
       {/* CTA */}
       <section className="container mx-auto px-4 lg:px-8 py-20">
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-brand p-10 md:p-16 text-center text-primary-foreground shadow-floating">
-          <div className="absolute inset-0 bg-mesh opacity-30" />
+        <div className="relative overflow-hidden rounded-3xl p-12 md:p-20 text-center shadow-3d-deep" style={{
+          background: 'linear-gradient(135deg, #8B5CF6 0%, #A855F7 50%, #8B5CF6 100%)',
+        }}>
+          <div className="absolute inset-0 opacity-20">
+            {/* Decorative elements */}
+            <div className="absolute top-0 right-0 w-96 h-96 bg-white/20 rounded-full blur-3xl"></div>
+            <div className="absolute bottom-0 left-0 w-96 h-96 bg-white/10 rounded-full blur-3xl"></div>
+          </div>
           <div className="relative">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 mb-6">
-              <Sparkles size={16} />
-              <span className="text-sm font-semibold">Built for the AI search era</span>
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 mb-8">
+              <Sparkles size={16} className="text-white" />
+              <span className="text-sm font-semibold text-white">Built for the AI search era</span>
             </div>
-            <h2 className="text-3xl md:text-5xl font-bold tracking-tight mb-4">
+            <h2 className="text-4xl md:text-6xl font-bold tracking-tight mb-5 text-white">
               Ready to dominate AI search?
             </h2>
-            <p className="text-lg opacity-90 max-w-2xl mx-auto mb-7">
+            <p className="text-xl text-white/90 max-w-2xl mx-auto mb-10">
               Join 2,400+ businesses optimizing for Google, ChatGPT, voice search, and the future of AI-powered discovery.
             </p>
             <div className="flex flex-wrap gap-4 justify-center">
-              <Button variant="glass" size="xl" asChild>
+              <Button 
+                size="lg"
+                className="h-14 px-8 text-base font-semibold bg-white text-[#8B5CF6] hover:bg-gray-50 rounded-xl shadow-xl transition-all"
+                asChild
+              >
                 <Link to="/signup">
                   Boost My AI Discoverability <ArrowRight size={18} />
                 </Link>
               </Button>
-              <Button variant="outline" size="xl" className="bg-white/10 border-white/30 hover:bg-white/20" asChild>
+              <Button 
+                variant="outline"
+                size="lg"
+                className="h-14 px-8 text-base font-semibold bg-white/10 border-2 border-white/30 hover:bg-white/20 text-white rounded-xl backdrop-blur-sm transition-all"
+                asChild
+              >
                 <Link to="/dashboard">
                   <Play size={16} /> See how it works
                 </Link>
@@ -561,19 +806,19 @@ function Landing() {
             </div>
             
             {/* Trust badges */}
-            <div className="mt-10 pt-8 border-t border-white/20">
-              <p className="text-sm opacity-75 mb-4">Future-proof your business visibility</p>
-              <div className="flex items-center justify-center gap-6 flex-wrap text-xs opacity-90">
+            <div className="mt-12 pt-10 border-t border-white/20">
+              <p className="text-sm text-white/75 mb-5">Future-proof your business visibility</p>
+              <div className="flex items-center justify-center gap-8 flex-wrap text-sm text-white/90">
                 <div className="flex items-center gap-2">
-                  <Check size={14} />
+                  <Check size={16} />
                   <span>No credit card required</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Check size={14} />
+                  <Check size={16} />
                   <span>Setup in 2 minutes</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Check size={14} />
+                  <Check size={16} />
                   <span>Cancel anytime</span>
                 </div>
               </div>

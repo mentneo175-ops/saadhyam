@@ -25,6 +25,7 @@ import {
   Shield,
   Bell,
   CreditCard,
+  Sparkles,
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { useAuthContext } from "@/lib/AuthContext";
@@ -54,12 +55,12 @@ const integrations = [
     icon: Mail,
     color: "from-blue-500 to-indigo-500",
   },
-  {
-    name: "Shopify",
-    desc: "Orders and customers",
-    icon: ShoppingBag,
-    color: "from-emerald-500 to-green-500",
-  },
+  // {
+  //   name: "Shopify",
+  //   desc: "Orders and customers",
+  //   icon: ShoppingBag,
+  //   color: "from-emerald-500 to-green-500",
+  // },
 ];
 
 function SettingsPage() {
@@ -311,7 +312,7 @@ function SettingsPage() {
         return;
       }
 
-      const response = await fetch("http://localhost:8000/api/whatsapp/status", {
+      const response = await fetch("http://localhost:8000/api/whatsapp/connection-status", {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
@@ -472,10 +473,11 @@ function SettingsPage() {
     try {
       setLogoutLoading(true);
       await logout();
+      // Redirect to login page after successful logout
+      window.location.href = "/login";
     } catch (error) {
       console.error("Logout error:", error);
       toast.error("Failed to logout");
-    } finally {
       setLogoutLoading(false);
     }
   };
@@ -780,6 +782,50 @@ function SettingsPage() {
               </Button>
             </div>
           </div>
+
+          {/* Upgrade to Pro Card */}
+          <div className="bg-card rounded-2xl border border-border/60 shadow-soft overflow-hidden">
+            <div className="p-6 bg-gradient-to-br from-[#5D2F8F] to-[#A855F7]">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="h-10 w-10 rounded-xl bg-white/20 flex items-center justify-center">
+                  <Sparkles size={20} className="text-white" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-white">Upgrade to Pro</h3>
+                  <p className="text-xs text-white/80">Unlock premium features</p>
+                </div>
+              </div>
+              
+              <div className="space-y-2 mb-4">
+                <div className="flex items-center gap-2 text-white/90">
+                  <CheckCircle size={14} className="text-white flex-shrink-0" />
+                  <p className="text-sm">Unlimited AI generations</p>
+                </div>
+                <div className="flex items-center gap-2 text-white/90">
+                  <CheckCircle size={14} className="text-white flex-shrink-0" />
+                  <p className="text-sm">Advanced analytics & insights</p>
+                </div>
+                <div className="flex items-center gap-2 text-white/90">
+                  <CheckCircle size={14} className="text-white flex-shrink-0" />
+                  <p className="text-sm">Priority support</p>
+                </div>
+                <div className="flex items-center gap-2 text-white/90">
+                  <CheckCircle size={14} className="text-white flex-shrink-0" />
+                  <p className="text-sm">Custom integrations</p>
+                </div>
+              </div>
+              
+              <Button className="w-full bg-white text-purple-600 hover:bg-white/90 font-semibold shadow-lg">
+                <CreditCard size={16} className="mr-2" />
+                Upgrade Now
+              </Button>
+              
+              <p className="text-xs text-white/70 text-center mt-3">
+                Starting at ₹999/month
+              </p>
+            </div>
+          </div>
+
           {/* Integrations */}
           <div className="bg-card rounded-2xl border border-border/60 shadow-soft overflow-hidden">
             <div className="bg-gradient-to-r from-pink-50 via-fuchsia-50 to-purple-50 px-6 py-4 border-b border-border/60">
@@ -827,7 +873,7 @@ function SettingsPage() {
                     : integration.name === "WhatsApp Business"
                     ? whatsappStatus.is_connected
                       ? "Connected"
-                      : "Not connected"
+                      : "Not Connected"
                     : "Not connected"}
                 </span>
                 {integration.name === "Instagram" && (

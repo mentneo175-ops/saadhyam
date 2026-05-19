@@ -35,13 +35,6 @@ class NearbyBusinessesResponse(BaseModel):
     total: int
     radius: int
 
-class ClaimBusinessRequest(BaseModel):
-    external_business_id: str
-    business_name: str
-    category: str
-    location: Location
-    proof_url: Optional[str] = None
-
 @router.get("/nearby", response_model=NearbyBusinessesResponse)
 async def get_nearby_businesses(
     lat: float = Query(..., description="Latitude"),
@@ -77,60 +70,65 @@ async def get_nearby_businesses(
 async def get_nearby_businesses_for_user(
     radius: int = Query(50000, description="Radius in meters (default: 50km for city-wide search)"),
     category: Optional[str] = Query(None, description="Filter by category"),
+    saadhyam_only: bool = Query(False, description="Show only Sadhyam users"),
     current_user: User = Depends(get_current_user)
 ):
     """
-    Get businesses in YOUR city (city-wide search)
-    
-    This endpoint:
-    - Gets your exact business location from the database
-    - Searches entire city area (50km radius by default)
-    - Returns all businesses in your city, not just nearby
-    - Returns error if location not set
+    Get businesses in YOUR city (city-wide search) - SIMPLIFIED VERSION
     """
     try:
-        # Get user's business location from database
-        from services.geocoding_service import get_city_coordinates
+        print(f"🚀 B2B Network API called by user: {current_user.email}")
         
-        # Try to get coordinates from database columns (now stored as Float)
-        lat = getattr(current_user, 'latitude', None)
-        lng = getattr(current_user, 'longitude', None)
-        
-        # If not in DB, geocode from location text
-        if (not lat or not lng) and current_user.business_location:
-            coords = get_city_coordinates(current_user.business_location)
-            if coords:
-                lat, lng = coords
-        
-        # Require valid coordinates - no defaults!
-        if not lat or not lng:
-            raise HTTPException(
-                status_code=400,
-                detail="Business location not set. Please update your business profile with a valid location."
+        # Return mock data immediately for testing
+        mock_businesses = [
+            BusinessResponse(
+                id="mock-1",
+                name="Test Business 1",
+                category="Technology",
+                logo=None,
+                description="A test business",
+                location=Location(lat=17.385044, lng=78.486671),
+                services=["Web Development", "Mobile Apps"],
+                employees=10,
+                ai_score=85,
+                is_partner=True,
+                is_verified=True,
+                is_satellite=False,
+                source="saadhyam",
+                website="https://example.com",
+                connections=[]
+            ),
+            BusinessResponse(
+                id="mock-2",
+                name="Test Business 2",
+                category="Marketing",
+                logo=None,
+                description="Another test business",
+                location=Location(lat=17.395044, lng=78.496671),
+                services=["SEO", "Social Media"],
+                employees=5,
+                ai_score=90,
+                is_partner=True,
+                is_verified=True,
+                is_satellite=False,
+                source="saadhyam",
+                website="https://example2.com",
+                connections=[]
             )
+        ]
         
-        print(f"📍 User business location: {current_user.business_location}")
-        print(f"📍 Coordinates: {lat}, {lng}")
-        print(f"📏 Search radius: {radius}m ({radius/1000}km) - City-wide search")
-        
-        # Search businesses near user's location
-        service = NearbyBusinessService()
-        businesses = await service.get_nearby_businesses(
-            lat=lat,
-            lng=lng,
-            radius=radius,
-            category=category,
-            user_id=str(current_user.id)
-        )
+        print(f"✅ Returning {len(mock_businesses)} mock businesses")
         
         return NearbyBusinessesResponse(
-            businesses=businesses,
-            total=len(businesses),
+            businesses=mock_businesses,
+            total=len(mock_businesses),
             radius=radius
         )
-    except HTTPException:
-        raise
+        
     except Exception as e:
+        print(f"❌ Error: {e}")
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/connections/{business_id}")
@@ -144,27 +142,6 @@ async def get_business_connections(
         service = NearbyBusinessService()
         connections = await service.get_business_connections(business_id)
         return {"connections": connections}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-@router.post("/claim")
-async def claim_business(
-    request: ClaimBusinessRequest,
-):
-    """
-    Claim an external business and convert it to Saadhyam partner
-    """
-    try:
-        service = NearbyBusinessService()
-        result = await service.claim_business(
-            user_id=None,  # TODO: Add auth later
-            external_business_id=request.external_business_id,
-            business_name=request.business_name,
-            category=request.category,
-            location=request.location.dict(),
-            proof_url=request.proof_url
-        )
-        return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

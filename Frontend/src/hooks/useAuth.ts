@@ -21,6 +21,21 @@ interface UseAuthReturn {
   clearError: () => void;
 }
 
+function getAuthErrorMessage(err: unknown, fallback: string): string {
+  if (err instanceof ApiError) {
+    if (err.status === 0) {
+      return "Cannot reach the API server. Start the backend on http://localhost:8000 and try again.";
+    }
+    if (typeof err.data === "object" && err.data && "detail" in err.data) {
+      const detail = (err.data as { detail?: string }).detail;
+      if (detail) return detail;
+    }
+    return fallback;
+  }
+  if (err instanceof Error) return err.message;
+  return fallback;
+}
+
 export function useAuth(): UseAuthReturn {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
@@ -116,12 +131,7 @@ export function useAuth(): UseAuthReturn {
       setUser(newUser);
       setToken(newToken);
     } catch (err) {
-      const message =
-        err instanceof ApiError
-          ? err.data?.detail || "Google sign-in failed"
-          : err instanceof Error
-            ? err.message
-            : "Google sign-in failed";
+      const message = getAuthErrorMessage(err, "Google sign-in failed");
       setError(message);
       throw err;
     } finally {
@@ -139,13 +149,7 @@ export function useAuth(): UseAuthReturn {
       setUser(newUser);
       setToken(newToken);
     } catch (err) {
-      const message =
-        err instanceof ApiError
-          ? err.data?.detail || "Login failed"
-          : err instanceof Error
-            ? err.message
-            : "Login failed";
-      setError(message);
+      setError(getAuthErrorMessage(err, "Login failed"));
       throw err;
     } finally {
       setIsLoading(false);

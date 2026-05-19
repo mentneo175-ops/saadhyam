@@ -860,7 +860,14 @@ if website_ai_available:
 @app.get("/test", tags=["Health"])
 async def test():
     """Simple test endpoint"""
-    return {"status": "ok", "message": "Backend is responding"}
+    auth_routes = [str(r.path) for r in app.routes if '/auth' in str(r.path)]
+    return {
+        "status": "ok",
+        "message": "Backend is responding",
+        "total_routes": len(app.routes),
+        "auth_routes_count": len(auth_routes),
+        "auth_routes": auth_routes[:10]  # First 10 auth routes
+    }
 
 @app.get("/test-auth", tags=["Health"])
 async def test_auth(authorization: str = None):

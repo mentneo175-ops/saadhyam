@@ -7,6 +7,12 @@ from typing import List
 
 class Settings(BaseSettings):
     """Application settings loaded from environment variables."""
+    
+    model_config = {
+        "extra": "ignore",
+        "env_file": ".env",
+        "case_sensitive": True
+    }
 
     # Database
     DATABASE_URL: str = "postgresql://user:password@localhost/saadhyam"
@@ -232,10 +238,6 @@ class Settings(BaseSettings):
             except json.JSONDecodeError:
                 return [v]
         return v
-
-    class Config:
-        env_file = ".env"
-        case_sensitive = True
 
 
 settings = Settings()

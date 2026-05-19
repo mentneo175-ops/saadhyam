@@ -534,6 +534,12 @@ function Overview() {
           {!checkingProfile && (
             <>
               {/* Welcome Header */}
+              <div className="mb-6">
+                <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                  Welcome back, {profile?.business_name || profile?.name || 'Business Owner'}
+                </h1>
+                <p className="text-gray-600">Here's what's happening with your business today</p>
+              </div>
 
               {/* Snapshot cards */}
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">

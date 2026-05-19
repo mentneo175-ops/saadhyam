@@ -25,23 +25,19 @@ if errorlevel 1 (
 echo [INFO] Python and Node.js detected
 echo.
 
-REM Start Backend Server
-echo ============================================
-echo   Starting Backend Server (Port 8000)
-echo ============================================
-cd Backend
-
 REM Check if virtual environment exists
-if not exist "venv\Scripts\activate.bat" (
-    echo [ERROR] Virtual environment not found!
-    echo Please run: cd Backend ^&^& python -m venv venv ^&^& venv\Scripts\activate ^&^& pip install -r requirements.txt
-    cd ..
+if not exist ".venv\Scripts\activate.bat" (
+    echo [ERROR] Virtual environment not found at .venv!
+    echo The .venv folder should be in the root directory
     pause
     exit /b 1
 )
 
-start "Saadhyam Backend" cmd /k "python -m uvicorn main:app --reload --port 8000"
-cd ..
+REM Start Backend Server
+echo ============================================
+echo   Starting Backend Server (Port 8000)
+echo ============================================
+start "Saadhyam Backend" cmd /k ".venv\Scripts\activate && cd Backend && python -m uvicorn main:app --port 8000"
 echo [SUCCESS] Backend server starting in virtual environment...
 echo.
 
@@ -51,9 +47,6 @@ echo   Starting AI Model Server (Port 9000)
 echo   (TinyLlama for Review Replies - DEPRECATED)
 echo ============================================
 REM Skipping deprecated TinyLlama model server
-REM cd Backend
-REM start "Saadhyam AI Model Server" cmd /k "python model_server.py"
-REM cd ..
 echo [INFO] AI Model server skipped (using Gemini API instead)...
 echo.
 
@@ -62,9 +55,7 @@ echo ============================================
 echo   Starting Main Celery Worker
 echo   (Instagram Posts + WhatsApp Automation)
 echo ============================================
-cd Backend
-start "Saadhyam Celery - Worker" cmd /k "python -m celery -A celery_worker worker --loglevel=info --pool=solo"
-cd ..
+start "Saadhyam Celery - Worker" cmd /k ".venv\Scripts\activate && cd Backend && python -m celery -A celery_worker worker --loglevel=info --pool=solo"
 echo [SUCCESS] Main Celery worker starting...
 echo.
 
@@ -73,9 +64,7 @@ echo ============================================
 echo   Starting Celery Beat Scheduler
 echo   (Periodic Tasks)
 echo ============================================
-cd Backend
-start "Saadhyam Celery - Beat" cmd /k "python -m celery -A celery_worker beat --loglevel=info"
-cd ..
+start "Saadhyam Celery - Beat" cmd /k ".venv\Scripts\activate && cd Backend && python -m celery -A celery_worker beat --loglevel=info"
 echo [SUCCESS] Celery Beat scheduler starting...
 echo.
 
@@ -84,9 +73,7 @@ echo ============================================
 echo   Starting Content Creator AI
 echo   (Image Generation - Port 8001)
 echo ============================================
-cd Backend\ai_models\content_creator
-start "Saadhyam Content Creator AI" cmd /k "python -m uvicorn app.main:app --reload --port 8001"
-cd ..\..\..
+start "Saadhyam Content Creator AI" cmd /k ".venv\Scripts\activate && cd Backend\ai_models\content_creator && python -m uvicorn app.main:app --reload --port 8001"
 echo [SUCCESS] Content Creator AI starting...
 echo.
 
@@ -97,9 +84,7 @@ REM Start Frontend Server
 echo ============================================
 echo   Starting Frontend Server (Port 8080)
 echo ============================================
-cd Frontend
-start "Saadhyam Frontend" cmd /k "npm run dev"
-cd ..
+start "Saadhyam Frontend" cmd /k "cd Frontend && npm run dev"
 echo [SUCCESS] Frontend server starting...
 echo.
 

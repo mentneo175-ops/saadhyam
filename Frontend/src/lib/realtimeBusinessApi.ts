@@ -90,6 +90,7 @@ function isCacheValid<T>(cached: CachedData<T> | null): boolean {
  * Get cached data from localStorage
  */
 function getCachedData<T>(key: string): CachedData<T> | null {
+  if (typeof window === "undefined") return null;
   try {
     const cached = localStorage.getItem(key);
     if (!cached) return null;
@@ -104,6 +105,7 @@ function getCachedData<T>(key: string): CachedData<T> | null {
  * Save data to cache
  */
 function setCachedData<T>(key: string, data: T, profile: BusinessProfile): void {
+  if (typeof window === "undefined") return;
   try {
     const cached: CachedData<T> = {
       data,

@@ -606,10 +606,12 @@ class ApiClient {
     formData.append("caption", caption);
     formData.append("scheduled_time", scheduledTime);
 
-    const response = await fetch(`${this.baseURL}/instagram/schedule-post`, {
+    const authHeader = await this.getAuthHeader();
+    
+    const response = await fetch(`${this.baseUrl}/instagram/schedule-post`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${this.getToken()}`,
+        ...authHeader,
       },
       body: formData,
     });

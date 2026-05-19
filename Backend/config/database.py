@@ -40,11 +40,11 @@ else:
     # For PostgreSQL, try to connect, fallback to SQLite if fails
     logger.info("🔄 Attempting to connect to PostgreSQL...")
     try:
-        # For asyncpg, we need to handle SSL differently
+        # For PostgreSQL without asyncpg
         import ssl
         
-        # Test connection with psycopg2 first (sync)
-        sync_url = DATABASE_URL.replace("postgresql+asyncpg", "postgresql")
+        # Use psycopg2 (sync) - asyncpg not available
+        sync_url = DATABASE_URL.replace("postgresql+asyncpg://", "postgresql://")
         
         # Add SSL context for psycopg2
         test_engine = create_engine(
@@ -61,27 +61,11 @@ else:
             result = conn.execute(text("SELECT 1"))
             logger.info("✅ PostgreSQL connection successful")
         
-        # Create SSL context for asyncpg
-        ssl_context = ssl.create_default_context()
-        ssl_context.check_hostname = False
-        ssl_context.verify_mode = ssl.CERT_NONE
-        
-        # Use async engine for PostgreSQL with SSL
-        async_engine = create_async_engine(
-            DATABASE_URL,
-            echo=False,
-            future=True,
-            pool_pre_ping=True,
-            pool_size=20,
-            max_overflow=0,
-            connect_args={
-                "ssl": ssl_context,
-                "server_settings": {"jit": "off"}
-            }
-        )
+        # No async engine available without asyncpg
+        async_engine = None
         
         # Sync engine for sync operations
-        SYNC_DATABASE_URL = DATABASE_URL.replace("postgresql+asyncpg", "postgresql")
+        SYNC_DATABASE_URL = sync_url
         sync_engine = create_engine(
             SYNC_DATABASE_URL,
             echo=False,
@@ -94,7 +78,7 @@ else:
         )
         IS_SQLITE = False
         test_engine.dispose()
-        logger.info("✅ Using PostgreSQL (Neon DB) database")
+        logger.info("✅ Using PostgreSQL (Neon DB) database with psycopg2")
         
     except Exception as e:
         logger.error(f"❌ PostgreSQL (NeonDB) connection failed: {e}")

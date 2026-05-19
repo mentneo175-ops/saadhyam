@@ -1,10 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { PageHeader } from "@/components/dashboard/PageHeader";
-import { Button } from "@/components/ui/button";
-import { Sparkles, Map, Search, TrendingUp, Target, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { apiClient } from "@/lib/api";
 import { toast } from "sonner";
+import { SEOLayout } from "@/components/seo/SEOLayout";
+import {
+  SEOPageHeader,
+  SEOTabSwitcher,
+  AnalyzeBusinessForm,
+  QuickActionsGrid,
+  ProTipsBanner,
+  type SEOTabId,
+} from "@/components/seo/SEOShared";
+import { SEOTabPanel, MapsTabPanel, PostIdeasSection } from "@/components/seo/SEOTabPanels";
 
 export const Route = createFileRoute("/dashboard/seo")({
   head: () => ({ meta: [{ title: "SEO & Google Maps — Saadhyam AI" }] }),
@@ -18,6 +25,8 @@ function SEOPage() {
   const [keywords, setKeywords] = useState<string[]>([]);
   const [tips, setTips] = useState<string[]>([]);
   const [postIdeas, setPostIdeas] = useState<Array<{ title: string; desc: string }>>([]);
+  const [activeTab, setActiveTab] = useState<SEOTabId>("seo");
+  const [hasResults, setHasResults] = useState(false);
 
   const handleOptimize = async () => {
     if (!businessType.trim() || !location.trim()) {
@@ -33,15 +42,16 @@ function SEOPage() {
         setKeywords(response.keywords);
         setTips(response.tips);
         setPostIdeas(response.post_ideas);
+        setHasResults(true);
         toast.success("SEO insights generated!");
       } else {
         toast.error("Failed to generate SEO insights");
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Failed to generate SEO insights";
       console.error("SEO generation error:", error);
-      toast.error(error.message || "Failed to generate SEO insights");
+      toast.error(message);
 
-      // Fallback mock data
       setKeywords([
         `best ${businessType} ${location}`,
         `${businessType} near me`,
@@ -61,116 +71,54 @@ function SEOPage() {
         { title: "Customer Success", desc: "See our latest transformations" },
         { title: "Health Tip", desc: "Expert tips for you" },
       ]);
+      setHasResults(true);
     } finally {
       setLoading(false);
     }
   };
 
+  const tipsData = {
+    keywords,
+    ranking_tips: tips,
+    local_visibility_ideas: postIdeas.map((p) => `${p.title}: ${p.desc}`),
+  };
+
   return (
-    <div className="p-4 md:p-6 space-y-5">
-      <PageHeader
-        title="SEO & Google Maps AI"
-        subtitle="Improve your local search ranking and visibility"
-      />
+    <div className="relative -m-4 min-h-[calc(100vh-4rem)] bg-background p-6 md:p-8">
+      <div className="pointer-events-none absolute inset-0 bg-mesh opacity-60" aria-hidden />
+      <SEOLayout>
+        <SEOPageHeader
+          title="SEO & Google Maps"
+          subtitle="Boost your local search ranking with AI-powered insights"
+        />
 
-      {/* Input Form */}
-      <div className="bg-card rounded-2xl border border-border/60 shadow-sm p-4 space-y-4">
-        <div className="grid md:grid-cols-2 gap-4">
-          <div>
-            <label className="text-sm font-semibold mb-2 block">Business Type</label>
-            <input
-              type="text"
-              value={businessType}
-              onChange={(e) => setBusinessType(e.target.value)}
-              placeholder="E.g., Dental Clinic, Salon, Restaurant"
-              className="w-full rounded-xl border border-border bg-background p-3 text-sm focus:border-primary focus:ring-2 focus:ring-primary/15 outline-none transition"
-            />
-          </div>
-          <div>
-            <label className="text-sm font-semibold mb-2 block">Location</label>
-            <input
-              type="text"
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              placeholder="E.g., Hyderabad, Banjara Hills"
-              className="w-full rounded-xl border border-border bg-background p-3 text-sm focus:border-primary focus:ring-2 focus:ring-primary/15 outline-none transition"
-            />
-          </div>
-        </div>
-        <Button variant="hero" className="w-full" onClick={handleOptimize} disabled={loading}>
-          {loading ? (
-            <>
-              <Loader2 size={14} className="animate-spin" /> Analyzing...
-            </>
-          ) : (
-            <>
-              <Sparkles size={14} /> Optimize Now
-            </>
-          )}
-        </Button>
-      </div>
+        <AnalyzeBusinessForm
+          businessType={businessType}
+          location={location}
+          loading={loading}
+          onBusinessTypeChange={setBusinessType}
+          onLocationChange={setLocation}
+          onSubmit={handleOptimize}
+        />
 
-      {/* Maps Ranking Tips */}
-      {tips.length > 0 && (
-        <div className="bg-card rounded-2xl border border-border/60 shadow-sm p-4">
-          <div className="flex items-center gap-2 mb-3">
-            <div className="h-8 w-8 rounded-lg bg-blue-100 flex items-center justify-center">
-              <Map size={16} className="text-blue-600" />
-            </div>
-            <h3 className="text-sm font-semibold">Google Maps Ranking Tips</h3>
-          </div>
-          <ul className="space-y-2 text-sm text-gray-700">
-            {tips.map((tip, idx) => (
-              <li key={idx} className="flex items-start gap-2">
-                <Target size={16} className="text-blue-600 shrink-0 mt-0.5" />
-                <span>{tip}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+        {hasResults && (
+          <>
+            <SEOTabSwitcher activeTab={activeTab} onTabChange={setActiveTab} />
 
-      {/* Keywords */}
-      {keywords.length > 0 && (
-        <div className="bg-card rounded-2xl border border-border/60 shadow-sm p-4">
-          <div className="flex items-center gap-2 mb-3">
-            <div className="h-8 w-8 rounded-lg bg-purple-100 flex items-center justify-center">
-              <Search size={16} className="text-purple-600" />
-            </div>
-            <h3 className="text-sm font-semibold">Recommended Keywords</h3>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {keywords.map((keyword, idx) => (
-              <span
-                key={idx}
-                className="px-3 py-1.5 bg-purple-50 text-purple-700 rounded-lg text-xs font-medium"
-              >
-                {keyword}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
+            {activeTab === "seo" ? (
+              <>
+                <SEOTabPanel data={tipsData} />
+                <PostIdeasSection posts={postIdeas} />
+              </>
+            ) : (
+              <MapsTabPanel data={tipsData} />
+            )}
+          </>
+        )}
 
-      {/* Post Ideas */}
-      {postIdeas.length > 0 && (
-        <div className="bg-card rounded-2xl border border-border/60 shadow-sm p-4">
-          <div className="flex items-center gap-2 mb-3">
-            <div className="h-8 w-8 rounded-lg bg-emerald-100 flex items-center justify-center">
-              <TrendingUp size={16} className="text-emerald-600" />
-            </div>
-            <h3 className="text-sm font-semibold">Google Posts Ideas</h3>
-          </div>
-          <div className="space-y-3">
-            {postIdeas.map((post, idx) => (
-              <div key={idx} className="bg-gray-50 rounded-lg p-3 border border-gray-100">
-                <p className="text-sm font-semibold text-gray-900 mb-1">{post.title}</p>
-                <p className="text-xs text-gray-600">{post.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+        <QuickActionsGrid delay={hasResults ? 0.35 : 0.2} />
+        <ProTipsBanner delay={hasResults ? 0.42 : 0.28} />
+      </SEOLayout>
     </div>
   );
 }

@@ -13,11 +13,13 @@ import {
   Loader2,
   Image as ImageIcon,
   Download,
+  Zap,
+  Stars,
 } from "lucide-react";
 import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { apiClient } from "@/lib/api";
 import { toast } from "sonner";
-import { useAuth } from "@/lib/AuthContext";
 
 export const Route = createFileRoute("/dashboard/content")({
   head: () => ({ meta: [{ title: "Content Creator — Saadhyam AI" }] }),
@@ -379,14 +381,26 @@ function ContentStudio() {
   };
 
   return (
-    <div className="p-4 md:p-6 lg:p-8">
-      <PageHeader
-        title="Content Creator"
-        subtitle="Generate on-brand content in seconds"
-        actions={
-          <Button
-            variant="hero"
-            size="sm"
+    <div className="min-h-screen bg-gradient-to-br from-purple-50/40 via-white to-pink-50/30 p-4 md:p-6 lg:p-8">
+      {/* Clean Header */}
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="mb-8"
+      >
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-1">
+              Content Creator
+            </h1>
+            <p className="text-sm text-gray-600 flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-purple-500" />
+              AI-powered creative studio for instant content generation
+            </p>
+          </div>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
             onClick={() => {
               setPrompt("");
               setOutput("");
@@ -394,228 +408,353 @@ function ContentStudio() {
               setIsAIGenerated(false);
               setGeneratedImageUrl("");
             }}
+            className="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-lg font-medium text-sm flex items-center gap-2 shadow-sm transition-all"
           >
-            <Wand2 size={14} /> New generation
-          </Button>
-        }
-      />
+            <Wand2 size={14} /> New Generation
+          </motion.button>
+        </div>
+      </motion.div>
 
-      <div className="grid lg:grid-cols-2 gap-5">
-        {/* Input */}
-        <div className="bg-card rounded-2xl border border-border/60 shadow-soft p-5 space-y-5">
-          <div>
-            <p className="text-sm font-semibold mb-2">Content type</p>
+      <div className="grid lg:grid-cols-2 gap-6">
+        {/* Left Panel - Clean Input Area */}
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.1 }}
+          className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 space-y-6"
+        >
+          {/* Content Type Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            <p className="text-sm font-semibold text-gray-900 mb-3">
+              Content Type
+            </p>
             <div className="flex gap-2 flex-wrap">
-              {types.map((t) => (
-                <button
+              {types.map((t, idx) => (
+                <motion.button
                   key={t.key}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.25 + idx * 0.05 }}
+                  whileHover={{ scale: 1.05, y: -2 }}
+                  whileTap={{ scale: 0.95 }}
                   onClick={() => setType(t.key)}
-                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium border transition ${
+                  className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium border transition-all ${
                     type === t.key
-                      ? "bg-gradient-primary text-primary-foreground border-transparent shadow-soft"
-                      : "border-border hover:bg-accent/40"
+                      ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white border-transparent shadow-sm"
+                      : "border-gray-200 hover:border-purple-300 hover:bg-purple-50/50 text-gray-700"
                   }`}
                 >
-                  <t.icon size={13} /> {t.label}
-                </button>
+                  <t.icon size={16} /> {t.label}
+                </motion.button>
               ))}
             </div>
-          </div>
+          </motion.div>
 
-          <div>
-            <p className="text-sm font-semibold mb-2">Tone</p>
+          {/* Tone Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+          >
+            <p className="text-sm font-semibold text-gray-900 mb-3">
+              Tone
+            </p>
             <div className="flex gap-2 flex-wrap">
-              {tones.map((t) => (
-                <button
+              {tones.map((t, idx) => (
+                <motion.button
                   key={t}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.35 + idx * 0.05 }}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                   onClick={() => setTone(t)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-medium transition ${
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                     tone === t
-                      ? "bg-secondary text-secondary-foreground"
-                      : "bg-muted hover:bg-accent/40"
+                      ? "bg-purple-100 text-purple-700 border border-purple-300"
+                      : "bg-gray-100 hover:bg-gray-200 text-gray-700 border border-transparent"
                   }`}
                 >
                   {t}
-                </button>
+                </motion.button>
               ))}
             </div>
-          </div>
+          </motion.div>
 
-          <div>
-            <p className="text-sm font-semibold mb-2">Language</p>
+          {/* Language Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+          >
+            <p className="text-sm font-semibold text-gray-900 mb-3">
+              Language
+            </p>
             <div className="flex gap-2 flex-wrap">
-              {languages.map((lang) => (
-                <button
+              {languages.map((lang, idx) => (
+                <motion.button
                   key={lang}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.45 + idx * 0.05 }}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                   onClick={() => setLanguage(lang)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-medium transition ${
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                     language === lang
-                      ? "bg-secondary text-secondary-foreground"
-                      : "bg-muted hover:bg-accent/40"
+                      ? "bg-purple-100 text-purple-700 border border-purple-300"
+                      : "bg-gray-100 hover:bg-gray-200 text-gray-700 border border-transparent"
                   }`}
                 >
                   {lang}
-                </button>
+                </motion.button>
               ))}
             </div>
-          </div>
+          </motion.div>
 
-          <div>
-            <p className="text-sm font-semibold mb-2">What do you want to say?</p>
-            <textarea
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-              rows={6}
-              placeholder="E.g., Promote our new Diwali handbag collection with 30% off this weekend."
-              className="w-full rounded-xl border border-border bg-background p-3 text-sm focus:border-primary focus:ring-2 focus:ring-primary/15 outline-none transition"
-            />
-          </div>
+          {/* Clean AI Prompt Input */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+          >
+            <p className="text-sm font-semibold text-gray-900 mb-3">
+              What do you want to create?
+            </p>
+            <div className="relative">
+              <textarea
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+                rows={6}
+                placeholder="E.g., Promote our new Diwali handbag collection with 30% off this weekend..."
+                className="w-full rounded-lg border border-gray-300 bg-white p-4 text-sm focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all placeholder:text-gray-400 resize-none"
+              />
+              <motion.div
+                className="absolute bottom-3 right-3 flex items-center gap-1 text-xs text-gray-400"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.7 }}
+              >
+                <Stars size={12} className="text-purple-500" />
+                <span>AI-powered</span>
+              </motion.div>
+            </div>
+          </motion.div>
 
-          <Button
-            variant="hero"
-            className="w-full"
-            size="lg"
+          {/* Clean Generate Button */}
+          <motion.button
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6 }}
+            whileHover={{ scale: 1.02, y: -2 }}
+            whileTap={{ scale: 0.98 }}
             onClick={handleGenerate}
             disabled={loading}
+            className="w-full h-12 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold rounded-lg transition-all flex items-center justify-center gap-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? (
               <>
-                <Loader2 size={16} className="animate-spin" /> Generating...
+                <Loader2 size={18} className="animate-spin" />
+                <span>Generating...</span>
               </>
             ) : (
               <>
-                <Sparkles size={16} /> Generate content
+                <Sparkles size={18} />
+                <span>Generate Content</span>
               </>
             )}
-          </Button>
+          </motion.button>
 
-          {/* Image Generation Section */}
-          <div className="pt-5 border-t border-border/40">
-            <div className="flex items-center justify-between mb-3">
-              <p className="text-sm font-semibold">Generate Image from Prompt</p>
-              <span className="text-xs text-muted-foreground bg-blue-50 dark:bg-blue-950/20 px-2 py-1 rounded-full">
+          {/* Clean Image Generation Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.7 }}
+            className="pt-6 border-t border-gray-200"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <p className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                <ImageIcon size={16} className="text-purple-600" />
+                Image Generation
+              </p>
+              <span className="text-xs font-medium text-purple-700 bg-purple-100 px-3 py-1 rounded-full border border-purple-200">
                 Required for Instagram
               </span>
             </div>
             
-            <div className="space-y-3">
+            <div className="space-y-4">
+              {/* Image Style */}
               <div>
-                <p className="text-xs text-muted-foreground mb-2">Image Style</p>
+                <p className="text-xs font-medium text-gray-600 mb-2">Image Style</p>
                 <div className="flex gap-2 flex-wrap">
-                  {imageStyles.map((style) => (
-                    <button
+                  {imageStyles.map((style, idx) => (
+                    <motion.button
                       key={style}
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: 0.75 + idx * 0.05 }}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
                       onClick={() => setImageStyle(style)}
-                      className={`px-3 py-1.5 rounded-full text-xs font-medium transition ${
+                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                         imageStyle === style
-                          ? "bg-secondary text-secondary-foreground"
-                          : "bg-muted hover:bg-accent/40"
+                          ? "bg-purple-100 text-purple-700 border border-purple-300"
+                          : "bg-gray-100 hover:bg-gray-200 text-gray-600 border border-transparent"
                       }`}
                     >
                       {style}
-                    </button>
+                    </motion.button>
                   ))}
                 </div>
               </div>
 
+              {/* Use Case */}
               <div>
-                <p className="text-xs text-muted-foreground mb-2">Use Case</p>
+                <p className="text-xs font-medium text-gray-600 mb-2">Use Case</p>
                 <div className="flex gap-2 flex-wrap">
-                  {imageUseCases.map((useCase) => (
-                    <button
+                  {imageUseCases.map((useCase, idx) => (
+                    <motion.button
                       key={useCase}
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: 0.8 + idx * 0.05 }}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
                       onClick={() => setImageUseCase(useCase)}
-                      className={`px-3 py-1.5 rounded-full text-xs font-medium transition ${
+                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                         imageUseCase === useCase
-                          ? "bg-secondary text-secondary-foreground"
-                          : "bg-muted hover:bg-accent/40"
+                          ? "bg-purple-100 text-purple-700 border border-purple-300"
+                          : "bg-gray-100 hover:bg-gray-200 text-gray-600 border border-transparent"
                       }`}
                     >
                       {useCase}
-                    </button>
+                    </motion.button>
                   ))}
                 </div>
               </div>
 
+              {/* Image Prompt */}
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <p className="text-xs text-muted-foreground">Image Prompt</p>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-6 text-xs"
+                  <p className="text-xs font-medium text-gray-600">Image Prompt</p>
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
                     onClick={handleGenerateImagePrompt}
                     disabled={promptGenerating || !prompt.trim()}
+                    className="px-3 py-1 bg-purple-100 hover:bg-purple-200 text-purple-700 rounded-lg text-xs font-medium flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                   >
                     {promptGenerating ? (
                       <>
-                        <Loader2 size={12} className="animate-spin" /> Generating...
+                        <Loader2 size={12} className="animate-spin" />
+                        Generating...
                       </>
                     ) : (
                       <>
-                        <Wand2 size={12} /> Auto-generate
+                        <Wand2 size={12} />
+                        Auto-generate
                       </>
                     )}
-                  </Button>
+                  </motion.button>
                 </div>
                 <textarea
                   value={imagePrompt}
                   onChange={(e) => setImagePrompt(e.target.value)}
                   rows={3}
                   placeholder="Click 'Auto-generate' to create image prompt from your text..."
-                  className="w-full rounded-xl border border-border bg-background p-3 text-xs focus:border-primary focus:ring-2 focus:ring-primary/15 outline-none transition"
+                  className="w-full rounded-lg border border-gray-300 bg-white p-3 text-xs focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all placeholder:text-gray-400 resize-none"
                 />
               </div>
 
-              <Button
-                variant="outline"
-                className="w-full"
-                size="lg"
+              {/* Generate Image Button */}
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
                 onClick={handleGenerateImage}
                 disabled={imageLoading || !imagePrompt.trim()}
+                className="w-full h-11 bg-white border border-gray-300 hover:border-purple-400 hover:bg-purple-50 text-gray-700 font-medium rounded-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {imageLoading ? (
                   <>
-                    <Loader2 size={16} className="animate-spin" /> Generating image...
+                    <Loader2 size={16} className="animate-spin" />
+                    Generating Image...
                   </>
                 ) : (
                   <>
-                    <ImageIcon size={16} /> Generate Image
+                    <ImageIcon size={16} />
+                    Generate Image
                   </>
                 )}
-              </Button>
+              </motion.button>
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
 
-        {/* Output */}
-        <div className="bg-card rounded-2xl border border-border/60 shadow-soft p-5 flex flex-col">
-          <div className="flex items-center justify-between mb-3">
-            <p className="text-sm font-semibold">AI output</p>
-            {(output || generatedImageUrl) && (
-              <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary">
-                <Sparkles size={10} /> Generated
-              </span>
-            )}
+        {/* Right Panel - Clean AI Output */}
+        <motion.div
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.2 }}
+          className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 flex flex-col min-h-[600px]"
+        >
+          <div className="flex items-center justify-between mb-4">
+            <p className="text-sm font-semibold text-gray-900">
+              AI Output
+            </p>
+            <AnimatePresence>
+              {(output || generatedImageUrl) && (
+                <motion.span
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full bg-purple-100 text-purple-700 border border-purple-300"
+                >
+                  <Sparkles size={12} />
+                  AI Generated
+                </motion.span>
+              )}
+            </AnimatePresence>
           </div>
           
           {note && (
-            <div className="mb-3 p-2 rounded-lg bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800">
-              <p className="text-xs text-amber-800 dark:text-amber-200">{note}</p>
-            </div>
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-4 p-3 rounded-lg bg-amber-50 border border-amber-200"
+            >
+              <p className="text-xs text-amber-800 flex items-center gap-2">
+                <Sparkles size={12} />
+                {note}
+              </p>
+            </motion.div>
           )}
           
-          <div className="flex-1 rounded-xl bg-gradient-soft border border-border/40 p-4 mb-3 min-h-[300px] overflow-auto">
-            {/* Show generated image if available */}
+          <div className="flex-1 rounded-lg bg-gradient-to-br from-purple-50/30 via-white to-pink-50/20 border border-gray-200 p-6 mb-4 min-h-[400px] overflow-auto">
+            {/* Content */}
             {generatedImageUrl ? (
-              <div className="space-y-3">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="space-y-4"
+              >
                 <div className="flex items-center justify-between">
-                  <p className="text-xs font-semibold text-muted-foreground">Generated Image</p>
-                  <span className="text-[10px] text-muted-foreground">
+                  <p className="text-xs font-semibold text-gray-700 flex items-center gap-2">
+                    <ImageIcon size={14} className="text-purple-600" />
+                    Generated Image
+                  </p>
+                  <span className="text-xs text-gray-500 bg-white px-2 py-1 rounded-lg border border-gray-200">
                     {imageStyle} • {imageUseCase}
                   </span>
                 </div>
-                <div className="rounded-lg overflow-hidden border border-border/40">
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="rounded-lg overflow-hidden border border-gray-300 shadow-sm"
+                >
                   <img 
                     src={generatedImageUrl} 
                     alt="Generated content" 
@@ -625,131 +764,165 @@ function ContentStudio() {
                       toast.error("Failed to load image");
                     }}
                   />
-                </div>
+                </motion.div>
                 <div className="flex gap-2 pt-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="flex-1"
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
                     onClick={handleDownloadImage}
+                    className="flex-1 px-3 py-2 bg-white border border-gray-300 hover:border-gray-400 text-gray-700 rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition-all"
                   >
-                    <Download size={13} /> Download
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="flex-1"
+                    <Download size={14} /> Download
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
                     onClick={handleGenerateImage}
                     disabled={imageLoading}
+                    className="flex-1 px-3 py-2 bg-white border border-gray-300 hover:border-gray-400 text-gray-700 rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition-all disabled:opacity-50"
                   >
-                    <RefreshCcw size={13} /> Regenerate
-                  </Button>
-                  <Button
-                    variant="hero"
-                    size="sm"
-                    className="flex-1"
+                    <RefreshCcw size={14} /> Regenerate
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
                     disabled={instagramLoading}
                     onClick={() => handlePostToInstagram('image')}
+                    className="flex-1 px-3 py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition-all shadow-sm disabled:opacity-50"
                   >
                     {instagramLoading ? (
                       <>
-                        <Loader2 size={13} className="animate-spin" /> Posting...
+                        <Loader2 size={14} className="animate-spin" />
+                        Posting...
                       </>
                     ) : (
                       <>
-                        <Instagram size={13} /> Post to Instagram
+                        <Instagram size={14} />
+                        Post
                       </>
                     )}
-                  </Button>
+                  </motion.button>
                 </div>
-              </div>
+              </motion.div>
             ) : output ? (
-              /* Show text content if no image */
-              <div className="space-y-2">
-                <p className="text-sm leading-relaxed whitespace-pre-line">{output}</p>
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="space-y-3"
+              >
+                <p className="text-sm leading-relaxed whitespace-pre-line text-gray-800">{output}</p>
                 {isAIGenerated && (
-                  <p className="text-xs text-muted-foreground mt-4 pt-4 border-t border-border/40">
-                    Generated in {language} with {tone.toLowerCase()} tone.
+                  <p className="text-xs text-gray-500 mt-4 pt-4 border-t border-gray-200 flex items-center gap-2">
+                    <Sparkles size={12} className="text-purple-600" />
+                    Generated in {language} with {tone.toLowerCase()} tone
                   </p>
                 )}
-              </div>
+              </motion.div>
             ) : (
-              /* Show placeholder */
-              <div className="flex flex-col items-center justify-center h-full text-center">
-                <p className="text-sm text-muted-foreground mb-2">
-                  Your generated content will appear here...
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="flex flex-col items-center justify-center h-full text-center py-12"
+              >
+                <Sparkles size={48} className="text-gray-300 mb-4" />
+                <p className="text-base font-medium text-gray-700 mb-2">
+                  Your AI-generated content will appear here
                 </p>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-sm text-gray-500">
                   Generate content and image to post to Instagram
                 </p>
-              </div>
+              </motion.div>
             )}
           </div>
           
           {/* Action buttons - only show for text content */}
-          {output && !generatedImageUrl && (
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                className="flex-1"
-                onClick={handleCopy}
-                disabled={!output}
+          <AnimatePresence>
+            {output && !generatedImageUrl && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 10 }}
+                className="flex gap-2"
               >
-                <Copy size={13} /> Copy
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="flex-1"
-                onClick={handleGenerate}
-                disabled={loading || !prompt.trim()}
-              >
-                <RefreshCcw size={13} /> Regenerate
-              </Button>
-              <Button variant="outline" size="sm" className="flex-1" disabled>
-                <Instagram size={13} /> Need Image to Post
-              </Button>
-            </div>
-          )}
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={handleCopy}
+                  disabled={!output}
+                  className="flex-1 px-3 py-2 bg-white border border-gray-300 hover:border-gray-400 text-gray-700 rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition-all"
+                >
+                  <Copy size={14} /> Copy
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={handleGenerate}
+                  disabled={loading || !prompt.trim()}
+                  className="flex-1 px-3 py-2 bg-white border border-gray-300 hover:border-gray-400 text-gray-700 rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition-all disabled:opacity-50"
+                >
+                  <RefreshCcw size={14} /> Regenerate
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  disabled
+                  className="flex-1 px-3 py-2 bg-gray-100 border border-gray-200 text-gray-400 rounded-lg text-sm font-medium flex items-center justify-center gap-2 cursor-not-allowed"
+                >
+                  <Instagram size={14} /> Need Image
+                </motion.button>
+              </motion.div>
+            )}
+          </AnimatePresence>
           
           {/* Show text content below image if both exist */}
-          {output && generatedImageUrl && (
-            <div className="mt-3 pt-3 border-t border-border/40">
-              <p className="text-xs font-semibold text-muted-foreground mb-2">Text Content</p>
-              <div className="rounded-lg bg-background/50 p-3">
-                <p className="text-xs leading-relaxed whitespace-pre-line">{output}</p>
-              </div>
-              <div className="flex gap-2 mt-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="flex-1"
-                  onClick={handleCopy}
-                >
-                  <Copy size={13} /> Copy Text
-                </Button>
-                <Button 
-                  variant="hero" 
-                  size="sm" 
-                  className="flex-1"
-                  disabled={instagramLoading}
-                  onClick={() => handlePostToInstagram('both')}
-                >
-                  {instagramLoading ? (
-                    <>
-                      <Loader2 size={13} className="animate-spin" /> Posting...
-                    </>
-                  ) : (
-                    <>
-                      <Instagram size={13} /> Post Both to Instagram
-                    </>
-                  )}
-                </Button>
-              </div>
-            </div>
-          )}
-        </div>
+          <AnimatePresence>
+            {output && generatedImageUrl && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 10 }}
+                className="mt-4 pt-4 border-t border-gray-200"
+              >
+                <p className="text-xs font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                  <MessageCircle size={12} className="text-purple-600" />
+                  Text Content
+                </p>
+                <div className="rounded-lg bg-gray-50 border border-gray-200 p-3 mb-3">
+                  <p className="text-xs leading-relaxed whitespace-pre-line text-gray-700">{output}</p>
+                </div>
+                <div className="flex gap-2">
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={handleCopy}
+                    className="flex-1 px-3 py-2 bg-white border border-gray-300 hover:border-gray-400 text-gray-700 rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition-all"
+                  >
+                    <Copy size={14} /> Copy Text
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    disabled={instagramLoading}
+                    onClick={() => handlePostToInstagram('both')}
+                    className="flex-1 px-3 py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition-all shadow-sm disabled:opacity-50"
+                  >
+                    {instagramLoading ? (
+                      <>
+                        <Loader2 size={14} className="animate-spin" />
+                        Posting...
+                      </>
+                    ) : (
+                      <>
+                        <Instagram size={14} />
+                        Post Both
+                      </>
+                    )}
+                  </motion.button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
       </div>
     </div>
   );

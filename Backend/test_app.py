@@ -1,19 +1,15 @@
-"""
-Minimal test app to debug the issue
-"""
+"""Test if the app has the auth routes"""
+from main import app
 
-from fastapi import FastAPI
-import uvicorn
+print("=" * 60)
+print("Testing app routes...")
+print("=" * 60)
 
-app = FastAPI()
+auth_routes = [r for r in app.routes if '/auth' in str(r.path)]
+print(f"Found {len(auth_routes)} auth routes:")
+for route in auth_routes:
+    print(f"  - {route.path} ({route.methods if hasattr(route, 'methods') else 'N/A'})")
 
-@app.get("/")
-async def root():
-    return {"status": "ok"}
-
-@app.get("/test")
-async def test():
-    return {"message": "test"}
-
-if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8001, log_level="info")
+print("=" * 60)
+print(f"Total routes: {len(app.routes)}")
+print("=" * 60)

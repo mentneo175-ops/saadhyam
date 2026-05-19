@@ -121,232 +121,93 @@ function InstagramPosts() {
   const viralPostsCount = posts.filter(p => p.is_viral).length
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
+    <div className="p-6 max-w-7xl mx-auto bg-gradient-to-b from-purple-50 to-white min-h-screen">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Post Analytics</h1>
-        <p className="text-gray-600">Detailed performance metrics for all your Instagram posts</p>
+      <div className="mb-8 text-center">
+        <h1 className="text-4xl font-extrabold text-purple-800 mb-4">Instagram Post Analytics</h1>
+        <p className="text-gray-600 text-lg">Track and analyze the performance of your Instagram posts with ease</p>
       </div>
 
       {/* Stats Overview */}
-      <div className="grid grid-cols-4 gap-4 mb-6">
-        <div className="bg-white p-4 rounded-lg border border-gray-200">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 animate-fade-in">
+        <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200 hover:shadow-lg transition-shadow duration-300">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm text-gray-600">Total Posts</span>
-            <BarChart3 className="w-4 h-4 text-purple-600" />
+            <BarChart3 className="w-6 h-6 text-purple-600" />
           </div>
-          <p className="text-2xl font-bold text-gray-900">{posts.length}</p>
+          <p className="text-3xl font-bold text-gray-900">{posts.length}</p>
         </div>
         
-        <div className="bg-white p-4 rounded-lg border border-gray-200">
+        <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200 hover:shadow-lg transition-shadow duration-300">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm text-gray-600">Avg Engagement</span>
-            <TrendingUp className="w-4 h-4 text-green-600" />
+            <TrendingUp className="w-6 h-6 text-green-600" />
           </div>
-          <p className="text-2xl font-bold text-gray-900">{avgEngagementRate.toFixed(1)}%</p>
+          <p className="text-3xl font-bold text-gray-900">{avgEngagementRate.toFixed(1)}%</p>
         </div>
         
-        <div className="bg-white p-4 rounded-lg border border-gray-200">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm text-gray-600">Total Engagement</span>
-            <Heart className="w-4 h-4 text-red-600" />
-          </div>
-          <p className="text-2xl font-bold text-gray-900">{formatNumber(totalEngagement)}</p>
-        </div>
-        
-        <div className="bg-white p-4 rounded-lg border border-gray-200">
+        <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200 hover:shadow-lg transition-shadow duration-300">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm text-gray-600">Viral Posts</span>
-            <Zap className="w-4 h-4 text-yellow-600" />
+            <Zap className="w-6 h-6 text-yellow-500" />
           </div>
-          <p className="text-2xl font-bold text-gray-900">{viralPostsCount}</p>
+          <p className="text-3xl font-bold text-gray-900">{viralPostsCount}</p>
         </div>
       </div>
 
-      {/* Filters and Search */}
-      <div className="bg-white p-4 rounded-lg border border-gray-200 mb-6">
-        <div className="flex items-center gap-4 flex-wrap">
-          {/* Filter Tabs */}
-          <div className="flex items-center gap-2">
-            <Filter className="w-4 h-4 text-gray-600" />
-            <button
-              onClick={() => setFilter('all')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                filter === 'all' 
-                  ? 'bg-purple-600 text-white' 
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
+      {/* Post List */}
+      <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200 animate-slide-up">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-2xl font-semibold text-gray-800">Posts</h2>
+          <div className="flex items-center space-x-4">
+            <input 
+              type="text" 
+              placeholder="Search posts..." 
+              value={searchQuery} 
+              onChange={(e) => setSearchQuery(e.target.value)} 
+              className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+            />
+            <select 
+              value={filter} 
+              onChange={(e) => setFilter(e.target.value as 'all' | 'top' | 'viral')} 
+              className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
             >
-              All Posts
-            </button>
-            <button
-              onClick={() => setFilter('top')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                filter === 'top' 
-                  ? 'bg-purple-600 text-white' 
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
+              <option value="all">All</option>
+              <option value="top">Top</option>
+              <option value="viral">Viral</option>
+            </select>
+            <select 
+              value={sortBy} 
+              onChange={(e) => setSortBy(e.target.value as 'recent' | 'engagement' | 'likes')} 
+              className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
             >
-              Top Performers
-            </button>
-            <button
-              onClick={() => setFilter('viral')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                filter === 'viral' 
-                  ? 'bg-purple-600 text-white' 
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              Viral Posts
-            </button>
-          </div>
-
-          {/* Sort Dropdown */}
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as any)}
-            className="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-          >
-            <option value="recent">Most Recent</option>
-            <option value="engagement">Highest Engagement</option>
-            <option value="likes">Most Likes</option>
-          </select>
-
-          {/* Search */}
-          <div className="flex-1 min-w-[200px]">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search posts..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              />
-            </div>
+              <option value="recent">Most Recent</option>
+              <option value="engagement">Engagement</option>
+              <option value="likes">Likes</option>
+            </select>
           </div>
         </div>
+
+        {loading ? (
+          <p className="text-center text-gray-500">Loading posts...</p>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredPosts.map(post => (
+              <div key={post.id} className="bg-gray-50 p-4 rounded-lg shadow-md border border-gray-200 hover:shadow-lg transition-shadow duration-300">
+                <img src={post.media_url} alt={post.caption} className="w-full h-48 object-cover rounded-md mb-4" />
+                <h3 className="text-lg font-semibold text-gray-800 mb-2">{post.caption || 'No Caption'}</h3>
+                <p className="text-sm text-gray-600 mb-2">{formatDate(post.published_at)}</p>
+                <div className="flex items-center justify-between text-sm text-gray-600">
+                  <span><Heart className="inline w-4 h-4 text-red-500" /> {formatNumber(post.like_count)}</span>
+                  <span><MessageCircle className="inline w-4 h-4 text-blue-500" /> {formatNumber(post.comment_count)}</span>
+                  <span><Share2 className="inline w-4 h-4 text-green-500" /> {formatNumber(post.share_count)}</span>
+                  <span><Bookmark className="inline w-4 h-4 text-yellow-500" /> {formatNumber(post.save_count)}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
-
-      {/* Posts Grid */}
-      {loading ? (
-        <div className="text-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
-          <p className="text-gray-600 mt-4">Loading posts...</p>
-        </div>
-      ) : filteredPosts.length === 0 ? (
-        <div className="text-center py-12">
-          <p className="text-gray-600">No posts found</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredPosts.map(post => (
-            <div key={post.id} className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-xl transition-shadow">
-              {/* Post Image */}
-              <div className="relative aspect-square bg-gray-100">
-                <img
-                  src={post.thumbnail_url || post.media_url}
-                  alt="Post"
-                  className="w-full h-full object-cover"
-                />
-                
-                {/* Badges */}
-                <div className="absolute top-2 right-2 flex flex-col gap-2">
-                  {post.is_viral && (
-                    <div className="bg-red-500 text-white px-2 py-1 rounded-full text-xs font-bold flex items-center gap-1">
-                      <Zap className="w-3 h-3" />
-                      VIRAL
-                    </div>
-                  )}
-                  {post.is_top_performer && (
-                    <div className="bg-yellow-500 text-white px-2 py-1 rounded-full text-xs font-bold">
-                      ⭐ Top
-                    </div>
-                  )}
-                </div>
-                
-                <div className="absolute bottom-2 right-2 bg-black/70 text-white px-2 py-1 rounded text-xs">
-                  {post.media_type}
-                </div>
-                
-                {/* Engagement Score */}
-                <div className="absolute top-2 left-2 bg-purple-600 text-white px-3 py-1 rounded-full text-sm font-bold">
-                  {post.engagement_rate.toFixed(1)}%
-                </div>
-              </div>
-
-              {/* Post Details */}
-              <div className="p-4">
-                {/* Date */}
-                <div className="flex items-center gap-2 text-sm text-gray-500 mb-3">
-                  <Calendar className="w-4 h-4" />
-                  {formatDate(post.published_at)}
-                </div>
-
-                {/* Engagement Stats */}
-                <div className="grid grid-cols-4 gap-3 mb-4">
-                  <div className="text-center">
-                    <Heart className="w-5 h-5 text-red-500 mx-auto mb-1" />
-                    <p className="text-sm font-bold text-gray-900">{formatNumber(post.like_count)}</p>
-                    <p className="text-xs text-gray-500">Likes</p>
-                  </div>
-                  <div className="text-center">
-                    <MessageCircle className="w-5 h-5 text-blue-500 mx-auto mb-1" />
-                    <p className="text-sm font-bold text-gray-900">{formatNumber(post.comment_count)}</p>
-                    <p className="text-xs text-gray-500">Comments</p>
-                  </div>
-                  <div className="text-center">
-                    <Share2 className="w-5 h-5 text-green-500 mx-auto mb-1" />
-                    <p className="text-sm font-bold text-gray-900">{formatNumber(post.share_count)}</p>
-                    <p className="text-xs text-gray-500">Shares</p>
-                  </div>
-                  <div className="text-center">
-                    <Bookmark className="w-5 h-5 text-purple-500 mx-auto mb-1" />
-                    <p className="text-sm font-bold text-gray-900">{formatNumber(post.save_count)}</p>
-                    <p className="text-xs text-gray-500">Saves</p>
-                  </div>
-                </div>
-
-                {/* Reach & Impressions */}
-                <div className="grid grid-cols-2 gap-3 mb-4 pb-4 border-b border-gray-100">
-                  <div>
-                    <div className="flex items-center gap-1 text-xs text-gray-600 mb-1">
-                      <Eye className="w-3 h-3" />
-                      Reach
-                    </div>
-                    <p className="text-sm font-bold text-gray-900">{formatNumber(post.reach)}</p>
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-1 text-xs text-gray-600 mb-1">
-                      <BarChart3 className="w-3 h-3" />
-                      Impressions
-                    </div>
-                    <p className="text-sm font-bold text-gray-900">{formatNumber(post.impressions)}</p>
-                  </div>
-                </div>
-
-                {/* Caption Preview */}
-                {post.caption && (
-                  <p className="text-sm text-gray-600 line-clamp-3 mb-4">
-                    {post.caption}
-                  </p>
-                )}
-
-                {/* View on Instagram */}
-                <a
-                  href={post.permalink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 w-full px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:shadow-lg transition-all text-sm font-medium"
-                >
-                  View on Instagram
-                  <ExternalLink className="w-4 h-4" />
-                </a>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
     </div>
   )
 }

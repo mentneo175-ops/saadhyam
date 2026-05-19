@@ -9,19 +9,19 @@ starlette==0.27.0
 # ============================================
 # Database & ORM
 # ============================================
-sqlalchemy==2.0.23
-psycopg2-binary==2.9.9
-asyncpg==0.29.0
+# sqlalchemy==2.0.23  # Using 2.0.36 for Python 3.13 compatibility
+psycopg2-binary==2.9.10
+# asyncpg==0.29.0  # Requires C++ compiler, skipping for now
 aiosqlite==0.19.0
 
 # ============================================
 # Data Validation & Settings
 # ============================================
-pydantic==2.7.1
+# pydantic==2.7.1  # Using newer version 2.10.6 already installed
 pydantic-settings==2.1.0
 pydantic-extra-types==2.4.1
-pydantic_core==2.14.6
-email-validator==2.1.0
+# pydantic_core==2.14.6  # Using newer version 2.27.2 already installed
+# email-validator==2.1.0  # Using 2.1.1 already installed
 
 # ============================================
 # Authentication & Security
@@ -41,22 +41,22 @@ python-dotenv==1.0.0
 # ============================================
 # AI/ML Core
 # ============================================
-torch==2.1.1
-transformers==4.35.2
+torch==2.12.0
+transformers==4.48.0
 peft==0.7.1
 accelerate==0.24.1
 bitsandbytes==0.41.1
-sentencepiece==0.1.99
+# sentencepiece==0.2.0  # Requires C++ compiler, using 0.2.1 already installed
 protobuf==4.25.8
 huggingface-hub==0.34.4
 safetensors==0.6.2
-tokenizers>=0.14,<0.19
+tokenizers>=0.21,<0.22
 
 # ============================================
 # HTTP & Requests
 # ============================================
 requests==2.31.0
-aiohttp==3.9.1
+aiohttp==3.11.11
 httpx==0.28.1
 httpcore==1.0.9
 certifi==2026.4.22
@@ -125,8 +125,8 @@ python-json-logger==2.0.7
 # ============================================
 # Data Processing
 # ============================================
-pandas==2.2.1
-numpy==1.26.4
+# pandas==2.2.1  # Using 2.2.3 already installed
+# numpy==1.26.4  # Using 2.2.1 already installed
 
 # ============================================
 # Web Scraping & Parsing

@@ -55,7 +55,9 @@ echo ============================================
 echo   Starting Main Celery Worker
 echo   (Instagram Posts + WhatsApp Automation)
 echo ============================================
-start "Saadhyam Celery - Worker" cmd /k ".venv\Scripts\activate && cd Backend && python -m celery -A celery_worker worker --loglevel=info --pool=solo"
+cd Backend
+start "Saadhyam Celery - Worker" cmd /k "call venv\Scripts\activate.bat && python -m celery -A celery_worker worker --loglevel=info --pool=solo"
+cd ..
 echo [SUCCESS] Main Celery worker starting...
 echo.
 
@@ -64,7 +66,9 @@ echo ============================================
 echo   Starting Celery Beat Scheduler
 echo   (Periodic Tasks)
 echo ============================================
-start "Saadhyam Celery - Beat" cmd /k ".venv\Scripts\activate && cd Backend && python -m celery -A celery_worker beat --loglevel=info"
+cd Backend
+start "Saadhyam Celery - Beat" cmd /k "call venv\Scripts\activate.bat && python -m celery -A celery_worker beat --loglevel=info"
+cd ..
 echo [SUCCESS] Celery Beat scheduler starting...
 echo.
 
@@ -74,6 +78,9 @@ echo   Starting Content Creator AI
 echo   (Image Generation - Port 8001)
 echo ============================================
 start "Saadhyam Content Creator AI" cmd /k ".venv\Scripts\activate && cd Backend\ai_models\content_creator && python -m uvicorn app.main:app --reload --port 8001"
+cd Backend
+start "Saadhyam Content Creator AI" cmd /k "call venv\Scripts\activate.bat && cd ai_models\content_creator && python -m uvicorn app.main:app --reload --port 8001"
+cd ..
 echo [SUCCESS] Content Creator AI starting...
 echo.
 

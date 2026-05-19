@@ -1,0 +1,256 @@
+/**
+ * Saadhyam AI - Unified Color System
+ * Primary: Purple (#8B5CF6 / #A855F7)
+ * All buttons, accents, and interactive elements use this palette
+ */
+
+:root {
+  /* ===== PRIMARY BRAND COLORS ===== */
+  --brand-purple-50: #FAF5FF;
+  --brand-purple-100: #F3EEFF;
+  --brand-purple-200: #E9D5FF;
+  --brand-purple-300: #D8B4FE;
+  --brand-purple-400: #C084FC;
+  --brand-purple-500: #A855F7;  /* Secondary Purple */
+  --brand-purple-600: #8B5CF6;  /* Primary Purple */
+  --brand-purple-700: #7C3AED;
+  --brand-purple-800: #6D28D9;
+  --brand-purple-900: #5B21B6;
+
+  /* ===== BUTTON STYLES ===== */
+  --btn-primary-bg: linear-gradient(135deg, #8B5CF6 0%, #A855F7 100%);
+  --btn-primary-hover: linear-gradient(135deg, #7C3AED 0%, #9333EA 100%);
+  --btn-primary-shadow: 0 4px 14px 0 rgba(139, 92, 246, 0.25);
+  --btn-primary-hover-shadow: 0 6px 20px 0 rgba(139, 92, 246, 0.35);
+
+  --btn-secondary-bg: #F3EEFF;
+  --btn-secondary-hover: #E9D5FF;
+  --btn-secondary-text: #8B5CF6;
+
+  --btn-outline-border: #8B5CF6;
+  --btn-outline-hover-bg: #F9F7FF;
+
+  /* ===== STATUS COLORS (Keep semantic) ===== */
+  --status-success: #10B981;
+  --status-warning: #F59E0B;
+  --status-error: #EF4444;
+  --status-info: #8B5CF6;  /* Use purple for info */
+
+  /* ===== ACCENT COLORS ===== */
+  --accent-glow: rgba(139, 92, 246, 0.15);
+  --accent-border: rgba(139, 92, 246, 0.2);
+  --accent-bg-light: rgba(139, 92, 246, 0.05);
+  --accent-bg-medium: rgba(139, 92, 246, 0.1);
+}
+
+/* ===== UTILITY CLASSES ===== */
+
+/* Primary Button */
+.btn-primary {
+  background: var(--btn-primary-bg);
+  color: white;
+  box-shadow: var(--btn-primary-shadow);
+  transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+  background: var(--btn-primary-hover);
+  box-shadow: var(--btn-primary-hover-shadow);
+  transform: translateY(-1px);
+}
+
+/* Secondary Button */
+.btn-secondary {
+  background: var(--btn-secondary-bg);
+  color: var(--btn-secondary-text);
+  border: 1px solid var(--brand-purple-200);
+  transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+  background: var(--btn-secondary-hover);
+  border-color: var(--brand-purple-300);
+}
+
+/* Outline Button */
+.btn-outline {
+  background: transparent;
+  color: var(--btn-outline-border);
+  border: 2px solid var(--btn-outline-border);
+  transition: all 0.3s ease;
+}
+
+.btn-outline:hover {
+  background: var(--btn-outline-hover-bg);
+  border-color: var(--brand-purple-700);
+}
+
+/* Icon Backgrounds */
+.icon-bg-primary {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(168, 85, 247, 0.1) 100%);
+  color: var(--brand-purple-600);
+}
+
+.icon-bg-primary:hover {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(168, 85, 247, 0.15) 100%);
+}
+
+/* Badge Styles */
+.badge-primary {
+  background: var(--brand-purple-100);
+  color: var(--brand-purple-700);
+  border: 1px solid var(--brand-purple-200);
+}
+
+.badge-success {
+  background: #D1FAE5;
+  color: #065F46;
+  border: 1px solid #A7F3D0;
+}
+
+.badge-warning {
+  background: #FEF3C7;
+  color: #92400E;
+  border: 1px solid #FDE68A;
+}
+
+.badge-error {
+  background: #FEE2E2;
+  color: #991B1B;
+  border: 1px solid #FECACA;
+}
+
+/* Glow Effects */
+.glow-primary {
+  box-shadow: 0 0 20px var(--accent-glow);
+}
+
+.glow-primary-strong {
+  box-shadow: 0 0 30px rgba(139, 92, 246, 0.3);
+}
+
+/* Background Gradients */
+.bg-gradient-primary {
+  background: linear-gradient(135deg, #8B5CF6 0%, #A855F7 100%);
+}
+
+.bg-gradient-primary-soft {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.05) 0%, rgba(168, 85, 247, 0.05) 100%);
+}
+
+/* Text Gradients */
+.text-gradient-primary {
+  background: linear-gradient(135deg, #8B5CF6 0%, #A855F7 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Border Colors */
+.border-primary {
+  border-color: var(--brand-purple-600);
+}
+
+.border-primary-light {
+  border-color: var(--brand-purple-200);
+}
+
+/* Focus Rings */
+.focus-ring-primary:focus {
+  outline: none;
+  ring: 2px;
+  ring-color: var(--brand-purple-600);
+  ring-opacity: 0.5;
+}
+
+/* Hover Lift Effect */
+.hover-lift {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(139, 92, 246, 0.15);
+}
+
+/* Loading Spinner */
+.spinner-primary {
+  border-color: var(--brand-purple-200);
+  border-top-color: var(--brand-purple-600);
+}
+
+/* Progress Bar */
+.progress-primary {
+  background: linear-gradient(90deg, #8B5CF6 0%, #A855F7 100%);
+}
+
+/* Checkbox/Radio */
+.checkbox-primary:checked {
+  background-color: var(--brand-purple-600);
+  border-color: var(--brand-purple-600);
+}
+
+/* Switch */
+.switch-primary:checked {
+  background-color: var(--brand-purple-600);
+}
+
+/* Link Colors */
+.link-primary {
+  color: var(--brand-purple-600);
+  transition: color 0.2s ease;
+}
+
+.link-primary:hover {
+  color: var(--brand-purple-700);
+  text-decoration: underline;
+}
+
+/* Card Hover */
+.card-hover-primary {
+  transition: all 0.3s ease;
+}
+
+.card-hover-primary:hover {
+  border-color: var(--brand-purple-300);
+  box-shadow: 0 8px 24px rgba(139, 92, 246, 0.12);
+}
+
+/* Tooltip */
+.tooltip-primary {
+  background: var(--brand-purple-600);
+  color: white;
+}
+
+/* Divider */
+.divider-primary {
+  border-color: var(--brand-purple-200);
+}
+
+/* Alert/Notification */
+.alert-primary {
+  background: var(--brand-purple-50);
+  border-color: var(--brand-purple-200);
+  color: var(--brand-purple-900);
+}
+
+/* Skeleton Loader */
+.skeleton-primary {
+  background: linear-gradient(
+    90deg,
+    var(--brand-purple-100) 0%,
+    var(--brand-purple-200) 50%,
+    var(--brand-purple-100) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}

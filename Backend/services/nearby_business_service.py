@@ -17,7 +17,12 @@ class NearbyBusinessService:
     ]
     
     def __init__(self):
-        self.client = httpx.AsyncClient(timeout=30.0)
+        # Use connection pooling and keep-alive for better performance
+        self.client = httpx.AsyncClient(
+            timeout=30.0,
+            limits=httpx.Limits(max_keepalive_connections=5, max_connections=10),
+            http2=True  # Enable HTTP/2 for better performance
+        )
     
     async def get_nearby_businesses(
         self,
@@ -25,25 +30,45 @@ class NearbyBusinessService:
         lng: float,
         radius: int = 5000,
         category: Optional[str] = None,
-        user_id: Optional[str] = None
+        user_id: Optional[str] = None,
+        saadhyam_only: bool = False  # New parameter for filter
     ) -> List[Dict]:
         """
-        Get businesses in the user's city from both Saadhyam network and external sources
-        Uses city-wide search - searches entire city area, not just radius
+        Get businesses from Saadhyam network and external sources
+        
+        Logic:
+        1. Always get Sadhyam users first (guaranteed to work)
+        2. If saadhyam_only=False, try to get external businesses
+        3. If Overpass fails, gracefully fallback to Sadhyam users only
         """
         businesses = []
         
-        # Get Saadhyam partner businesses (from database)
+        # STEP 1: Always get Sadhyam users (this always works)
+        print(f"📊 Fetching Sadhyam users...")
         saadhyam_businesses = await self._get_saadhyam_businesses(lat, lng, radius, category)
         businesses.extend(saadhyam_businesses)
+        print(f"✅ Got {len(saadhyam_businesses)} Sadhyam users")
         
-        # Get external businesses from Overpass API (city-wide search)
-        # Use large radius to cover entire city (50km = 50000m)
-        city_radius = 50000  # 50km covers most cities
-        external_businesses = await self._get_external_businesses(lat, lng, city_radius, category)
-        businesses.extend(external_businesses)
+        # STEP 2: Try to get external businesses (if not filtered out)
+        if not saadhyam_only:
+            print(f"🌍 Attempting to fetch external businesses from Overpass API...")
+            try:
+                city_radius = 50000  # 50km covers most cities
+                external_businesses = await self._get_external_businesses(lat, lng, city_radius, category)
+                
+                if external_businesses:
+                    businesses.extend(external_businesses)
+                    print(f"✅ Got {len(external_businesses)} external businesses")
+                else:
+                    print(f"⚠️  No external businesses found (API returned empty)")
+                    
+            except Exception as e:
+                print(f"⚠️  Overpass API failed: {e}")
+                print(f"✅ Fallback: Showing {len(saadhyam_businesses)} Sadhyam users only")
+        else:
+            print(f"🔒 Sadhyam Only filter active - skipping external businesses")
         
-        # Calculate and add distance for each business
+        # STEP 3: Calculate distances
         for business in businesses:
             distance = self._calculate_distance(
                 lat, lng, 
@@ -53,9 +78,10 @@ class NearbyBusinessService:
             business["distance"] = round(distance)  # Distance in meters
             business["distance_km"] = round(distance / 1000, 1)  # Distance in km
         
-        # Sort by distance
+        # STEP 4: Sort by distance
         businesses.sort(key=lambda b: b["distance"])
         
+        print(f"📍 Final result: {len(businesses)} total businesses")
         return businesses
     
     async def _get_saadhyam_businesses(
@@ -67,63 +93,71 @@ class NearbyBusinessService:
     ) -> List[Dict]:
         """
         Get businesses from Saadhyam database (registered partners)
+        Shows ALL users regardless of location or profile completeness
         """
         try:
-            from config.database import get_db_sync
+            from config.database import SyncSessionLocal
             from models.user import User
+            from sqlalchemy import select
             
-            # Get database session
-            db = next(get_db_sync())
-            
-            # Query all users with business profiles
-            query = db.query(User).filter(
-                User.business_name.isnot(None),
-                User.business_type.isnot(None),  # Changed from business_category
-                User.latitude.isnot(None),
-                User.longitude.isnot(None)
-            )
-            
-            # Filter by category if provided
-            if category:
-                query = query.filter(User.business_type == category)  # Changed from business_category
-            
-            users = query.all()
-            
-            businesses = []
-            for user in users:
-                # Calculate distance
-                distance = self._calculate_distance(lat, lng, user.latitude, user.longitude)
+            # Get sync database session
+            db = SyncSessionLocal()
+            try:
+                # Query all users - NO FILTERS, show everyone!
+                query = select(User).filter(
+                    User.email.isnot(None)  # Just need to be a valid user
+                )
                 
-                # Skip if outside radius
-                if distance > radius:
-                    continue
+                # Filter by category if provided
+                if category:
+                    query = query.filter(User.business_type == category)
                 
-                # Build business object
-                business = {
-                    "id": f"saadhyam-{user.id}",
-                    "name": user.business_name,
-                    "category": user.business_type or "Other",  # Changed from business_category
-                    "logo": None,  # TODO: Add logo support
-                    "description": user.business_description if hasattr(user, 'business_description') else None,
-                    "location": {
-                        "lat": user.latitude,
-                        "lng": user.longitude
-                    },
-                    "services": user.business_services.split(",") if hasattr(user, 'business_services') and user.business_services else [],
-                    "employees": None,
-                    "ai_score": 95,  # Saadhyam partners get high AI score
-                    "is_partner": True,  # ✅ This is a Saadhyam partner
-                    "is_verified": True,  # ✅ Verified Saadhyam business
-                    "is_satellite": False,
-                    "source": "saadhyam",  # Mark as Saadhyam source
-                    "website": user.business_website if hasattr(user, 'business_website') else None,
-                    "connections": []
-                }
+                result = db.execute(query)
+                users = result.scalars().all()
                 
-                businesses.append(business)
-            
-            print(f"✅ Found {len(businesses)} Saadhyam partner businesses")
-            return businesses
+                businesses = []
+                for user in users:
+                    # Use default values if data is missing
+                    business_name = user.business_name or user.email.split('@')[0]
+                    business_type = user.business_type or "Other"
+                    
+                    # Use user's coordinates if available, otherwise use search center
+                    user_lat = user.latitude if user.latitude else lat
+                    user_lng = user.longitude if user.longitude else lng
+                    
+                    # Calculate distance
+                    distance = self._calculate_distance(lat, lng, user_lat, user_lng)
+                    
+                    # NO RADIUS FILTER - Show all users regardless of distance
+                    
+                    # Build business object
+                    business = {
+                        "id": f"saadhyam-{user.id}",
+                        "name": business_name,
+                        "category": business_type,
+                        "logo": None,
+                        "description": user.business_description if hasattr(user, 'business_description') else f"Sadhyam user: {user.email}",
+                        "location": {
+                            "lat": user_lat,
+                            "lng": user_lng
+                        },
+                        "services": user.business_services.split(",") if hasattr(user, 'business_services') and user.business_services else ["General Services"],
+                        "employees": None,
+                        "ai_score": 95,
+                        "is_partner": True,
+                        "is_verified": True,
+                        "is_satellite": False,
+                        "source": "saadhyam",
+                        "website": user.business_website if hasattr(user, 'business_website') else None,
+                        "connections": []
+                    }
+                    
+                    businesses.append(business)
+                
+                print(f"✅ Found {len(businesses)} Saadhyam partner businesses (showing ALL users)")
+                return businesses
+            finally:
+                db.close()
             
         except Exception as e:
             print(f"❌ Error fetching Saadhyam businesses: {e}")
@@ -159,7 +193,7 @@ class NearbyBusinessService:
                         url,
                         data=query,  # Raw query string, NOT json or params
                         headers={"Content-Type": "text/plain"},  # MUST be text/plain
-                        timeout=60.0
+                        timeout=15.0  # Reduced from 60s to 15s
                     )
                     
                     if response.status_code == 200:
@@ -198,7 +232,7 @@ class NearbyBusinessService:
         Simplified query for better reliability
         """
         # Simplified query - fewer types for better performance
-        query = f"""[out:json][timeout:60];
+        query = f"""[out:json][timeout:15];
 (
   node["shop"]["name"](around:{radius},{lat},{lng});
   way["shop"]["name"](around:{radius},{lat},{lng});

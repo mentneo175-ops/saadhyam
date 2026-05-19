@@ -77,6 +77,10 @@ function WhatsAppPage() {
         if (!data.is_connected) {
           setShowOnboarding(true);
         }
+      } else if (response.status === 404) {
+        // Endpoint not available - silently set as not connected
+        setConnectionStatus({ is_connected: false, phone_number: null, business_name: null });
+        setShowOnboarding(true);
       } else {
         console.error("Failed to check connection status");
       }

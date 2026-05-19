@@ -1,9 +1,0 @@
-The file Backend/services/web_search_service.py is corrupted with XML tags embedded in the Python code.
-
-The issue is on lines 170-172 where there are literal `</content>` and `</file>` tags breaking the regex pattern.
-
-To fix: Delete the file and recreate it, or manually remove lines containing:
-- </content>
-- </file>
-
-These appear in the middle of regex patterns around line 170-200.

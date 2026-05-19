@@ -35,13 +35,6 @@ class NearbyBusinessesResponse(BaseModel):
     total: int
     radius: int
 
-class ClaimBusinessRequest(BaseModel):
-    external_business_id: str
-    business_name: str
-    category: str
-    location: Location
-    proof_url: Optional[str] = None
-
 @router.get("/nearby", response_model=NearbyBusinessesResponse)
 async def get_nearby_businesses(
     lat: float = Query(..., description="Latitude"),
@@ -77,61 +70,86 @@ async def get_nearby_businesses(
 async def get_nearby_businesses_for_user(
     radius: int = Query(50000, description="Radius in meters (default: 50km for city-wide search)"),
     category: Optional[str] = Query(None, description="Filter by category"),
+    saadhyam_only: bool = Query(False, description="Show only Sadhyam users"),
     current_user: User = Depends(get_current_user)
 ):
     """
-    Get businesses in YOUR city (city-wide search)
-    
-    This endpoint:
-    - Gets your exact business location from the database
-    - Searches entire city area (50km radius by default)
-    - Returns all businesses in your city, not just nearby
-    - Returns error if location not set
+    Get businesses in YOUR city (city-wide search) - SIMPLIFIED VERSION
     """
     try:
-        # Get user's business location from database
-        from services.geocoding_service import get_city_coordinates
+        print(f"🚀 B2B Network API called by user: {current_user.email}")
         
-        # Try to get coordinates from database columns (now stored as Float)
-        lat = getattr(current_user, 'latitude', None)
-        lng = getattr(current_user, 'longitude', None)
+        # Use the real service to fetch businesses
+        service = NearbyBusinessService()
         
-        # If not in DB, geocode from location text
-        if (not lat or not lng) and current_user.business_location:
-            coords = get_city_coordinates(current_user.business_location)
-            if coords:
-                lat, lng = coords
+        # Get user's business location from their profile
+        lat, lng = None, None
         
-        # Require valid coordinates - no defaults!
-        if not lat or not lng:
+        # Try to get location from business_location JSON field first
+        if current_user.business_location:
+            import json
+            try:
+                if isinstance(current_user.business_location, str):
+                    location_data = json.loads(current_user.business_location)
+                else:
+                    location_data = current_user.business_location
+                
+                lat = location_data.get("lat")
+                lng = location_data.get("lng")
+            except (json.JSONDecodeError, AttributeError) as e:
+                print(f"⚠️ Error parsing business_location: {e}")
+        
+        # Fallback to separate latitude/longitude columns
+        if lat is None and current_user.latitude is not None:
+            lat = current_user.latitude
+            lng = current_user.longitude
+        
+        # If no location set, return error immediately (don't use default)
+        if lat is None:
+            print("⚠️ User has no business location set")
             raise HTTPException(
-                status_code=400,
-                detail="Business location not set. Please update your business profile with a valid location."
+                status_code=400, 
+                detail="Please set your business location in Settings to discover nearby businesses"
             )
         
-        print(f"📍 User business location: {current_user.business_location}")
-        print(f"📍 Coordinates: {lat}, {lng}")
-        print(f"📏 Search radius: {radius}m ({radius/1000}km) - City-wide search")
+        print(f"📍 Searching near: {lat}, {lng} with radius {radius}m")
         
-        # Search businesses near user's location
-        service = NearbyBusinessService()
-        businesses = await service.get_nearby_businesses(
-            lat=lat,
-            lng=lng,
-            radius=radius,
-            category=category,
-            user_id=str(current_user.id)
-        )
+        # Fetch real businesses from the service with timeout protection
+        import asyncio
+        try:
+            # Add timeout to prevent hanging
+            businesses = await asyncio.wait_for(
+                service.get_nearby_businesses(
+                    lat=lat,
+                    lng=lng,
+                    radius=radius,
+                    category=category,
+                    user_id=current_user.id,
+                    saadhyam_only=saadhyam_only
+                ),
+                timeout=25.0  # 25 second timeout
+            )
+        except asyncio.TimeoutError:
+            print("⏱️ Request timed out after 25 seconds")
+            # Return at least Sadhyam users even if external API times out
+            businesses = await service._get_saadhyam_businesses(lat, lng, radius, category)
+            print(f"✅ Fallback: Returning {len(businesses)} Sadhyam users only")
+        
+        print(f"✅ Found {len(businesses)} businesses")
         
         return NearbyBusinessesResponse(
             businesses=businesses,
             total=len(businesses),
             radius=radius
         )
+        
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        print(f"❌ Error: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail="Failed to load businesses. Please try again.")
 
 @router.get("/connections/{business_id}")
 async def get_business_connections(
@@ -144,27 +162,6 @@ async def get_business_connections(
         service = NearbyBusinessService()
         connections = await service.get_business_connections(business_id)
         return {"connections": connections}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-@router.post("/claim")
-async def claim_business(
-    request: ClaimBusinessRequest,
-):
-    """
-    Claim an external business and convert it to Saadhyam partner
-    """
-    try:
-        service = NearbyBusinessService()
-        result = await service.claim_business(
-            user_id=None,  # TODO: Add auth later
-            external_business_id=request.external_business_id,
-            business_name=request.business_name,
-            category=request.category,
-            location=request.location.dict(),
-            proof_url=request.proof_url
-        )
-        return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

@@ -176,56 +176,64 @@ export function InsightsPanel({ businessAnalysis }: InsightsPanelProps) {
           
           <div className="space-y-3">
             {/* Strengths */}
-            <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-sm">💪</span>
-                <h4 className="text-xs font-semibold text-gray-900">Strengths</h4>
+            {businessAnalysis.strengths && businessAnalysis.strengths.length > 0 && (
+              <div className="bg-emerald-50 rounded-lg p-3 border border-emerald-200">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-sm">💪</span>
+                  <h4 className="text-xs font-semibold text-emerald-900">Strengths</h4>
+                </div>
+                <ul className="space-y-1.5">
+                  {businessAnalysis.strengths.slice(0, 3).map((strength: string, idx: number) => (
+                    <li key={idx} className="text-xs text-emerald-800 leading-relaxed">• {renderMarkdown(strength)}</li>
+                  ))}
+                </ul>
               </div>
-              <ul className="space-y-1">
-                {businessAnalysis.strengths?.slice(0, 2).map((strength: string, idx: number) => (
-                  <li key={idx} className="text-xs text-gray-700">• {renderMarkdown(strength)}</li>
-                ))}
-              </ul>
-            </div>
+            )}
 
             {/* Weaknesses */}
-            <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-sm">⚠️</span>
-                <h4 className="text-xs font-semibold text-gray-900">Weaknesses</h4>
+            {businessAnalysis.weaknesses && businessAnalysis.weaknesses.length > 0 && (
+              <div className="bg-orange-50 rounded-lg p-3 border border-orange-200">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-sm">⚠️</span>
+                  <h4 className="text-xs font-semibold text-orange-900">Weaknesses</h4>
+                </div>
+                <ul className="space-y-1.5">
+                  {businessAnalysis.weaknesses.slice(0, 3).map((weakness: string, idx: number) => (
+                    <li key={idx} className="text-xs text-orange-800 leading-relaxed">• {renderMarkdown(weakness)}</li>
+                  ))}
+                </ul>
               </div>
-              <ul className="space-y-1">
-                {businessAnalysis.weaknesses?.slice(0, 2).map((weakness: string, idx: number) => (
-                  <li key={idx} className="text-xs text-gray-700">• {renderMarkdown(weakness)}</li>
-                ))}
-              </ul>
-            </div>
+            )}
 
-            {/* Opportunities */}
-            <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-sm">🚀</span>
-                <h4 className="text-xs font-semibold text-gray-900">Opportunities</h4>
+            {/* Growth Opportunities */}
+            {businessAnalysis.growth_opportunities && businessAnalysis.growth_opportunities.length > 0 && (
+              <div className="bg-purple-50 rounded-lg p-3 border border-purple-200">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-sm">🚀</span>
+                  <h4 className="text-xs font-semibold text-purple-900">Growth Opportunities</h4>
+                </div>
+                <ul className="space-y-1.5">
+                  {businessAnalysis.growth_opportunities.slice(0, 3).map((opportunity: string, idx: number) => (
+                    <li key={idx} className="text-xs text-purple-800 leading-relaxed">• {renderMarkdown(opportunity)}</li>
+                  ))}
+                </ul>
               </div>
-              <ul className="space-y-1">
-                {businessAnalysis.opportunities?.slice(0, 2).map((opportunity: string, idx: number) => (
-                  <li key={idx} className="text-xs text-gray-700">• {renderMarkdown(opportunity)}</li>
-                ))}
-              </ul>
-            </div>
+            )}
 
-            {/* Threats */}
-            <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-sm">⚡</span>
-                <h4 className="text-xs font-semibold text-gray-900">Threats</h4>
+            {/* Recommendations */}
+            {businessAnalysis.recommendations && businessAnalysis.recommendations.length > 0 && (
+              <div className="bg-blue-50 rounded-lg p-3 border border-blue-200">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-sm">💡</span>
+                  <h4 className="text-xs font-semibold text-blue-900">Recommendations</h4>
+                </div>
+                <ul className="space-y-1.5">
+                  {businessAnalysis.recommendations.slice(0, 3).map((rec: string, idx: number) => (
+                    <li key={idx} className="text-xs text-blue-800 leading-relaxed">• {renderMarkdown(rec)}</li>
+                  ))}
+                </ul>
               </div>
-              <ul className="space-y-1">
-                {businessAnalysis.threats?.slice(0, 2).map((threat: string, idx: number) => (
-                  <li key={idx} className="text-xs text-gray-700">• {threat}</li>
-                ))}
-              </ul>
-            </div>
+            )}
           </div>
         </div>
       ) : null}

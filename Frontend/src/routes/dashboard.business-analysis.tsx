@@ -2,6 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { useEffect, useState, useMemo } from "react";
 import { motion } from "framer-motion";
+import { useCooldown, formatCooldownTime } from "@/hooks/useCooldown";
+import { useNotificationHelpers } from "@/components/notifications";
 import {
   getBusinessAnalysisData,
   getAnalysisStatus,
@@ -68,6 +70,13 @@ function BusinessAnalysisPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { notifyWarning } = useNotificationHelpers();
+  
+  // Cooldown for regenerate button (2 hours)
+  const regenerateCooldown = useCooldown({
+    cooldownMinutes: 120,
+    storageKey: 'business-analysis-cooldown',
+  });
 
   const businessMetricsData = useMemo(() => buildBusinessMetricsData(analysis), [analysis]);
   const swotData = useMemo(() => buildSwotData(analysis), [analysis]);
@@ -121,6 +130,15 @@ function BusinessAnalysisPage() {
   };
 
   const handleAnalyze = async () => {
+    // Check cooldown
+    if (!regenerateCooldown.canExecute) {
+      notifyWarning(
+        'Analysis on Cooldown',
+        `Please wait ${formatCooldownTime(regenerateCooldown.remainingTime)} before regenerating analysis.`
+      );
+      return;
+    }
+
     setIsAnalyzing(true);
     setError(null);
 
@@ -132,10 +150,20 @@ function BusinessAnalysisPage() {
       });
       const data = await getBusinessAnalysisData(token);
       setAnalysis(data);
+<<<<<<< HEAD
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Failed to analyze business";
       console.error("Error analyzing:", err);
       setError(message);
+=======
+      
+      // Start cooldown ONLY after successfully getting complete data
+      regenerateCooldown.execute();
+    } catch (err: any) {
+      console.error("Error analyzing:", err);
+      setError(err.message || "Failed to analyze business");
+      // Don't start cooldown if analysis failed - user can retry
+>>>>>>> 369e39404d428dae59c4751e99b5e01ddf530cc4
     } finally {
       setIsAnalyzing(false);
     }
@@ -266,10 +294,45 @@ function BusinessAnalysisPage() {
 
   if (!analysis && status?.status === "not_started") {
     return (
+<<<<<<< HEAD
       <PageShell>
         {header}
         <NotStartedState onAnalyze={handleAnalyze} />
       </PageShell>
+=======
+      <div className="p-4 md:p-6 space-y-5">
+        <PageHeader
+          title="Business Analysis"
+          subtitle="AI-powered insights for your business"
+        />
+        <div className="flex flex-col items-center justify-center py-20">
+          <div className="h-20 w-20 rounded-full bg-purple-100 flex items-center justify-center mb-6">
+            <Sparkles size={40} className="text-purple-600" />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Ready to Analyze Your Business?</h2>
+          <p className="text-gray-600 mb-6 text-center max-w-md">
+            Get comprehensive AI-powered insights including strengths, weaknesses, opportunities, and local market analysis.
+          </p>
+          <Button 
+            variant="hero" 
+            size="lg" 
+            onClick={handleAnalyze}
+            disabled={!regenerateCooldown.canExecute}
+            title={
+              !regenerateCooldown.canExecute
+                ? `Cooldown: ${formatCooldownTime(regenerateCooldown.remainingTime)}`
+                : "Analyze your business"
+            }
+          >
+            <Sparkles size={20} />
+            {!regenerateCooldown.canExecute 
+              ? formatCooldownTime(regenerateCooldown.remainingTime).split(' ')[0] 
+              : 'Analyze My Business'}
+          </Button>
+          <p className="text-xs text-gray-500 mt-4">Takes 2-3 minutes • Powered by Google AI Studio Gemini</p>
+        </div>
+      </div>
+>>>>>>> 369e39404d428dae59c4751e99b5e01ddf530cc4
     );
   }
 
@@ -283,6 +346,7 @@ function BusinessAnalysisPage() {
   }
 
   return (
+<<<<<<< HEAD
     <PageShell>
       <div className="sticky top-0 z-20 -mx-1 rounded-xl border border-border/50 bg-background/80 px-5 py-5 shadow-[0_8px_32px_-12px_oklch(0.45_0.15_295/0.12)] backdrop-blur-xl md:-mx-2 md:px-6">
         <div
@@ -290,6 +354,63 @@ function BusinessAnalysisPage() {
           className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/35 to-transparent"
         />
         {header}
+=======
+    <div className="p-4 md:p-6 space-y-6">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+        <div className="flex-1">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Business Analysis</h1>
+          <div className="flex flex-col gap-1.5">
+            <p className="text-sm text-gray-600 flex items-center gap-2">
+              <Sparkles size={14} className="text-purple-600 flex-shrink-0" />
+              <span>AI-powered insights from Google Search grounding</span>
+            </p>
+            {analysis?.last_updated && (
+              <p className="text-xs text-gray-500 flex items-center gap-1.5">
+                <Clock size={12} className="flex-shrink-0" />
+                <span>Last updated: {new Date(analysis.last_updated).toLocaleString('en-US', {
+                  month: 'short',
+                  day: 'numeric',
+                  year: 'numeric',
+                  hour: 'numeric',
+                  minute: '2-digit',
+                  hour12: true
+                })}</span>
+              </p>
+            )}
+          </div>
+        </div>
+        <div className="flex items-center gap-3 flex-shrink-0">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleDownloadPDF}
+            className="flex items-center gap-2 whitespace-nowrap"
+          >
+            <Download size={16} />
+            <span>Download Report</span>
+          </Button>
+          <Button
+            variant="hero"
+            size="sm"
+            onClick={handleAnalyze}
+            disabled={isAnalyzing || !regenerateCooldown.canExecute}
+            className="flex items-center gap-2 whitespace-nowrap"
+            title={
+              !regenerateCooldown.canExecute
+                ? `Cooldown: ${formatCooldownTime(regenerateCooldown.remainingTime)}`
+                : "Re-analyze your business"
+            }
+          >
+            <RefreshCw size={14} className={isAnalyzing ? "animate-spin" : ""} />
+            <span>
+              {!regenerateCooldown.canExecute 
+                ? formatCooldownTime(regenerateCooldown.remainingTime).split(' ')[0] 
+                : 'Re-analyze'}
+            </span>
+          </Button>
+        </div>
+>>>>>>> 369e39404d428dae59c4751e99b5e01ddf530cc4
       </div>
 
       {analysis?.business_details && (

@@ -148,7 +148,40 @@ class SettingsService:
             # Get user settings
             settings = SettingsService.get_user_settings(db, user_id)
 
-            # Check if has active Instagram accounts
+            # First check new Instagram Analytics accounts (priority)
+            from models.instagram_analytics import InstagramBusinessAccount
+            
+            analytics_stmt = select(InstagramBusinessAccount).where(
+                InstagramBusinessAccount.user_id == user_id,
+                InstagramBusinessAccount.is_active == True,
+            )
+            analytics_result = db.execute(analytics_stmt)
+            analytics_accounts = analytics_result.scalars().all()
+            
+            # If analytics accounts exist, use them
+            if analytics_accounts:
+                account = analytics_accounts[0]
+                is_connected = True
+                account_username = account.username
+                page_name = account.facebook_page_name
+                
+                status = {
+                    "is_connected": is_connected,
+                    "automation_enabled": settings.instagram_enabled,
+                    "auto_publish_enabled": settings.instagram_auto_publish,
+                    "auto_reply_enabled": settings.instagram_auto_reply,
+                    "save_drafts": settings.instagram_save_drafts,
+                    "account_username": account_username,
+                    "page_name": page_name,
+                    "total_accounts": len(analytics_accounts),
+                    "last_post_time": None,  # Can be enhanced later
+                    "posting_frequency": settings.posting_frequency,
+                    "preferred_posting_time": settings.preferred_posting_time,
+                }
+                
+                return status
+
+            # Fallback to legacy SocialAccount table
             stmt = select(SocialAccount).where(
                 SocialAccount.user_id == user_id,
                 SocialAccount.is_active == True,
@@ -159,6 +192,7 @@ class SettingsService:
 
             is_connected = len(accounts) > 0
             account_username = accounts[0].ig_username if accounts else None
+            page_name = accounts[0].page_name if accounts else None
 
             # Get last posted time
             last_post_stmt = (
@@ -180,6 +214,7 @@ class SettingsService:
                 "auto_reply_enabled": settings.instagram_auto_reply,
                 "save_drafts": settings.instagram_save_drafts,
                 "account_username": account_username,
+                "page_name": page_name,
                 "total_accounts": len(accounts),
                 "last_post_time": last_post.posted_time if last_post else None,
                 "posting_frequency": settings.posting_frequency,

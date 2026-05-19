@@ -61,16 +61,20 @@ function MetaAdsPage() {
   const loadData = async () => {
     try {
       const [campaignsResult, summaryResult] = await Promise.all([
-        getCampaigns(),
-        getDashboardSummary(),
+        getCampaigns().catch(err => ({ success: false, error: err.message })),
+        getDashboardSummary().catch(err => ({ success: false, error: err.message })),
       ]);
 
       if (campaignsResult.success) {
         setCampaigns(campaignsResult.campaigns);
+      } else {
+        console.warn("Failed to load campaigns:", campaignsResult.error);
       }
 
       if (summaryResult.success) {
         setSummary(summaryResult.summary);
+      } else {
+        console.warn("Failed to load summary:", summaryResult.error);
       }
     } catch (error) {
       console.error("Failed to load data:", error);

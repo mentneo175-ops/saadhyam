@@ -34,13 +34,10 @@ if gemini_key_2:
 if gemini_key_3:
     GEMINI_API_KEYS.append(gemini_key_3)
 
-# Fallback to hardcoded keys if no env vars found (for backward compatibility)
+# Fallback to empty list if no env vars found - DO NOT USE HARDCODED KEYS
 if not GEMINI_API_KEYS:
-    logger.warning("[AutoBlogger] No GEMINI_API_KEY found in environment variables, using fallback keys")
-    GEMINI_API_KEYS = [
-        "AIzaSyCcyGPNjLNBrjylqIOlaoU8Oa2RVM2zoC0",  # Primary key (likely exhausted)
-        "AIzaSyCFxC-0DBXbdCZyNnVYAk3A9pAh0H5hI7w",  # Secondary key (likely exhausted)
-    ]
+    logger.error("[AutoBlogger] ❌ No GEMINI_API_KEY found in environment variables. Please set GEMINI_API_KEY, GEMINI_API_KEY_2, or GEMINI_API_KEY_3 in your .env file")
+    GEMINI_API_KEYS = []
 
 logger.info(f"[AutoBlogger] Loaded {len(GEMINI_API_KEYS)} API key(s) for fallback")
 

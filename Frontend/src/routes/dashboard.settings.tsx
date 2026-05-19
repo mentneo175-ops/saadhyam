@@ -25,12 +25,15 @@ import {
   Bell,
   CreditCard,
   Sparkles,
+<<<<<<< HEAD
   Crown,
   Zap,
   Lock,
   Key,
   Palette,
   Target,
+=======
+>>>>>>> 369e39404d428dae59c4751e99b5e01ddf530cc4
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { useAuthContext } from "@/lib/AuthContext";
@@ -366,6 +369,13 @@ function SettingsPage() {
           phone_number: data.phone_number || null,
           business_name: data.business_name || null,
         });
+      } else if (response.status === 404) {
+        // Endpoint not available - silently set as not connected
+        setWhatsappStatus({
+          is_connected: false,
+          phone_number: null,
+          business_name: null,
+        });
       }
     } catch (error) {
       console.error("Failed to load WhatsApp status:", error);
@@ -512,10 +522,11 @@ function SettingsPage() {
     try {
       setLogoutLoading(true);
       await logout();
+      // Redirect to login page after successful logout
+      window.location.href = "/login";
     } catch (error) {
       console.error("Logout error:", error);
       toast.error("Failed to logout");
-    } finally {
       setLogoutLoading(false);
     }
   };
@@ -839,6 +850,154 @@ function SettingsPage() {
                     <p className="text-xs text-gray-600">Manage your account</p>
                   </div>
                 </div>
+                <div>
+                  <h3 className="font-semibold">Quick Actions</h3>
+                  <p className="text-xs text-muted-foreground">Account management</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="p-4 space-y-3">
+              <Button
+                onClick={handleSaveSettings}
+                disabled={loading}
+                className="w-full bg-gradient-to-r from-purple-500 via-purple-600 to-pink-500 hover:from-purple-600 hover:via-purple-700 hover:to-pink-600 text-white shadow-lg hover:shadow-xl transition-all"
+              >
+                {loading ? (
+                  <Loader2 size={16} className="animate-spin mr-2" />
+                ) : (
+                  <Save size={16} className="mr-2" />
+                )}
+                Save All Changes
+              </Button>
+              
+              <Button
+                variant="outline"
+                className="w-full border-2"
+                onClick={() => window.location.href = "/dashboard/business-details"}
+              >
+                <Building2 size={16} className="mr-2" />
+                Edit Business Profile
+              </Button>
+              
+              <Button
+                variant="destructive"
+                onClick={handleLogout}
+                disabled={logoutLoading}
+                className="w-full"
+              >
+                {logoutLoading ? (
+                  <Loader2 size={16} className="animate-spin mr-2" />
+                ) : (
+                  <LogOut size={16} className="mr-2" />
+                )}
+                Logout
+              </Button>
+            </div>
+          </div>
+
+          {/* Upgrade to Pro Card */}
+          <div className="bg-card rounded-2xl border border-border/60 shadow-soft overflow-hidden">
+            <div className="p-6 bg-gradient-to-br from-[#5D2F8F] to-[#A855F7]">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="h-10 w-10 rounded-xl bg-white/20 flex items-center justify-center">
+                  <Sparkles size={20} className="text-white" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-white">Upgrade to Pro</h3>
+                  <p className="text-xs text-white/80">Unlock premium features</p>
+                </div>
+              </div>
+              
+              <div className="space-y-2 mb-4">
+                <div className="flex items-center gap-2 text-white/90">
+                  <CheckCircle size={14} className="text-white flex-shrink-0" />
+                  <p className="text-sm">Unlimited AI generations</p>
+                </div>
+                <div className="flex items-center gap-2 text-white/90">
+                  <CheckCircle size={14} className="text-white flex-shrink-0" />
+                  <p className="text-sm">Advanced analytics & insights</p>
+                </div>
+                <div className="flex items-center gap-2 text-white/90">
+                  <CheckCircle size={14} className="text-white flex-shrink-0" />
+                  <p className="text-sm">Priority support</p>
+                </div>
+                <div className="flex items-center gap-2 text-white/90">
+                  <CheckCircle size={14} className="text-white flex-shrink-0" />
+                  <p className="text-sm">Custom integrations</p>
+                </div>
+              </div>
+              
+              <Button className="w-full bg-white text-purple-600 hover:bg-white/90 font-semibold shadow-lg">
+                <CreditCard size={16} className="mr-2" />
+                Upgrade Now
+              </Button>
+              
+              <p className="text-xs text-white/70 text-center mt-3">
+                Starting at ₹999/month
+              </p>
+            </div>
+          </div>
+
+          {/* Integrations */}
+          <div className="bg-card rounded-2xl border border-border/60 shadow-soft overflow-hidden">
+            <div className="bg-gradient-to-r from-pink-50 via-fuchsia-50 to-purple-50 px-6 py-4 border-b border-border/60">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-white rounded-lg shadow-sm">
+                  <Globe size={18} className="text-pink-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold">Integrations</h3>
+                  <p className="text-xs text-muted-foreground">Connected services</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="p-4">
+              <div className="space-y-3">
+          {integrations.map((integration) => (
+            <div key={integration.name}>
+              <div
+                className="flex items-center gap-4 p-3 rounded-xl border border-border/60 hover:bg-muted/30 transition cursor-pointer"
+                onClick={() => handleIntegrationClick(integration.name)}
+              >
+                <div
+                  className={`h-10 w-10 rounded-xl bg-gradient-to-br ${integration.color} flex items-center justify-center shrink-0`}
+                >
+                  <integration.icon size={18} className="text-white" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-sm">{integration.name}</p>
+                  <p className="text-xs text-muted-foreground">{integration.desc}</p>
+                </div>
+                <span
+                  className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+                    integration.name === "Instagram" && instagramStatus.is_connected
+                      ? "bg-success/15 text-success"
+                      : integration.name === "WhatsApp Business" && whatsappStatus.is_connected
+                      ? "bg-success/15 text-success"
+                      : "bg-muted text-muted-foreground"
+                  }`}
+                >
+                  {integration.name === "Instagram"
+                    ? instagramStatus.is_connected
+                      ? "Connected"
+                      : "Not connected"
+                    : integration.name === "WhatsApp Business"
+                    ? whatsappStatus.is_connected
+                      ? "Connected"
+                      : "Not Connected"
+                    : "Not connected"}
+                </span>
+                {integration.name === "Instagram" && (
+                  <button className="p-1">
+                    {expandedIntegration === "Instagram" ? (
+                      <ChevronUp size={18} className="text-muted-foreground" />
+                    ) : (
+                      <ChevronDown size={18} className="text-muted-foreground" />
+                    )}
+                  </button>
+                )}
               </div>
 
               <div className="p-6 space-y-3">

@@ -22,6 +22,7 @@ pydantic-settings==2.1.0
 pydantic-extra-types==2.4.1
 # pydantic_core==2.14.6  # Using newer version 2.27.2 already installed
 # email-validator==2.1.0  # Using 2.1.1 already installed
+email-validator==2.1.0
 
 # ============================================
 # Authentication & Security
@@ -32,6 +33,8 @@ cryptography==48.0.0
 firebase-admin==7.4.0
 google-auth==2.50.0
 bcrypt==4.3.0
+slowapi==0.1.9
+limits==3.13.0
 
 # ============================================
 # Environment & Configuration

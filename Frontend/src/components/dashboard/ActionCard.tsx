@@ -15,6 +15,21 @@ const impactColor = {
   Low: "bg-gray-50 text-gray-600",
 };
 
+// Helper function to render markdown text with bold
+const renderMarkdown = (text: string) => {
+  // Split by ** to find bold sections
+  const parts = text.split(/(\*\*.*?\*\*)/g);
+  
+  return parts.map((part, idx) => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      // Remove ** and render as bold
+      const boldText = part.slice(2, -2);
+      return <strong key={idx} className="font-bold text-gray-900">{boldText}</strong>;
+    }
+    return <span key={idx}>{part}</span>;
+  });
+};
+
 export function ActionCard({ icon: Icon, title, desc, impact, bg, iconColor }: ActionCardProps) {
   return (
     <div
@@ -36,7 +51,9 @@ export function ActionCard({ icon: Icon, title, desc, impact, bg, iconColor }: A
             {impact} impact
           </span>
         </div>
-        <p className="font-bold text-sm mb-2 text-gray-900 group-hover:text-purple-900 transition-colors">{title}</p>
+        <p className="font-bold text-sm mb-2 text-gray-900 group-hover:text-purple-900 transition-colors">
+          {renderMarkdown(title)}
+        </p>
         <p className="text-xs text-gray-600 leading-relaxed">{desc}</p>
       </div>
     </div>

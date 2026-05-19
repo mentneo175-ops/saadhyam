@@ -66,7 +66,12 @@ function ReviewReplyPage() {
       for (const endpoint of endpoints) {
         const response = await fetch(endpoint, { method: "GET", headers });
 
-        if (response.status === 404) {
+        if (response.status === 404 || response.status === 422) {
+          // Endpoint not available or validation error - skip silently
+          continue;
+        }
+
+        if (!response.ok) {
           continue;
         }
 

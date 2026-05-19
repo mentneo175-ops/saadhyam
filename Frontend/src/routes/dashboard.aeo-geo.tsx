@@ -23,6 +23,8 @@ import {
   Tag,
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useCooldown, formatCooldownTime } from "@/hooks/useCooldown";
+import { useNotificationHelpers } from "@/components/notifications";
 import {
   getAEOGEOOverview,
   runFullOptimization,
@@ -56,11 +58,18 @@ function AEOGEOPage() {
   const [isSearching, setIsSearching] = useState(false);
   const [isGeneratingBlog, setIsGeneratingBlog] = useState(false);
   const [blogTopic, setBlogTopic] = useState("");
+  const { notifyWarning } = useNotificationHelpers();
   
   // Blog management state
   const [blogs, setBlogs] = useState<Blog[]>([]);
   const [blogFilter, setBlogFilter] = useState<"all" | "draft" | "published">("all");
   const [selectedBlog, setSelectedBlog] = useState<Blog | null>(null);
+  
+  // Cooldown for optimization button (2 hours)
+  const optimizeCooldown = useCooldown({
+    cooldownMinutes: 120,
+    storageKey: 'aeo-geo-optimize-cooldown',
+  });
 
   // Get token from localStorage
   const getToken = () => {
@@ -120,6 +129,15 @@ function AEOGEOPage() {
   };
 
   const handleOptimize = async () => {
+    // Check cooldown
+    if (!optimizeCooldown.canExecute) {
+      notifyWarning(
+        'Optimization on Cooldown',
+        `Please wait ${formatCooldownTime(optimizeCooldown.remainingTime)} before running optimization again.`
+      );
+      return;
+    }
+
     setIsOptimizing(true);
     setError(null);
 
@@ -127,9 +145,13 @@ function AEOGEOPage() {
       const token = getToken();
       await runFullOptimization(token);
       await loadData();
+      
+      // Start cooldown ONLY after successfully getting complete data
+      optimizeCooldown.execute();
     } catch (err: any) {
       console.error("Error optimizing:", err);
       setError(err.message || "Failed to run optimization");
+      // Don't start cooldown if optimization failed - user can retry
     } finally {
       setIsOptimizing(false);
     }
@@ -299,10 +321,17 @@ function AEOGEOPage() {
           variant="hero"
           size="sm"
           onClick={handleOptimize}
-          disabled={isOptimizing}
+          disabled={isOptimizing || !optimizeCooldown.canExecute}
+          title={
+            !optimizeCooldown.canExecute
+              ? `Cooldown: ${formatCooldownTime(optimizeCooldown.remainingTime)}`
+              : "Run full optimization"
+          }
         >
           <Zap size={14} className={isOptimizing ? "animate-spin" : ""} />
-          {isOptimizing ? "Optimizing..." : "Run Full Optimization"}
+          {!optimizeCooldown.canExecute 
+            ? formatCooldownTime(optimizeCooldown.remainingTime).split(' ')[0]
+            : isOptimizing ? "Optimizing..." : "Run Full Optimization"}
         </Button>
       </div>
 

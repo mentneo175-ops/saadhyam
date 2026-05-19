@@ -4,8 +4,12 @@ import { AuthProvider } from "@/lib/AuthContext";
 import { NotificationProvider } from "@/components/notifications";
 import { RateLimitProvider } from "@/contexts/RateLimitContext";
 import AssistantWidget from "@/components/AssistantWidget";
+import { initializeConsoleFilter } from "@/utils/consoleFilter";
 
 import appCss from "../styles.css?url";
+
+// Initialize console filter to suppress non-critical warnings
+initializeConsoleFilter();
 
 // Create a client
 const queryClient = new QueryClient({
@@ -60,6 +64,11 @@ export const Route = createRootRoute({
       {
         rel: "stylesheet",
         href: appCss,
+      },
+      {
+        rel: "icon",
+        href: "/favicon.svg",
+        type: "image/svg+xml",
       },
     ],
   }),

@@ -257,17 +257,44 @@ export function NeuralNetworkExplorer() {
         >
           <Building2 className="w-20 h-20 text-red-400 mx-auto mb-6" />
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-            Location Not Set
+            {error.includes("location") ? "Location Not Set" : "Connection Issue"}
           </h2>
-          <p className="text-gray-600 dark:text-gray-400 mb-6">{error}</p>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => (window.location.href = "/dashboard/profile")}
-            className="px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-2xl font-medium shadow-lg hover:shadow-xl transition-all duration-300"
-          >
-            Update Profile
-          </motion.button>
+          <p className="text-gray-600 dark:text-gray-400 mb-6">
+            {error.includes("location") 
+              ? "Please set your business location in your profile to discover nearby businesses."
+              : "We're having trouble loading businesses. This might be due to a slow connection or server issue."}
+          </p>
+          <div className="flex gap-3 justify-center">
+            {error.includes("location") ? (
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => (window.location.href = "/dashboard/settings")}
+                className="px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-2xl font-medium shadow-lg hover:shadow-xl transition-all duration-300"
+              >
+                Update Profile
+              </motion.button>
+            ) : (
+              <>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => window.location.reload()}
+                  className="px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-2xl font-medium shadow-lg hover:shadow-xl transition-all duration-300"
+                >
+                  Retry
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => (window.location.href = "/dashboard")}
+                  className="px-8 py-4 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-2xl font-medium shadow-lg hover:shadow-xl transition-all duration-300"
+                >
+                  Go to Dashboard
+                </motion.button>
+              </>
+            )}
+          </div>
         </motion.div>
       </div>
     );

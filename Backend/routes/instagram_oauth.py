@@ -467,7 +467,13 @@ async def exchange_code_for_token(code: str) -> str:
         if "access_token" not in data:
             raise Exception("No access token received from Facebook")
         
-        return data["access_token"]
+        short_lived_token = data["access_token"]
+        logger.info("✅ Received short-lived token, exchanging for long-lived token...")
+        
+        # Exchange for long-lived token (60 days)
+        long_lived_token = await exchange_for_long_lived_token(short_lived_token)
+        
+        return long_lived_token
         
     except requests.exceptions.Timeout:
         raise Exception("Request to Facebook timed out. Please try again.")
@@ -478,6 +484,56 @@ async def exchange_code_for_token(code: str) -> str:
             raise  # Re-raise Facebook-specific errors
         else:
             raise Exception(f"Token exchange failed: {str(e)}")
+
+
+async def exchange_for_long_lived_token(short_lived_token: str) -> str:
+    """
+    Exchange short-lived token (1 hour) for long-lived token (60 days).
+    
+    Args:
+        short_lived_token: Short-lived access token from OAuth
+        
+    Returns:
+        Long-lived access token (valid for 60 days)
+        
+    Raises:
+        Exception: If exchange fails
+    """
+    try:
+        url = f"https://graph.facebook.com/{settings.INSTAGRAM_GRAPH_API_VERSION}/oauth/access_token"
+        
+        params = {
+            "grant_type": "fb_exchange_token",
+            "client_id": settings.INSTAGRAM_APP_ID,
+            "client_secret": settings.INSTAGRAM_APP_SECRET,
+            "fb_exchange_token": short_lived_token
+        }
+        
+        logger.info("🔄 Exchanging for long-lived token...")
+        
+        response = requests.get(url, params=params, timeout=30)
+        data = response.json()
+        
+        if response.status_code != 200:
+            error_msg = data.get("error", {})
+            if isinstance(error_msg, dict):
+                error_message = error_msg.get("message", "Unknown error")
+                raise Exception(f"Long-lived token exchange failed: {error_message}")
+            else:
+                raise Exception(f"Long-lived token exchange failed: {data}")
+        
+        if "access_token" not in data:
+            raise Exception("No long-lived token received")
+        
+        expires_in = data.get("expires_in", 5184000)  # Default 60 days
+        logger.info(f"✅ Long-lived token obtained (expires in {expires_in // 86400} days)")
+        
+        return data["access_token"]
+        
+    except Exception as e:
+        logger.error(f"❌ Failed to get long-lived token: {e}")
+        raise Exception(f"Long-lived token exchange failed: {str(e)}")
+
 
 
 async def get_instagram_account(access_token: str) -> tuple[str, str, str, str]:

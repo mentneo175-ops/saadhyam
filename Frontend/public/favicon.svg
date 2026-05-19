@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <style>
+      .logo-text { font-family: Arial, sans-serif; font-weight: bold; font-size: 60px; fill: #2563eb; }
+    </style>
+  </defs>
+  <rect width="100" height="100" fill="#f8fafc" rx="20"/>
+  <circle cx="50" cy="50" r="35" fill="#dbeafe" opacity="0.5"/>
+  <circle cx="50" cy="50" r="25" fill="#3b82f6"/>
+  <text x="50" y="65" class="logo-text" text-anchor="middle">S</text>
+</svg>

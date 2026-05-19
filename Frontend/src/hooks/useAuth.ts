@@ -40,7 +40,7 @@ export function useAuth(): UseAuthReturn {
       
       // Fetch fresh user data from backend with timeout
       const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error("User fetch timeout")), 15000) // Increased to 15 seconds
+        setTimeout(() => reject(new Error("User fetch timeout")), 10000) // 10 seconds - reasonable timeout
       );
       
       Promise.race([

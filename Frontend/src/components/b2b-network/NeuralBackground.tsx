@@ -1,15 +1,21 @@
 import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
 
 export function NeuralBackground() {
-  // Generate random particles
-  const particles = Array.from({ length: 50 }, (_, i) => ({
-    id: i,
-    x: Math.random() * 100,
-    y: Math.random() * 100,
-    size: Math.random() * 3 + 1,
-    duration: Math.random() * 10 + 10,
-    delay: Math.random() * 5,
-  }));
+  const [particles, setParticles] = useState<Array<{ id: number; x: number; y: number; size: number; duration: number; delay: number }>>([]);
+
+  useEffect(() => {
+    // Generate random particles only on client side
+    const generatedParticles = Array.from({ length: 50 }, (_, i) => ({
+      id: i,
+      x: Math.random() * 100,
+      y: Math.random() * 100,
+      size: Math.random() * 3 + 1,
+      duration: Math.random() * 10 + 10,
+      delay: Math.random() * 5,
+    }));
+    setParticles(generatedParticles);
+  }, []);
 
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">

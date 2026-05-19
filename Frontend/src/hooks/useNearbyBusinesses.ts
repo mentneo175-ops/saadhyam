@@ -19,7 +19,7 @@ async function fetchNearbyBusinesses(
 
   // Create abort controller for timeout
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+  const timeoutId = setTimeout(() => controller.abort(), 28000); // 28 second timeout (backend has 25s)
 
   try {
     const response = await fetch(
@@ -58,11 +58,22 @@ export function useNearbyBusinesses(
 ) {
   const { data: businesses = [], isLoading, error, refetch } = useQuery({
     queryKey: ["nearby-businesses", radius, saadhyamOnly],
-    queryFn: () => fetchNearbyBusinesses(radius, saadhyamOnly),
+    queryFn: async () => {
+      const result = await fetchNearbyBusinesses(radius, saadhyamOnly);
+      console.log('📊 useNearbyBusinesses received:', result.length, 'businesses');
+      console.log('📊 First business:', result[0]);
+      return result;
+    },
     staleTime: 5 * 60 * 1000, // Data stays fresh for 5 minutes
     gcTime: 10 * 60 * 1000, // Cache for 10 minutes (formerly cacheTime)
     refetchOnWindowFocus: false, // Don't refetch when switching tabs
     retry: 1, // Only retry once on failure
+  });
+
+  console.log('📊 useNearbyBusinesses hook state:', { 
+    businessesCount: businesses.length, 
+    isLoading, 
+    hasError: !!error 
   });
 
   return {

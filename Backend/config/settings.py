@@ -35,6 +35,7 @@ class Settings(BaseSettings):
     # Instagram API Configuration
     INSTAGRAM_APP_ID: str = "your_instagram_app_id"
     INSTAGRAM_APP_SECRET: str = "your_instagram_app_secret"
+    FACEBOOK_APP_SECRET: str = ""  # Alias for INSTAGRAM_APP_SECRET
     INSTAGRAM_REDIRECT_URI: str = "http://localhost:8000/auth/instagram/callback"
     INSTAGRAM_GRAPH_API_VERSION: str = "v19.0"
     
@@ -119,6 +120,9 @@ class Settings(BaseSettings):
     WEBSITE_AI_STORAGE_TYPE: str = "local"
     WEBSITE_AI_LOCAL_STORAGE_PATH: str = "./Backend/ai_models/website_ai/output"
     WEBSITE_AI_DEFAULT_THEME: str = "hero-split"
+    
+    # Review Reply AI settings
+    LOAD_TINYLLAMA_ON_STARTUP: bool = False  # Set to False for faster startup during development
 
     # HuggingFace Configuration (for FLUX Image Generation)
     HUGGINGFACE_TOKEN: str = ""
@@ -130,6 +134,7 @@ class Settings(BaseSettings):
     
     # AI Model Configuration for Content Generation
     GEMINI_CONTENT_MODEL: str = "gemini-1.5-flash"
+    GEMINI_PRO_MODEL: str = "gemini-1.5-pro-latest"
     GROQ_CONTENT_MODEL: str = "llama-3.1-8b-instant"
     GROQ_CONTENT_MODEL_FALLBACK: str = "llama3-8b-8192"
 

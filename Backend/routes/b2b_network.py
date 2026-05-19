@@ -79,57 +79,77 @@ async def get_nearby_businesses_for_user(
     try:
         print(f"🚀 B2B Network API called by user: {current_user.email}")
         
-        # Return mock data immediately for testing
-        mock_businesses = [
-            BusinessResponse(
-                id="mock-1",
-                name="Test Business 1",
-                category="Technology",
-                logo=None,
-                description="A test business",
-                location=Location(lat=17.385044, lng=78.486671),
-                services=["Web Development", "Mobile Apps"],
-                employees=10,
-                ai_score=85,
-                is_partner=True,
-                is_verified=True,
-                is_satellite=False,
-                source="saadhyam",
-                website="https://example.com",
-                connections=[]
-            ),
-            BusinessResponse(
-                id="mock-2",
-                name="Test Business 2",
-                category="Marketing",
-                logo=None,
-                description="Another test business",
-                location=Location(lat=17.395044, lng=78.496671),
-                services=["SEO", "Social Media"],
-                employees=5,
-                ai_score=90,
-                is_partner=True,
-                is_verified=True,
-                is_satellite=False,
-                source="saadhyam",
-                website="https://example2.com",
-                connections=[]
-            )
-        ]
+        # Use the real service to fetch businesses
+        service = NearbyBusinessService()
         
-        print(f"✅ Returning {len(mock_businesses)} mock businesses")
+        # Get user's business location from their profile
+        lat, lng = None, None
+        
+        # Try to get location from business_location JSON field first
+        if current_user.business_location:
+            import json
+            try:
+                if isinstance(current_user.business_location, str):
+                    location_data = json.loads(current_user.business_location)
+                else:
+                    location_data = current_user.business_location
+                
+                lat = location_data.get("lat")
+                lng = location_data.get("lng")
+            except (json.JSONDecodeError, AttributeError) as e:
+                print(f"⚠️ Error parsing business_location: {e}")
+        
+        # Fallback to separate latitude/longitude columns
+        if lat is None and current_user.latitude is not None:
+            lat = current_user.latitude
+            lng = current_user.longitude
+        
+        # If no location set, return error immediately (don't use default)
+        if lat is None:
+            print("⚠️ User has no business location set")
+            raise HTTPException(
+                status_code=400, 
+                detail="Please set your business location in Settings to discover nearby businesses"
+            )
+        
+        print(f"📍 Searching near: {lat}, {lng} with radius {radius}m")
+        
+        # Fetch real businesses from the service with timeout protection
+        import asyncio
+        try:
+            # Add timeout to prevent hanging
+            businesses = await asyncio.wait_for(
+                service.get_nearby_businesses(
+                    lat=lat,
+                    lng=lng,
+                    radius=radius,
+                    category=category,
+                    user_id=current_user.id,
+                    saadhyam_only=saadhyam_only
+                ),
+                timeout=25.0  # 25 second timeout
+            )
+        except asyncio.TimeoutError:
+            print("⏱️ Request timed out after 25 seconds")
+            # Return at least Sadhyam users even if external API times out
+            businesses = await service._get_saadhyam_businesses(lat, lng, radius, category)
+            print(f"✅ Fallback: Returning {len(businesses)} Sadhyam users only")
+        
+        print(f"✅ Found {len(businesses)} businesses")
         
         return NearbyBusinessesResponse(
-            businesses=mock_businesses,
-            total=len(mock_businesses),
+            businesses=businesses,
+            total=len(businesses),
             radius=radius
         )
         
+    except HTTPException:
+        raise
     except Exception as e:
         print(f"❌ Error: {e}")
         import traceback
         traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Failed to load businesses. Please try again.")
 
 @router.get("/connections/{business_id}")
 async def get_business_connections(

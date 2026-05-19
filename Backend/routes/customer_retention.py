@@ -99,8 +99,7 @@ async def send_retention_email(request: SendEmailRequest):
             customer_email=request.customer_email,
             inactive_days=request.inactive_days,
             visit_count=request.visit_count,
-            total_spent=request.total_spent,
-            campaign_type="single"
+            total_spent=request.total_spent
         )
         
         if result["success"]:

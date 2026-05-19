@@ -351,13 +351,18 @@ class MetaAdsService:
             
             # Use Instagram media if available
             if instagram_media_id:
-                # For Instagram posts, we need to use the media ID directly
-                # The correct approach is to use object_story_id with the Instagram media ID
-                # Format: instagram_business_account_id_media_id
+                # For Instagram posts, we need to use the Facebook Page ID (not Instagram Business ID)
+                # The correct format is: page_id_instagram_media_id
                 try:
-                    # Try using the media ID directly as object_story_id
-                    payload["object_story_id"] = f"{meta_account.instagram_business_id}_{instagram_media_id}"
+                    # Get the Facebook Page ID from the meta account
+                    page_id = meta_account.page_id
+                    if not page_id:
+                        raise Exception("No Facebook Page ID found. Instagram ads require a connected Facebook Page.")
+                    
+                    # Use page_id_media_id format for object_story_id
+                    payload["object_story_id"] = f"{page_id}_{instagram_media_id}"
                     logger.info(f"   Using Instagram media creative with object_story_id")
+                    logger.info(f"   Page ID: {page_id}, Media ID: {instagram_media_id}")
                 except Exception as e:
                     logger.warning(f"   Failed to create with object_story_id: {e}")
                     # Fallback: use simple image-based creative

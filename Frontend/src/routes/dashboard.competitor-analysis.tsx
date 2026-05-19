@@ -416,10 +416,6 @@ function CompetitorAnalysisPage() {
                       <p className="text-sm font-semibold text-gray-900 leading-relaxed mb-3">
                         {idea}
                       </p>
-                      <div className="flex items-center gap-2 text-[#8B5CF6] opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        <span className="text-xs font-medium">Implement this idea</span>
-                        <ArrowRight size={14} />
-                      </div>
                     </div>
                   </div>
                 </div>

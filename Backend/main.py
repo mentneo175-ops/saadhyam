@@ -22,6 +22,7 @@ ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
 configure_logging(ENVIRONMENT)
 
 from config.database import init_db, close_db
+from config.settings import settings
 from migrations.add_name_column import migrate_add_name_column
 from services.realtime_service import realtime_service
 
@@ -307,6 +308,14 @@ except Exception as e:
     instagram_analytics_available = False
 
 try:
+    from routes.instagram_token_management import router as instagram_token_management_router
+    instagram_token_management_available = True
+    logging.info("✅ Instagram Token Management router imported successfully")
+except Exception as e:
+    logging.warning(f"Instagram Token Management router not available: {e}")
+    instagram_token_management_available = False
+
+try:
     from routes.task_tracking import router as task_tracking_router
     task_tracking_available = True
     logging.info("✅ Task Tracking router imported successfully")
@@ -467,6 +476,16 @@ async def lifespan(app: FastAPI):
             logger.error(f"❌ Failed to start scheduler: {e}")
             logger.warning("⚠️  Scheduled posts will not be automatically processed")
         
+        # Start token refresh scheduler
+        logger.info("🔄 Starting Instagram token refresh scheduler...")
+        try:
+            from tasks.token_refresh_task import start_token_refresh_scheduler
+            start_token_refresh_scheduler()
+            logger.info("✅ Token refresh scheduler started (runs daily at 2 AM)")
+        except Exception as e:
+            logger.error(f"❌ Failed to start token refresh scheduler: {e}")
+            logger.warning("⚠️  Tokens will not be automatically refreshed")
+        
         # NOTE: AI models configuration:
         # - Review Reply AI: TinyLlama loaded in main backend (port 8000)
         # - Business Analysis: Gemini API with Google Search grounding (comprehensive analysis)
@@ -475,24 +494,37 @@ async def lifespan(app: FastAPI):
         logger.info("   - Business Analysis: Gemini API with Google Search grounding")
         logger.info("   - Expected inference: 2-5 seconds per request (review replies)")
         
-        # Load TinyLlama for review replies
-        logger.info("🔄 Loading TinyLlama for review replies...")
-        try:
-            from ai_models.review_reply_ai.model_loader import load_model, is_model_loaded
-            load_model()
-            if is_model_loaded():
-                logger.info("✅ TinyLlama loaded successfully for review replies")
-            else:
-                logger.warning("⚠️  TinyLlama may not have loaded properly")
-        except Exception as e:
-            logger.error(f"❌ Failed to load TinyLlama: {e}")
-            logger.warning("⚠️  Continuing without AI model - fallback responses will be used")
+        # Load TinyLlama for review replies in background (non-blocking)
+        if settings.LOAD_TINYLLAMA_ON_STARTUP:
+            logger.info("🔄 TinyLlama will load in background (non-blocking startup)...")
+            try:
+                import threading
+                from ai_models.review_reply_ai.model_loader import load_model, is_model_loaded
+                
+                def load_model_background():
+                    try:
+                        logger.info("🔄 Background: Loading TinyLlama model...")
+                        load_model()
+                        if is_model_loaded():
+                            logger.info("✅ Background: TinyLlama loaded successfully")
+                        else:
+                            logger.warning("⚠️  Background: TinyLlama may not have loaded properly")
+                    except Exception as e:
+                        logger.error(f"❌ Background: Failed to load TinyLlama: {e}")
+                
+                # Start loading in background thread
+                model_thread = threading.Thread(target=load_model_background, daemon=True)
+                model_thread.start()
+                logger.info("✅ TinyLlama loading started in background")
+                
+            except Exception as e:
+                logger.error(f"❌ Failed to start TinyLlama background loading: {e}")
+                logger.warning("⚠️  Continuing without AI model - fallback responses will be used")
+        else:
+            logger.info("⏭️  TinyLlama loading skipped (LOAD_TINYLLAMA_ON_STARTUP=False)")
+            logger.info("   Model will load on first use if needed")
         
         logger.info("✅ Model architecture configured")
-        
-        logger.info("=" * 60)
-        logger.info("✅ Application startup complete")
-        logger.info("=" * 60)
         
         logger.info("=" * 60)
         logger.info("✅ Application startup complete")
@@ -518,6 +550,15 @@ async def lifespan(app: FastAPI):
             logger.info("✅ Scheduler stopped")
         except Exception as e:
             logger.error(f"❌ Error stopping scheduler: {e}")
+        
+        # Stop token refresh scheduler
+        logger.info("🔄 Stopping token refresh scheduler...")
+        try:
+            from tasks.token_refresh_task import stop_token_refresh_scheduler
+            stop_token_refresh_scheduler()
+            logger.info("✅ Token refresh scheduler stopped")
+        except Exception as e:
+            logger.error(f"❌ Error stopping token refresh scheduler: {e}")
         
         # Close database
         logger.info("🔄 Closing database connections...")
@@ -766,6 +807,9 @@ if b2b_chat_available:
 if instagram_analytics_available:
     app.include_router(instagram_analytics_router)
     logging.info("✅ Instagram Analytics router included in app")
+if instagram_token_management_available:
+    app.include_router(instagram_token_management_router)
+    logging.info("✅ Instagram Token Management router included in app")
 if task_tracking_available:
     app.include_router(task_tracking_router)
     logging.info("✅ Task Tracking router included in app")

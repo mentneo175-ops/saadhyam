@@ -327,6 +327,13 @@ function SettingsPage() {
           phone_number: data.phone_number || null,
           business_name: data.business_name || null,
         });
+      } else if (response.status === 404) {
+        // Endpoint not available - silently set as not connected
+        setWhatsappStatus({
+          is_connected: false,
+          phone_number: null,
+          business_name: null,
+        });
       }
     } catch (error) {
       console.error("Failed to load WhatsApp status:", error);

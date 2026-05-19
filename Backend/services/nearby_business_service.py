@@ -17,7 +17,12 @@ class NearbyBusinessService:
     ]
     
     def __init__(self):
-        self.client = httpx.AsyncClient(timeout=30.0)
+        # Use connection pooling and keep-alive for better performance
+        self.client = httpx.AsyncClient(
+            timeout=30.0,
+            limits=httpx.Limits(max_keepalive_connections=5, max_connections=10),
+            http2=True  # Enable HTTP/2 for better performance
+        )
     
     async def get_nearby_businesses(
         self,
@@ -91,68 +96,68 @@ class NearbyBusinessService:
         Shows ALL users regardless of location or profile completeness
         """
         try:
-            from config.database import get_db
+            from config.database import SyncSessionLocal
             from models.user import User
             from sqlalchemy import select
             
-            # Get async database session
-            async for db in get_db():
-                try:
-                    # Query all users - NO FILTERS, show everyone!
-                    query = select(User).filter(
-                        User.email.isnot(None)  # Just need to be a valid user
-                    )
+            # Get sync database session
+            db = SyncSessionLocal()
+            try:
+                # Query all users - NO FILTERS, show everyone!
+                query = select(User).filter(
+                    User.email.isnot(None)  # Just need to be a valid user
+                )
+                
+                # Filter by category if provided
+                if category:
+                    query = query.filter(User.business_type == category)
+                
+                result = db.execute(query)
+                users = result.scalars().all()
+                
+                businesses = []
+                for user in users:
+                    # Use default values if data is missing
+                    business_name = user.business_name or user.email.split('@')[0]
+                    business_type = user.business_type or "Other"
                     
-                    # Filter by category if provided
-                    if category:
-                        query = query.filter(User.business_type == category)
+                    # Use user's coordinates if available, otherwise use search center
+                    user_lat = user.latitude if user.latitude else lat
+                    user_lng = user.longitude if user.longitude else lng
                     
-                    result = await db.execute(query)
-                    users = result.scalars().all()
+                    # Calculate distance
+                    distance = self._calculate_distance(lat, lng, user_lat, user_lng)
                     
-                    businesses = []
-                    for user in users:
-                        # Use default values if data is missing
-                        business_name = user.business_name or user.email.split('@')[0]
-                        business_type = user.business_type or "Other"
-                        
-                        # Use user's coordinates if available, otherwise use search center
-                        user_lat = user.latitude if user.latitude else lat
-                        user_lng = user.longitude if user.longitude else lng
-                        
-                        # Calculate distance
-                        distance = self._calculate_distance(lat, lng, user_lat, user_lng)
-                        
-                        # NO RADIUS FILTER - Show all users regardless of distance
-                        
-                        # Build business object
-                        business = {
-                            "id": f"saadhyam-{user.id}",
-                            "name": business_name,
-                            "category": business_type,
-                            "logo": None,
-                            "description": user.business_description if hasattr(user, 'business_description') else f"Sadhyam user: {user.email}",
-                            "location": {
-                                "lat": user_lat,
-                                "lng": user_lng
-                            },
-                            "services": user.business_services.split(",") if hasattr(user, 'business_services') and user.business_services else ["General Services"],
-                            "employees": None,
-                            "ai_score": 95,
-                            "is_partner": True,
-                            "is_verified": True,
-                            "is_satellite": False,
-                            "source": "saadhyam",
-                            "website": user.business_website if hasattr(user, 'business_website') else None,
-                            "connections": []
-                        }
-                        
-                        businesses.append(business)
+                    # NO RADIUS FILTER - Show all users regardless of distance
                     
-                    print(f"✅ Found {len(businesses)} Saadhyam partner businesses (showing ALL users)")
-                    return businesses
-                finally:
-                    await db.close()
+                    # Build business object
+                    business = {
+                        "id": f"saadhyam-{user.id}",
+                        "name": business_name,
+                        "category": business_type,
+                        "logo": None,
+                        "description": user.business_description if hasattr(user, 'business_description') else f"Sadhyam user: {user.email}",
+                        "location": {
+                            "lat": user_lat,
+                            "lng": user_lng
+                        },
+                        "services": user.business_services.split(",") if hasattr(user, 'business_services') and user.business_services else ["General Services"],
+                        "employees": None,
+                        "ai_score": 95,
+                        "is_partner": True,
+                        "is_verified": True,
+                        "is_satellite": False,
+                        "source": "saadhyam",
+                        "website": user.business_website if hasattr(user, 'business_website') else None,
+                        "connections": []
+                    }
+                    
+                    businesses.append(business)
+                
+                print(f"✅ Found {len(businesses)} Saadhyam partner businesses (showing ALL users)")
+                return businesses
+            finally:
+                db.close()
             
         except Exception as e:
             print(f"❌ Error fetching Saadhyam businesses: {e}")

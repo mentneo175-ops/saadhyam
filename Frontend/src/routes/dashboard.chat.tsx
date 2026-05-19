@@ -45,7 +45,22 @@ function ChatPage() {
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const currentUserId = localStorage.getItem("userId");
+  
+  // Get current user ID from stored user data
+  const getCurrentUserId = () => {
+    const userStr = localStorage.getItem("saadhyam_user");
+    if (userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        return user.id?.toString();
+      } catch (e) {
+        console.error("Error parsing user data:", e);
+      }
+    }
+    return null;
+  };
+  
+  const currentUserId = getCurrentUserId();
 
   // Get room ID from URL if present
   useEffect(() => {
@@ -71,7 +86,7 @@ function ChatPage() {
 
   const loadRooms = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("saadhyam_token"); // Fixed: was "token"
       const response = await fetch("http://localhost:8000/api/b2b-chat/rooms", {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -91,7 +106,7 @@ function ChatPage() {
   const loadMessages = async (roomId: string) => {
     setLoading(true);
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("saadhyam_token"); // Fixed: was "token"
       const response = await fetch(
         `http://localhost:8000/api/b2b-chat/rooms/${roomId}/messages`,
         {
@@ -118,7 +133,7 @@ function ChatPage() {
 
     setSending(true);
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("saadhyam_token"); // Fixed: was "token"
       const response = await fetch(
         `http://localhost:8000/api/b2b-chat/rooms/${selectedRoom.id}/messages?message=${encodeURIComponent(newMessage)}`,
         {

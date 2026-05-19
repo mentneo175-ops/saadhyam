@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -44,6 +44,19 @@ function LoginPage() {
   const [rememberMe, setRememberMe] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [isEmailLoading, setIsEmailLoading] = useState(false);
+  const [particles, setParticles] = useState<Array<{ id: number; left: string; top: string; duration: string; delay: string }>>([]);
+
+  // Generate particles only on client side
+  useEffect(() => {
+    const generatedParticles = [...Array(20)].map((_, i) => ({
+      id: i,
+      left: `${Math.random() * 100}%`,
+      top: `${Math.random() * 100}%`,
+      duration: `${8 + Math.random() * 8}s`,
+      delay: `${Math.random() * 5}s`,
+    }));
+    setParticles(generatedParticles);
+  }, []);
 
   const handleGoogleSignIn = async () => {
     if (isGoogleLoading || isEmailLoading) return;
@@ -169,15 +182,15 @@ function LoginPage() {
           <div className="absolute bottom-32 right-32 w-48 h-48 bg-[#A855F7]/10 rounded-full blur-2xl"></div>
           
           {/* Subtle particles */}
-          {[...Array(20)].map((_, i) => (
+          {particles.map((particle) => (
             <div
-              key={i}
+              key={particle.id}
               className="absolute w-1 h-1 bg-[#8B5CF6]/40 rounded-full"
               style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-                animation: `float ${8 + Math.random() * 8}s ease-in-out infinite`,
-                animationDelay: `${Math.random() * 5}s`,
+                left: particle.left,
+                top: particle.top,
+                animation: `float ${particle.duration} ease-in-out infinite`,
+                animationDelay: particle.delay,
               }}
             />
           ))}

@@ -81,6 +81,12 @@ export function BusinessDetailPanel({
         return;
       }
 
+      // If request is pending and sent by me, don't allow resending
+      if (connectionStatus?.pending && connectionStatus.sentByMe) {
+        // Just show info, don't send again
+        return;
+      }
+
       // Extract numeric ID from "saadhyam-29" format
       let numericId = business.id;
       if (business.id.includes("saadhyam-")) {
@@ -110,21 +116,25 @@ export function BusinessDetailPanel({
       );
 
       if (response.ok) {
-        toast.success("Connection Request Sent", {
-          description: `Your request to connect with ${business.name} has been sent.`,
-        });
-        checkConnection(); // Refresh status
+        // NO TOAST - Just refresh connection status to update button
+        await checkConnection();
       } else {
         const error = await response.json();
         console.error("Connection request error:", error);
-        toast.error("Error", {
-          description: error.detail || "Failed to send connection request",
-        });
+        
+        // Handle specific error cases - still refresh to update UI
+        if (error.detail === "Connection request already sent" || error.detail === "Already connected") {
+          await checkConnection();
+        } else {
+          toast.error("Error", {
+            description: error.detail || "Failed to send connection request",
+          });
+        }
       }
     } catch (error) {
       console.error("Error sending connection request:", error);
       toast.error("Error", {
-        description: "Failed to send connection request",
+        description: "Failed to send connection request. Please try again.",
       });
     } finally {
       setLoading(false);
@@ -148,7 +158,7 @@ export function BusinessDetailPanel({
       return (
         <>
           <Clock className="w-4 h-4 mr-2 animate-spin" />
-          Loading...
+          Sending...
         </>
       );
     }
@@ -167,7 +177,7 @@ export function BusinessDetailPanel({
         return (
           <>
             <Clock className="w-4 h-4 mr-2" />
-            Request Pending
+            Request Sent
           </>
         );
       } else {
@@ -378,14 +388,35 @@ export function BusinessDetailPanel({
           <div className="flex gap-3">
             {/* Only show chat for Sadhyam users */}
             {business.source === "saadhyam" ? (
-              <Button
-                variant="hero"
-                className="flex-1"
-                onClick={handleConnect}
-                disabled={loading || (connectionStatus?.pending && connectionStatus.sentByMe)}
-              >
-                {getConnectButtonContent()}
-              </Button>
+              <>
+                {connectionStatus?.connected ? (
+                  <Button
+                    variant="hero"
+                    className="flex-1"
+                    onClick={handleConnect}
+                    disabled={loading}
+                  >
+                    {getConnectButtonContent()}
+                  </Button>
+                ) : connectionStatus?.pending && connectionStatus.sentByMe ? (
+                  <Button
+                    variant="outline"
+                    className="flex-1 cursor-not-allowed opacity-60"
+                    disabled
+                  >
+                    {getConnectButtonContent()}
+                  </Button>
+                ) : (
+                  <Button
+                    variant="hero"
+                    className="flex-1"
+                    onClick={handleConnect}
+                    disabled={loading}
+                  >
+                    {getConnectButtonContent()}
+                  </Button>
+                )}
+              </>
             ) : (
               <Button variant="outline" className="flex-1" disabled>
                 <MessageCircle className="w-4 h-4 mr-2" />

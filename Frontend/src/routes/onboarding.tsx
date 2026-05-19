@@ -8,10 +8,15 @@ import { toast } from "sonner";
 import { PDFUpload } from "@/components/business/PDFUpload";
 import { VoiceInput } from "@/components/business/VoiceInput";
 import { WebsiteImport } from "@/components/business/WebsiteImport";
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 
 export const Route = createFileRoute("/onboarding")({
   head: () => ({ meta: [{ title: "Business Setup — Saadhyam AI" }] }),
-  component: OnboardingPage,
+  component: () => (
+    <ProtectedRoute>
+      <OnboardingPage />
+    </ProtectedRoute>
+  ),
 });
 
 const businessTypes = [

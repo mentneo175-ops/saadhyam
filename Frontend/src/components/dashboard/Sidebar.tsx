@@ -43,6 +43,7 @@ const items: NavItem[] = [
   { to: "/dashboard/aeo-geo", label: "AEO & GEO", icon: Brain },
   { to: "/dashboard/seo-google-maps", label: "SEO & Google Maps", icon: Search },
   { to: "/dashboard/b2b-network", label: "B2B Network", icon: Network },
+  { to: "/dashboard/b2b-chat", label: "B2B Chat", icon: MessageSquare },
   { to: "/dashboard/content", label: "Content Creator", icon: Wand2 },
   { to: "/dashboard/instagram", label: "Instagram", icon: Instagram },
   { to: "/dashboard/meta-ads", label: "Meta Ads", icon: Megaphone },
@@ -58,17 +59,19 @@ export function Sidebar() {
   const { pathname } = useLocation();
 
   return (
-    <aside className="hidden lg:flex flex-col w-64 shrink-0 border-r border-sidebar-border bg-sidebar h-screen sticky top-0">
-      <div className="px-4 h-14 flex items-center border-b border-sidebar-border">
+    <aside className="hidden lg:flex flex-col w-64 shrink-0 border-r border-purple-200 bg-white h-screen sticky top-0">
+      <div className="px-4 h-14 flex items-center border-b border-purple-200">
         <Logo size="sm" />
       </div>
-      <nav 
-        className="flex-1 overflow-y-auto p-3 space-y-1 scrollbar-hide" 
-        style={{ 
-          scrollbarWidth: 'none', 
-          msOverflowStyle: 'none',
-          WebkitOverflowScrolling: 'touch'
-        } as React.CSSProperties}
+      <nav
+        className="flex-1 overflow-y-auto p-3 space-y-1 scrollbar-hide"
+        style={
+          {
+            scrollbarWidth: "none",
+            msOverflowStyle: "none",
+            WebkitOverflowScrolling: "touch",
+          } as React.CSSProperties
+        }
       >
         {items.map((it) => {
           const active = it.exact
@@ -79,40 +82,22 @@ export function Sidebar() {
             <Link
               key={it.to}
               to={it.to as "/dashboard"}
-              className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all group ${
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all group ${
                 active
-                  ? "bg-gradient-primary text-primary-foreground shadow-glow"
-                  : "text-sidebar-foreground hover:bg-sidebar-accent"
+                  ? "bg-gradient-to-r from-[#8B5CF6] to-[#A855F7] text-white shadow-lg shadow-purple-500/20"
+                  : "text-gray-700 hover:bg-[#F9F7FF] hover:text-purple-700"
               }`}
             >
               <Icon
-                size={16}
-                className={
-                  active ? "" : "text-muted-foreground group-hover:text-sidebar-accent-foreground"
-                }
+                size={18}
+                className={active ? "text-white" : "text-gray-400 group-hover:text-purple-600"}
               />
-              <span className="flex-1 text-sm">{it.label}</span>
-              {active && <ChevronRight size={12} />}
+              <span className="flex-1">{it.label}</span>
+              {active && <ChevronRight size={14} className="text-white" />}
             </Link>
           );
         })}
       </nav>
-      <div className="p-3 border-t border-sidebar-border mt-auto">
-        <div className="rounded-xl p-4 bg-gradient-soft border border-border/60 shadow-sm">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="h-8 w-8 rounded-lg bg-gradient-secondary flex items-center justify-center shadow-glow-pink">
-              <Sparkles size={16} className="text-white" />
-            </div>
-            <p className="text-sm font-semibold">Upgrade to Pro</p>
-          </div>
-          <p className="text-xs text-muted-foreground mb-3 leading-relaxed">
-            Unlock unlimited AI generations and advanced insights.
-          </p>
-          <button className="w-full text-xs font-semibold py-2 rounded-lg bg-gradient-primary text-primary-foreground hover:brightness-110 transition shadow-sm hover:shadow-glow">
-            Upgrade
-          </button>
-        </div>
-      </div>
     </aside>
   );
 }

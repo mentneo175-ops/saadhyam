@@ -356,6 +356,33 @@ async def get_dashboard_overview(
                 "website_clicks": 0,
             }
         
+        # If followers_count is 0 or snapshot doesn't exist, fetch live from Instagram API
+        if overview_data["followers_count"] == 0:
+            logger.info(f"📊 Fetching live followers count from Instagram API for account {account_id}")
+            account_info_result = await instagram_analytics_service.get_account_info(
+                ig_account_id=account.ig_account_id,
+                access_token=account.access_token
+            )
+            
+            if account_info_result.get("success"):
+                live_account_info = account_info_result.get("account", {})
+                live_followers_count = live_account_info.get("followers_count", 0)
+                
+                if live_followers_count > 0:
+                    logger.info(f"✅ Got live followers count: {live_followers_count}")
+                    overview_data["followers_count"] = live_followers_count
+                    
+                    # Calculate growth if we have a previous snapshot
+                    if latest_snapshot and latest_snapshot.followers_count > 0:
+                        overview_data["follower_growth"] = live_followers_count - latest_snapshot.followers_count
+                        overview_data["follower_growth_rate"] = (
+                            (live_followers_count - latest_snapshot.followers_count) / latest_snapshot.followers_count * 100
+                        )
+                else:
+                    logger.warning(f"⚠️ Instagram API returned 0 followers for account {account_id}")
+            else:
+                logger.error(f"❌ Failed to fetch live followers count: {account_info_result.get('error')}")
+        
         return DashboardOverviewResponse(
             account=InstagramAccountSchema.from_orm(account),
             overview=overview_data,

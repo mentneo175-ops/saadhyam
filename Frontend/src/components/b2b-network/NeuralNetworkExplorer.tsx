@@ -55,6 +55,7 @@ export function NeuralNetworkExplorer() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showFilters, setShowFilters] = useState(false);
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
+  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
   
   // Filter states - Multiple categories support
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
@@ -62,12 +63,24 @@ export function NeuralNetworkExplorer() {
   const [showVerifiedOnly, setShowVerifiedOnly] = useState(false);
 
   const { business: userBusiness, loading: businessLoading } = useBusiness();
-  const { businesses: nearbyBusinesses, loading: businessesLoading, error } = useNearbyBusinesses();
+  const { businesses: nearbyBusinesses, loading: businessesLoading, error } = useNearbyBusinesses(
+    undefined,
+    undefined,
+    50000,
+    showSaadhyamOnly
+  );
 
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
 
   const isLoading = businessLoading || businessesLoading;
+  
+  // Track initial load completion
+  useEffect(() => {
+    if (!isLoading && !initialLoadComplete) {
+      setInitialLoadComplete(true);
+    }
+  }, [isLoading, initialLoadComplete]);
 
   // Filter businesses FIRST (before categories)
   const filteredBusinesses = useMemo(() => {
@@ -228,7 +241,8 @@ export function NeuralNetworkExplorer() {
     });
   }, []);
 
-  if (isLoading) {
+  // Only show full loading animation on initial load
+  if (isLoading && !initialLoadComplete) {
     return <AINetworkLoadingAnimation />;
   }
 
@@ -262,6 +276,23 @@ export function NeuralNetworkExplorer() {
   return (
     <div className="relative h-full w-full overflow-hidden">
       <AnimatedBackground />
+
+      {/* Subtle Loading Overlay for Filter Changes */}
+      {isLoading && initialLoadComplete && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="absolute inset-0 z-50 flex items-center justify-center bg-black/10 backdrop-blur-sm"
+        >
+          <div className="flex items-center gap-3 px-6 py-4 bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-200/50 dark:border-gray-700/50">
+            <div className="w-5 h-5 border-3 border-purple-600 border-t-transparent rounded-full animate-spin" />
+            <span className="text-sm font-medium text-gray-900 dark:text-white">
+              Updating...
+            </span>
+          </div>
+        </motion.div>
+      )}
 
       {/* Premium Search Bar */}
       <div className="relative z-10">

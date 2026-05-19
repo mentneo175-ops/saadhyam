@@ -40,7 +40,7 @@ if not exist "venv\Scripts\activate.bat" (
     exit /b 1
 )
 
-start "Saadhyam Backend" cmd /k "python -m uvicorn main:app --reload --port 8000"
+start "Saadhyam Backend" cmd /k "call venv\Scripts\activate.bat && python -m uvicorn main:app --reload --port 8000"
 cd ..
 echo [SUCCESS] Backend server starting in virtual environment...
 echo.
@@ -63,7 +63,7 @@ echo   Starting Main Celery Worker
 echo   (Instagram Posts + WhatsApp Automation)
 echo ============================================
 cd Backend
-start "Saadhyam Celery - Worker" cmd /k "python -m celery -A celery_worker worker --loglevel=info --pool=solo"
+start "Saadhyam Celery - Worker" cmd /k "call venv\Scripts\activate.bat && python -m celery -A celery_worker worker --loglevel=info --pool=solo"
 cd ..
 echo [SUCCESS] Main Celery worker starting...
 echo.
@@ -74,7 +74,7 @@ echo   Starting Celery Beat Scheduler
 echo   (Periodic Tasks)
 echo ============================================
 cd Backend
-start "Saadhyam Celery - Beat" cmd /k "python -m celery -A celery_worker beat --loglevel=info"
+start "Saadhyam Celery - Beat" cmd /k "call venv\Scripts\activate.bat && python -m celery -A celery_worker beat --loglevel=info"
 cd ..
 echo [SUCCESS] Celery Beat scheduler starting...
 echo.
@@ -84,9 +84,9 @@ echo ============================================
 echo   Starting Content Creator AI
 echo   (Image Generation - Port 8001)
 echo ============================================
-cd Backend\ai_models\content_creator
-start "Saadhyam Content Creator AI" cmd /k "python -m uvicorn app.main:app --reload --port 8001"
-cd ..\..\..
+cd Backend
+start "Saadhyam Content Creator AI" cmd /k "call venv\Scripts\activate.bat && cd ai_models\content_creator && python -m uvicorn app.main:app --reload --port 8001"
+cd ..
 echo [SUCCESS] Content Creator AI starting...
 echo.
 

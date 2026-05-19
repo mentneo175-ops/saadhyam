@@ -12,10 +12,10 @@ interface ManualSetupProps {
 }
 
 export function ManualSetup({ onSuccess, onBack }: ManualSetupProps) {
-  const [phoneNumberId, setPhoneNumberId] = useState("1045916955280773");
+  const [phoneNumberId, setPhoneNumberId] = useState("");
   const [wabaId, setWabaId] = useState("");
-  const [accessToken, setAccessToken] = useState("EAALTIqUqNwQBRT22ZCkjJshBNNcFVx7jzh8PiAtufaV6DuxM57w7zNU2MRmrNNEbwjBpstXZAv50pIAfvlRMD3WDyI79WygFDKROeKnhRZBHpYTcYhsmt5fsqm0BWx9YimLWXZB1uiXBX84WzDf60SVord4k42dS9c4dFiz534zD3YfM0NqtVvIeAxu1HczXvLSe5ijRESIeEmypPDVTSpU3nAtAkhqo9A9xikJ8qkiuZC74nl0IZBONkZABN0b4yXBlcQPdoaH9nBI5TsbJe3703PykAZDZD");
-  const [businessName, setBusinessName] = useState("Mentineo Saadhyam-AI");
+  const [accessToken, setAccessToken] = useState("");
+  const [businessName, setBusinessName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [saving, setSaving] = useState(false);
 

@@ -222,7 +222,26 @@ class ApiClient {
 
       // Handle 401 errors with token refresh retry
       if (response.status === 401 && this.token && !endpoint.includes('/auth/')) {
-        console.log('Received 401, attempting token refresh...');
+        console.log('Received 401, checking error message...');
+        
+        // Check if it's a session invalidation (logged in from another device)
+        const errorData = response.headers.get("content-type")?.includes("application/json")
+          ? await response.json()
+          : { detail: await response.text() };
+        
+        if (errorData.detail && errorData.detail.includes('logged in from another')) {
+          console.log('Session invalidated - user logged in from another device');
+          // Clear token and redirect to login immediately
+          this.setToken(null);
+          if (typeof window !== 'undefined') {
+            alert('Your account has been logged in from another device or browser. Please login again.');
+            window.location.href = '/login';
+          }
+          throw new ApiError(401, errorData, 'Session invalidated');
+        }
+        
+        // Otherwise, try token refresh
+        console.log('Attempting token refresh...');
         try {
           this.token = await this.refreshToken();
           
@@ -254,7 +273,7 @@ class ApiClient {
           // Clear token and redirect to login
           this.setToken(null);
           if (typeof window !== 'undefined') {
-            window.location.href = '/auth/login';
+            window.location.href = '/login';
           }
           throw new ApiError(401, null, 'Authentication failed');
         }

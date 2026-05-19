@@ -9,8 +9,14 @@ import {
   Sparkles,
   MessageCircle,
   Share2,
+  Send,
+  Clock,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useState, useEffect } from "react";
+import { toast } from "sonner";
 import type { Business } from "./types";
 
 interface BusinessDetailPanelProps {
@@ -22,6 +28,165 @@ export function BusinessDetailPanel({
   business,
   onClose,
 }: BusinessDetailPanelProps) {
+  const [connectionStatus, setConnectionStatus] = useState<{
+    connected: boolean;
+    pending: boolean;
+    roomId?: string;
+    requestId?: string;
+    sentByMe?: boolean;
+  } | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [inviteLink, setInviteLink] = useState("");
+  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
+
+  // Check connection status on mount
+  useEffect(() => {
+    if (business.source === "saadhyam") {
+      checkConnection();
+    }
+  }, [business.id]);
+
+  const checkConnection = async () => {
+    try {
+      const token = localStorage.getItem("saadhyam_token");
+      // Extract numeric ID from "saadhyam-29" format
+      const numericId = business.id.replace("saadhyam-", "");
+      
+      const response = await fetch(
+        `http://localhost:8000/api/b2b-chat/check-connection/${numericId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        setConnectionStatus(data);
+      }
+    } catch (error) {
+      console.error("Error checking connection:", error);
+    }
+  };
+
+  const handleConnect = async () => {
+    setLoading(true);
+    try {
+      const token = localStorage.getItem("saadhyam_token");
+
+      // If already connected, open chat
+      if (connectionStatus?.connected && connectionStatus.roomId) {
+        window.location.href = `/dashboard/chat?room=${connectionStatus.roomId}`;
+        return;
+      }
+
+      // Extract numeric ID from "saadhyam-29" format
+      let numericId = business.id;
+      if (business.id.includes("saadhyam-")) {
+        numericId = business.id.replace("saadhyam-", "");
+      }
+
+      console.log("Sending connection request:", {
+        businessId: business.id,
+        numericId,
+        businessName: business.name
+      });
+
+      // Send connection request
+      const response = await fetch(
+        "http://localhost:8000/api/b2b-chat/connections/request",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            receiver_id: numericId,
+            message: `Hi! I'd like to connect with ${business.name}.`,
+          }),
+        }
+      );
+
+      if (response.ok) {
+        toast.success("Connection Request Sent", {
+          description: `Your request to connect with ${business.name} has been sent.`,
+        });
+        checkConnection(); // Refresh status
+      } else {
+        const error = await response.json();
+        console.error("Connection request error:", error);
+        toast.error("Error", {
+          description: error.detail || "Failed to send connection request",
+        });
+      }
+    } catch (error) {
+      console.error("Error sending connection request:", error);
+      toast.error("Error", {
+        description: "Failed to send connection request",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleShare = () => {
+    // Generate invite link
+    const link = `${window.location.origin}/signup?ref=b2b&business=${encodeURIComponent(business.name)}`;
+    setInviteLink(link);
+
+    // Copy to clipboard
+    navigator.clipboard.writeText(link);
+    toast.success("Link Copied!", {
+      description: "Sadhyam invite link copied to clipboard",
+    });
+  };
+
+  const getConnectButtonContent = () => {
+    if (loading) {
+      return (
+        <>
+          <Clock className="w-4 h-4 mr-2 animate-spin" />
+          Loading...
+        </>
+      );
+    }
+
+    if (connectionStatus?.connected) {
+      return (
+        <>
+          <MessageCircle className="w-4 h-4 mr-2" />
+          Open Chat
+        </>
+      );
+    }
+
+    if (connectionStatus?.pending) {
+      if (connectionStatus.sentByMe) {
+        return (
+          <>
+            <Clock className="w-4 h-4 mr-2" />
+            Request Pending
+          </>
+        );
+      } else {
+        return (
+          <>
+            <Send className="w-4 h-4 mr-2" />
+            Accept Request
+          </>
+        );
+      }
+    }
+
+    return (
+      <>
+        <Send className="w-4 h-4 mr-2" />
+        Send Request
+      </>
+    );
+  };
   return (
     <>
       {/* Backdrop */}
@@ -107,9 +272,34 @@ export function BusinessDetailPanel({
               <h3 className="text-sm font-semibold text-gray-900 mb-2">
                 About
               </h3>
-              <p className="text-sm text-gray-700 leading-relaxed">
-                {business.description}
-              </p>
+              <div className="relative">
+                <p className="text-sm text-gray-700 leading-relaxed">
+                  {isDescriptionExpanded 
+                    ? business.description 
+                    : business.description.length > 200
+                      ? `${business.description.substring(0, 200)}...`
+                      : business.description
+                  }
+                </p>
+                {business.description.length > 200 && (
+                  <button
+                    onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
+                    className="mt-2 text-xs font-medium text-purple-600 hover:text-purple-700 flex items-center gap-1 transition-colors"
+                  >
+                    {isDescriptionExpanded ? (
+                      <>
+                        <ChevronUp className="w-3 h-3" />
+                        Show less
+                      </>
+                    ) : (
+                      <>
+                        <ChevronDown className="w-3 h-3" />
+                        Read more
+                      </>
+                    )}
+                  </button>
+                )}
+              </div>
             </div>
           )}
 
@@ -186,24 +376,42 @@ export function BusinessDetailPanel({
 
           {/* Actions */}
           <div className="flex gap-3">
-            <Button variant="hero" className="flex-1">
-              <MessageCircle className="w-4 h-4 mr-2" />
-              Connect
-            </Button>
-            <Button variant="outline" size="icon">
+            {/* Only show chat for Sadhyam users */}
+            {business.source === "saadhyam" ? (
+              <Button
+                variant="hero"
+                className="flex-1"
+                onClick={handleConnect}
+                disabled={loading || (connectionStatus?.pending && connectionStatus.sentByMe)}
+              >
+                {getConnectButtonContent()}
+              </Button>
+            ) : (
+              <Button variant="outline" className="flex-1" disabled>
+                <MessageCircle className="w-4 h-4 mr-2" />
+                Not on Sadhyam
+              </Button>
+            )}
+            <Button variant="outline" size="icon" onClick={handleShare}>
               <Share2 className="w-4 h-4" />
             </Button>
           </div>
 
-          {/* Claim Business (for external businesses) */}
+          {/* Invite to Sadhyam (for external businesses) */}
           {business.source === "external" && (
-            <div className="mt-6 p-4 rounded-xl bg-purple-50 border border-purple-200">
-              <p className="text-sm text-purple-900 mb-3">
-                Is this your business? Claim it to unlock premium features.
+            <div className="mt-6 p-4 rounded-xl bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200">
+              <p className="text-sm text-purple-900 mb-3 font-medium">
+                This business is not on Sadhyam yet. Invite them to connect!
               </p>
-              <Button variant="outline" className="w-full">
-                Claim Business
+              <Button variant="hero" className="w-full" onClick={handleShare}>
+                <Share2 className="w-4 h-4 mr-2" />
+                Share Sadhyam Invite
               </Button>
+              {inviteLink && (
+                <p className="text-xs text-purple-700 mt-2 break-all">
+                  {inviteLink}
+                </p>
+              )}
             </div>
           )}
         </div>

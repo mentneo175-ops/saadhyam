@@ -21,6 +21,8 @@ import {
   Download,
 } from "lucide-react";
 import { useEffect, useState, useMemo } from "react";
+import { useCooldown, formatCooldownTime } from "@/hooks/useCooldown";
+import { useNotificationHelpers } from "@/components/notifications";
 import {
   getBusinessAnalysisData,
   getAnalysisStatus,
@@ -53,6 +55,13 @@ function BusinessAnalysisPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { notifyWarning } = useNotificationHelpers();
+  
+  // Cooldown for regenerate button (2 hours)
+  const regenerateCooldown = useCooldown({
+    cooldownMinutes: 120,
+    storageKey: 'business-analysis-cooldown',
+  });
 
   // Helper function to render markdown text with bold
   const renderMarkdown = (text: string) => {
@@ -164,6 +173,15 @@ function BusinessAnalysisPage() {
   };
 
   const handleAnalyze = async () => {
+    // Check cooldown
+    if (!regenerateCooldown.canExecute) {
+      notifyWarning(
+        'Analysis on Cooldown',
+        `Please wait ${formatCooldownTime(regenerateCooldown.remainingTime)} before regenerating analysis.`
+      );
+      return;
+    }
+
     setIsAnalyzing(true);
     setError(null);
 
@@ -181,9 +199,13 @@ function BusinessAnalysisPage() {
       // Load the completed analysis
       const data = await getBusinessAnalysisData(token);
       setAnalysis(data);
+      
+      // Start cooldown ONLY after successfully getting complete data
+      regenerateCooldown.execute();
     } catch (err: any) {
       console.error("Error analyzing:", err);
       setError(err.message || "Failed to analyze business");
+      // Don't start cooldown if analysis failed - user can retry
     } finally {
       setIsAnalyzing(false);
     }
@@ -534,9 +556,21 @@ function BusinessAnalysisPage() {
           <p className="text-gray-600 mb-6 text-center max-w-md">
             Get comprehensive AI-powered insights including strengths, weaknesses, opportunities, and local market analysis.
           </p>
-          <Button variant="hero" size="lg" onClick={handleAnalyze}>
+          <Button 
+            variant="hero" 
+            size="lg" 
+            onClick={handleAnalyze}
+            disabled={!regenerateCooldown.canExecute}
+            title={
+              !regenerateCooldown.canExecute
+                ? `Cooldown: ${formatCooldownTime(regenerateCooldown.remainingTime)}`
+                : "Analyze your business"
+            }
+          >
             <Sparkles size={20} />
-            Analyze My Business
+            {!regenerateCooldown.canExecute 
+              ? formatCooldownTime(regenerateCooldown.remainingTime).split(' ')[0] 
+              : 'Analyze My Business'}
           </Button>
           <p className="text-xs text-gray-500 mt-4">Takes 2-3 minutes • Powered by Google AI Studio Gemini</p>
         </div>
@@ -606,11 +640,20 @@ function BusinessAnalysisPage() {
             variant="hero"
             size="sm"
             onClick={handleAnalyze}
-            disabled={isAnalyzing}
+            disabled={isAnalyzing || !regenerateCooldown.canExecute}
             className="flex items-center gap-2 whitespace-nowrap"
+            title={
+              !regenerateCooldown.canExecute
+                ? `Cooldown: ${formatCooldownTime(regenerateCooldown.remainingTime)}`
+                : "Re-analyze your business"
+            }
           >
             <RefreshCw size={14} className={isAnalyzing ? "animate-spin" : ""} />
-            <span>Re-analyze</span>
+            <span>
+              {!regenerateCooldown.canExecute 
+                ? formatCooldownTime(regenerateCooldown.remainingTime).split(' ')[0] 
+                : 'Re-analyze'}
+            </span>
           </Button>
         </div>
       </div>

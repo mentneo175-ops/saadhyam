@@ -1,8 +1,16 @@
-# 🚀 Saadhyam AI - Complete Business Intelligence Platform
+# Sadhyam - AI-Powered Business Management Platform
 
-> **AI-Powered Business Management, Content Creation & Automation Platform**
+<div align="center">
 
-A comprehensive platform that helps businesses with intelligent content creation, business analysis, social media management, WhatsApp automation, task tracking, and B2B networking.
+**A comprehensive business management platform with AI-powered features for social media management, business analysis, B2B networking, and automated marketing.**
+
+[![Python](https://img.shields.io/badge/Python-3.8%2B-blue.svg)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.104.1-green.svg)](https://fastapi.tiangolo.com/)
+[![React](https://img.shields.io/badge/React-19.2.0-blue.svg)](https://reactjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.8.3-blue.svg)](https://www.typescriptlang.org/)
+[![License](https://img.shields.io/badge/License-Proprietary-red.svg)](LICENSE)
+
+</div>
 
 ---
 
@@ -10,12 +18,14 @@ A comprehensive platform that helps businesses with intelligent content creation
 
 - [Features](#-features)
 - [Tech Stack](#-tech-stack)
+- [Project Structure](#-project-structure)
 - [Prerequisites](#-prerequisites)
 - [Installation](#-installation)
 - [Configuration](#-configuration)
 - [Running the Application](#-running-the-application)
-- [Project Structure](#-project-structure)
 - [API Documentation](#-api-documentation)
+- [Development](#-development)
+- [Security](#-security)
 - [Troubleshooting](#-troubleshooting)
 - [License](#-license)
 
@@ -23,113 +33,193 @@ A comprehensive platform that helps businesses with intelligent content creation
 
 ## ✨ Features
 
-### 🤖 AI-Powered Intelligence
-- **Business Analysis** - Comprehensive business insights using Gemini AI with Google Search grounding
-- **Blog Generation** - SEO-optimized blog posts with web research (Tavily/Serper)
-- **Content Creation** - AI-generated social media content for Instagram, Facebook, WhatsApp
-- **Image Generation** - AI-powered images using FLUX/Stable Diffusion
-- **Review Reply AI** - Automated professional review responses using TinyLlama
-- **Personal Assistant** - AI-powered business assistant using Groq
+### 🎯 Core Features
+- **Dashboard**: Centralized business management interface with real-time analytics
+- **User Authentication**: Secure JWT-based authentication with Firebase integration
+- **Profile Management**: Comprehensive user and business profile management
 
-### 📊 Business Management
-- **Business Profile** - Comprehensive business information management
-- **Analytics Dashboard** - Real-time business intelligence and metrics
-- **Task Tracking System** - AI-suggested daily tasks with growth journey visualization
-- **Competitor Analysis** - Track and analyze competitor strategies
-- **Growth Metrics** - Track completion rates, streaks, and growth scores
+### 📱 Social Media Management
+- **Instagram Analytics**: Track posts, stories, reels, and engagement metrics
+- **Instagram OAuth**: Seamless Instagram Business Account integration
+- **Instagram Post Scheduling**: Schedule and auto-publish Instagram content
+- **WhatsApp Integration**: Automated messaging, campaigns, and customer engagement
+- **WhatsApp Webhook**: Real-time message handling and automation
 
-### 📱 Social Media & Content
-- **Instagram Analytics** - Complete analytics dashboard with AI-powered insights
-  - Account metrics and performance tracking
-  - Post, Reel, and Story analytics
-  - AI recommendations and growth predictions
-  - Trend detection and content suggestions
-- **Instagram Posting** - Post scheduling and automated publishing
-- **Content Calendar** - Schedule and manage social media posts
-- **Engagement Tracking** - Monitor post performance and engagement
+### 🤖 AI-Powered Features
+- **Business Analysis**: AI-powered insights using Google Gemini with search grounding
+- **Review Reply AI**: Automated review response generation
+- **Content Creator**: AI-powered content and caption generation
+- **Image Generator**: FLUX-based AI image generation
+- **Personal Assistant**: DeepSeek/Groq-powered business assistant
+- **Website AI**: Automated website generation and optimization
+- **Voice Agent**: AI-powered voice interaction system
 
-### 💬 WhatsApp Business Automation
-- **WhatsApp Business Integration** - Official Meta WhatsApp Cloud API
-- **Customer Chat Management** - CRM-style conversation dashboard
-- **Broadcast Campaigns** - Send bulk messages to multiple customers
-- **Smart Automations** - Auto-replies, follow-ups, and scheduled messages
-- **AI-Powered Responses** - Gemini-powered intelligent reply generation
-- **Analytics & Reporting** - Track delivery, read rates, and engagement
-- **Template Messages** - Support for approved WhatsApp templates
+### 🌐 B2B & Networking
+- **B2B Network**: Discover and connect with nearby businesses
+- **B2B Chat**: Real-time messaging with business connections
+- **Partnership Agent**: AI-powered partnership recommendations
+- **Competitor Analysis**: Track and analyze competitor activities
 
-### 🌐 Website & SEO
-- **Website Generator** - AI-generated business websites with 6 templates
-- **Blog Publishing** - Automatic blog publishing to customer websites
-- **AEO/GEO Optimization** - Answer Engine & Generative Engine Optimization
-- **SEO Tools** - Keyword research and optimization
+### 📊 Marketing & SEO
+- **SEO & Google Maps**: Local business optimization
+- **AEO/GEO System**: Answer Engine Optimization and Generative Engine Optimization
+- **Auto Blogger**: Automated blog content generation
+- **Meta Ads Integration**: Facebook and Instagram advertising management
 
-### 🤝 B2B Business Network
-- **Neural Network Visualization** - Interactive AI-style business discovery
-- **City-Wide Search** - Find businesses across your entire city (50km radius)
-- **Real Business Data** - OpenStreetMap integration via Overpass API
-- **Category Explorer** - Browse businesses by industry categories
-- **AI Loading Animation** - Futuristic network connection visualization
-- **Business Details** - View services, location, and contact information
+### 📈 Analytics & Tracking
+- **Dashboard Analytics**: Real-time business performance metrics
+- **Task Tracking**: Project and task management system
+- **Customer Retention**: AI-powered customer retention strategies
 
-### 🔐 Authentication & Security
-- **Dual Authentication** - Email/password and Google OAuth support
-- **Firebase Integration** - Secure, scalable authentication system
-- **Account Merging** - Seamless integration between auth methods
-- **Business Profile Management** - Comprehensive user onboarding
-- **Secure Logout** - Complete data cleanup on sign out
+### 🔄 Real-time Features
+- **Socket.IO Integration**: Real-time messaging and notifications
+- **Live Updates**: Real-time data synchronization
+- **Typing Indicators**: Live typing status in chats
+- **Online Presence**: User online/offline status tracking
 
 ---
 
 ## 🛠 Tech Stack
 
 ### Backend
-- **Framework:** FastAPI (Python 3.11+)
-- **Database:** PostgreSQL (NeonDB) + Pinecone (Vector DB)
-- **AI Models:** 
-  - Google Gemini 2.5 Flash (Business Analysis, Blog Generation)
-  - TinyLlama (Review Replies)
-  - Groq (Personal Assistant)
-  - FLUX/Stable Diffusion (Image Generation)
-- **Web Search:** Tavily AI, Serper API
-- **Task Queue:** Celery + Redis
-- **Authentication:** Firebase Admin SDK + JWT
-- **Cloud Storage:** Cloudinary
-- **APIs:** Meta WhatsApp Cloud API, OpenStreetMap Overpass API
+| Technology | Version | Purpose |
+|------------|---------|---------|
+| **FastAPI** | 0.104.1 | High-performance web framework |
+| **Python** | 3.8+ | Core programming language |
+| **PostgreSQL** | Latest | Primary database (via Neon) |
+| **SQLAlchemy** | 2.0.23 | ORM for database operations |
+| **Alembic** | 1.13.2 | Database migrations |
+| **Redis** | 5.0.1 | Caching and message broker |
+| **Celery** | 5.3.4 | Distributed task queue |
+| **Socket.IO** | 5.11.0 | Real-time communication |
+| **Uvicorn** | 0.24.0 | ASGI server |
+
+### AI/ML Stack
+| Technology | Purpose |
+|------------|---------|
+| **Google Gemini** | Business analysis with search grounding |
+| **Groq** | Fast LLM inference |
+| **DeepSeek** | Personal assistant AI |
+| **Transformers** | HuggingFace model loading |
+| **PyTorch** | Deep learning framework |
+| **FLUX** | AI image generation |
+| **Mistral** | Content generation |
 
 ### Frontend
-- **Framework:** React 19 + TanStack Start
-- **Styling:** Tailwind CSS 4.2
-- **UI Components:** Radix UI
-- **State Management:** TanStack Query + React Context
-- **Visualization:** Recharts (Growth Charts), React Flow (B2B Network)
-- **Build Tool:** Vite 7
+| Technology | Version | Purpose |
+|------------|---------|---------|
+| **React** | 19.2.0 | UI framework |
+| **TypeScript** | 5.8.3 | Type-safe JavaScript |
+| **TanStack Router** | 1.168.0 | Client-side routing |
+| **TanStack Query** | 5.83.0 | Data fetching and caching |
+| **Tailwind CSS** | 4.2.1 | Utility-first CSS framework |
+| **Vite** | 7.3.1 | Build tool and dev server |
+| **Radix UI** | Latest | Accessible UI components |
+| **Framer Motion** | 12.38.0 | Animation library |
+| **Recharts** | 2.15.4 | Data visualization |
+| **Leaflet** | 1.9.4 | Interactive maps |
+| **Socket.IO Client** | 4.8.3 | Real-time client |
+
+### External Services
+- **Firebase**: Google OAuth authentication
+- **Cloudinary**: Image and media storage
+- **Meta Graph API**: Instagram and WhatsApp integration
+- **Tavily**: Web search API
+- **SerpAPI**: Google search results
+- **Apify**: Instagram data scraping
+- **Resend**: Email delivery
+- **Pinecone**: Vector database for AEO/GEO
 
 ---
 
-## 📦 Prerequisites
+## 📁 Project Structure
+
+```
+Sadhyam/
+├── Backend/                      # FastAPI backend application
+│   ├── ai_models/               # AI model implementations
+│   │   ├── content_creator/     # Content and image generation
+│   │   ├── review_reply_ai/     # Review response AI
+│   │   └── website_ai/          # Website generation AI
+│   ├── config/                  # Configuration files
+│   │   ├── database.py          # Database configuration
+│   │   └── settings.py          # Application settings
+│   ├── middleware/              # Custom middleware
+│   │   └── security.py          # Security middleware
+│   ├── migrations/              # Database migrations
+│   ├── models/                  # SQLAlchemy models
+│   │   ├── user.py             # User model
+│   │   ├── chat.py             # Chat models
+│   │   └── ...                 # Other models
+│   ├── routes/                  # API route handlers
+│   │   ├── auth.py             # Authentication routes
+│   │   ├── instagram_analytics.py
+│   │   ├── whatsapp_webhook.py
+│   │   ├── b2b_network.py
+│   │   ├── b2b_chat.py
+│   │   └── ...                 # Other routes
+│   ├── schemas/                 # Pydantic schemas
+│   ├── services/                # Business logic services
+│   │   ├── gemini_business_analysis_service.py
+│   │   ├── instagram_ai_service.py
+│   │   ├── meta_oauth_service.py
+│   │   └── ...                 # Other services
+│   ├── tasks/                   # Celery tasks
+│   ├── utils/                   # Utility functions
+│   ├── templates/               # Email/HTML templates
+│   ├── main.py                  # Application entry point
+│   ├── celery_worker.py         # Celery worker configuration
+│   ├── requirements.txt         # Python dependencies
+│   └── .env.example            # Environment variables template
+│
+├── Frontend/                    # React frontend application
+│   ├── src/
+│   │   ├── components/         # React components
+│   │   │   ├── dashboard/      # Dashboard components
+│   │   │   ├── b2b-network/    # B2B networking components
+│   │   │   ├── instagram/      # Instagram components
+│   │   │   └── ...            # Other components
+│   │   ├── routes/             # TanStack Router routes
+│   │   │   ├── dashboard.tsx   # Dashboard layout
+│   │   │   ├── dashboard.instagram.tsx
+│   │   │   ├── dashboard.b2b-chat.tsx
+│   │   │   └── ...            # Other routes
+│   │   ├── utils/              # Utility functions
+│   │   ├── styles.css          # Global styles
+│   │   └── main.tsx           # Application entry point
+│   ├── package.json            # Node dependencies
+│   ├── tsconfig.json           # TypeScript configuration
+│   ├── vite.config.ts          # Vite configuration
+│   └── tailwind.config.js      # Tailwind configuration
+│
+├── start_all.bat               # Start all services (Windows)
+├── stop_all.bat                # Stop all services (Windows)
+├── README.md                   # This file
+└── SECURITY_RECOMMENDATIONS.md # Security guidelines
+```
+
+---
+
+## 📋 Prerequisites
+
+Before installing Sadhyam, ensure you have the following installed:
 
 ### Required Software
-- **Python:** 3.11 or higher
-- **Node.js:** 18 or higher
-- **npm:** 9 or higher
-- **Redis:** Latest version (for background tasks)
-- **Git:** Latest version
+- **Python 3.8 or higher** - [Download Python](https://www.python.org/downloads/)
+- **Node.js 16 or higher** - [Download Node.js](https://nodejs.org/)
+- **PostgreSQL** - [Download PostgreSQL](https://www.postgresql.org/download/) or use [Neon](https://neon.tech/)
+- **Redis** - [Download Redis](https://redis.io/download) or use [Redis Cloud](https://redis.com/try-free/)
+- **Git** - [Download Git](https://git-scm.com/downloads)
 
-### Required API Keys
-1. **Firebase** (Google OAuth) - [Get it here](https://console.firebase.google.com/)
-2. **NeonDB** (Database) - [Get it here](https://neon.tech/)
-3. **Gemini API** (AI) - [Get it here](https://aistudio.google.com/app/apikey)
-4. **Tavily API** (Web Search) - [Get it here](https://tavily.com/)
-5. **Serper API** (Web Search) - [Get it here](https://serper.dev/)
-6. **Groq API** (Assistant) - [Get it here](https://console.groq.com/)
-7. **HuggingFace Token** (Image Gen) - [Get it here](https://huggingface.co/settings/tokens)
-8. **Pinecone API** (Vector DB) - [Get it here](https://www.pinecone.io/)
+### Optional Software
+- **Docker** - For containerized deployment
+- **Postman** - For API testing
 
-### Optional API Keys
-- **Cloudinary** (Image Storage)
-- **Instagram** (Social Media)
-- **WhatsApp** (Meta Business Platform)
-- **OpenAI** (Alternative AI)
+### System Requirements
+- **OS**: Windows 10/11, macOS 10.15+, or Linux
+- **RAM**: Minimum 8GB (16GB recommended for AI features)
+- **Storage**: 10GB free space
+- **GPU**: Optional (NVIDIA GPU with CUDA for faster AI inference)
 
 ---
 
@@ -138,60 +228,85 @@ A comprehensive platform that helps businesses with intelligent content creation
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/yourusername/saadhyam-ai.git
-cd saadhyam-ai
+git clone https://github.com/yourusername/sadhyam.git
+cd sadhyam
 ```
 
 ### 2. Backend Setup
 
+#### Create Virtual Environment
+
 ```bash
-# Navigate to backend directory
 cd Backend
-
-# Create virtual environment
 python -m venv venv
+```
 
-# Activate virtual environment
-# On Windows:
+#### Activate Virtual Environment
+
+**Windows:**
+```bash
 venv\Scripts\activate
-# On macOS/Linux:
+```
+
+**macOS/Linux:**
+```bash
 source venv/bin/activate
+```
 
-# Install dependencies
+#### Install Dependencies
+
+```bash
+pip install --upgrade pip
 pip install -r requirements.txt
+```
 
-# Copy environment template
-copy .env.example .env  # Windows
-# cp .env.example .env  # macOS/Linux
+#### Install Additional Dependencies (Optional)
 
-# Edit .env file with your API keys (see Configuration section)
+For voice agent features:
+```bash
+pip install -r requirements_voice.txt
 ```
 
 ### 3. Frontend Setup
 
 ```bash
-# Navigate to frontend directory
-cd ../Frontend
-
-# Install dependencies
+cd Frontend
 npm install
-
-# Copy environment template
-copy .env.example .env  # Windows
-# cp .env.example .env  # macOS/Linux
-
-# Edit .env file with your configuration
 ```
 
-### 4. Redis Setup
+Or using Yarn:
+```bash
+yarn install
+```
+
+### 4. Database Setup
+
+#### Option A: Using Neon (Recommended)
+
+1. Create a free account at [Neon](https://neon.tech/)
+2. Create a new project
+3. Copy the connection string
+4. Update `DATABASE_URL` in `Backend/.env`
+
+#### Option B: Local PostgreSQL
+
+1. Install PostgreSQL
+2. Create a database:
+```sql
+CREATE DATABASE saadhyam;
+```
+3. Update `DATABASE_URL` in `Backend/.env`:
+```
+DATABASE_URL=postgresql+asyncpg://username:password@localhost/saadhyam
+```
+
+### 5. Redis Setup
+
+#### Option A: Local Redis
 
 **Windows:**
-```bash
-# Download Redis for Windows from:
-# https://github.com/microsoftarchive/redis/releases
-# Or use Docker:
-docker run -d -p 6379:6379 redis:alpine
-```
+- Download Redis from [Redis Windows](https://github.com/microsoftarchive/redis/releases)
+- Install and start Redis service
 
 **macOS:**
 ```bash
@@ -205,587 +320,414 @@ sudo apt-get install redis-server
 sudo systemctl start redis
 ```
 
+#### Option B: Redis Cloud
+
+1. Create account at [Redis Cloud](https://redis.com/try-free/)
+2. Create a database
+3. Update `REDIS_URL` in `Backend/.env`
+
 ---
 
 ## ⚙️ Configuration
 
 ### Backend Configuration
 
-Edit `Backend/.env` with your API keys:
+1. Copy the example environment file:
+```bash
+cd Backend
+copy .env.example .env  # Windows
+# or
+cp .env.example .env    # macOS/Linux
+```
+
+2. Edit `Backend/.env` with your configuration:
 
 ```env
 # ============================================
-# Database (REQUIRED)
+# Database Configuration
 # ============================================
 DATABASE_URL=postgresql+asyncpg://user:password@host/database
 
 # ============================================
-# Firebase Authentication (REQUIRED)
+# Application Settings
 # ============================================
-GOOGLE_APPLICATION_CREDENTIALS=./firebase-adminsdk.json
-FIREBASE_PROJECT_ID=your-project-id
+DEBUG=true
+ENVIRONMENT=development
+SECRET_KEY=your-super-secret-key-change-in-production
+BACKEND_URL=http://localhost:8000
 
 # ============================================
-# JWT Security (REQUIRED)
-# ============================================
-SECRET_KEY=your-super-secret-jwt-key-change-this
-ACCESS_TOKEN_EXPIRE_MINUTES=10080
-
-# ============================================
-# AI Services (REQUIRED)
-# ============================================
-GEMINI_API_KEY=your_gemini_api_key
-GROQ_API_KEY=your_groq_api_key
-HUGGINGFACE_TOKEN=your_huggingface_token
-
-# ============================================
-# Web Search APIs (REQUIRED for Blog Generation)
-# ============================================
-TAVILY_API_KEY=your_tavily_api_key
-SERPER_API_KEY=your_serper_api_key
-
-# ============================================
-# Vector Database (REQUIRED for Business Analysis)
-# ============================================
-PINECONE_API_KEY=your_pinecone_api_key
-PINECONE_ENVIRONMENT=us-east-1
-PINECONE_INDEX_NAME=saadhyam-aeo-geo
-
-# ============================================
-# Redis (REQUIRED for Background Tasks)
+# Redis Configuration
 # ============================================
 REDIS_URL=redis://localhost:6379
 
 # ============================================
-# Optional Services
+# AI API Keys
 # ============================================
-CLOUDINARY_CLOUD_NAME=your_cloud_name
-CLOUDINARY_API_KEY=your_api_key
-CLOUDINARY_API_SECRET=your_api_secret
+GEMINI_API_KEY=your_google_ai_studio_api_key
+GROQ_API_KEY=your_groq_api_key
+DEEPSEEK_API_KEY=your_deepseek_api_key
+HUGGINGFACE_TOKEN=your_huggingface_token
 
+# ============================================
+# Social Media Integration
+# ============================================
+# Instagram
 INSTAGRAM_APP_ID=your_instagram_app_id
 INSTAGRAM_APP_SECRET=your_instagram_app_secret
+INSTAGRAM_ACCESS_TOKEN=your_instagram_access_token
 
-WHATSAPP_APP_ID=your_whatsapp_app_id
-WHATSAPP_APP_SECRET=your_whatsapp_app_secret
-WHATSAPP_VERIFY_TOKEN=your_verify_token
+# WhatsApp (Meta Cloud API)
+META_APP_ID=your_meta_app_id
+META_APP_SECRET=your_meta_app_secret
+WHATSAPP_PHONE_ID=your_whatsapp_phone_id
+WHATSAPP_TOKEN=your_whatsapp_token
+WHATSAPP_VERIFY_TOKEN=your_custom_verify_token
 
 # ============================================
-# Server Configuration
+# Cloud Services
 # ============================================
-DEBUG=True
-ENVIRONMENT=development
-CORS_ORIGINS=["http://localhost:5173"]
+CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
+CLOUDINARY_API_KEY=your_cloudinary_api_key
+CLOUDINARY_API_SECRET=your_cloudinary_api_secret
+
+# ============================================
+# Firebase (Google OAuth)
+# ============================================
+GOOGLE_APPLICATION_CREDENTIALS=./firebase-adminsdk.json
+FIREBASE_PROJECT_ID=your_firebase_project_id
+
+# ============================================
+# Search & Web APIs
+# ============================================
+TAVILY_API_KEY=your_tavily_api_key
+SERPER_API_KEY=your_serper_api_key
+SERPAPI_KEY=your_serpapi_key
+BRAVE_SEARCH_API_KEY=your_brave_search_api_key
+
+# ============================================
+# Other Services
+# ============================================
+APIFY_API_TOKEN=your_apify_token
+RESEND_API_KEY=your_resend_api_key
+RAPIDAPI_KEY=your_rapidapi_key
+PINECONE_API_KEY=your_pinecone_api_key
+OPENAI_API_KEY=your_openai_api_key
 ```
-
-### Firebase Setup
-
-1. Go to [Firebase Console](https://console.firebase.google.com/)
-2. Create a new project or select existing
-3. Enable **Authentication** → **Google Sign-In**
-4. Go to **Project Settings** → **Service Accounts**
-5. Click **Generate New Private Key**
-6. Save the JSON file as `Backend/firebase-adminsdk.json`
 
 ### Frontend Configuration
 
-Edit `Frontend/.env`:
+1. Copy the example environment file:
+```bash
+cd Frontend
+copy .env.example .env  # Windows
+# or
+cp .env.example .env    # macOS/Linux
+```
+
+2. Edit `Frontend/.env`:
 
 ```env
-# Backend API URL
 VITE_API_URL=http://localhost:8000
-
-# Firebase Configuration (from Firebase Console)
-VITE_FIREBASE_API_KEY=your_firebase_api_key
-VITE_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
-VITE_FIREBASE_PROJECT_ID=your-project-id
-VITE_FIREBASE_STORAGE_BUCKET=your-project.firebasestorage.app
-VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
-VITE_FIREBASE_APP_ID=your_app_id
+VITE_SOCKET_URL=http://localhost:8000
 ```
+
+### Firebase Setup (Optional - for Google OAuth)
+
+1. Go to [Firebase Console](https://console.firebase.google.com/)
+2. Create a new project
+3. Enable Authentication → Google Sign-In
+4. Download service account key
+5. Save as `Backend/firebase-adminsdk.json`
 
 ---
 
 ## 🏃 Running the Application
 
-### Option 1: Quick Start (All Services at Once) ⚡
+### Quick Start (Windows)
 
-**Windows:**
+The easiest way to start all services:
+
 ```bash
-# Double-click start_all.bat or run:
 start_all.bat
 ```
 
-**macOS/Linux/Git Bash:**
+This will start:
+1. **Backend Server** (Port 8000)
+2. **Celery Worker** (Background tasks)
+3. **Celery Beat** (Task scheduler)
+4. **Content Creator AI** (Port 8001)
+5. **Frontend Server** (Port 8080)
+
+### Manual Start
+
+#### 1. Start Redis
+
 ```bash
-# Make script executable (first time only):
-chmod +x start_all.sh
-
-# Run script:
-./start_all.sh
-```
-
-This will automatically:
-- ✅ Start Backend server on `http://localhost:8000`
-- ✅ Start Frontend server on `http://localhost:5173`
-- ✅ Open application in browser
-- ✅ Display server logs
-
----
-
-### Option 2: Manual Start (Individual Services)
-
-#### 1. Start Redis (Required for background tasks)
-```bash
-# Windows (if installed):
 redis-server
-
-# macOS:
-brew services start redis
-
-# Docker:
-docker run -d -p 6379:6379 redis:alpine
 ```
 
 #### 2. Start Backend
+
 ```bash
 cd Backend
 venv\Scripts\activate  # Windows
-# source venv/bin/activate  # macOS/Linux
+# or
+source venv/bin/activate  # macOS/Linux
 
-python main.py
-# Or with uvicorn:
-# python -m uvicorn main:app --reload --port 8000
+python -m uvicorn main:app --reload --port 8000
 ```
 
-**Expected output:**
-```
-✅ Firebase Admin SDK: INITIALIZED
-✅ Task Tracking router included in app
-✅ Instagram Analytics router included in app
-✅ Application startup complete
-INFO: Uvicorn running on http://0.0.0.0:8000
+#### 3. Start Celery Worker
+
+```bash
+cd Backend
+venv\Scripts\activate
+
+# Windows
+python -m celery -A celery_worker worker --loglevel=info --pool=solo
+
+# macOS/Linux
+python -m celery -A celery_worker worker --loglevel=info
 ```
 
-#### 3. Start Frontend
+#### 4. Start Celery Beat (Task Scheduler)
+
+```bash
+cd Backend
+venv\Scripts\activate
+python -m celery -A celery_worker beat --loglevel=info
+```
+
+#### 5. Start Content Creator AI (Optional)
+
+```bash
+cd Backend/ai_models/content_creator
+python -m uvicorn app.main:app --reload --port 8001
+```
+
+#### 6. Start Frontend
+
 ```bash
 cd Frontend
 npm run dev
 ```
 
-**Expected output:**
-```
-VITE ready in XXX ms
-Local: http://localhost:5173/
-```
+### Access the Application
 
-#### 4. Start Celery Worker (Optional - for background tasks)
+- **Frontend**: http://localhost:8080
+- **Backend API**: http://localhost:8000
+- **API Documentation**: http://localhost:8000/docs
+- **Content Creator**: http://localhost:8001
+
+### Stop All Services
+
+**Windows:**
 ```bash
-cd Backend
-venv\Scripts\activate
-
-# Windows:
-celery -A celery_worker worker --loglevel=info --pool=solo
-
-# macOS/Linux:
-celery -A celery_worker worker --loglevel=info
+stop_all.bat
 ```
 
----
-
-### Access Application
-
-- **Frontend:** http://localhost:5173
-- **Backend API:** http://localhost:8000
-- **API Docs:** http://localhost:8000/docs
-- **Health Check:** http://localhost:8000/health
-
----
-
-## 🧹 Project Cleanup Summary
-
-### ✅ Cleanup Completed (May 15, 2026)
-
-**Files Removed:**
-- Deprecated TinyLLaMA business analysis directory (~50MB)
-- Old business analysis route and frontend component
-- JavaScript files from Backend services (9 files)
-- Backup files (.bak)
-- Empty directories
-
-**Files Organized:**
-- Moved 27 test/utility scripts to `Backend/scripts/` directory
-- Cleaned up project structure
-- Removed orphaned code
-
-**Result:**
-- ~100MB+ disk space freed
-- Cleaner, more maintainable codebase
-- Better organized project structure
-
----
-
-## 📁 Project Structure
-
-```
-Saadhyam/
-├── Backend/
-│   ├── ai_models/              # AI model implementations
-│   │   ├── content_creator/    # Content generation (Mistral + FLUX/SD)
-│   │   │   ├── app/
-│   │   │   │   ├── models/     # Pydantic schemas
-│   │   │   │   ├── routes/     # API endpoints
-│   │   │   │   ├── services/   # Business logic
-│   │   │   │   └── frontend/   # Web UI
-│   │   │   └── mistral_adapter/ # Fine-tuned Mistral model
-│   │   ├── review_reply_ai/    # Review reply AI (TinyLlama)
-│   │   └── website_ai/         # Website generation
-│   ├── config/                 # Configuration files
-│   │   ├── database.py         # Database connection
-│   │   └── settings.py         # App settings
-│   ├── migrations/             # Database migrations
-│   ├── models/                 # SQLAlchemy ORM models
-│   │   ├── user.py             # User model
-│   │   ├── task_tracking.py    # Task model
-│   │   ├── instagram_analytics.py
-│   │   ├── whatsapp_message.py
-│   │   └── ...
-│   ├── routes/                 # API endpoints (organized by feature)
-│   │   ├── auth.py             # Authentication
-│   │   ├── task_tracking.py    # Task management
-│   │   ├── instagram_analytics.py
-│   │   ├── whatsapp_webhook.py # WhatsApp integration
-│   │   ├── whatsapp_auth.py    # WhatsApp OAuth
-│   │   ├── whatsapp_messages.py
-│   │   ├── b2b_network.py      # B2B networking
-│   │   ├── business_analysis_gemini.py
-│   │   └── ...
-│   ├── services/               # Business logic & external integrations
-│   │   ├── task_tracking_service.py
-│   │   ├── task_generation_service.py
-│   │   ├── instagram_analytics_service.py
-│   │   ├── instagram_ai_service.py
-│   │   ├── gemini_business_analysis_service.py
-│   │   ├── meta_oauth_service.py
-│   │   ├── web_search_service.py
-│   │   └── ...
-│   ├── utils/                  # Utility functions
-│   │   ├── dependencies.py     # Dependency injection
-│   │   └── ...
-│   ├── .env                    # Environment variables (local)
-│   ├── .env.example            # Environment template
-│   ├── main.py                 # Application entry point
-│   ├── requirements.txt        # Python dependencies
-│   └── celery_worker.py        # Background task worker
-│
-├── Frontend/
-│   ├── src/
-│   │   ├── components/         # Reusable UI components
-│   │   │   ├── dashboard/      # Dashboard components
-│   │   │   │   ├── Sidebar.tsx
-│   │   │   │   ├── TopHeader.tsx
-│   │   │   │   ├── DailyTasksWidget.tsx
-│   │   │   │   ├── GrowthChart.tsx
-│   │   │   │   ├── SnapshotCard.tsx
-│   │   │   │   ├── ActionCard.tsx
-│   │   │   │   ├── InsightsPanel.tsx
-│   │   │   │   └── ...
-│   │   │   ├── instagram/      # Instagram components
-│   │   │   │   └── InstagramAnalyticsDashboard.tsx
-│   │   │   ├── b2b-network/    # B2B network components
-│   │   │   │   └── types.ts
-│   │   │   ├── ui/             # Base UI components (Radix)
-│   │   │   └── brand/          # Brand components
-│   │   ├── routes/             # Page components (TanStack Router)
-│   │   │   ├── __root.tsx      # Root layout
-│   │   │   ├── dashboard.tsx   # Dashboard layout
-│   │   │   ├── dashboard.index.tsx
-│   │   │   ├── dashboard.daily-ask.tsx
-│   │   │   ├── dashboard.instagram.tsx
-│   │   │   ├── dashboard.whatsapp.tsx
-│   │   │   ├── dashboard.business-analysis.tsx
-│   │   │   ├── dashboard.settings.tsx
-│   │   │   └── ...
-│   │   ├── lib/                # API client and utilities
-│   │   │   ├── api.ts          # API client
-│   │   │   └── ...
-│   │   ├── hooks/              # Custom React hooks
-│   │   │   ├── useRealtimeBusiness.ts
-│   │   │   └── ...
-│   │   ├── contexts/           # React contexts
-│   │   │   └── DashboardContext.tsx
-│   │   ├── styles.css          # Global styles
-│   │   └── main.tsx            # Entry point
-│   ├── public/                 # Static assets
-│   ├── package.json            # Node.js dependencies
-│   ├── vite.config.ts          # Vite configuration
-│   ├── tsconfig.json           # TypeScript configuration
-│   ├── .env                    # Environment variables (local)
-│   └── .env.example            # Environment template
-│
-├── docs/                       # Documentation
-│   ├── REDIS_SETUP.md          # Redis setup guide
-│   ├── NOTIFICATION_SYSTEM_DESIGN.md
-│   └── ...
-├── .gitignore                  # Git ignore rules
-├── README.md                   # This file
-├── start_all.bat               # Windows startup script
-├── start_all.sh                # Unix startup script
-├── stop_all.bat                # Windows stop script
-└── stop_all.sh                 # Unix stop script
-```
-
-### 📂 Directory Organization Best Practices
-
-**Backend Structure:**
-- `routes/` - API endpoints (one file per feature)
-- `services/` - Business logic and external integrations
-- `models/` - Database models (SQLAlchemy)
-- `ai_models/` - AI/ML implementations
-- `config/` - Configuration and settings
-- `utils/` - Helper functions and utilities
-- `migrations/` - Database schema changes
-
-**Frontend Structure:**
-- `routes/` - Page components (TanStack Router)
-- `components/` - Reusable UI components (organized by feature)
-- `lib/` - API client, utilities, and helpers
-- `hooks/` - Custom React hooks
-- `contexts/` - React context providers
-- `styles/` - Global and component styles
-
----
-
-## 🧹 Project Cleanup & Maintenance
-
-### Recent Cleanup (Latest Update)
-
-The project has been cleaned up to remove deprecated files, duplicates, and orphaned code:
-
-**Removed Files:**
-- ✅ `Backend/ai_models/business_analysis_OLD_TINYLLAMA_DEPRECATED/` - Entire deprecated directory (~50MB)
-- ✅ `Backend/routes/business_OLD_TINYLLAMA_DEPRECATED.py` - Old TinyLLaMA business analysis
-- ✅ `Frontend/src/routes/dashboard.business-analysis.old.tsx` - Old business analysis UI
-- ✅ `Backend/celerybeat-schedule.bak` - Backup file
-- ✅ `Backend/services/*.js` - JavaScript files (9 files) - moved to Frontend or removed
-- ✅ `Frontend/src/components/business-analysis/` - Empty directory
-
-**Consolidated Services:**
-- Instagram services organized under unified structure
-- Partnership services consolidated
-- Influencer services unified
-
-**Reorganized:**
-- Test files moved to proper locations
-- Utility scripts organized
-- Documentation centralized
-
-### Codebase Health
-
-| Metric | Status |
-|--------|--------|
-| Deprecated Files | ✅ Removed |
-| Duplicate Services | ✅ Consolidated |
-| Empty Directories | ✅ Cleaned |
-| Orphaned Files | ✅ Removed |
-| Project Size | ✅ Optimized (~100MB+ freed) |
-| Code Organization | ✅ Structured |
-
-### Maintenance Guidelines
-
-**When Adding New Features:**
-1. Follow the directory structure outlined above
-2. Keep related code together (routes, services, models)
-3. Use meaningful file names
-4. Add documentation for complex logic
-5. Remove unused imports and dead code
-
-**Code Quality:**
-- Run linters regularly: `npm run lint` (Frontend), `pylint` (Backend)
-- Keep dependencies updated
-- Remove unused dependencies
-- Document API changes in README
+**Manual:**
+- Close all terminal windows
+- Or press `Ctrl+C` in each terminal
 
 ---
 
 ## 📚 API Documentation
 
-### Authentication Endpoints
+### Interactive API Documentation
 
-```
-POST   /auth/register           - Register new user
-POST   /auth/login              - Login with email/password
-POST   /auth/google             - Login with Google OAuth
-POST   /auth/logout             - Logout user
-GET    /me                      - Get current user
-```
+Once the backend is running, access the interactive API documentation:
 
-### Task Tracking Endpoints
+- **Swagger UI**: http://localhost:8000/docs
+- **ReDoc**: http://localhost:8000/redoc
 
-```
-GET    /api/tasks/today         - Get today's tasks
-GET    /api/tasks/history       - Get task history
-POST   /api/tasks               - Create new task
-PUT    /api/tasks/{id}/complete - Mark task as complete
-DELETE /api/tasks/{id}          - Delete task
-GET    /api/tasks/growth/chart-data - Get growth chart data
-POST   /api/tasks/generate-daily - Generate AI-powered daily tasks
-```
+### Key API Endpoints
 
-### Instagram Analytics Endpoints
+#### Authentication
+- `POST /auth/signup` - User registration
+- `POST /auth/login` - User login
+- `POST /auth/google` - Google OAuth login
+- `POST /auth/refresh` - Refresh access token
 
-```
-GET    /api/instagram-analytics/account/{account_id}        - Get account analytics
-GET    /api/instagram-analytics/posts/{account_id}          - Get post analytics
-GET    /api/instagram-analytics/ai-insights/{account_id}    - Get AI insights
-POST   /api/instagram-analytics/sync/{account_id}           - Sync Instagram data
-```
+#### Instagram
+- `GET /api/instagram/analytics` - Get Instagram analytics
+- `POST /api/instagram/schedule-post` - Schedule Instagram post
+- `GET /api/instagram/posts` - Get scheduled posts
 
-### WhatsApp Endpoints
+#### WhatsApp
+- `POST /api/whatsapp/send-message` - Send WhatsApp message
+- `POST /api/whatsapp/webhook` - WhatsApp webhook endpoint
+- `GET /api/whatsapp/campaigns` - Get WhatsApp campaigns
 
-```
-GET    /api/whatsapp/chats      - Get all chats
-POST   /api/whatsapp/send-message - Send message
-POST   /api/whatsapp/broadcast  - Send broadcast
-GET    /api/whatsapp/analytics  - Get analytics
-```
+#### B2B Network
+- `GET /api/b2b-network/nearby/me` - Get nearby businesses
+- `POST /api/b2b-chat/connections/request` - Send connection request
+- `GET /api/b2b-chat/rooms` - Get chat rooms
 
-### B2B Network Endpoints
+#### Business Analysis
+- `POST /api/business-analysis/analyze` - Analyze business
+- `GET /api/business-analysis/history` - Get analysis history
 
-```
-GET    /api/b2b-network/nearby/me - Get nearby businesses (city-wide)
-GET    /api/b2b-network/nearby    - Get businesses by coordinates
-GET    /api/b2b-network/categories - Get business categories
+---
+
+## 💻 Development
+
+### Running Tests
+
+```bash
+cd Backend
+pytest
 ```
 
-### Business Analysis Endpoints
+### Code Formatting
 
-```
-POST   /ai/business-analysis    - Analyze business
-GET    /api/comprehensive-analysis/business-analysis - Get analysis
-GET    /business/analysis/realtime - Real-time intelligence
+**Backend:**
+```bash
+cd Backend
+black .
+isort .
 ```
 
-**Full API Documentation:** http://localhost:8000/docs
+**Frontend:**
+```bash
+cd Frontend
+npm run format
+npm run lint
+```
+
+### Database Migrations
+
+Create a new migration:
+```bash
+cd Backend
+alembic revision --autogenerate -m "Description of changes"
+```
+
+Apply migrations:
+```bash
+alembic upgrade head
+```
+
+Rollback migration:
+```bash
+alembic downgrade -1
+```
+
+### Adding New Dependencies
+
+**Backend:**
+```bash
+cd Backend
+pip install package_name
+pip freeze > requirements.txt
+```
+
+**Frontend:**
+```bash
+cd Frontend
+npm install package_name
+```
+
+---
+
+## 🔒 Security
+
+### Important Security Considerations
+
+1. **Never commit `.env` files** to version control
+2. **Change default SECRET_KEY** in production
+3. **Use HTTPS** in production
+4. **Enable rate limiting** for API endpoints
+5. **Regularly update dependencies**
+6. **Use strong passwords** for database and Redis
+7. **Implement proper CORS** configuration
+8. **Enable audit logging** for sensitive operations
+
+### Security Features
+
+- JWT-based authentication
+- Password hashing with bcrypt
+- Rate limiting middleware
+- CORS protection
+- Request size limits
+- Security headers
+- SQL injection protection (via SQLAlchemy)
+- XSS protection
+
+For detailed security recommendations, see [SECURITY_RECOMMENDATIONS.md](SECURITY_RECOMMENDATIONS.md)
 
 ---
 
 ## 🐛 Troubleshooting
 
-### Backend Won't Start
+### Common Issues
 
-**Problem:** Import errors or module not found
+#### Backend won't start
 
-**Solution:**
+**Issue**: `ModuleNotFoundError`
 ```bash
+# Solution: Ensure virtual environment is activated and dependencies installed
 cd Backend
-venv\Scripts\pip.exe install -r requirements.txt
+venv\Scripts\activate
+pip install -r requirements.txt
 ```
 
-**Problem:** Database connection error
-
-**Solution:** Check `DATABASE_URL` in `.env` file
-
-**Problem:** Firebase authentication not working
-
-**Solution:** 
-1. Verify `firebase-adminsdk.json` exists in Backend folder
-2. Check `FIREBASE_PROJECT_ID` in `.env`
-3. Enable Google Sign-In in Firebase Console
-
-### Frontend Won't Start
-
-**Problem:** Module not found errors
-
-**Solution:**
+**Issue**: Database connection error
 ```bash
+# Solution: Check DATABASE_URL in .env and ensure PostgreSQL is running
+# Test connection:
+psql -h hostname -U username -d database_name
+```
+
+#### Frontend won't start
+
+**Issue**: `Cannot find module`
+```bash
+# Solution: Delete node_modules and reinstall
 cd Frontend
+rm -rf node_modules package-lock.json
 npm install
 ```
 
-**Problem:** Can't connect to backend
-
-**Solution:** 
-1. Verify backend is running on port 8000
-2. Check `VITE_API_URL` in `Frontend/.env`
-
-### Task Tracking Issues
-
-**Problem:** Tasks not loading (405 error)
-
-**Solution:** Restart backend server to load task tracking router
-
-**Problem:** Growth chart not updating
-
-**Solution:** 
-1. Complete at least one task to generate first metric
-2. Check browser console for errors
-3. Verify token: `localStorage.getItem("saadhyam_token")`
-
-### Instagram Analytics Issues
-
-**Problem:** Analytics not loading
-
-**Solution:**
-1. Verify Instagram account is connected in Settings
-2. Click "Sync Data" to fetch latest analytics
-3. Check backend logs for API errors
-
-### Port Already in Use
-
-**Problem:** Port 8000 or 5173 already in use
-
-**Solution:**
+**Issue**: Port already in use
 ```bash
-# Windows - Find and kill process
-netstat -ano | findstr :8000
+# Solution: Kill process on port 8080
+# Windows:
+netstat -ano | findstr :8080
 taskkill /PID <PID> /F
 
-# macOS/Linux
-lsof -ti:8000 | xargs kill
+# macOS/Linux:
+lsof -ti:8080 | xargs kill -9
 ```
 
----
+#### Celery worker issues
 
-## 🔒 Security Checklist
+**Issue**: Celery won't start on Windows
+```bash
+# Solution: Use --pool=solo flag
+python -m celery -A celery_worker worker --loglevel=info --pool=solo
+```
 
-### Before Deployment
-- [ ] Change default SECRET_KEY
-- [ ] Use production DATABASE_URL
-- [ ] Set DEBUG=False
-- [ ] Configure CORS_ORIGINS properly
-- [ ] Secure Firebase service account key
-- [ ] Use environment variables for all secrets
-- [ ] Enable HTTPS in production
-- [ ] Set up proper backup strategy
-- [ ] Configure rate limiting
-- [ ] Enable security headers
+#### Redis connection error
 
----
+**Issue**: `Error connecting to Redis`
+```bash
+# Solution: Ensure Redis is running
+# Windows: Check Redis service in Services
+# macOS: brew services start redis
+# Linux: sudo systemctl start redis
+```
 
-## 📈 Performance Optimization
+### Getting Help
 
-### Scaling
-- **Multiple Celery Workers**: `celery -A celery_worker worker --concurrency=4`
-- **Database Read Replicas**: Configure read/write splitting
-- **Redis Clustering**: For high availability
-- **CDN**: For static assets
+If you encounter issues:
 
-### Monitoring
-- **Application**: FastAPI metrics endpoint
-- **Database**: PostgreSQL performance stats
-- **Cache**: Redis monitoring
-- **Tasks**: Celery Flower dashboard
-
----
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit changes (`git commit -m 'Add amazing feature'`)
-4. Push to branch (`git push origin feature/amazing-feature`)
-5. Open Pull Request
+1. Check the logs in `Backend/logs/`
+2. Review the [API documentation](http://localhost:8000/docs)
+3. Check environment variables in `.env`
+4. Ensure all services are running
+5. Verify database and Redis connections
 
 ---
 
@@ -793,19 +735,23 @@ lsof -ti:8000 | xargs kill
 
 This project is proprietary software. All rights reserved.
 
+Unauthorized copying, modification, distribution, or use of this software is strictly prohibited.
+
 ---
 
 ## 🙏 Acknowledgments
 
-- **Google Gemini** - AI-powered business analysis and content generation
-- **Tavily AI** - Web search and research
-- **Serper API** - Google search integration
-- **Firebase** - Authentication services
-- **NeonDB** - Serverless PostgreSQL
-- **Pinecone** - Vector database
+- **FastAPI** - Modern web framework
+- **React** - UI library
+- **Google Gemini** - AI-powered analysis
+- **Meta** - Instagram and WhatsApp APIs
 - **HuggingFace** - AI model hosting
-- **OpenStreetMap** - Business location data
+- **Neon** - Serverless PostgreSQL
 
 ---
 
-**Built with ❤️ by the Saadhyam AI Team @Mentneo**
+<div align="center">
+
+**Built with ❤️ by the Sadhyam Team**
+
+</div>

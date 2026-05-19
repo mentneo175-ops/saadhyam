@@ -31,6 +31,8 @@ cryptography==48.0.0
 firebase-admin==7.4.0
 google-auth==2.50.0
 bcrypt==4.3.0
+slowapi==0.1.9
+limits==3.13.0
 
 # ============================================
 # Environment & Configuration

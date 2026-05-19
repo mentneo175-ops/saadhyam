@@ -115,7 +115,7 @@ class CampaignAutomationService:
                 objective=objective,
                 status=CampaignStatus.PAUSED,
                 daily_budget=final_daily_budget,
-                instagram_post_id=post.id,
+                instagram_post_id=post.id if post.id > 0 else None,  # Only set if real post, not temporary
                 ai_audience_suggestion=audience_recommendations,
                 ai_budget_recommendation=budget_recommendations,
             )

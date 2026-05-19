@@ -15,6 +15,12 @@ import socketio
 # Load environment variables first
 load_dotenv()
 
+# Configure logging early
+from config.logging_config import configure_logging
+import os
+ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
+configure_logging(ENVIRONMENT)
+
 from config.database import init_db, close_db
 from migrations.add_name_column import migrate_add_name_column
 from services.realtime_service import realtime_service
@@ -285,6 +291,14 @@ except Exception as e:
     b2b_network_available = False
 
 try:
+    from routes.b2b_chat import router as b2b_chat_router
+    b2b_chat_available = True
+    logging.info("✅ B2B Chat router imported successfully")
+except Exception as e:
+    logging.warning(f"B2B Chat router not available: {e}")
+    b2b_chat_available = False
+
+try:
     from routes.instagram_analytics import router as instagram_analytics_router
     instagram_analytics_available = True
     logging.info("✅ Instagram Analytics router imported successfully")
@@ -356,12 +370,10 @@ except Exception as e:
     logging.warning(f"Website AI router not available: {e}")
     website_ai_available = False
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
+# Get logger after logging is configured
 logger = logging.getLogger(__name__)
+
+# Remove duplicate logging configuration (now handled by logging_config.py)
 
 
 @asynccontextmanager
@@ -441,6 +453,8 @@ async def lifespan(app: FastAPI):
         migrate_fix_campaign_status_enum()
         from migrations.update_campaign_status_enum import migrate_update_campaign_status_enum
         migrate_update_campaign_status_enum()
+        from migrations.add_session_tracking import migrate_add_session_tracking
+        migrate_add_session_tracking()
         logger.info("✅ Migrations completed")
         
         # Start scheduler for processing scheduled Instagram posts
@@ -526,15 +540,38 @@ app = FastAPI(
     lifespan=lifespan
 )
 
+# Add custom exception handler for h11 protocol errors
+from starlette.exceptions import HTTPException as StarletteHTTPException
+from fastapi.responses import JSONResponse
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request, exc):
+    """
+    Global exception handler to catch h11 protocol errors and other unhandled exceptions.
+    This prevents cascading errors and provides clean error responses.
+    """
+    # Check if it's an h11 protocol error
+    if "h11" in str(type(exc).__module__) or "LocalProtocolError" in str(type(exc).__name__):
+        logger.error(f"❌ HTTP protocol error: {exc}")
+        # Return a clean error response instead of letting it cascade
+        return JSONResponse(
+            status_code=500,
+            content={"detail": "Connection error. Please retry your request."}
+        )
+    
+    # Log other unhandled exceptions
+    logger.error(f"❌ Unhandled exception: {exc}", exc_info=True)
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Internal server error"}
+    )
+
 # Mount Socket.IO app for real-time communication
-# NOTE: Temporarily disabled Socket.IO wrapper due to request timeout issues
-# The wrapper was preventing HTTP requests from reaching the FastAPI app
-# TODO: Fix Socket.IO integration to properly delegate HTTP requests
-# sio_asgi_app = socketio.ASGIApp(
-#     socketio_server=realtime_service.sio,
-#     other_asgi_app=app,
-#     socketio_path='/socket.io'
-# )
+sio_asgi_app = socketio.ASGIApp(
+    socketio_server=realtime_service.sio,
+    other_asgi_app=app,
+    socketio_path='socket.io'
+)
 
 # Website AI static files - Simple direct mapping
 BASE_DIR = Path(__file__).resolve().parent
@@ -553,21 +590,65 @@ OUTPUT_IMAGES_DIR = BASE_DIR / "output" / "images"
 OUTPUT_IMAGES_DIR.mkdir(parents=True, exist_ok=True)
 app.mount("/output", StaticFiles(directory=str(BASE_DIR / "output")), name="output")
 
-# Configure CORS
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[
+# ============================================
+# SECURITY MIDDLEWARE (Phase 1)
+# ============================================
+from middleware.security import (
+    setup_rate_limiting,
+    add_security_headers,
+    limit_request_size
+)
+from middleware.connection_handler import ConnectionHandlerMiddleware
+
+# Add connection handler middleware (must be first to catch all errors)
+app.add_middleware(ConnectionHandlerMiddleware)
+logging.info("✅ Connection handler middleware added")
+
+# Setup rate limiting
+limiter = setup_rate_limiting(app)
+logging.info("✅ Rate limiting configured")
+
+# Add security headers middleware
+app.middleware("http")(add_security_headers)
+logging.info("✅ Security headers middleware added")
+
+# Add request size limit middleware
+app.middleware("http")(limit_request_size)
+logging.info("✅ Request size limit middleware added")
+
+# ============================================
+# CORS CONFIGURATION
+# ============================================
+import os
+ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
+ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "").split(",") if os.getenv("ALLOWED_ORIGINS") else None
+
+if ENVIRONMENT == "production" and ALLOWED_ORIGINS:
+    # Production: Use specific origins from environment
+    cors_origins = [origin.strip() for origin in ALLOWED_ORIGINS if origin.strip()]
+    logging.info(f"✅ Production CORS: {cors_origins}")
+else:
+    # Development: Allow localhost
+    cors_origins = [
+        "http://localhost:5173",
         "http://localhost:8080",
         "http://localhost:8081",
+        "http://127.0.0.1:5173",
         "http://127.0.0.1:8080",
         "http://127.0.0.1:8081",
         "http://localhost:3000",
         "http://127.0.0.1:3000",
-        "*"
-    ],
-    allow_credentials=False,
-    allow_methods=["*"],
+    ]
+    logging.info(f"✅ Development CORS: Multiple localhost origins")
+
+# Configure CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=cors_origins,
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allow_headers=["*"],
+    max_age=3600,  # Cache preflight requests for 1 hour
 )
 
 # Include routers - only include those that loaded successfully
@@ -679,6 +760,9 @@ if whatsapp_automation_available:
 if b2b_network_available:
     app.include_router(b2b_network_router)
     logging.info("✅ B2B Network router included in app")
+if b2b_chat_available:
+    app.include_router(b2b_chat_router)
+    logging.info("✅ B2B Chat router included in app")
 if instagram_analytics_available:
     app.include_router(instagram_analytics_router)
     logging.info("✅ Instagram Analytics router included in app")
@@ -812,9 +896,9 @@ async def global_exception_handler(request, exc):
 if __name__ == "__main__":
     import uvicorn
     
-    # Run FastAPI app directly (Socket.IO wrapper disabled due to timeout issues)
+    # Run Socket.IO ASGI app for real-time WebSocket support
     uvicorn.run(
-        app,  # Use FastAPI app directly
+        "main:sio_asgi_app",  # Use Socket.IO wrapper for WebSocket support
         host="0.0.0.0",
         port=8000,
         log_level="info"

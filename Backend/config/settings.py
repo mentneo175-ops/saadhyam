@@ -95,6 +95,11 @@ class Settings(BaseSettings):
     # Token Encryption Key
     ENCRYPTION_KEY: str = "your-32-char-encryption-key-here"
 
+    # Security Configuration (Phase 1)
+    RATE_LIMIT_ENABLED: bool = True
+    MAX_REQUEST_SIZE_MB: int = 10
+    ALLOWED_ORIGINS: str = ""
+
     # Meta Ads Configuration (Facebook/Instagram Ads)
     META_REDIRECT_URI: str = "http://localhost:8000/auth/meta/callback"
 
@@ -154,6 +159,64 @@ class Settings(BaseSettings):
     AEO_GEO_AUTO_OPTIMIZATION: str = "true"
     AEO_GEO_CONTENT_GENERATION_MODEL: str = "gemini"
     AEO_GEO_QUESTION_DISCOVERY_MODEL: str = "gemini"
+
+    # ============ Phase 2 Security Configuration ============
+    
+    # HTTPS Configuration
+    ENFORCE_HTTPS: bool = True
+    SSL_REDIRECT_CODE: int = 301  # HTTP status code for redirects
+    
+    # Audit Logging
+    AUDIT_LOGGING_ENABLED: bool = True
+    AUDIT_LOG_PATH: str = "logs/audit.log"
+    AUDIT_LOG_LEVEL: str = "INFO"
+    
+    # Password Policy
+    PASSWORD_MIN_LENGTH: int = 8
+    PASSWORD_REQUIRE_UPPERCASE: bool = True
+    PASSWORD_REQUIRE_LOWERCASE: bool = True
+    PASSWORD_REQUIRE_NUMBERS: bool = True
+    PASSWORD_REQUIRE_SPECIAL: bool = True
+    PASSWORD_EXPIRY_DAYS: int = 90  # Force password change every 90 days
+    PASSWORD_HISTORY_COUNT: int = 5  # Remember last 5 passwords
+    
+    # API Key Management
+    API_KEY_ENABLED: bool = True
+    API_KEY_ROTATION_DAYS: int = 90
+    API_KEY_MAX_KEYS_PER_USER: int = 10
+    
+    # Role-Based Access Control (RBAC)
+    RBAC_ENABLED: bool = True
+    DEFAULT_USER_ROLE: str = "user"
+    
+    # Security Monitoring
+    SECURITY_MONITORING_ENABLED: bool = True
+    FAILED_LOGIN_THRESHOLD: int = 5  # Lock account after N failed attempts
+    FAILED_LOGIN_WINDOW_MINUTES: int = 15
+    
+    # Rate Limiting
+    RATE_LIMIT_REQUESTS: int = 100
+    RATE_LIMIT_WINDOW_SECONDS: int = 60
+    RATE_LIMIT_BURST: int = 10
+    
+    # IP Whitelist/Blacklist
+    IP_WHITELIST_ENABLED: bool = False
+    IP_BLACKLIST_ENABLED: bool = True
+    
+    # Session Configuration
+    SESSION_TIMEOUT_MINUTES: int = 30
+    SESSION_ABSOLUTE_TIMEOUT_MINUTES: int = 480  # 8 hours
+    
+    # Two-Factor Authentication (2FA)
+    TWO_FACTOR_AUTH_ENABLED: bool = False
+    TWO_FA_PROVIDER: str = "authenticator"  # authenticator, sms, email
+    
+    # Alert Configuration
+    CRITICAL_ALERT_EMAIL: str = "security@saadhyam.com"
+    SEND_SECURITY_ALERTS: bool = True
+    ALERT_ON_SUSPICIOUS_ACTIVITY: bool = True
+    ALERT_ON_FAILED_LOGIN: bool = True
+    ALERT_ON_API_KEY_EXPOSURE: bool = True
 
     @field_validator("CORS_ORIGINS", mode="before")
     @classmethod

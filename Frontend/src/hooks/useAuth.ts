@@ -40,7 +40,7 @@ export function useAuth(): UseAuthReturn {
       
       // Fetch fresh user data from backend with timeout
       const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error("User fetch timeout")), 5000)
+        setTimeout(() => reject(new Error("User fetch timeout")), 15000) // Increased to 15 seconds
       );
       
       Promise.race([
@@ -52,7 +52,7 @@ export function useAuth(): UseAuthReturn {
         })
         .catch((error) => {
           console.error("Failed to fetch user data:", error);
-          // If token is invalid or timeout, clear auth
+          // If token is invalid, clear auth
           if (error instanceof ApiError && error.status === 401) {
             // Clear auth data manually
             apiClient.setToken(null);
@@ -66,7 +66,8 @@ export function useAuth(): UseAuthReturn {
             setUser(null);
             setToken(null);
           }
-          // For other errors (500, timeout), just log and continue
+          // For timeout or 500 errors, keep existing user data and continue
+          // This prevents logout on slow network or backend issues
         });
     }
 

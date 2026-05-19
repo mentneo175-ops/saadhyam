@@ -1,0 +1,208 @@
+================================================================================
+CRITICAL SESSION SECURITY FIX - IMPLEMENTATION INSTRUCTIONS
+================================================================================
+
+PROBLEM: Users stay logged in after database refresh
+STATUS: Code is FIXED, but server needs RESTART
+
+================================================================================
+STEP-BY-STEP INSTRUCTIONS
+================================================================================
+
+STEP 1: STOP THE BACKEND SERVER
+--------------------------------
+Double-click this file:
+    restart_backend.bat
+
+OR manually:
+    1. Open Task Manager (Ctrl + Shift + Esc)
+    2. Find all "python.exe" processes
+    3. End each process
+    4. Verify no Python processes remain
+
+
+STEP 2: VERIFY THE FIX IS IN THE CODE
+--------------------------------------
+Open this file in a text editor:
+    Backend\utils\dependencies.py
+
+Go to line 123 and verify you see this code:
+
+    # CRITICAL: If active_session_token is NULL (e.g., after DB refresh), reject the request
+    if not user.active_session_token:
+        logger.warning(f"⚠️  No active session for user {user.email}. Session was cleared (DB refresh or logout).")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Your session has been cleared. Please login again.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+If you DON'T see this code, the file wasn't saved properly.
+
+
+STEP 3: CLEAR PYTHON CACHE (IMPORTANT!)
+----------------------------------------
+Open Command Prompt and run:
+
+    cd "c:\Users\Sai kiran\Desktop\Sadhyam\Backend"
+    for /d /r . %d in (__pycache__) do @if exist "%d" rmdir /s /q "%d"
+    del /s /q *.pyc
+
+
+STEP 4: START THE BACKEND SERVER
+---------------------------------
+Option A - Use the restart script:
+    Double-click: restart_backend.bat
+
+Option B - Manual start:
+    cd "c:\Users\Sai kiran\Desktop\Sadhyam\Backend"
+    .venv\Scripts\activate
+    python main.py
+
+Wait for the server to fully start. You should see:
+    INFO:     Uvicorn running on http://0.0.0.0:8000
+    INFO:     Application startup complete.
+
+
+STEP 5: TEST THE FIX
+--------------------
+Option A - Automated test:
+    cd "c:\Users\Sai kiran\Desktop\Sadhyam"
+    python test_session_fix.py
+
+Option B - Manual test:
+    1. Open Chrome browser
+    2. Login to your application
+    3. Open your database tool (pgAdmin, DBeaver, etc.)
+    4. Run this SQL:
+        UPDATE users SET active_session_token = NULL;
+    5. Go back to Chrome and refresh the page
+    6. EXPECTED: You should be logged out and redirected to login page
+    7. If you're still logged in, the fix is NOT working
+
+Option C - Multi-browser test:
+    1. Open Chrome and login
+    2. Open Firefox (or Chrome Incognito) and login with SAME email
+    3. Go back to Chrome and refresh
+    4. EXPECTED: You should be logged out with message "Your account is logged in from another device"
+
+
+STEP 6: VERIFY IN PRODUCTION
+-----------------------------
+After testing locally:
+
+1. Deploy the updated code to production server
+2. Restart production server (gunicorn/uvicorn)
+3. Clear all sessions in production database:
+    UPDATE users SET active_session_token = NULL, session_created_at = NULL;
+4. Test with real users
+5. Monitor error logs for 24 hours
+
+
+================================================================================
+WHAT WAS CHANGED
+================================================================================
+
+File: Backend\utils\dependencies.py
+Lines: 123-140
+
+BEFORE (BROKEN):
+    if user.active_session_token and user.active_session_token != token:
+        raise HTTPException(...)
+
+Problem: When active_session_token is NULL, the check is SKIPPED!
+
+AFTER (FIXED):
+    if not user.active_session_token:
+        raise HTTPException(...)  # Reject if NULL
+    
+    if user.active_session_token != token:
+        raise HTTPException(...)  # Reject if mismatch
+
+Solution: ALWAYS check session, even when NULL!
+
+
+================================================================================
+TROUBLESHOOTING
+================================================================================
+
+Problem: Still logged in after database refresh
+Solution: 
+    1. Verify backend server was restarted (check Task Manager)
+    2. Clear browser cache and cookies
+    3. Clear Python cache (see STEP 3)
+    4. Restart backend again
+    5. Check if you're editing the correct file
+
+Problem: "Module not found" error when starting
+Solution:
+    cd Backend
+    .venv\Scripts\activate
+    pip install -r requirements.txt
+
+Problem: Port 8000 already in use
+Solution:
+    netstat -ano | findstr :8000
+    taskkill /F /PID <PID_NUMBER>
+
+Problem: Changes not taking effect
+Solution:
+    1. Stop ALL Python processes
+    2. Delete ALL __pycache__ folders
+    3. Delete ALL .pyc files
+    4. Restart backend
+    5. Hard refresh browser (Ctrl + Shift + R)
+
+
+================================================================================
+VERIFICATION CHECKLIST
+================================================================================
+
+[ ] Backend server stopped completely
+[ ] Python cache cleared
+[ ] Backend server restarted
+[ ] Server startup logs show no errors
+[ ] Login works normally
+[ ] After database refresh, users are logged out
+[ ] Multi-browser login invalidates old session
+[ ] No errors in server logs
+
+
+================================================================================
+SUPPORT
+================================================================================
+
+If the fix is still not working after following ALL steps:
+
+1. Check server logs for errors
+2. Verify the code changes are in the file
+3. Ensure you're testing against the correct server (localhost:8000)
+4. Check if there are multiple backend servers running
+5. Verify database connection is working
+
+
+================================================================================
+PRODUCTION DEPLOYMENT NOTES
+================================================================================
+
+For production deployment:
+
+1. Schedule maintenance window (users will be logged out)
+2. Backup database before deployment
+3. Deploy updated code
+4. Restart production server
+5. Run SQL to clear all sessions:
+    UPDATE users SET active_session_token = NULL, session_created_at = NULL;
+6. Send notification to users about re-login requirement
+7. Monitor error logs and user reports
+8. Have rollback plan ready
+
+
+================================================================================
+END OF INSTRUCTIONS
+================================================================================
+
+Last Updated: 2026-05-17
+Fix Applied By: Kiro AI Assistant
+Priority: CRITICAL
+Status: CODE FIXED, AWAITING SERVER RESTART

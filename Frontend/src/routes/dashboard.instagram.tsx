@@ -54,6 +54,7 @@ import { InstagramSettingsModal } from "@/components/instagram/InstagramSettings
 import { InstagramConnectionSuccess } from "@/components/instagram/InstagramConnectionSuccess";
 import { InstagramAnalyticsDashboard } from "@/components/instagram/InstagramAnalyticsDashboard";
 import { PromotePostModal } from "@/components/meta-ads/PromotePostModal";
+import { InstagramLoader } from "@/components/instagram/InstagramLoader";
 
 export const Route = createFileRoute("/dashboard/instagram")({
   head: () => ({ meta: [{ title: "Instagram — Saadhyam AI" }] }),
@@ -806,6 +807,11 @@ function InstagramPage() {
   };
 
   if (!mounted) return null;
+
+  // Show full-page loader while checking connection status
+  if (connectionLoading) {
+    return <InstagramLoader />;
+  }
 
   // Show success page after connection
   if (showSuccessPage) {

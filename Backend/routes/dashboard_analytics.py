@@ -116,7 +116,7 @@ async def get_dashboard_analytics(
             # Active campaigns
             active_campaigns = db.query(WhatsAppCampaign).filter(
                 WhatsAppCampaign.user_id == current_user.id,
-                WhatsAppCampaign.status == "active"
+                WhatsAppCampaign.campaign_status == "running"
             ).count()
             
             # Total campaigns this month

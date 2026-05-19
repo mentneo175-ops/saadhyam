@@ -27,6 +27,9 @@ import { MetricsGrid } from "@/components/business-analysis/MetricCards";
 import { AnalyticsSection } from "@/components/business-analysis/AnalyticsCharts";
 import { InsightPanels } from "@/components/business-analysis/InsightPanels";
 import { buildBusinessMetricsData, buildSwotData } from "@/components/business-analysis/utils";
+import { Clock, Download, RefreshCw, Sparkles } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/dashboard/PageHeader";
 
 export const Route = createFileRoute("/dashboard/business-analysis")({
   head: () => ({ meta: [{ title: "Business Analysis — Saadhyam AI" }] }),
@@ -150,12 +153,6 @@ function BusinessAnalysisPage() {
       });
       const data = await getBusinessAnalysisData(token);
       setAnalysis(data);
-<<<<<<< HEAD
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Failed to analyze business";
-      console.error("Error analyzing:", err);
-      setError(message);
-=======
       
       // Start cooldown ONLY after successfully getting complete data
       regenerateCooldown.execute();
@@ -163,7 +160,6 @@ function BusinessAnalysisPage() {
       console.error("Error analyzing:", err);
       setError(err.message || "Failed to analyze business");
       // Don't start cooldown if analysis failed - user can retry
->>>>>>> 369e39404d428dae59c4751e99b5e01ddf530cc4
     } finally {
       setIsAnalyzing(false);
     }
@@ -294,12 +290,6 @@ function BusinessAnalysisPage() {
 
   if (!analysis && status?.status === "not_started") {
     return (
-<<<<<<< HEAD
-      <PageShell>
-        {header}
-        <NotStartedState onAnalyze={handleAnalyze} />
-      </PageShell>
-=======
       <div className="p-4 md:p-6 space-y-5">
         <PageHeader
           title="Business Analysis"
@@ -332,7 +322,6 @@ function BusinessAnalysisPage() {
           <p className="text-xs text-gray-500 mt-4">Takes 2-3 minutes • Powered by Google AI Studio Gemini</p>
         </div>
       </div>
->>>>>>> 369e39404d428dae59c4751e99b5e01ddf530cc4
     );
   }
 
@@ -346,15 +335,6 @@ function BusinessAnalysisPage() {
   }
 
   return (
-<<<<<<< HEAD
-    <PageShell>
-      <div className="sticky top-0 z-20 -mx-1 rounded-xl border border-border/50 bg-background/80 px-5 py-5 shadow-[0_8px_32px_-12px_oklch(0.45_0.15_295/0.12)] backdrop-blur-xl md:-mx-2 md:px-6">
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/35 to-transparent"
-        />
-        {header}
-=======
     <div className="p-4 md:p-6 space-y-6">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
@@ -410,7 +390,6 @@ function BusinessAnalysisPage() {
             </span>
           </Button>
         </div>
->>>>>>> 369e39404d428dae59c4751e99b5e01ddf530cc4
       </div>
 
       {analysis?.business_details && (
@@ -439,6 +418,6 @@ function BusinessAnalysisPage() {
         opportunities={analysis?.growth_opportunities ?? []}
         localMarket={analysis?.local_market_insights}
       />
-    </PageShell>
+    </div>
   );
 }

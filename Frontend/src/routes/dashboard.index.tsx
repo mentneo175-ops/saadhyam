@@ -80,7 +80,7 @@ function Overview() {
   // Onboarding state
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [checkingProfile, setCheckingProfile] = useState(true);
-  
+
   // Dashboard loading state (for first-time users after onboarding)
   const [isDashboardLoading, setIsDashboardLoading] = useState(false);
   const [dashboardReady, setDashboardReady] = useState(false);
@@ -116,10 +116,10 @@ function Overview() {
             setShowOnboarding(true);
           } else {
             // Check if this is first load after onboarding
-            const isFirstLoad = sessionStorage.getItem('dashboard_first_load');
-            if (isFirstLoad === 'true') {
+            const isFirstLoad = sessionStorage.getItem("dashboard_first_load");
+            if (isFirstLoad === "true") {
               setIsDashboardLoading(true);
-              sessionStorage.removeItem('dashboard_first_load');
+              sessionStorage.removeItem("dashboard_first_load");
             }
           }
           setCheckingProfile(false);
@@ -217,26 +217,8 @@ function Overview() {
           const data = await getGrowthPlanData(token);
           setGrowthPlan(data);
 
-          // Also try to load business analysis for insights panel
-          try {
-            const analysisResponse = await fetch(
-              "http://localhost:8000/api/comprehensive-analysis/business-analysis",
-              {
-                headers: { Authorization: `Bearer ${token}` },
-              },
-            );
-            if (analysisResponse.ok) {
-              const analysisData = await analysisResponse.json();
-              console.log("✅ Loaded business analysis for insights panel:", analysisData);
-              // Store in analysis state for InsightsPanel
-              setAnalysis({
-                status: "success",
-                analysis: analysisData,
-              } as any);
-            }
-          } catch (err) {
-            console.warn("Could not load business analysis for insights panel:", err);
-          }
+          // Note: Business analysis is already loaded by useRealtimeBusiness hook
+          // No need to fetch it separately here
         }
       } catch (err) {
         console.error("Failed to load growth plan:", err);
@@ -274,7 +256,7 @@ function Overview() {
   const handleOnboardingComplete = () => {
     setShowOnboarding(false);
     // Set flag for first load
-    sessionStorage.setItem('dashboard_first_load', 'true');
+    sessionStorage.setItem("dashboard_first_load", "true");
     // Show loading screen
     setIsDashboardLoading(true);
     // Reload page to fetch new data
@@ -283,7 +265,14 @@ function Overview() {
 
   // Monitor when dashboard data is fully loaded
   useEffect(() => {
-    if (isDashboardLoading && !profileLoading && !analysisLoading && !insightsLoading && profile && analysis) {
+    if (
+      isDashboardLoading &&
+      !profileLoading &&
+      !analysisLoading &&
+      !insightsLoading &&
+      profile &&
+      analysis
+    ) {
       // Wait a bit more to ensure everything is rendered
       const timer = setTimeout(() => {
         setDashboardReady(true);
@@ -488,10 +477,7 @@ function Overview() {
   return (
     <>
       {/* Dashboard Loading Screen - Shows after onboarding */}
-      <DashboardLoader 
-        isLoading={isDashboardLoading} 
-        message="Analyzing your business"
-      />
+      <DashboardLoader isLoading={isDashboardLoading} message="Analyzing your business" />
 
       {/* Business Onboarding Modal */}
       <BusinessOnboarding isOpen={showOnboarding} onComplete={handleOnboardingComplete} />
@@ -534,12 +520,7 @@ function Overview() {
           {!checkingProfile && (
             <>
               {/* Welcome Header */}
-              <div className="mb-6">
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                  Welcome back, {profile?.business_name || profile?.name || 'Business Owner'}
-                </h1>
-                <p className="text-gray-600">Here's what's happening with your business today</p>
-              </div>
+              
 
               {/* Snapshot cards */}
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">

@@ -209,7 +209,7 @@ function ReviewReplyPage() {
 
   const handleCopyReply = async () => {
     if (!generatedReply) return;
-    
+
     try {
       await navigator.clipboard.writeText(generatedReply);
       setCopied(true);
@@ -234,7 +234,7 @@ function ReviewReplyPage() {
 
   const handleCopyHistoryReply = async (reply: string, event: React.MouseEvent) => {
     event.stopPropagation(); // Prevent loading the history item
-    
+
     try {
       await navigator.clipboard.writeText(reply);
       // You could add a toast notification here

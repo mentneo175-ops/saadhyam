@@ -243,7 +243,14 @@ function AEOGEOPage() {
       alert("Blog published successfully and integrated into your confirmed website!");
     } catch (err: any) {
       console.error("Error publishing blog:", err);
-      setError(err.message || "Failed to publish blog");
+      const errorMessage = err.message || "Failed to publish blog";
+      
+      // Check if error is about missing website
+      if (errorMessage.includes("create a website first") || errorMessage.includes("Website AI")) {
+        alert("⚠️ Website Required\n\nYou need to create a website first before publishing blogs.\n\nPlease go to 'Website AI' in the sidebar to create your website, then come back to publish your blogs.");
+      } else {
+        setError(errorMessage);
+      }
     }
   };
 

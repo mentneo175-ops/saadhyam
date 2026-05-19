@@ -26,18 +26,28 @@ echo [INFO] Python and Node.js detected
 echo.
 
 REM Check if virtual environment exists
-if not exist ".venv\Scripts\activate.bat" (
-    echo [ERROR] Virtual environment not found at .venv!
-    echo The .venv folder should be in the root directory
+if not exist "Backend\venv\Scripts\activate.bat" (
+    echo [ERROR] Virtual environment not found at Backend\venv!
+    echo Please create virtual environment: cd Backend && python -m venv venv
     pause
     exit /b 1
+)
+
+REM Check if Redis is running
+echo [INFO] Checking Redis connection...
+python -c "import redis; r = redis.Redis(host='localhost', port=6379); r.ping()" >nul 2>&1
+if errorlevel 1 (
+    echo [WARNING] Redis is not running on port 6379
+    echo Celery tasks will not work without Redis
+    echo Please start Redis server first
+    pause
 )
 
 REM Start Backend Server
 echo ============================================
 echo   Starting Backend Server (Port 8000)
 echo ============================================
-start "Saadhyam Backend" cmd /k ".venv\Scripts\activate && cd Backend && python -m uvicorn main:app --port 8000"
+start "Saadhyam Backend" cmd /k "cd Backend && call venv\Scripts\activate.bat && python -m uvicorn main:app --port 8000"
 echo [SUCCESS] Backend server starting in virtual environment...
 echo.
 
@@ -55,9 +65,7 @@ echo ============================================
 echo   Starting Main Celery Worker
 echo   (Instagram Posts + WhatsApp Automation)
 echo ============================================
-cd Backend
-start "Saadhyam Celery - Worker" cmd /k "call venv\Scripts\activate.bat && python -m celery -A celery_worker worker --loglevel=info --pool=solo"
-cd ..
+start "Saadhyam Celery - Worker" cmd /k "cd Backend && call venv\Scripts\activate.bat && python -m celery -A celery_worker worker --loglevel=info --pool=solo"
 echo [SUCCESS] Main Celery worker starting...
 echo.
 
@@ -66,9 +74,7 @@ echo ============================================
 echo   Starting Celery Beat Scheduler
 echo   (Periodic Tasks)
 echo ============================================
-cd Backend
-start "Saadhyam Celery - Beat" cmd /k "call venv\Scripts\activate.bat && python -m celery -A celery_worker beat --loglevel=info"
-cd ..
+start "Saadhyam Celery - Beat" cmd /k "cd Backend && call venv\Scripts\activate.bat && python -m celery -A celery_worker beat --loglevel=info"
 echo [SUCCESS] Celery Beat scheduler starting...
 echo.
 
@@ -77,10 +83,7 @@ echo ============================================
 echo   Starting Content Creator AI
 echo   (Image Generation - Port 8001)
 echo ============================================
-start "Saadhyam Content Creator AI" cmd /k ".venv\Scripts\activate && cd Backend\ai_models\content_creator && python -m uvicorn app.main:app --reload --port 8001"
-cd Backend
-start "Saadhyam Content Creator AI" cmd /k "call venv\Scripts\activate.bat && cd ai_models\content_creator && python -m uvicorn app.main:app --reload --port 8001"
-cd ..
+start "Saadhyam Content Creator AI" cmd /k "cd Backend && call venv\Scripts\activate.bat && cd ai_models\content_creator && python -m uvicorn app.main:app --reload --port 8001"
 echo [SUCCESS] Content Creator AI starting...
 echo.
 

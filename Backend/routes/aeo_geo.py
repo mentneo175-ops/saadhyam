@@ -543,16 +543,27 @@ class BlogPublishRequest(BaseModel):
 )
 async def publish_blog(
     request: BlogPublishRequest,
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
 ) -> Dict[str, Any]:
     """
     Publish blog post to customer website
+    
+    Requires:
+    - User must have created a website first
     
     Returns:
     - Publish status
     - Website URL
     - Publishing instructions
     """
+    
+    # Check if user has created a website
+    if not current_user.last_generated_website_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="You must create a website first before publishing blogs. Please go to Website AI to create your website."
+        )
     
     result = await publish_blog_to_website(
         user_id=current_user.id,

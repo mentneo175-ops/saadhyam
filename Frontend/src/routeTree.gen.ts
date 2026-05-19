@@ -46,6 +46,7 @@ import { Route as DashboardBlogsRouteImport } from './routes/dashboard.blogs'
 import { Route as DashboardB2bNetworkRouteImport } from './routes/dashboard.b2b-network'
 import { Route as DashboardB2bChatRouteImport } from './routes/dashboard.b2b-chat'
 import { Route as DashboardAutomationRouteImport } from './routes/dashboard.automation'
+import { Route as DashboardAgentsRouteImport } from './routes/dashboard.agents'
 import { Route as DashboardAeoGeoRouteImport } from './routes/dashboard.aeo-geo'
 import { Route as DashboardActionsRouteImport } from './routes/dashboard.actions'
 import { Route as DashboardVoiceAgentIndexRouteImport } from './routes/dashboard.voice-agent.index'
@@ -253,6 +254,11 @@ const DashboardAutomationRoute = DashboardAutomationRouteImport.update({
   path: '/automation',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardAgentsRoute = DashboardAgentsRouteImport.update({
+  id: '/agents',
+  path: '/agents',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardAeoGeoRoute = DashboardAeoGeoRouteImport.update({
   id: '/aeo-geo',
   path: '/aeo-geo',
@@ -270,9 +276,9 @@ const DashboardVoiceAgentIndexRoute =
     getParentRoute: () => DashboardRoute,
   } as any)
 const DashboardAgentsIndexRoute = DashboardAgentsIndexRouteImport.update({
-  id: '/agents/',
-  path: '/agents/',
-  getParentRoute: () => DashboardRoute,
+  id: '/',
+  path: '/',
+  getParentRoute: () => DashboardAgentsRoute,
 } as any)
 const DashboardVoiceAgentSimulatorRoute =
   DashboardVoiceAgentSimulatorRouteImport.update({
@@ -330,15 +336,15 @@ const DashboardInstagramAnalyticsPostsRoute =
   } as any)
 const DashboardAgentsPartnershipRoute =
   DashboardAgentsPartnershipRouteImport.update({
-    id: '/agents/partnership',
-    path: '/agents/partnership',
-    getParentRoute: () => DashboardRoute,
+    id: '/partnership',
+    path: '/partnership',
+    getParentRoute: () => DashboardAgentsRoute,
   } as any)
 const DashboardAgentsCustomerRetentionRoute =
   DashboardAgentsCustomerRetentionRouteImport.update({
-    id: '/agents/customer-retention',
-    path: '/agents/customer-retention',
-    getParentRoute: () => DashboardRoute,
+    id: '/customer-retention',
+    path: '/customer-retention',
+    getParentRoute: () => DashboardAgentsRoute,
   } as any)
 const DashboardVoiceAgentCampaignsCampaignIdRoute =
   DashboardVoiceAgentCampaignsCampaignIdRouteImport.update({
@@ -364,6 +370,7 @@ export interface FileRoutesByFullPath {
   '/verify': typeof VerifyRoute
   '/dashboard/actions': typeof DashboardActionsRoute
   '/dashboard/aeo-geo': typeof DashboardAeoGeoRoute
+  '/dashboard/agents': typeof DashboardAgentsRouteWithChildren
   '/dashboard/automation': typeof DashboardAutomationRoute
   '/dashboard/b2b-chat': typeof DashboardB2bChatRoute
   '/dashboard/b2b-network': typeof DashboardB2bNetworkRoute
@@ -476,6 +483,7 @@ export interface FileRoutesById {
   '/verify': typeof VerifyRoute
   '/dashboard/actions': typeof DashboardActionsRoute
   '/dashboard/aeo-geo': typeof DashboardAeoGeoRoute
+  '/dashboard/agents': typeof DashboardAgentsRouteWithChildren
   '/dashboard/automation': typeof DashboardAutomationRoute
   '/dashboard/b2b-chat': typeof DashboardB2bChatRoute
   '/dashboard/b2b-network': typeof DashboardB2bNetworkRoute
@@ -534,6 +542,7 @@ export interface FileRouteTypes {
     | '/verify'
     | '/dashboard/actions'
     | '/dashboard/aeo-geo'
+    | '/dashboard/agents'
     | '/dashboard/automation'
     | '/dashboard/b2b-chat'
     | '/dashboard/b2b-network'
@@ -645,6 +654,7 @@ export interface FileRouteTypes {
     | '/verify'
     | '/dashboard/actions'
     | '/dashboard/aeo-geo'
+    | '/dashboard/agents'
     | '/dashboard/automation'
     | '/dashboard/b2b-chat'
     | '/dashboard/b2b-network'
@@ -964,6 +974,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardAutomationRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/agents': {
+      id: '/dashboard/agents'
+      path: '/agents'
+      fullPath: '/dashboard/agents'
+      preLoaderRoute: typeof DashboardAgentsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/aeo-geo': {
       id: '/dashboard/aeo-geo'
       path: '/aeo-geo'
@@ -987,10 +1004,10 @@ declare module '@tanstack/react-router' {
     }
     '/dashboard/agents/': {
       id: '/dashboard/agents/'
-      path: '/agents'
+      path: '/'
       fullPath: '/dashboard/agents/'
       preLoaderRoute: typeof DashboardAgentsIndexRouteImport
-      parentRoute: typeof DashboardRoute
+      parentRoute: typeof DashboardAgentsRoute
     }
     '/dashboard/voice-agent/simulator': {
       id: '/dashboard/voice-agent/simulator'
@@ -1057,17 +1074,17 @@ declare module '@tanstack/react-router' {
     }
     '/dashboard/agents/partnership': {
       id: '/dashboard/agents/partnership'
-      path: '/agents/partnership'
+      path: '/partnership'
       fullPath: '/dashboard/agents/partnership'
       preLoaderRoute: typeof DashboardAgentsPartnershipRouteImport
-      parentRoute: typeof DashboardRoute
+      parentRoute: typeof DashboardAgentsRoute
     }
     '/dashboard/agents/customer-retention': {
       id: '/dashboard/agents/customer-retention'
-      path: '/agents/customer-retention'
+      path: '/customer-retention'
       fullPath: '/dashboard/agents/customer-retention'
       preLoaderRoute: typeof DashboardAgentsCustomerRetentionRouteImport
-      parentRoute: typeof DashboardRoute
+      parentRoute: typeof DashboardAgentsRoute
     }
     '/dashboard/voice-agent/campaigns/$campaignId': {
       id: '/dashboard/voice-agent/campaigns/$campaignId'
@@ -1085,6 +1102,22 @@ declare module '@tanstack/react-router' {
     }
   }
 }
+
+interface DashboardAgentsRouteChildren {
+  DashboardAgentsCustomerRetentionRoute: typeof DashboardAgentsCustomerRetentionRoute
+  DashboardAgentsPartnershipRoute: typeof DashboardAgentsPartnershipRoute
+  DashboardAgentsIndexRoute: typeof DashboardAgentsIndexRoute
+}
+
+const DashboardAgentsRouteChildren: DashboardAgentsRouteChildren = {
+  DashboardAgentsCustomerRetentionRoute: DashboardAgentsCustomerRetentionRoute,
+  DashboardAgentsPartnershipRoute: DashboardAgentsPartnershipRoute,
+  DashboardAgentsIndexRoute: DashboardAgentsIndexRoute,
+}
+
+const DashboardAgentsRouteWithChildren = DashboardAgentsRoute._addFileChildren(
+  DashboardAgentsRouteChildren,
+)
 
 interface DashboardInstagramAnalyticsRouteChildren {
   DashboardInstagramAnalyticsPostsRoute: typeof DashboardInstagramAnalyticsPostsRoute
@@ -1145,6 +1178,7 @@ const DashboardVoiceAgentCampaignsRouteWithChildren =
 interface DashboardRouteChildren {
   DashboardActionsRoute: typeof DashboardActionsRoute
   DashboardAeoGeoRoute: typeof DashboardAeoGeoRoute
+  DashboardAgentsRoute: typeof DashboardAgentsRouteWithChildren
   DashboardAutomationRoute: typeof DashboardAutomationRoute
   DashboardB2bChatRoute: typeof DashboardB2bChatRoute
   DashboardB2bNetworkRoute: typeof DashboardB2bNetworkRoute
@@ -1173,8 +1207,6 @@ interface DashboardRouteChildren {
   DashboardWhatsappRoute: typeof DashboardWhatsappRoute
   DashboardWhatsappSalesRoute: typeof DashboardWhatsappSalesRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
-  DashboardAgentsCustomerRetentionRoute: typeof DashboardAgentsCustomerRetentionRoute
-  DashboardAgentsPartnershipRoute: typeof DashboardAgentsPartnershipRoute
   DashboardVoiceAgentAnalyticsRoute: typeof DashboardVoiceAgentAnalyticsRoute
   DashboardVoiceAgentCampaignsRoute: typeof DashboardVoiceAgentCampaignsRouteWithChildren
   DashboardVoiceAgentConversationsRoute: typeof DashboardVoiceAgentConversationsRoute
@@ -1182,13 +1214,13 @@ interface DashboardRouteChildren {
   DashboardVoiceAgentLeadsRoute: typeof DashboardVoiceAgentLeadsRoute
   DashboardVoiceAgentScriptGeneratorRoute: typeof DashboardVoiceAgentScriptGeneratorRoute
   DashboardVoiceAgentSimulatorRoute: typeof DashboardVoiceAgentSimulatorRoute
-  DashboardAgentsIndexRoute: typeof DashboardAgentsIndexRoute
   DashboardVoiceAgentIndexRoute: typeof DashboardVoiceAgentIndexRoute
 }
 
 const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardActionsRoute: DashboardActionsRoute,
   DashboardAeoGeoRoute: DashboardAeoGeoRoute,
+  DashboardAgentsRoute: DashboardAgentsRouteWithChildren,
   DashboardAutomationRoute: DashboardAutomationRoute,
   DashboardB2bChatRoute: DashboardB2bChatRoute,
   DashboardB2bNetworkRoute: DashboardB2bNetworkRoute,
@@ -1218,8 +1250,6 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardWhatsappRoute: DashboardWhatsappRoute,
   DashboardWhatsappSalesRoute: DashboardWhatsappSalesRoute,
   DashboardIndexRoute: DashboardIndexRoute,
-  DashboardAgentsCustomerRetentionRoute: DashboardAgentsCustomerRetentionRoute,
-  DashboardAgentsPartnershipRoute: DashboardAgentsPartnershipRoute,
   DashboardVoiceAgentAnalyticsRoute: DashboardVoiceAgentAnalyticsRoute,
   DashboardVoiceAgentCampaignsRoute:
     DashboardVoiceAgentCampaignsRouteWithChildren,
@@ -1230,7 +1260,6 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardVoiceAgentScriptGeneratorRoute:
     DashboardVoiceAgentScriptGeneratorRoute,
   DashboardVoiceAgentSimulatorRoute: DashboardVoiceAgentSimulatorRoute,
-  DashboardAgentsIndexRoute: DashboardAgentsIndexRoute,
   DashboardVoiceAgentIndexRoute: DashboardVoiceAgentIndexRoute,
 }
 

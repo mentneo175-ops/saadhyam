@@ -139,61 +139,7 @@ export function Sidebar() {
           );
         })}
       </nav>
-      <div className="p-3 border-t border-sidebar-border mt-auto">
-        <div className="rounded-xl p-4 bg-gradient-soft border border-border/60 shadow-sm">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="h-8 w-8 rounded-lg bg-gradient-secondary flex items-center justify-center shadow-glow-pink">
-              <Sparkles size={16} className="text-white" />
-            </div>
-            <p className="text-sm font-semibold">Upgrade to Pro</p>
-          </div>
-          <p className="text-xs text-muted-foreground mb-3 leading-relaxed">
-            Unlock unlimited AI generations and advanced insights.
-          </p>
-          <button className="w-full text-xs font-semibold py-2 rounded-lg bg-gradient-primary text-primary-foreground hover:brightness-110 transition shadow-sm hover:shadow-glow">
-            Upgrade
-          </button>
-    <>
-      {/* Mobile Hamburger Button */}
-      <button
-        onClick={toggleMobileMenu}
-        className="lg:hidden fixed top-3 left-3 z-50 p-2 rounded-lg bg-white border border-purple-200 shadow-lg hover:bg-purple-50 transition-colors"
-        aria-label="Toggle menu"
-      >
-        {isMobileMenuOpen ? (
-          <X size={24} className="text-purple-600" />
-        ) : (
-          <Menu size={24} className="text-purple-600" />
-        )}
-      </button>
-
-      {/* Mobile Overlay */}
-      {isMobileMenuOpen && (
-        <div
-          className="lg:hidden fixed inset-0 bg-black/50 z-40 backdrop-blur-sm"
-          onClick={closeMobileMenu}
-        />
-      )}
-
-      {/* Mobile Sidebar */}
-      <aside
-        className={`lg:hidden fixed top-0 left-0 z-40 w-64 h-screen bg-white border-r border-purple-200 transform transition-transform duration-300 ease-in-out ${
-          isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
-      >
-        <div className="px-4 h-14 flex items-center border-b border-purple-200">
-          <Logo size="sm" />
-        </div>
-        <NavContent />
-      </aside>
-
-      {/* Desktop Sidebar */}
-      <aside className="hidden lg:flex flex-col w-64 shrink-0 border-r border-purple-200 bg-white h-screen sticky top-0">
-        <div className="px-4 h-14 flex items-center border-b border-purple-200">
-          <Logo size="sm" />
-        </div>
-        <NavContent />
-      </aside>
-    </>
+      
+    </aside>
   );
 }

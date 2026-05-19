@@ -13,7 +13,7 @@ from config.settings import settings
 logger = logging.getLogger(__name__)
 
 # Configure Gemini API
-GEMINI_MODEL = "gemini-2.5-flash"  # Updated to current stable model
+GEMINI_MODEL = "gemini-1.5-flash"  # Stable and reliable model
 GEMINI_API_KEY = settings.GEMINI_API_KEY
 
 

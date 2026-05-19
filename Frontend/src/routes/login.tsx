@@ -65,6 +65,10 @@ function LoginPage() {
 
     try {
       await loginWithGoogle();
+      
+      // Wait a moment for auth state to update
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       notifySuccess("Welcome back!", "Successfully signed in with Google");
       
       try {
@@ -94,6 +98,10 @@ function LoginPage() {
 
     try {
       await loginWithEmail(email, password);
+      
+      // Wait a moment for auth state to update
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       notifySuccess("Welcome back!", "Successfully signed in");
       
       try {

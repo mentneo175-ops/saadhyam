@@ -55,10 +55,14 @@ def generate_embedding(text: str) -> List[float]:
         text: Input text
     
     Returns:
-        List of floats representing the embedding
+        List of floats representing the embedding, or empty list if not available
     """
     try:
         model = get_embedding_model()
+        
+        if model is None:
+            logger.warning("⚠️ Embedding model not available, returning empty embedding")
+            return []
         
         # Generate embedding
         embedding = model.encode(text, convert_to_numpy=True)
@@ -68,7 +72,7 @@ def generate_embedding(text: str) -> List[float]:
         
     except Exception as e:
         logger.error(f"❌ Failed to generate embedding: {e}")
-        raise
+        return []
 
 
 def generate_embeddings_batch(texts: List[str]) -> List[List[float]]:
@@ -79,10 +83,14 @@ def generate_embeddings_batch(texts: List[str]) -> List[List[float]]:
         texts: List of input texts
     
     Returns:
-        List of embeddings
+        List of embeddings, or empty lists if not available
     """
     try:
         model = get_embedding_model()
+        
+        if model is None:
+            logger.warning("⚠️ Embedding model not available, returning empty embeddings")
+            return [[] for _ in texts]
         
         # Generate embeddings in batch (more efficient)
         embeddings = model.encode(texts, convert_to_numpy=True, show_progress_bar=True)
@@ -92,7 +100,7 @@ def generate_embeddings_batch(texts: List[str]) -> List[List[float]]:
         
     except Exception as e:
         logger.error(f"❌ Failed to generate batch embeddings: {e}")
-        raise
+        return [[] for _ in texts]
 
 
 def compute_similarity(text1: str, text2: str) -> float:
@@ -104,10 +112,14 @@ def compute_similarity(text1: str, text2: str) -> float:
         text2: Second text
     
     Returns:
-        Similarity score (0-1)
+        Similarity score (0-1), or 0.0 if not available
     """
     try:
         model = get_embedding_model()
+        
+        if model is None:
+            logger.warning("⚠️ Embedding model not available, returning 0.0 similarity")
+            return 0.0
         
         # Generate embeddings
         embeddings = model.encode([text1, text2], convert_to_numpy=True)
@@ -120,4 +132,4 @@ def compute_similarity(text1: str, text2: str) -> float:
         
     except Exception as e:
         logger.error(f"❌ Failed to compute similarity: {e}")
-        raise
+        return 0.0

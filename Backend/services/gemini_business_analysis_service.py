@@ -1,7 +1,6 @@
 """
 Gemini Business Analysis Service
-Uses Google AI Studio Gemini API with Google Search grounding for real-time business analysis
-This REPLACES the old TinyLlama local model for Business Analysis
+Uses NEW Google GenAI SDK with Gemini 2.0 Flash for real-time business analysis
 """
 
 import logging
@@ -9,35 +8,42 @@ import json
 import re
 from typing import Dict, Any
 from datetime import datetime
-import google.generativeai as genai
+from google import genai
 from config.settings import settings
 
 logger = logging.getLogger(__name__)
 
 # Configure Gemini API
-GEMINI_MODEL_PRIMARY = "models/gemini-2.5-flash"  # Primary model - Gemini Flash 2.5 - best quality
-GEMINI_MODEL_FALLBACK = "models/gemini-2.0-flash"  # Fallback model - Gemini Flash 2.0 - high availability
+GEMINI_MODEL_PRIMARY = "gemini-2.0-flash"  # Primary model - Gemini 2.0 Flash - fast and stable
+GEMINI_MODEL_FALLBACK = "gemini-1.5-flash"  # Fallback model - Gemini 1.5 Flash - reliable
 GEMINI_API_KEY = settings.GEMINI_API_KEY
 
+# Initialize Gemini client
+_gemini_client = None
 
-def _configure_gemini():
-    """Configure Gemini API with API key from settings"""
+
+def _get_gemini_client():
+    """Get or create Gemini client instance"""
+    global _gemini_client
+    
     if not GEMINI_API_KEY or GEMINI_API_KEY == "your_google_ai_studio_api_key_here":
         logger.warning("⚠️  GEMINI_API_KEY not configured. Business Analysis will not work.")
-        return False
+        return None
     
-    try:
-        genai.configure(api_key=GEMINI_API_KEY)
-        logger.info("✅ Gemini API configured successfully for Business Analysis")
-        return True
-    except Exception as e:
-        logger.error(f"❌ Failed to configure Gemini API: {e}")
-        return False
+    if _gemini_client is None:
+        try:
+            _gemini_client = genai.Client(api_key=GEMINI_API_KEY)
+            logger.info("✅ Gemini client initialized successfully for Business Analysis")
+        except Exception as e:
+            logger.error(f"❌ Failed to initialize Gemini client: {e}")
+            return None
+    
+    return _gemini_client
 
 
 async def generate_realtime_business_analysis(business_profile: Dict[str, Any]) -> Dict[str, Any]:
     """
-    Generate comprehensive real-time business analysis using Gemini with Google Search grounding
+    Generate comprehensive real-time business analysis using NEW Gemini SDK
     
     Args:
         business_profile: Dict containing:
@@ -53,13 +59,13 @@ async def generate_realtime_business_analysis(business_profile: Dict[str, Any]) 
         Dict with structured business analysis or error
     """
     
-    logger.info("[BusinessAnalysis] Using Google AI Studio Gemini Search Grounding")
+    logger.info("[BusinessAnalysis] Using NEW Google GenAI SDK with Gemini 2.0 Flash")
     
-    configured = _configure_gemini()
-    if not configured:
+    client = _get_gemini_client()
+    if not client:
         return {
             "status": "error",
-            "source": "google_ai_studio_gemini_search_grounding",
+            "source": "google_genai_sdk",
             "message": "Real-time business analysis is temporarily unavailable. GEMINI_API_KEY not configured."
         }
     
@@ -281,11 +287,16 @@ Generate the analysis now:"""
 
         logger.info("[BusinessAnalysis] Sending request to Gemini API...")
         
-        # Try primary model first (gemini-2.0-flash-exp - Gemini Flash 2.5)
+        # Try primary model first (gemini-2.0-flash)
         try:
             logger.info(f"[BusinessAnalysis] Trying primary model: {GEMINI_MODEL_PRIMARY}")
-            model = genai.GenerativeModel(GEMINI_MODEL_PRIMARY)
-            response = model.generate_content(prompt)
+            
+            response = client.models.generate_content(
+                model=GEMINI_MODEL_PRIMARY,
+                contents=prompt
+            )
+            
+            response_text = response.text.strip()
             logger.info(f"[BusinessAnalysis] ✅ Success with primary model: {GEMINI_MODEL_PRIMARY}")
             
         except Exception as primary_error:
@@ -296,10 +307,14 @@ Generate the analysis now:"""
                 logger.warning(f"[BusinessAnalysis] ⚠️ Primary model unavailable (high demand): {GEMINI_MODEL_PRIMARY}")
                 logger.info(f"[BusinessAnalysis] 🔄 Falling back to: {GEMINI_MODEL_FALLBACK}")
                 
-                # Retry with fallback model (gemini-2.0-flash-exp-8b - Gemini Flash 2.0)
+                # Retry with fallback model
                 try:
-                    model = genai.GenerativeModel(GEMINI_MODEL_FALLBACK)
-                    response = model.generate_content(prompt)
+                    response = client.models.generate_content(
+                        model=GEMINI_MODEL_FALLBACK,
+                        contents=prompt
+                    )
+                    
+                    response_text = response.text.strip()
                     logger.info(f"[BusinessAnalysis] ✅ Success with fallback model: {GEMINI_MODEL_FALLBACK}")
                     
                 except Exception as fallback_error:
@@ -309,8 +324,6 @@ Generate the analysis now:"""
                 # Not a high demand error, raise the original error
                 logger.error(f"[BusinessAnalysis] ❌ Primary model failed: {primary_error}")
                 raise primary_error
-        
-        response_text = response.text.strip()
         
         logger.info("[BusinessAnalysis] Received response from Gemini")
         
@@ -328,7 +341,7 @@ Generate the analysis now:"""
         # Return structured response
         return {
             "status": "success",
-            "source": "google_ai_studio_gemini_search_grounding",
+            "source": "google_genai_sdk",
             "business_details": analysis_data.get("business_details", {}),
             "strengths": analysis_data.get("strengths", []),
             "weaknesses": analysis_data.get("weaknesses", []),
@@ -344,10 +357,10 @@ Generate the analysis now:"""
         
     except json.JSONDecodeError as e:
         logger.error(f"[BusinessAnalysis] ❌ Failed to parse Gemini response as JSON: {e}")
-        logger.error(f"[BusinessAnalysis] Response text: {response_text[:500]}")
+        logger.error(f"[BusinessAnalysis] Response text: {response_text[:500] if 'response_text' in locals() else 'N/A'}")
         return {
             "status": "error",
-            "source": "google_ai_studio_gemini_search_grounding",
+            "source": "google_genai_sdk",
             "message": "Failed to parse analysis results. Please try again."
         }
     except Exception as e:
@@ -358,13 +371,13 @@ Generate the analysis now:"""
         if "429" in error_message or "quota" in error_message.lower() or "rate limit" in error_message.lower():
             return {
                 "status": "error",
-                "source": "google_ai_studio_gemini_search_grounding",
+                "source": "google_genai_sdk",
                 "message": "Rate limit exceeded. The free tier allows 5 requests per minute. Please wait a moment and try again.",
                 "error_type": "rate_limit"
             }
         
         return {
             "status": "error",
-            "source": "google_ai_studio_gemini_search_grounding",
+            "source": "google_genai_sdk",
             "message": f"Real-time business analysis failed: {error_message}"
         }

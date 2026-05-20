@@ -1,7 +1,7 @@
 import logging
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
-from config.database import get_db_sync
+from sqlalchemy.ext.asyncio import AsyncSession
+from config.database import get_db
 from utils.dependencies import get_current_user
 from models.user import User
 from schemas.instagram_schema import (
@@ -23,6 +23,7 @@ from schemas.instagram_schema import (
 )
 from services.instagram_service import instagram_service, InstagramGraphAPIService
 from services.instagram_crud import InstagramCRUD
+from services.meta_oauth_service import meta_oauth_service
 
 logger = logging.getLogger(__name__)
 
@@ -54,7 +55,7 @@ async def get_oauth_url():
 async def oauth_callback(
     request: InstagramOAuthRequest,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db_sync),
+    db: AsyncSession = Depends(get_db),
 ):
     """
     Handle OAuth callback from Instagram.
@@ -62,7 +63,7 @@ async def oauth_callback(
     """
     try:
         # Exchange code for token
-        token_result = await instagram_service.exchange_code_for_token(request.code)
+        token_result = await meta_oauth_service.exchange_code_for_token(request.code)
 
         if not token_result.get("success"):
             raise HTTPException(
@@ -112,7 +113,7 @@ async def oauth_callback(
 )
 async def get_accounts(
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db_sync),
+    db: AsyncSession = Depends(get_db),
 ):
     """Get all connected social accounts for the current user."""
     accounts = await InstagramCRUD.get_user_social_accounts(db, current_user.id)
@@ -130,7 +131,7 @@ async def get_accounts(
 async def disconnect_account(
     account_id: int,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db_sync),
+    db: AsyncSession = Depends(get_db),
 ):
     """Disconnect a social media account."""
     account = await InstagramCRUD.get_social_account(db, account_id)
@@ -157,7 +158,7 @@ async def disconnect_account(
 async def post_immediately(
     request: InstantPostRequest,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db_sync),
+    db: AsyncSession = Depends(get_db),
 ):
     """
     Post image immediately to Instagram.
@@ -227,7 +228,7 @@ async def post_immediately(
 async def schedule_post(
     request: ScheduledPostRequest,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db_sync),
+    db: AsyncSession = Depends(get_db),
 ):
     """
     Schedule a post to be published at a specific time.
@@ -272,7 +273,7 @@ async def schedule_post(
 async def bulk_schedule(
     request: BulkScheduleRequest,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db_sync),
+    db: AsyncSession = Depends(get_db),
 ):
     """Schedule multiple posts at once."""
     # Verify account ownership
@@ -327,11 +328,11 @@ async def get_posts(
     limit: int = 50,
     page: int = 1,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db_sync),
+    db: AsyncSession = Depends(get_db),
 ):
     """Get user's scheduled posts with pagination."""
     offset = (page - 1) * limit
-    posts, total = InstagramCRUD.get_user_posts(
+    posts, total = await InstagramCRUD.get_user_posts(
         db=db,
         user_id=current_user.id,
         skip=offset,
@@ -360,7 +361,7 @@ async def update_post_caption(
     post_id: int,
     request: UpdatePostCaptionRequest,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db_sync),
+    db: AsyncSession = Depends(get_db),
 ):
     """Update caption of a scheduled post (before posting)."""
     post = await InstagramCRUD.get_scheduled_post(db, post_id)
@@ -390,7 +391,7 @@ async def update_post_caption(
 async def delete_post(
     post_id: int,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db_sync),
+    db: AsyncSession = Depends(get_db),
 ):
     """Delete a scheduled post."""
     post = await InstagramCRUD.get_scheduled_post(db, post_id)
@@ -429,7 +430,7 @@ async def delete_post(
 async def generate_caption(
     request: GenerateCaptionRequest,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db_sync),
+    db: AsyncSession = Depends(get_db),
 ):
     """
     Generate caption using AI with smart content generator.
@@ -526,7 +527,7 @@ async def generate_caption(
 async def get_post_analytics(
     post_id: int,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db_sync),
+    db: AsyncSession = Depends(get_db),
 ):
     """Get analytics for a specific post."""
     post = await InstagramCRUD.get_scheduled_post(db, post_id)
@@ -556,7 +557,7 @@ async def get_post_analytics(
 async def get_account_analytics(
     account_id: int,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db_sync),
+    db: AsyncSession = Depends(get_db),
 ):
     """Get aggregated analytics for an account."""
     account = await InstagramCRUD.get_social_account(db, account_id)

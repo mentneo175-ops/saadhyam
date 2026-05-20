@@ -1,12 +1,12 @@
 """
-Instagram CRUD operations for managing social accounts and scheduled posts (Sync version).
+Instagram CRUD operations for managing social accounts and scheduled posts (Async version).
 """
 
 import logging
 from typing import List, Tuple, Optional
 from datetime import datetime
-from sqlalchemy.orm import Session
-from sqlalchemy import select, and_, desc
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, and_, desc, func
 from models.instagram import SocialAccount, ScheduledPost, PostAnalytics, PostStatus
 from schemas.instagram_schema import (
     SocialAccountResponse,
@@ -17,11 +17,11 @@ logger = logging.getLogger(__name__)
 
 
 class InstagramCRUD:
-    """CRUD operations for Instagram-related database models (sync version)."""
+    """CRUD operations for Instagram-related database models (async version)."""
 
     @staticmethod
-    def create_social_account(
-        db: Session,
+    async def create_social_account(
+        db: AsyncSession,
         user_id: int,
         platform: str,
         access_token: str,
@@ -41,7 +41,7 @@ class InstagramCRUD:
                     SocialAccount.ig_user_id == ig_user_id,
                 )
             )
-            result = db.execute(stmt)
+            result = await db.execute(stmt)
             existing_account = result.scalar_one_or_none()
             
             if existing_account:
@@ -56,8 +56,8 @@ class InstagramCRUD:
                 existing_account.disconnected_at = None
                 existing_account.connected_at = datetime.utcnow()
                 db.add(existing_account)
-                db.commit()
-                db.refresh(existing_account)
+                await db.commit()
+                await db.refresh(existing_account)
                 logger.info(f"Reactivated social account {existing_account.id} for user {user_id}")
                 return existing_account
             else:
@@ -74,18 +74,18 @@ class InstagramCRUD:
                     is_active=True,
                 )
                 db.add(account)
-                db.commit()
-                db.refresh(account)
+                await db.commit()
+                await db.refresh(account)
                 logger.info(f"Created new social account {account.id} for user {user_id}")
                 return account
         except Exception as e:
-            db.rollback()
+            await db.rollback()
             logger.error(f"Error creating/reactivating social account: {e}")
             raise
 
     @staticmethod
-    def get_user_social_accounts(
-        db: Session, user_id: int
+    async def get_user_social_accounts(
+        db: AsyncSession, user_id: int
     ) -> List[SocialAccount]:
         """Get all social accounts for a user."""
         try:
@@ -95,21 +95,21 @@ class InstagramCRUD:
                     SocialAccount.is_active == True,
                 )
             )
-            result = db.execute(stmt)
+            result = await db.execute(stmt)
             accounts = result.scalars().all()
-            return accounts
+            return list(accounts)
         except Exception as e:
             logger.error(f"Error fetching user social accounts: {e}")
             raise
 
     @staticmethod
-    def get_social_account(
-        db: Session, account_id: int
+    async def get_social_account(
+        db: AsyncSession, account_id: int
     ) -> Optional[SocialAccount]:
         """Get a specific social account by ID."""
         try:
             stmt = select(SocialAccount).where(SocialAccount.id == account_id)
-            result = db.execute(stmt)
+            result = await db.execute(stmt)
             account = result.scalar_one_or_none()
             return account
         except Exception as e:
@@ -117,10 +117,10 @@ class InstagramCRUD:
             raise
 
     @staticmethod
-    def disconnect_account(db: Session, account_id: int) -> bool:
+    async def disconnect_account(db: AsyncSession, account_id: int) -> bool:
         """Disconnect (deactivate) a social account."""
         try:
-            account = InstagramCRUD.get_social_account(db, account_id)
+            account = await InstagramCRUD.get_social_account(db, account_id)
             if not account:
                 logger.warning(f"Social account {account_id} not found")
                 return False
@@ -128,17 +128,17 @@ class InstagramCRUD:
             account.is_active = False
             account.disconnected_at = datetime.utcnow()
             db.add(account)
-            db.commit()
+            await db.commit()
             logger.info(f"Disconnected social account {account_id}")
             return True
         except Exception as e:
-            db.rollback()
+            await db.rollback()
             logger.error(f"Error disconnecting account {account_id}: {e}")
             raise
 
     @staticmethod
-    def create_scheduled_post(
-        db: Session,
+    async def create_scheduled_post(
+        db: AsyncSession,
         user_id: int,
         social_account_id: int,
         image_url: str,
@@ -163,23 +163,23 @@ class InstagramCRUD:
                 status=status,
             )
             db.add(post)
-            db.commit()
-            db.refresh(post)
+            await db.commit()
+            await db.refresh(post)
             logger.info(f"Created scheduled post {post.id} for user {user_id}")
             return post
         except Exception as e:
-            db.rollback()
+            await db.rollback()
             logger.error(f"Error creating scheduled post: {e}")
             raise
 
     @staticmethod
-    def get_scheduled_post(
-        db: Session, post_id: int
+    async def get_scheduled_post(
+        db: AsyncSession, post_id: int
     ) -> Optional[ScheduledPost]:
         """Get a scheduled post by ID."""
         try:
             stmt = select(ScheduledPost).where(ScheduledPost.id == post_id)
-            result = db.execute(stmt)
+            result = await db.execute(stmt)
             post = result.scalar_one_or_none()
             return post
         except Exception as e:
@@ -187,17 +187,17 @@ class InstagramCRUD:
             raise
 
     @staticmethod
-    def get_user_posts(
-        db: Session, user_id: int, skip: int = 0, limit: int = 10
+    async def get_user_posts(
+        db: AsyncSession, user_id: int, skip: int = 0, limit: int = 10
     ) -> Tuple[List[ScheduledPost], int]:
         """Get user's scheduled posts with pagination."""
         try:
             # Get total count
-            count_stmt = select(ScheduledPost).where(
+            count_stmt = select(func.count(ScheduledPost.id)).where(
                 ScheduledPost.user_id == user_id
             )
-            count_result = db.execute(count_stmt)
-            total = len(count_result.scalars().all())
+            count_result = await db.execute(count_stmt)
+            total = count_result.scalar()
 
             # Get paginated results
             stmt = (
@@ -207,27 +207,27 @@ class InstagramCRUD:
                 .offset(skip)
                 .limit(limit)
             )
-            result = db.execute(stmt)
+            result = await db.execute(stmt)
             posts = result.scalars().all()
-            return posts, total
+            return list(posts), total
         except Exception as e:
             logger.error(f"Error fetching user posts: {e}")
             raise
 
     @staticmethod
-    def update_post_status(
-        db: Session,
+    async def update_post_status(
+        db: AsyncSession,
         post_id: int,
         status: str,
         error_message: Optional[str] = None,
         instagram_post_id: Optional[str] = None,
-    ) -> bool:
+    ) -> ScheduledPost:
         """Update a post's status."""
         try:
-            post = InstagramCRUD.get_scheduled_post(db, post_id)
+            post = await InstagramCRUD.get_scheduled_post(db, post_id)
             if not post:
                 logger.warning(f"Scheduled post {post_id} not found")
-                return False
+                return None
 
             post.status = status
             if error_message:
@@ -237,49 +237,51 @@ class InstagramCRUD:
                 post.posted_time = datetime.utcnow()
 
             db.add(post)
-            db.commit()
+            await db.commit()
+            await db.refresh(post)
             logger.info(f"Updated post {post_id} status to {status}")
-            return True
+            return post
         except Exception as e:
-            db.rollback()
+            await db.rollback()
             logger.error(f"Error updating post status: {e}")
             raise
 
     @staticmethod
-    def update_post_caption(
-        db: Session, post_id: int, caption: str
+    async def update_post_caption(
+        db: AsyncSession, post_id: int, caption: str
     ) -> Optional[ScheduledPost]:
         """Update a post's caption."""
         try:
-            post = InstagramCRUD.get_scheduled_post(db, post_id)
+            post = await InstagramCRUD.get_scheduled_post(db, post_id)
             if not post:
                 logger.warning(f"Scheduled post {post_id} not found")
                 return None
 
             post.caption = caption
             db.add(post)
-            db.commit()
-            db.refresh(post)
+            await db.commit()
+            await db.refresh(post)
             logger.info(f"Updated post {post_id} caption")
             return post
         except Exception as e:
-            db.rollback()
+            await db.rollback()
             logger.error(f"Error updating post caption: {e}")
             raise
 
     @staticmethod
-    def bulk_create_posts(
-        db: Session,
+    async def bulk_create_posts(
+        db: AsyncSession,
         user_id: int,
-        posts_data: List[dict],
+        social_account_id: int,
+        posts: List[dict],
     ) -> List[ScheduledPost]:
         """Create multiple scheduled posts at once."""
         try:
-            posts = []
-            for post_data in posts_data:
+            created_posts = []
+            for post_data in posts:
                 post = ScheduledPost(
                     user_id=user_id,
-                    social_account_id=post_data.get("social_account_id"),
+                    social_account_id=social_account_id,
                     image_url=post_data.get("image_url"),
                     caption=post_data.get("caption"),
                     scheduled_time=post_data.get("scheduled_time"),
@@ -290,26 +292,26 @@ class InstagramCRUD:
                         else PostStatus.PENDING.value
                     ),
                 )
-                posts.append(post)
+                created_posts.append(post)
                 db.add(post)
 
-            db.commit()
-            for post in posts:
-                db.refresh(post)
-            logger.info(f"Created {len(posts)} scheduled posts for user {user_id}")
-            return posts
+            await db.commit()
+            for post in created_posts:
+                await db.refresh(post)
+            logger.info(f"Created {len(created_posts)} scheduled posts for user {user_id}")
+            return created_posts
         except Exception as e:
-            db.rollback()
+            await db.rollback()
             logger.error(f"Error bulk creating posts: {e}")
             raise
 
     @staticmethod
-    def get_analytics(
-        db: Session, post_id: int
+    async def get_analytics(
+        db: AsyncSession, post_id: int
     ) -> Optional[dict]:
         """Get analytics for a specific post."""
         try:
-            post = InstagramCRUD.get_scheduled_post(db, post_id)
+            post = await InstagramCRUD.get_scheduled_post(db, post_id)
             if not post:
                 logger.warning(f"Scheduled post {post_id} not found")
                 return None
@@ -318,7 +320,7 @@ class InstagramCRUD:
             stmt = select(PostAnalytics).where(
                 PostAnalytics.scheduled_post_id == post_id
             )
-            result = db.execute(stmt)
+            result = await db.execute(stmt)
             analytics = result.scalar_one_or_none()
 
             if not analytics:
@@ -343,10 +345,9 @@ class InstagramCRUD:
             logger.error(f"Error fetching analytics for post {post_id}: {e}")
             raise
 
-
     @staticmethod
-    def check_instagram_connection(
-        db: Session, user_id: int
+    async def check_instagram_connection(
+        db: AsyncSession, user_id: int
     ) -> dict:
         """
         Check if user has Instagram account connected and automation enabled.
@@ -363,8 +364,9 @@ class InstagramCRUD:
                     SocialAccount.platform == "instagram",
                 )
             )
-            result = db.execute(stmt)
+            result = await db.execute(stmt)
             accounts = result.scalars().all()
+            accounts = list(accounts)
 
             has_connected = len(accounts) > 0
             account_username = accounts[0].ig_username if accounts else None
@@ -375,7 +377,7 @@ class InstagramCRUD:
             settings_stmt = select(UserSettings).where(
                 UserSettings.user_id == user_id
             )
-            settings_result = db.execute(settings_stmt)
+            settings_result = await db.execute(settings_stmt)
             user_settings = settings_result.scalar_one_or_none()
 
             automation_enabled = (
@@ -397,7 +399,7 @@ class InstagramCRUD:
                 .order_by(desc(ScheduledPost.posted_time))
                 .limit(1)
             )
-            last_post_result = db.execute(last_post_stmt)
+            last_post_result = await db.execute(last_post_stmt)
             last_post = last_post_result.scalar_one_or_none()
             last_post_time = last_post.posted_time if last_post else None
 

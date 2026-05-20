@@ -8,7 +8,7 @@ from fastapi import APIRouter, HTTPException, status, Depends
 from pydantic import BaseModel
 from typing import Optional, Dict, Any, List
 from utils.dependencies import get_current_user
-from config.database import get_db_sync
+from config.database import get_db_sync, get_db
 from models.user import User
 from sqlalchemy.orm import Session
 from services.aeo_geo_service import get_aeo_geo_overview, run_full_aeo_geo_optimization

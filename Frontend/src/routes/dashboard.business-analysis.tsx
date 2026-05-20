@@ -34,11 +34,47 @@ import { PageHeader } from "@/components/dashboard/PageHeader";
 export const Route = createFileRoute("/dashboard/business-analysis")({
   head: () => ({ meta: [{ title: "Business Analysis — Saadhyam AI" }] }),
   component: BusinessAnalysisPage,
+  // Prevent redirect on refresh - stay on this route even if there are errors
+  beforeLoad: async ({ location }) => {
+    // Log the current location to help debug
+    console.log("🔍 Loading business-analysis route:", location.pathname);
+    
+    // Store this route in sessionStorage on client side only
+    if (typeof window !== 'undefined' && typeof sessionStorage !== 'undefined') {
+      try {
+        sessionStorage.setItem("lastDashboardRoute", location.pathname);
+      } catch (error) {
+        console.warn("Could not save route to sessionStorage:", error);
+      }
+    }
+    
+    // This ensures the route loads without redirecting
+    // Even if there are errors, the errorComponent will handle them
+    return {};
+  },
+  errorComponent: ({ error, reset }) => (
+    <div className="p-6">
+      <div className="text-center py-12">
+        <h2 className="text-xl font-semibold text-gray-900 mb-2">Unable to load Business Analysis</h2>
+        <p className="text-gray-600 mb-4">{error.message}</p>
+        <Button onClick={reset}>Try Again</Button>
+      </div>
+    </div>
+  ),
+  // Explicitly prevent pending redirects
+  pendingComponent: () => (
+    <div className="p-6">
+      <div className="text-center py-12">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+        <p className="text-gray-600">Loading Business Analysis...</p>
+      </div>
+    </div>
+  ),
 });
 
 function PageShell({ children }: { children: ReactNode }) {
   return (
-    <div className="relative -m-4 min-h-[calc(100vh-4rem)] overflow-hidden bg-background p-6 md:p-8 lg:p-10">
+    <div className="relative w-full min-h-screen overflow-hidden bg-background p-4 md:p-6 lg:p-8">
       {/* Layered premium backdrop */}
       <div
         aria-hidden
@@ -62,7 +98,9 @@ function PageShell({ children }: { children: ReactNode }) {
           backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E")`,
         }}
       />
-      <BusinessAnalysisLayout>{children}</BusinessAnalysisLayout>
+      <div className="relative z-10">
+        <BusinessAnalysisLayout>{children}</BusinessAnalysisLayout>
+      </div>
     </div>
   );
 }

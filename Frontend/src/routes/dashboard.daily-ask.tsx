@@ -317,15 +317,15 @@ function DailyAskPage() {
               >
                 Daily Suggestions
               </motion.h1>
-              <p className="text-sm text-gray-600 flex items-center gap-2 mt-1">
+              <div className="text-sm text-gray-600 flex items-center gap-2 mt-1">
                 <motion.div
                   animate={{ scale: [1, 1.2, 1] }}
                   transition={{ duration: 2, repeat: Infinity }}
                 >
                   <Calendar size={14} className="text-purple-600" />
                 </motion.div>
-                Your personalized action plan for today
-              </p>
+                <span>Your personalized action plan for today</span>
+              </div>
             </motion.div>
             <motion.button
               onClick={generateTasks}

@@ -19,8 +19,36 @@ import {
   AlertCircle
 } from 'lucide-react'
 
+import { Button } from '@/components/ui/button'
+
 export const Route = createFileRoute('/dashboard/instagram-analytics')({
   component: InstagramAnalytics,
+  // Prevent redirect on refresh - stay on this route even if there are errors
+  beforeLoad: async ({ location }) => {
+    // Log the current location to help debug
+    console.log("🔍 Loading instagram-analytics route:", location.pathname);
+    // This ensures the route loads without redirecting
+    // Even if there are errors, the errorComponent will handle them
+    return {};
+  },
+  errorComponent: ({ error, reset }) => (
+    <div className="p-6">
+      <div className="text-center py-12">
+        <h2 className="text-xl font-semibold text-gray-900 mb-2">Unable to load Instagram Analytics</h2>
+        <p className="text-gray-600 mb-4">{error.message}</p>
+        <Button onClick={reset}>Try Again</Button>
+      </div>
+    </div>
+  ),
+  // Explicitly prevent pending redirects
+  pendingComponent: () => (
+    <div className="p-6">
+      <div className="text-center py-12">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+        <p className="text-gray-600">Loading Instagram Analytics...</p>
+      </div>
+    </div>
+  ),
 })
 
 interface InstagramAccount {

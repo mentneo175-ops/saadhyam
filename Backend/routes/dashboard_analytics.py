@@ -1,22 +1,29 @@
 """
 Dashboard Analytics Routes
 Provides real-time analytics data for the AI Insights panel
+WITH REDIS CACHING to prevent heavy database queries
 """
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import Dict, Any
 from datetime import datetime, timedelta
+import json
 from config.database import get_db_sync
 from models.user import User
 from utils.dependencies import get_current_user
 from models.instagram import ScheduledPost
 from models.whatsapp_message import WhatsAppMessage
 from models.whatsapp_campaign import WhatsAppCampaign
+from services.redis_service import get_redis_client
 import logging
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/dashboard", tags=["Dashboard Analytics"])
+
+# Cache configuration
+ANALYTICS_CACHE_TTL = 300  # 5 minutes cache for dashboard analytics
+ANALYTICS_CACHE_PREFIX = "dashboard_analytics:"
 
 
 @router.get("/analytics")
@@ -26,6 +33,7 @@ async def get_dashboard_analytics(
 ) -> Dict[str, Any]:
     """
     Get real-time analytics for dashboard AI Insights panel
+    WITH REDIS CACHING to reduce database load
     
     Returns:
     - Instagram posting activity
@@ -33,7 +41,28 @@ async def get_dashboard_analytics(
     - Review reply metrics
     """
     try:
-        logger.info(f"📊 Fetching dashboard analytics for user {current_user.id}")
+        logger.info(f"📊 [DASHBOARD] Analytics requested for user {current_user.id} ({current_user.email})")
+        
+        # Generate cache key for this user
+        cache_key = f"{ANALYTICS_CACHE_PREFIX}user_{current_user.id}"
+        logger.info(f"📊 [DASHBOARD] Cache key: {cache_key}")
+        
+        # Try to get from cache first
+        try:
+            redis_client = await get_redis_client()
+            if redis_client:
+                cached_data = await redis_client.get(cache_key)
+                if cached_data:
+                    logger.info(f"📊 [Cache HIT] Returning cached analytics for user {current_user.id}")
+                    return json.loads(cached_data)
+                else:
+                    logger.info(f"📊 [Cache MISS] No cached data found for user {current_user.id}")
+            else:
+                logger.warning(f"📊 [Cache] Redis client not available")
+        except Exception as cache_error:
+            logger.warning(f"⚠️ [Cache] Error reading: {cache_error}")
+        
+        logger.info(f"📊 [Cache MISS] Fetching fresh analytics for user {current_user.id}")
         
         # Calculate date ranges
         now = datetime.utcnow()
@@ -156,7 +185,22 @@ async def get_dashboard_analytics(
             }
         }
         
-        logger.info(f"✅ Dashboard analytics fetched successfully")
+        # Cache the result
+        try:
+            redis_client = await get_redis_client()
+            if redis_client:
+                await redis_client.setex(
+                    cache_key,
+                    ANALYTICS_CACHE_TTL,
+                    json.dumps(analytics)
+                )
+                logger.info(f"✅ [Cache SET] Cached analytics for {ANALYTICS_CACHE_TTL}s - Key: {cache_key}")
+            else:
+                logger.warning(f"⚠️ [Cache] Redis client not available for caching")
+        except Exception as cache_error:
+            logger.warning(f"⚠️ [Cache] Error writing: {cache_error}")
+        
+        logger.info(f"✅ [DASHBOARD] Analytics fetched successfully for user {current_user.id}")
         return analytics
         
     except Exception as e:

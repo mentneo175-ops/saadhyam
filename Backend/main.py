@@ -370,6 +370,22 @@ except Exception as e:
     meta_ads_available = False
 
 try:
+    from routes.cache_management import router as cache_management_router
+    cache_management_available = True
+    logging.info("✅ Cache Management router imported successfully")
+except Exception as e:
+    logging.warning(f"Cache Management router not available: {e}")
+    cache_management_available = False
+
+try:
+    from routes.health import router as health_router
+    health_available = True
+    logging.info("✅ Health Check router imported successfully")
+except Exception as e:
+    logging.warning(f"Health Check router not available: {e}")
+    health_available = False
+
+try:
     from ai_models.website_ai.app.api.v1.routes import generation as website_ai_generation
     from ai_models.website_ai.app.api.v1.routes import jobs as website_ai_jobs
     from ai_models.website_ai.app.routes import website as website_ai_website
@@ -581,31 +597,61 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# Add custom exception handler for h11 protocol errors
+# Add custom exception handler for h11 protocol errors and ExceptionGroup
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from fastapi.responses import JSONResponse
+import sys
+
+# Check if ExceptionGroup is available (Python 3.11+)
+if sys.version_info >= (3, 11):
+    ExceptionGroup = ExceptionGroup
+else:
+    try:
+        from exceptiongroup import ExceptionGroup
+    except ImportError:
+        ExceptionGroup = None
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request, exc):
     """
-    Global exception handler to catch h11 protocol errors and other unhandled exceptions.
+    Global exception handler to catch h11 protocol errors, ExceptionGroup, and other unhandled exceptions.
     This prevents cascading errors and provides clean error responses.
     """
+    # Handle ExceptionGroup (from anyio TaskGroup)
+    if ExceptionGroup and isinstance(exc, ExceptionGroup):
+        logger.error(f"❌ Exception group with {len(exc.exceptions)} exceptions")
+        for i, sub_exc in enumerate(exc.exceptions):
+            logger.error(f"  Sub-exception {i+1}: {type(sub_exc).__name__}: {sub_exc}")
+        
+        # Return error for the first exception
+        first_exc = exc.exceptions[0] if exc.exceptions else exc
+        return JSONResponse(
+            status_code=500,
+            content={
+                "detail": "Internal server error",
+                "error_type": type(first_exc).__name__
+            }
+        )
+    
     # Check if it's an h11 protocol error
     if "h11" in str(type(exc).__module__) or "LocalProtocolError" in str(type(exc).__name__):
         logger.error(f"❌ HTTP protocol error: {exc}")
-        # Return a clean error response instead of letting it cascade
-        return JSONResponse(
-            status_code=500,
-            content={"detail": "Connection error. Please retry your request."}
-        )
+        # Don't try to send response if connection is already in error state
+        # Just log and return None to prevent further errors
+        return None
     
     # Log other unhandled exceptions
     logger.error(f"❌ Unhandled exception: {exc}", exc_info=True)
-    return JSONResponse(
-        status_code=500,
-        content={"detail": "Internal server error"}
-    )
+    
+    try:
+        return JSONResponse(
+            status_code=500,
+            content={"detail": "Internal server error"}
+        )
+    except Exception as send_error:
+        # If we can't send the response, just log it
+        logger.error(f"❌ Failed to send error response: {send_error}")
+        return None
 
 # Mount Socket.IO app for real-time communication
 sio_asgi_app = socketio.ASGIApp(
@@ -639,11 +685,6 @@ from middleware.security import (
     add_security_headers,
     limit_request_size
 )
-from middleware.connection_handler import ConnectionHandlerMiddleware
-
-# Add connection handler middleware (must be first to catch all errors)
-app.add_middleware(ConnectionHandlerMiddleware)
-logging.info("✅ Connection handler middleware added")
 
 # Setup rate limiting
 limiter = setup_rate_limiting(app)
@@ -829,6 +870,12 @@ if meta_oauth_available:
 if meta_ads_available:
     app.include_router(meta_ads_router)
     logging.info("✅ Meta Ads router included in app")
+if cache_management_available:
+    app.include_router(cache_management_router)
+    logging.info("✅ Cache Management router included in app")
+if health_available:
+    app.include_router(health_router)
+    logging.info("✅ Health Check router included in app")
 if dashboard_analytics_available:
     app.include_router(dashboard_analytics_router)
     logging.info("✅ Dashboard Analytics router included in app")

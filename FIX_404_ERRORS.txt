@@ -1,0 +1,164 @@
+═══════════════════════════════════════════════════════════════
+  404 API ERRORS - QUICK FIX
+═══════════════════════════════════════════════════════════════
+
+Date: May 20, 2026
+Status: ✅ SOLUTION READY
+
+═══════════════════════════════════════════════════════════════
+  THE PROBLEM
+═══════════════════════════════════════════════════════════════
+
+Frontend is getting 404 errors for:
+❌ GET /api/aeo-geo/overview → 404 Not Found
+❌ GET /api/blogs/?limit=50&offset=0 → 404 Not Found
+
+But the routes EXIST in the backend code!
+
+═══════════════════════════════════════════════════════════════
+  WHY THIS HAPPENS
+═══════════════════════════════════════════════════════════════
+
+The backend server needs to be restarted after:
+1. Database migration (add_privacy_sharing.py)
+2. Error handler updates (ExceptionGroup handling)
+3. Main.py changes (h11 error handling)
+
+The routes are registered but the old server process
+is still running with the old code.
+
+═══════════════════════════════════════════════════════════════
+  THE SOLUTION
+═══════════════════════════════════════════════════════════════
+
+RESTART THE BACKEND SERVER
+
+Windows:
+1. Stop: stop_all.bat
+2. Wait 5 seconds
+3. Start: start_all.bat
+
+Linux/Mac:
+1. Stop: ./stop_all.sh
+2. Wait 5 seconds
+3. Start: ./start_all.sh
+
+═══════════════════════════════════════════════════════════════
+  VERIFICATION STEPS
+═══════════════════════════════════════════════════════════════
+
+After restarting:
+
+1. Check Backend is Running:
+   Open: http://localhost:8000/docs
+   Should see: FastAPI Swagger UI
+
+2. Check AEO-GEO Endpoint:
+   Open: http://localhost:8000/api/aeo-geo/overview
+   Should see: JSON response or auth error (not 404)
+
+3. Check Blog Endpoint:
+   Open: http://localhost:8000/api/blogs/
+   Should see: JSON response or auth error (not 404)
+
+4. Check Frontend:
+   Open: http://localhost:5173
+   Should see: No 404 errors in console
+
+═══════════════════════════════════════════════════════════════
+  IF STILL GETTING 404
+═══════════════════════════════════════════════════════════════
+
+1. Check if backend is actually running:
+   netstat -ano | findstr :8000
+   
+2. Check backend logs:
+   Look at terminal where backend is running
+   Should see: "✅ AEO/GEO router included in app"
+   Should see: "✅ Blog router included in app"
+
+3. Check for import errors:
+   Look for: "⚠️ AEO/GEO router not available"
+   Look for: "⚠️ Blog router not available"
+
+4. If routes not available, check dependencies:
+   cd Backend
+   venv\Scripts\activate
+   pip install -r requirements.txt
+
+═══════════════════════════════════════════════════════════════
+  COMMON ISSUES
+═══════════════════════════════════════════════════════════════
+
+Issue 1: Port Already in Use
+Solution: Kill the process
+  Windows: taskkill /F /IM python.exe
+  Linux: pkill -f uvicorn
+
+Issue 2: Virtual Environment Not Activated
+Solution: Activate venv
+  Windows: Backend\venv\Scripts\activate
+  Linux: source Backend/venv/bin/activate
+
+Issue 3: Missing Dependencies
+Solution: Reinstall
+  pip install -r Backend/requirements.txt
+
+Issue 4: Database Connection Error
+Solution: Check .env file
+  DATABASE_URL should be set correctly
+
+═══════════════════════════════════════════════════════════════
+  QUICK RESTART COMMAND
+═══════════════════════════════════════════════════════════════
+
+Windows (PowerShell):
+  cd "c:\Users\Sai kiran\Desktop\Sadhyam"
+  .\stop_all.bat
+  Start-Sleep -Seconds 5
+  .\start_all.bat
+
+Windows (CMD):
+  cd "c:\Users\Sai kiran\Desktop\Sadhyam"
+  stop_all.bat
+  timeout /t 5
+  start_all.bat
+
+═══════════════════════════════════════════════════════════════
+  WHAT TO EXPECT AFTER RESTART
+═══════════════════════════════════════════════════════════════
+
+Backend Terminal Should Show:
+✅ PostgreSQL connection successful
+✅ Using PostgreSQL (Neon DB) database
+✅ Rate limiting configured
+✅ Security headers middleware added
+✅ AEO/GEO router included in app
+✅ Blog router included in app
+✅ Application startup complete
+INFO: Uvicorn running on http://0.0.0.0:8000
+
+Frontend Should Show:
+✅ No 404 errors in console
+✅ AEO & GEO page loads data
+✅ Blog page loads data
+✅ Clean console (no errors)
+
+═══════════════════════════════════════════════════════════════
+  SUMMARY
+═══════════════════════════════════════════════════════════════
+
+The 404 errors are because the backend server is running
+old code. Simply restart the backend server to load the
+updated code with all our fixes:
+
+1. Database migration (privacy columns)
+2. Error handlers (ExceptionGroup)
+3. H11 protocol error handling
+4. All route registrations
+
+After restart, all endpoints will work correctly!
+
+═══════════════════════════════════════════════════════════════
+  END OF GUIDE
+═══════════════════════════════════════════════════════════════

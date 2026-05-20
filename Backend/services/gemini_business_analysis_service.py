@@ -1,15 +1,18 @@
 """
 Gemini Business Analysis Service
 Uses NEW Google GenAI SDK with Gemini 2.0 Flash for real-time business analysis
+WITH REDIS CACHING to prevent rate limiting
 """
 
 import logging
 import json
 import re
+import hashlib
 from typing import Dict, Any
 from datetime import datetime
 from google import genai
 from config.settings import settings
+from services.redis_service import get_redis_client
 
 logger = logging.getLogger(__name__)
 
@@ -17,6 +20,10 @@ logger = logging.getLogger(__name__)
 GEMINI_MODEL_PRIMARY = "gemini-2.0-flash"  # Primary model - Gemini 2.0 Flash - fast and stable
 GEMINI_MODEL_FALLBACK = "gemini-1.5-flash"  # Fallback model - Gemini 1.5 Flash - reliable
 GEMINI_API_KEY = settings.GEMINI_API_KEY
+
+# Cache configuration
+CACHE_TTL = 3600  # 1 hour cache (adjust as needed)
+CACHE_PREFIX = "business_analysis:"
 
 # Initialize Gemini client
 _gemini_client = None
@@ -41,9 +48,76 @@ def _get_gemini_client():
     return _gemini_client
 
 
+def _generate_cache_key(business_profile: Dict[str, Any]) -> str:
+    """Generate a unique cache key based on business profile"""
+    # Create a stable string representation of the business profile
+    key_data = {
+        "business_name": business_profile.get("business_name", ""),
+        "business_type": business_profile.get("business_type", ""),
+        "location": business_profile.get("location", ""),
+        "services": sorted(business_profile.get("services", [])) if isinstance(business_profile.get("services"), list) else business_profile.get("services", ""),
+        "target_audience": business_profile.get("target_audience", ""),
+        "goals": business_profile.get("goals", ""),
+    }
+    
+    # Create hash of the key data
+    key_string = json.dumps(key_data, sort_keys=True)
+    key_hash = hashlib.md5(key_string.encode()).hexdigest()
+    
+    return f"{CACHE_PREFIX}{key_hash}"
+
+
+async def _get_cached_analysis(cache_key: str) -> Dict[str, Any] | None:
+    """Get cached analysis from Redis"""
+    try:
+        redis_client = await get_redis_client()
+        if not redis_client:
+            logger.debug("[Cache] Redis not available, skipping cache lookup")
+            return None
+        
+        cached_data = await redis_client.get(cache_key)
+        if cached_data:
+            logger.info(f"[Cache] ✅ Cache HIT for key: {cache_key}")
+            return json.loads(cached_data)
+        
+        logger.debug(f"[Cache] Cache MISS for key: {cache_key}")
+        return None
+        
+    except Exception as e:
+        logger.warning(f"[Cache] Error reading from cache: {e}")
+        return None
+
+
+async def _set_cached_analysis(cache_key: str, analysis_data: Dict[str, Any]) -> bool:
+    """Store analysis in Redis cache"""
+    try:
+        redis_client = await get_redis_client()
+        if not redis_client:
+            logger.debug("[Cache] Redis not available, skipping cache storage")
+            return False
+        
+        # Add cache metadata
+        analysis_data["cached_at"] = datetime.utcnow().isoformat()
+        analysis_data["cache_ttl"] = CACHE_TTL
+        
+        await redis_client.setex(
+            cache_key,
+            CACHE_TTL,
+            json.dumps(analysis_data)
+        )
+        
+        logger.info(f"[Cache] ✅ Cached analysis for {CACHE_TTL}s: {cache_key}")
+        return True
+        
+    except Exception as e:
+        logger.warning(f"[Cache] Error writing to cache: {e}")
+        return False
+
+
 async def generate_realtime_business_analysis(business_profile: Dict[str, Any]) -> Dict[str, Any]:
     """
     Generate comprehensive real-time business analysis using NEW Gemini SDK
+    WITH REDIS CACHING to prevent rate limiting
     
     Args:
         business_profile: Dict containing:
@@ -59,6 +133,17 @@ async def generate_realtime_business_analysis(business_profile: Dict[str, Any]) 
         Dict with structured business analysis or error
     """
     
+    # Generate cache key
+    cache_key = _generate_cache_key(business_profile)
+    
+    # Try to get from cache first
+    cached_analysis = await _get_cached_analysis(cache_key)
+    if cached_analysis:
+        logger.info("[BusinessAnalysis] 🚀 Returning CACHED analysis (no API call)")
+        cached_analysis["from_cache"] = True
+        return cached_analysis
+    
+    logger.info("[BusinessAnalysis] Cache miss - calling Gemini API")
     logger.info("[BusinessAnalysis] Using NEW Google GenAI SDK with Gemini 2.0 Flash")
     
     client = _get_gemini_client()
@@ -339,7 +424,7 @@ Generate the analysis now:"""
         logger.info(f"[BusinessAnalysis] Health Score: {analysis_data.get('health_score', 'N/A')}")
         
         # Return structured response
-        return {
+        result = {
             "status": "success",
             "source": "google_genai_sdk",
             "business_details": analysis_data.get("business_details", {}),
@@ -352,8 +437,14 @@ Generate the analysis now:"""
             "thirty_day_growth_plan": analysis_data.get("thirty_day_growth_plan", {}),
             "daily_suggestions": analysis_data.get("daily_suggestions", []),
             "health_score": analysis_data.get("health_score", 0),
-            "last_updated": datetime.utcnow().isoformat()
+            "last_updated": datetime.utcnow().isoformat(),
+            "from_cache": False
         }
+        
+        # Cache the result
+        await _set_cached_analysis(cache_key, result)
+        
+        return result
         
     except json.JSONDecodeError as e:
         logger.error(f"[BusinessAnalysis] ❌ Failed to parse Gemini response as JSON: {e}")

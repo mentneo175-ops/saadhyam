@@ -2,6 +2,8 @@
  * ProtectedRoute - Route guard component
  * Redirects unauthenticated users to login page
  * Works in both development and production
+ * 
+ * Now shows dashboard while auth is being verified instead of blocking with a spinner
  */
 
 import { useEffect } from "react";
@@ -24,27 +26,20 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     // If not authenticated, redirect to login
     if (!isAuthenticated || !user) {
       console.log("🔒 User not authenticated, redirecting to login");
-      navigate({ to: "/login", replace: true });
+      // Use setTimeout to avoid redirect during render
+      setTimeout(() => {
+        navigate({ to: "/login", replace: true });
+      }, 0);
     }
   }, [isAuthenticated, isLoading, user, navigate]);
 
-  // Show loading spinner while checking auth
-  if (isLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <div className="text-center">
-          <Loader2 className="w-12 h-12 animate-spin text-[#8B5CF6] mx-auto mb-4" />
-          <p className="text-sm text-muted-foreground">Verifying authentication...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // If not authenticated, show nothing (will redirect)
-  if (!isAuthenticated || !user) {
+  // If not authenticated and not loading, show nothing (will redirect)
+  if (!isLoading && (!isAuthenticated || !user)) {
     return null;
   }
 
-  // User is authenticated, render children
+  // User is authenticated OR still loading - render children
+  // This allows the dashboard to show while auth is being verified on refresh
+  // The auth redirect will happen if needed when isLoading becomes false
   return <>{children}</>;
 }

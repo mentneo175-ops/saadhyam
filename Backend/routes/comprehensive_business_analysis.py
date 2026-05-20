@@ -190,6 +190,7 @@ async def get_competitor_analysis(
 ) -> Dict[str, Any]:
     """
     Get Competitor Analysis data from database (no API call)
+    WITH REDIS CACHING for ultra-fast retrieval
     
     Returns:
     - Competitor patterns
@@ -197,8 +198,8 @@ async def get_competitor_analysis(
     - Differentiation ideas
     """
     
-    # Call synchronous function (no await)
-    result = get_competitor_analysis_data(current_user.id, db)
+    # Call async function (with await)
+    result = await get_competitor_analysis_data(current_user.id, db)
     
     if not result:
         raise HTTPException(
@@ -248,13 +249,14 @@ async def get_daily_suggestions(
 ) -> Dict[str, Any]:
     """
     Get Daily Suggestions data from database (no API call)
+    WITH REDIS CACHING for ultra-fast retrieval
     
     Returns:
     - Array of daily action suggestions
     """
     
-    # Call synchronous function (no await)
-    result = get_daily_suggestions_data(current_user.id, db)
+    # Call async function (with await)
+    result = await get_daily_suggestions_data(current_user.id, db)
     
     if not result:
         raise HTTPException(

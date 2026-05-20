@@ -1,6 +1,7 @@
 """
 User Profile Routes
 API endpoints for managing user profile and business information
+WITH REDIS CACHING to reduce database load
 """
 
 import logging
@@ -11,6 +12,14 @@ from sqlalchemy.orm import Session
 from config.database import get_db_sync
 from models.user import User
 from utils.dependencies import get_current_user
+from services.comprehensive_cache_service import (
+    generate_cache_key,
+    get_cached,
+    set_cached,
+    delete_pattern,
+    CACHE_PREFIX,
+    CACHE_TTL
+)
 
 logger = logging.getLogger(__name__)
 
@@ -77,16 +86,26 @@ class UserProfileResponse(BaseModel):
         401: {"description": "Not authenticated"}
     }
 )
-def get_profile(
+async def get_profile(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db_sync)
 ) -> UserProfileResponse:
     """
     Get complete user profile including business information
+    WITH REDIS CACHING
     """
     
     try:
-        logger.info(f"📋 Getting profile for user: {current_user.email}")
+        # Generate cache key
+        cache_key = generate_cache_key(CACHE_PREFIX["profile"], "full_profile", user_id=current_user.id)
+        
+        # Try cache first
+        cached = await get_cached(cache_key)
+        if cached:
+            logger.info(f"📋 [Cache HIT] Profile for user: {current_user.email}")
+            return UserProfileResponse(**cached["data"])
+        
+        logger.info(f"📋 [Cache MISS] Getting profile for user: {current_user.email}")
         
         # Create business profile response
         business_profile = BusinessProfileResponse(
@@ -108,7 +127,10 @@ def get_profile(
             last_generated_website_id=current_user.last_generated_website_id
         )
         
-        logger.info(f"✅ Profile retrieved for user: {current_user.email}")
+        # Cache the result
+        await set_cached(cache_key, profile.dict(), CACHE_TTL["user_profile"])
+        
+        logger.info(f"✅ Profile retrieved and cached for user: {current_user.email}")
         return profile
         
     except Exception as e:
@@ -128,15 +150,25 @@ def get_profile(
         401: {"description": "Not authenticated"}
     }
 )
-def get_business_profile(
+async def get_business_profile(
     current_user: User = Depends(get_current_user)
 ) -> BusinessProfileResponse:
     """
     Get business profile information only
+    WITH REDIS CACHING
     """
     
     try:
-        logger.info(f"🏢 Getting business profile for user: {current_user.email}")
+        # Generate cache key
+        cache_key = generate_cache_key(CACHE_PREFIX["profile"], "business_profile", user_id=current_user.id)
+        
+        # Try cache first
+        cached = await get_cached(cache_key)
+        if cached:
+            logger.info(f"🏢 [Cache HIT] Business profile for user: {current_user.email}")
+            return BusinessProfileResponse(**cached["data"])
+        
+        logger.info(f"🏢 [Cache MISS] Getting business profile for user: {current_user.email}")
         
         # Try to get coordinates from database columns (if they exist)
         latitude = getattr(current_user, 'latitude', None)
@@ -172,7 +204,10 @@ def get_business_profile(
             longitude=longitude
         )
         
-        logger.info(f"✅ Business profile retrieved for user: {current_user.email}")
+        # Cache the result
+        await set_cached(cache_key, business_profile.dict(), CACHE_TTL["business_profile"])
+        
+        logger.info(f"✅ Business profile retrieved and cached for user: {current_user.email}")
         logger.info(f"📍 Final coordinates: {latitude}, {longitude}")
         return business_profile
         
@@ -194,18 +229,20 @@ def get_business_profile(
         401: {"description": "Not authenticated"}
     }
 )
-def update_business_profile(
+async def update_business_profile(
     request: BusinessProfileRequest,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db_sync)
 ) -> BusinessProfileResponse:
     """
     Update business profile information
+    Invalidates cache after update
     
     This endpoint:
     - Updates business details in the database
     - Marks business setup as completed
     - Triggers business analysis if description is provided
+    - Clears cached profile data
     """
     
     try:
@@ -233,6 +270,11 @@ def update_business_profile(
         # Save to database
         db.commit()
         db.refresh(current_user)
+        
+        # Invalidate cache
+        await delete_pattern(f"{CACHE_PREFIX['profile']}{current_user.id}*")
+        await delete_pattern(f"{CACHE_PREFIX['dashboard']}user_{current_user.id}")
+        logger.info(f"🗑️ Cleared cache for user {current_user.id}")
         
         logger.info(f"✅ Business profile updated for user: {current_user.email}")
         logger.info(f"   Business: {request.business_name}")

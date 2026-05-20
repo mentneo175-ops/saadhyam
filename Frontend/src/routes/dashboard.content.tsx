@@ -20,6 +20,9 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { apiClient } from "@/lib/api";
 import { toast } from "sonner";
+import { FeatureDisabledState } from "@/components/feature/FeatureDisabledState";
+import { FEATURE_KEYS } from "@/config/featureKeys";
+import { useFeatureGate } from "@/hooks/useFeatureGate";
 
 export const Route = createFileRoute("/dashboard/content")({
   head: () => ({ meta: [{ title: "Content Creator — Saadhyam AI" }] }),
@@ -60,6 +63,7 @@ function ContentStudio() {
   
   // Instagram posting states
   const [instagramLoading, setInstagramLoading] = useState(false);
+  const featureGate = useFeatureGate(FEATURE_KEYS.CONTENT_CREATOR);
 
   const handleGenerate = async () => {
     if (!prompt.trim()) {
@@ -379,6 +383,16 @@ function ContentStudio() {
       setInstagramLoading(false);
     }
   };
+
+  if (featureGate.isDisabled) {
+    return (
+      <FeatureDisabledState
+        title="Content Creator"
+        featureLabel={FEATURE_KEYS.CONTENT_CREATOR}
+        message="Content creation is currently disabled by your admin. Refresh after the module is re-enabled."
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50/40 via-white to-pink-50/30 p-4 md:p-6 lg:p-8">

@@ -7,6 +7,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../co
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Textarea } from "../components/ui/textarea";
+import { FeatureDisabledState } from "@/components/feature/FeatureDisabledState";
+import { FEATURE_KEYS } from "@/config/featureKeys";
+import { useFeatureGate } from "@/hooks/useFeatureGate";
 
 export const Route = createFileRoute("/dashboard/voice-agent/create-campaign")({
   component: CreateCampaignPage,
@@ -28,6 +31,7 @@ function CreateCampaignPage() {
     voice_type: "female",
     script_template: "",
   });
+  const featureGate = useFeatureGate(FEATURE_KEYS.VOICE_AGENT);
 
   const createCampaignMutation = useMutation({
     mutationFn: async (data: CampaignFormData) => {
@@ -67,6 +71,16 @@ function CreateCampaignPage() {
       [e.target.name]: e.target.value,
     });
   };
+
+  if (featureGate.isDisabled) {
+    return (
+      <FeatureDisabledState
+        title="Create Voice Campaign"
+        featureLabel={FEATURE_KEYS.VOICE_AGENT}
+        message="Campaign creation is currently disabled by your admin. Refresh after the module is re-enabled."
+      />
+    );
+  }
 
   return (
     <div className="p-6 max-w-4xl mx-auto space-y-6">

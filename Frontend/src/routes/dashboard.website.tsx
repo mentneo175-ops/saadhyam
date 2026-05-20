@@ -4,6 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Sparkles, Globe, Download, Loader2, Code, ExternalLink, Share2, Brain, Zap, Target, Check, RefreshCw } from "lucide-react";
 import { useState, useEffect } from "react";
 import { apiClient } from "@/lib/api";
+import { FeatureDisabledState } from "@/components/feature/FeatureDisabledState";
+import { FEATURE_KEYS } from "@/config/featureKeys";
+import { useFeatureGate } from "@/hooks/useFeatureGate";
 
 export const Route = createFileRoute("/dashboard/website")({
   head: () => ({ meta: [{ title: "Website AI — Saadhyam AI" }] }),
@@ -46,9 +49,14 @@ function WebsiteAIPage() {
   const [isWebsiteConfirmed, setIsWebsiteConfirmed] = useState(false);
   const [showConfirmButton, setShowConfirmButton] = useState(false);
   const [showForm, setShowForm] = useState(true);
+  const featureGate = useFeatureGate(FEATURE_KEYS.WEBSITE_AI);
 
   // Listen for navigation updates from iframe
   useEffect(() => {
+    if (featureGate.isDisabled) {
+      return;
+    }
+
     const handleMessage = (event: MessageEvent) => {
       console.log('Message received from iframe:', event.data);
       if (event.data.type === 'updateAddress') {
@@ -60,10 +68,14 @@ function WebsiteAIPage() {
 
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
-  }, []);
+  }, [featureGate.isDisabled]);
 
   // Auto-fill data from database on component mount
   useEffect(() => {
+    if (featureGate.isDisabled) {
+      return;
+    }
+
     const loadUserData = async () => {
       try {
         console.log("🔍 Loading user data for auto-fill...");
@@ -88,10 +100,14 @@ function WebsiteAIPage() {
     };
 
     loadUserData();
-  }, []);
+  }, [featureGate.isDisabled]);
 
   // Load confirmed website on component mount
   useEffect(() => {
+    if (featureGate.isDisabled) {
+      return;
+    }
+
     const loadConfirmedWebsite = async () => {
       try {
         const profile = await apiClient.getProfile();
@@ -112,7 +128,7 @@ function WebsiteAIPage() {
     };
     
     loadConfirmedWebsite();
-  }, []);
+  }, [featureGate.isDisabled]);
 
   // Fetch website HTML for preview
   const fetchWebsiteHtml = async (websiteId: string) => {
@@ -345,6 +361,10 @@ function WebsiteAIPage() {
   };
 
   const handleGenerateWebsite = async () => {
+    if (featureGate.isDisabled) {
+      return;
+    }
+
     // Validate required fields
     if (!websiteData.business_name.trim()) {
       setWebsiteStatus("❌ Business name is required");
@@ -559,6 +579,10 @@ function WebsiteAIPage() {
   };
 
   const handleConfirmWebsite = async () => {
+    if (featureGate.isDisabled) {
+      return;
+    }
+
     if (!websiteResult?.website_id) return;
     
     try {
@@ -594,6 +618,10 @@ function WebsiteAIPage() {
   };
 
   const handleRegenerateWebsite = () => {
+    if (featureGate.isDisabled) {
+      return;
+    }
+
     setShowForm(true);
     setIsWebsiteConfirmed(false);
     setShowConfirmButton(false);
@@ -605,6 +633,13 @@ function WebsiteAIPage() {
   };
 
   return (
+    featureGate.isDisabled ? (
+      <FeatureDisabledState
+        title="Website AI"
+        featureLabel={FEATURE_KEYS.WEBSITE_AI}
+        message="Website generation and previews are currently disabled by your admin. Refresh after the module is re-enabled."
+      />
+    ) : (
     <div className="p-4 md:p-6 space-y-5">
       <PageHeader
         title="Website AI"
@@ -1038,7 +1073,8 @@ function WebsiteAIPage() {
             </div>
           </div>
         </div>
-    </div>
+      </div>
+      )
   );
 }
 

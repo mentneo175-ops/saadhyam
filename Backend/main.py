@@ -24,6 +24,7 @@ configure_logging(ENVIRONMENT)
 from config.database import init_db, close_db
 from config.settings import settings
 from migrations.add_name_column import migrate_add_name_column
+from services.feature_control import feature_control_middleware
 from services.realtime_service import realtime_service
 
 # Initialize Firebase Service
@@ -418,53 +419,62 @@ async def lifespan(app: FastAPI):
     logger.info("=" * 60)
     
     try:
+        skip_db_init = os.getenv("SKIP_STARTUP_DB_INIT", "false").lower() == "true"
+        skip_startup_migrations = os.getenv("SKIP_STARTUP_MIGRATIONS", "false").lower() == "true"
+
         # Initialize database
-        logger.info("[*] Initializing database...")
-        await init_db()
-        logger.info("[OK] Database initialized")
+        if skip_db_init:
+            logger.info("⏭️  Skipping database initialization (SKIP_STARTUP_DB_INIT=true)")
+        else:
+            logger.info("[*] Initializing database...")
+            await init_db()
+            logger.info("[OK] Database initialized")
         
         # Run migrations
-        logger.info("[*] Skipping migrations (disabled for faster startup)...")
-        # migrate_add_name_column()
-        # from migrations.add_business_analysis_table import migrate_add_business_analysis_table
-        # migrate_add_business_analysis_table()
-        # from migrations.add_business_profile_fields import migrate_add_business_profile_fields
-        # migrate_add_business_profile_fields()
-        # from migrations.add_comprehensive_business_analysis import migrate_add_comprehensive_business_analysis
-        # migrate_add_comprehensive_business_analysis()
-        # from migrations.fix_description_nullable import migrate_fix_description_nullable
-        # migrate_fix_description_nullable()
+        if skip_startup_migrations:
+            logger.info("⏭️  Skipping startup migrations (SKIP_STARTUP_MIGRATIONS=true)")
+        else:
+            logger.info("[*] Skipping migrations (disabled for faster startup)...")
+            # migrate_add_name_column()
+            # from migrations.add_business_analysis_table import migrate_add_business_analysis_table
+            # migrate_add_business_analysis_table()
+            # from migrations.add_business_profile_fields import migrate_add_business_profile_fields
+            # migrate_add_business_profile_fields()
+            # from migrations.add_comprehensive_business_analysis import migrate_add_comprehensive_business_analysis
+            # migrate_add_comprehensive_business_analysis()
+            # from migrations.fix_description_nullable import migrate_fix_description_nullable
+            # migrate_fix_description_nullable()
 
-        # from migrations.add_aeo_geo_tables import migrate_add_aeo_geo_tables
-        # migrate_add_aeo_geo_tables()
-        # from migrations.add_blogs_table import migrate_add_blogs_table
-        # migrate_add_blogs_table()
-        # from migrations.add_website_id_to_user import run_migration as migrate_add_website_id
-        # migrate_add_website_id()
-        # from migrations.add_whatsapp_tables import migrate_add_whatsapp_tables
-        # migrate_add_whatsapp_tables()
-        # from migrations.add_location_coordinates import migrate_add_location_coordinates
-        # migrate_add_location_coordinates()
-        # from migrations.add_user_id_to_review_history import migrate_add_user_id_to_review_history
-        # migrate_add_user_id_to_review_history()
-        # from migrations.add_instagram_analytics_tables import migrate_add_instagram_analytics_tables
-        # migrate_add_instagram_analytics_tables()
-        # from migrations.add_task_tracking_tables import migrate_add_task_tracking_tables
-        # migrate_add_task_tracking_tables()
-        # from migrations.add_voice_agent_tables import migrate_add_voice_agent_tables
-        # migrate_add_voice_agent_tables()
-        # from migrations.add_slug_to_websites import run_migration as migrate_add_slug_to_websites
-        # migrate_add_slug_to_websites()
-        logger.info("[OK] Migrations completed")
-        from migrations.add_meta_ads_tables import migrate_add_meta_ads_tables
-        migrate_add_meta_ads_tables()
-        from migrations.fix_campaign_status_enum import migrate_fix_campaign_status_enum
-        migrate_fix_campaign_status_enum()
-        from migrations.update_campaign_status_enum import migrate_update_campaign_status_enum
-        migrate_update_campaign_status_enum()
-        from migrations.add_session_tracking import migrate_add_session_tracking
-        migrate_add_session_tracking()
-        logger.info("✅ Migrations completed")
+            # from migrations.add_aeo_geo_tables import migrate_add_aeo_geo_tables
+            # migrate_add_aeo_geo_tables()
+            # from migrations.add_blogs_table import migrate_add_blogs_table
+            # migrate_add_blogs_table()
+            # from migrations.add_website_id_to_user import run_migration as migrate_add_website_id
+            # migrate_add_website_id()
+            # from migrations.add_whatsapp_tables import migrate_add_whatsapp_tables
+            # migrate_add_whatsapp_tables()
+            # from migrations.add_location_coordinates import migrate_add_location_coordinates
+            # migrate_add_location_coordinates()
+            # from migrations.add_user_id_to_review_history import migrate_add_user_id_to_review_history
+            # migrate_add_user_id_to_review_history()
+            # from migrations.add_instagram_analytics_tables import migrate_add_instagram_analytics_tables
+            # migrate_add_instagram_analytics_tables()
+            # from migrations.add_task_tracking_tables import migrate_add_task_tracking_tables
+            # migrate_add_task_tracking_tables()
+            # from migrations.add_voice_agent_tables import migrate_add_voice_agent_tables
+            # migrate_add_voice_agent_tables()
+            # from migrations.add_slug_to_websites import run_migration as migrate_add_slug_to_websites
+            # migrate_add_slug_to_websites()
+            logger.info("[OK] Migrations completed")
+            from migrations.add_meta_ads_tables import migrate_add_meta_ads_tables
+            migrate_add_meta_ads_tables()
+            from migrations.fix_campaign_status_enum import migrate_fix_campaign_status_enum
+            migrate_fix_campaign_status_enum()
+            from migrations.update_campaign_status_enum import migrate_update_campaign_status_enum
+            migrate_update_campaign_status_enum()
+            from migrations.add_session_tracking import migrate_add_session_tracking
+            migrate_add_session_tracking()
+            logger.info("✅ Migrations completed")
         
         # Start scheduler for processing scheduled Instagram posts
         logger.info("🔄 Starting Instagram post scheduler...")
@@ -657,6 +667,10 @@ logging.info("✅ Security headers middleware added")
 app.middleware("http")(limit_request_size)
 logging.info("✅ Request size limit middleware added")
 
+# Add feature gate middleware so disabled product areas are blocked consistently
+app.middleware("http")(feature_control_middleware)
+logging.info("✅ Feature control middleware added")
+
 # ============================================
 # CORS CONFIGURATION
 # ============================================
@@ -672,9 +686,11 @@ else:
     # Development: Allow localhost
     cors_origins = [
         "http://localhost:5173",
+        "http://localhost:5175",
         "http://localhost:8080",
         "http://localhost:8081",
         "http://127.0.0.1:5173",
+        "http://127.0.0.1:5175",
         "http://127.0.0.1:8080",
         "http://127.0.0.1:8081",
         "http://localhost:3000",

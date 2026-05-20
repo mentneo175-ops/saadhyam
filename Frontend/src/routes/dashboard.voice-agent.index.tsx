@@ -17,6 +17,9 @@ import {
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
+import { FeatureDisabledState } from "@/components/feature/FeatureDisabledState";
+import { FEATURE_KEYS } from "@/config/featureKeys";
+import { useFeatureGate } from "@/hooks/useFeatureGate";
 
 export const Route = createFileRoute("/dashboard/voice-agent/")({
   component: VoiceAgentDashboard,
@@ -49,9 +52,14 @@ function VoiceAgentDashboard() {
   const [selectedView, setSelectedView] = useState<"overview" | "campaigns">("overview");
   const [statsData, setStatsData] = useState<any>(null);
   const [campaignsData, setCampaignsData] = useState<any>(null);
+  const featureGate = useFeatureGate(FEATURE_KEYS.VOICE_AGENT);
 
   // Load data on mount with timeout
   useEffect(() => {
+    if (featureGate.isDisabled) {
+      return;
+    }
+
     const loadData = async () => {
       const token = localStorage.getItem("saadhyam_token");
       
@@ -99,7 +107,7 @@ function VoiceAgentDashboard() {
     };
 
     loadData();
-  }, []);
+  }, [featureGate.isDisabled]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -134,6 +142,16 @@ function VoiceAgentDashboard() {
   // Fallback data if queries fail
   const stats = statsData?.stats || { total_campaigns: 0, active_campaigns: 0, total_calls: 0, total_leads: 0 };
   const campaigns = campaignsData?.campaigns || [];
+
+  if (featureGate.isDisabled) {
+    return (
+      <FeatureDisabledState
+        title="AI Voice Agent"
+        featureLabel={FEATURE_KEYS.VOICE_AGENT}
+        message="Voice agent workflows are currently disabled by your admin. Refresh after the module is re-enabled."
+      />
+    );
+  }
 
   return (
     <div className="p-6 space-y-6">

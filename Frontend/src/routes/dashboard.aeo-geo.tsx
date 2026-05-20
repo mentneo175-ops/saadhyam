@@ -38,6 +38,9 @@ import {
   type AEOContent,
 } from "@/lib/aeoGeoApi";
 import { generateBlog, publishBlog, getUserBlogs, deleteBlog, type Blog } from "@/lib/blogApi";
+import { FeatureDisabledState } from "@/components/feature/FeatureDisabledState";
+import { FEATURE_KEYS } from "@/config/featureKeys";
+import { useFeatureGate } from "@/hooks/useFeatureGate";
 
 export const Route = createFileRoute("/dashboard/aeo-geo")({
   head: () => ({ meta: [{ title: "AEO & GEO — Saadhyam AI" }] }),
@@ -64,6 +67,7 @@ function AEOGEOPage() {
   const [blogs, setBlogs] = useState<Blog[]>([]);
   const [blogFilter, setBlogFilter] = useState<"all" | "draft" | "published">("all");
   const [selectedBlog, setSelectedBlog] = useState<Blog | null>(null);
+  const featureGate = useFeatureGate(FEATURE_KEYS.AEO_GEO);
   
   // Cooldown for optimization button (2 hours)
   const optimizeCooldown = useCooldown({
@@ -82,14 +86,22 @@ function AEOGEOPage() {
 
   // Load data on mount
   useEffect(() => {
+    if (featureGate.isDisabled) {
+      return;
+    }
+
     loadData();
     loadBlogs();
-  }, []);
+  }, [featureGate.isDisabled]);
   
   // Reload blogs when filter changes
   useEffect(() => {
+    if (featureGate.isDisabled) {
+      return;
+    }
+
     loadBlogs();
-  }, [blogFilter]);
+  }, [blogFilter, featureGate.isDisabled]);
 
   const loadData = async () => {
     setIsLoading(true);
@@ -310,6 +322,16 @@ function AEOGEOPage() {
           </Button>
         </div>
       </div>
+    );
+  }
+
+  if (featureGate.isDisabled) {
+    return (
+      <FeatureDisabledState
+        title="AEO & GEO"
+        featureLabel={FEATURE_KEYS.AEO_GEO}
+        message="AEO/GEO tools are currently disabled by your admin. Refresh after the module is re-enabled."
+      />
     );
   }
 

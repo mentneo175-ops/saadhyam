@@ -23,6 +23,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card"
 import { Input } from "../components/ui/input";
 import { Badge } from "../components/ui/badge";
 import { Textarea } from "../components/ui/textarea";
+import { FeatureDisabledState } from "@/components/feature/FeatureDisabledState";
+import { FEATURE_KEYS } from "@/config/featureKeys";
+import { useFeatureGate } from "@/hooks/useFeatureGate";
 
 export const Route = createFileRoute("/dashboard/voice-agent/simulator")({
   component: VoiceSimulatorPage,
@@ -62,6 +65,7 @@ function VoiceSimulatorPage() {
     target_audience: "Small and medium businesses",
     language: "english"
   });
+  const featureGate = useFeatureGate(FEATURE_KEYS.VOICE_AGENT);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -208,6 +212,16 @@ function VoiceSimulatorPage() {
     if (leadScore >= 40) return "text-yellow-600";
     return "text-red-600";
   };
+
+  if (featureGate.isDisabled) {
+    return (
+      <FeatureDisabledState
+        title="AI Voice Simulator"
+        featureLabel={FEATURE_KEYS.VOICE_AGENT}
+        message="Voice simulation is currently disabled by your admin. Refresh after the module is re-enabled."
+      />
+    );
+  }
 
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-6">

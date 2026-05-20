@@ -109,10 +109,47 @@ class ApiClient {
   private baseUrl: string;
   private token: string | null = null;
   private refreshPromise: Promise<string> | null = null;
+  private abortControllers: Map<string, AbortController> = new Map();
+  private defaultTimeout: number = 30000; // 30 seconds
 
   constructor(baseUrl: string = API_URL) {
     this.baseUrl = baseUrl;
     this.token = this.getStoredToken();
+  }
+
+  /**
+   * Cancel all pending requests
+   */
+  cancelAllRequests() {
+    this.abortControllers.forEach((controller) => {
+      controller.abort();
+    });
+    this.abortControllers.clear();
+  }
+
+  /**
+   * Cancel specific request by key
+   */
+  cancelRequest(key: string) {
+    const controller = this.abortControllers.get(key);
+    if (controller) {
+      controller.abort();
+      this.abortControllers.delete(key);
+    }
+  }
+
+  /**
+   * Get or create abort controller for a request
+   */
+  private getAbortController(key: string): AbortController {
+    // Cancel previous request with same key
+    this.cancelRequest(key);
+    
+    // Create new controller
+    const controller = new AbortController();
+    this.abortControllers.set(key, controller);
+    
+    return controller;
   }
 
   /**
@@ -256,8 +293,18 @@ class ApiClient {
   /**
    * Fetch wrapper with error handling and automatic token refresh
    */
-  private async fetchJson(endpoint: string, options?: RequestInit): Promise<any> {
+  private async fetchJson(
+    endpoint: string, 
+    options?: RequestInit,
+    requestKey?: string,
+    timeout: number = this.defaultTimeout
+  ): Promise<any> {
     const url = `${this.baseUrl}${endpoint}`;
+    
+    // Get or create abort controller
+    const abortController = requestKey 
+      ? this.getAbortController(requestKey)
+      : new AbortController();
     
     // Get auth header (with potential token refresh)
     const authHeader = await this.getAuthHeader();
@@ -269,10 +316,31 @@ class ApiClient {
     };
 
     try {
-      const response = await fetch(url, {
-        ...options,
-        headers,
+      // Create timeout promise
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        const timer = setTimeout(() => {
+          abortController.abort();
+          reject(new Error(`Request timeout after ${timeout}ms`));
+        }, timeout);
+        
+        // Clear timeout if request completes
+        abortController.signal.addEventListener('abort', () => clearTimeout(timer));
       });
+
+      // Race between fetch and timeout
+      const response = await Promise.race([
+        fetch(url, {
+          ...options,
+          headers,
+          signal: abortController.signal,
+        }),
+        timeoutPromise
+      ]);
+
+      // Clean up abort controller
+      if (requestKey) {
+        this.abortControllers.delete(requestKey);
+      }
 
       // Handle 401 errors with token refresh retry
       if (response.status === 401 && this.token && !endpoint.includes('/auth/')) {
@@ -724,14 +792,14 @@ class ApiClient {
     params.append("limit", limit.toString());
     params.append("page", page.toString());
 
-    return this.get(`/instagram/posts?${params.toString()}`);
+    return this.get(`/instagram/posts?${params.toString()}`, "instagram-posts");
   }
 
   /**
    * Check Instagram connection status
    */
   async getInstagramStatus(): Promise<any> {
-    return this.get("/settings/instagram/connection-status");
+    return this.get("/settings/instagram/connection-status", "instagram-status");
   }
 
   // ============= END INSTAGRAM INTEGRATION =============
@@ -1002,6 +1070,50 @@ class ApiClient {
     }
 
     return response.json();
+  }
+
+  // ============= HTTP METHOD WRAPPERS =============
+
+  /**
+   * GET request with automatic cancellation support
+   */
+  async get(endpoint: string, requestKey?: string): Promise<any> {
+    return this.fetchJson(endpoint, { method: "GET" }, requestKey);
+  }
+
+  /**
+   * POST request with automatic cancellation support
+   */
+  async post(endpoint: string, data?: any, requestKey?: string): Promise<any> {
+    return this.fetchJson(
+      endpoint,
+      {
+        method: "POST",
+        body: data ? JSON.stringify(data) : undefined,
+      },
+      requestKey
+    );
+  }
+
+  /**
+   * PUT request with automatic cancellation support
+   */
+  async put(endpoint: string, data?: any, requestKey?: string): Promise<any> {
+    return this.fetchJson(
+      endpoint,
+      {
+        method: "PUT",
+        body: data ? JSON.stringify(data) : undefined,
+      },
+      requestKey
+    );
+  }
+
+  /**
+   * DELETE request with automatic cancellation support
+   */
+  async delete(endpoint: string, requestKey?: string): Promise<any> {
+    return this.fetchJson(endpoint, { method: "DELETE" }, requestKey);
   }
 }
 

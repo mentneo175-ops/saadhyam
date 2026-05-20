@@ -62,17 +62,16 @@ function AEOGEOPage() {
   const [isGeneratingBlog, setIsGeneratingBlog] = useState(false);
   const [blogTopic, setBlogTopic] = useState("");
   const { notifyWarning } = useNotificationHelpers();
-  
+
   // Blog management state
   const [blogs, setBlogs] = useState<Blog[]>([]);
   const [blogFilter, setBlogFilter] = useState<"all" | "draft" | "published">("all");
   const [selectedBlog, setSelectedBlog] = useState<Blog | null>(null);
   const featureGate = useFeatureGate(FEATURE_KEYS.AEO_GEO);
-  
   // Cooldown for optimization button (2 hours)
   const optimizeCooldown = useCooldown({
     cooldownMinutes: 120,
-    storageKey: 'aeo-geo-optimize-cooldown',
+    storageKey: "aeo-geo-optimize-cooldown",
   });
 
   // Get token from localStorage
@@ -93,7 +92,6 @@ function AEOGEOPage() {
     loadData();
     loadBlogs();
   }, [featureGate.isDisabled]);
-  
   // Reload blogs when filter changes
   useEffect(() => {
     if (featureGate.isDisabled) {
@@ -128,7 +126,7 @@ function AEOGEOPage() {
       setIsLoading(false);
     }
   };
-  
+
   const loadBlogs = async () => {
     try {
       const token = getToken();
@@ -144,8 +142,8 @@ function AEOGEOPage() {
     // Check cooldown
     if (!optimizeCooldown.canExecute) {
       notifyWarning(
-        'Optimization on Cooldown',
-        `Please wait ${formatCooldownTime(optimizeCooldown.remainingTime)} before running optimization again.`
+        "Optimization on Cooldown",
+        `Please wait ${formatCooldownTime(optimizeCooldown.remainingTime)} before running optimization again.`,
       );
       return;
     }
@@ -157,7 +155,7 @@ function AEOGEOPage() {
       const token = getToken();
       await runFullOptimization(token);
       await loadData();
-      
+
       // Start cooldown ONLY after successfully getting complete data
       optimizeCooldown.execute();
     } catch (err: any) {
@@ -176,7 +174,7 @@ function AEOGEOPage() {
     try {
       const token = getToken();
       await discoverQuestions(token, 20);
-      
+
       // Reload questions
       const questionsData = await getDiscoveredQuestions(token, undefined, 20);
       setQuestions(questionsData.questions);
@@ -192,7 +190,7 @@ function AEOGEOPage() {
     try {
       const token = getToken();
       await generateAEOContent(token, questionId);
-      
+
       // Reload content
       const contentData = await getGeneratedContent(token, 20);
       setContent(contentData.content);
@@ -204,7 +202,7 @@ function AEOGEOPage() {
 
   const handleSemanticSearch = async () => {
     if (!searchQuery.trim()) return;
-    
+
     setIsSearching(true);
     setError(null);
 
@@ -227,13 +225,13 @@ function AEOGEOPage() {
     try {
       const token = getToken();
       const result = await generateBlog(token, blogTopic || undefined);
-      
+
       // Clear topic input
       setBlogTopic("");
-      
+
       // Reload blogs
       await loadBlogs();
-      
+
       // Show success message (stay on same page)
       alert(`Blog "${result.blog.title}" generated successfully!`);
     } catch (err: any) {
@@ -243,23 +241,25 @@ function AEOGEOPage() {
       setIsGeneratingBlog(false);
     }
   };
-  
+
   const handlePublishBlog = async (blogId: number) => {
     try {
       const token = getToken();
       await publishBlog(token, blogId);
-      
+
       // Reload blogs
       await loadBlogs();
-      
+
       alert("Blog published successfully and integrated into your confirmed website!");
     } catch (err: any) {
       console.error("Error publishing blog:", err);
       const errorMessage = err.message || "Failed to publish blog";
-      
+
       // Check if error is about missing website
       if (errorMessage.includes("create a website first") || errorMessage.includes("Website AI")) {
-        alert("⚠️ Website Required\n\nYou need to create a website first before publishing blogs.\n\nPlease go to 'Website AI' in the sidebar to create your website, then come back to publish your blogs.");
+        alert(
+          "⚠️ Website Required\n\nYou need to create a website first before publishing blogs.\n\nPlease go to 'Website AI' in the sidebar to create your website, then come back to publish your blogs.",
+        );
       } else {
         setError(errorMessage);
       }
@@ -274,10 +274,10 @@ function AEOGEOPage() {
     try {
       const token = getToken();
       await deleteBlog(token, blogId);
-      
+
       // Reload blogs
       await loadBlogs();
-      
+
       // Close preview if deleted blog was selected
       if (selectedBlog?.id === blogId) {
         setSelectedBlog(null);
@@ -299,6 +299,34 @@ function AEOGEOPage() {
         <div className="flex flex-col items-center justify-center py-20">
           <Loader2 size={48} className="animate-spin text-purple-600 mb-4" />
           <p className="text-lg font-semibold text-gray-900">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Onboarding state - if no business analysis has been run yet
+  if (overview && overview.business_analysis?.status === "not_started") {
+    return (
+      <div className="p-4 md:p-6 space-y-5">
+        <PageHeader
+          title="AEO & GEO"
+          subtitle="Answer Engine Optimization + Generative Engine Optimization"
+        />
+        <div className="bg-blue-50 border-blue-200 border rounded-lg p-8 text-center max-w-2xl mx-auto">
+          <Target size={48} className="mx-auto text-blue-600 mb-4" />
+          <h2 className="text-2xl font-semibold text-gray-900 mb-2">Get Started with AEO & GEO</h2>
+          <p className="text-gray-700 mb-6">
+            To begin optimizing your business for Answer Engine and Generative Engine Optimization,
+            start with a comprehensive business analysis.
+          </p>
+          <Button variant="hero" size="lg" onClick={handleOptimize}>
+            <Zap size={18} />
+            Start Optimization
+          </Button>
+          <p className="text-sm text-gray-600 mt-4">
+            This will analyze your business, discover AI-search questions, and generate
+            SEO-optimized content.
+          </p>
         </div>
       </div>
     );
@@ -358,9 +386,11 @@ function AEOGEOPage() {
           }
         >
           <Zap size={14} className={isOptimizing ? "animate-spin" : ""} />
-          {!optimizeCooldown.canExecute 
-            ? formatCooldownTime(optimizeCooldown.remainingTime).split(' ')[0]
-            : isOptimizing ? "Optimizing..." : "Run Full Optimization"}
+          {!optimizeCooldown.canExecute
+            ? formatCooldownTime(optimizeCooldown.remainingTime).split(" ")[0]
+            : isOptimizing
+              ? "Optimizing..."
+              : "Run Full Optimization"}
         </Button>
       </div>
 
@@ -459,7 +489,9 @@ function AEOGEOPage() {
                   <Eye size={20} className="text-orange-600" />
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-gray-900">{overview.visibility.total_mentions}</div>
+                  <div className="text-2xl font-bold text-gray-900">
+                    {overview.visibility.total_mentions}
+                  </div>
                   <div className="text-xs text-gray-600">AI Mentions</div>
                 </div>
               </div>
@@ -478,14 +510,19 @@ function AEOGEOPage() {
               <div className="space-y-4">
                 <div>
                   <h4 className="text-sm font-semibold text-gray-900 mb-1">Summary</h4>
-                  <p className="text-sm text-gray-700">{overview.business_analysis.business_summary}</p>
+                  <p className="text-sm text-gray-700">
+                    {overview.business_analysis.business_summary}
+                  </p>
                 </div>
                 {overview.business_analysis.authority_topics.length > 0 && (
                   <div>
                     <h4 className="text-sm font-semibold text-gray-900 mb-2">Authority Topics</h4>
                     <div className="flex flex-wrap gap-2">
                       {overview.business_analysis.authority_topics.map((topic, idx) => (
-                        <span key={idx} className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">
+                        <span
+                          key={idx}
+                          className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium"
+                        >
                           {topic}
                         </span>
                       ))}
@@ -494,7 +531,9 @@ function AEOGEOPage() {
                 )}
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-semibold text-gray-900">AEO Readiness Score:</span>
-                  <span className="text-lg font-bold text-purple-700">{overview.business_analysis.aeo_readiness_score}/100</span>
+                  <span className="text-lg font-bold text-purple-700">
+                    {overview.business_analysis.aeo_readiness_score}/100
+                  </span>
                 </div>
               </div>
             </div>
@@ -509,10 +548,13 @@ function AEOGEOPage() {
           <div className="bg-gradient-to-br from-purple-50 to-blue-50 rounded-xl border border-purple-200 shadow-sm p-5">
             <div className="flex items-center gap-2 mb-3">
               <Sparkles size={18} className="text-purple-600" />
-              <h3 className="text-sm font-semibold text-gray-900">Semantic Search (Powered by Pinecone)</h3>
+              <h3 className="text-sm font-semibold text-gray-900">
+                Semantic Search (Powered by Pinecone)
+              </h3>
             </div>
             <p className="text-xs text-gray-600 mb-3">
-              Search by meaning, not just keywords. Find similar questions even with different wording.
+              Search by meaning, not just keywords. Find similar questions even with different
+              wording.
             </p>
             <div className="flex gap-2">
               <input
@@ -533,7 +575,7 @@ function AEOGEOPage() {
                 {isSearching ? "Searching..." : "Search"}
               </Button>
             </div>
-            
+
             {/* Search Results */}
             {searchResults.length > 0 && (
               <div className="mt-4 space-y-2">
@@ -562,9 +604,7 @@ function AEOGEOPage() {
           </div>
 
           <div className="flex items-center justify-between">
-            <p className="text-sm text-gray-600">
-              Discovered questions from AI search engines
-            </p>
+            <p className="text-sm text-gray-600">Discovered questions from AI search engines</p>
             <Button
               variant="outline"
               size="sm"
@@ -588,10 +628,15 @@ function AEOGEOPage() {
           ) : (
             <div className="space-y-3">
               {questions.map((question) => (
-                <div key={question.id} className="bg-card rounded-xl border border-border/60 shadow-sm p-4">
+                <div
+                  key={question.id}
+                  className="bg-card rounded-xl border border-border/60 shadow-sm p-4"
+                >
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1">
-                      <h4 className="text-sm font-semibold text-gray-900 mb-1">{question.question}</h4>
+                      <h4 className="text-sm font-semibold text-gray-900 mb-1">
+                        {question.question}
+                      </h4>
                       <div className="flex items-center gap-3 text-xs text-gray-600">
                         <span className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded">
                           {question.category}
@@ -600,9 +645,13 @@ function AEOGEOPage() {
                           {question.intent}
                         </span>
                         <span>Priority: {question.priority}</span>
-                        <span className={`px-2 py-0.5 rounded ${
-                          question.status === "answered" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-700"
-                        }`}>
+                        <span
+                          className={`px-2 py-0.5 rounded ${
+                            question.status === "answered"
+                              ? "bg-green-100 text-green-700"
+                              : "bg-gray-100 text-gray-700"
+                          }`}
+                        >
                           {question.status}
                         </span>
                       </div>
@@ -635,7 +684,8 @@ function AEOGEOPage() {
               <h3 className="text-sm font-semibold text-gray-900">Generate New Blog Post</h3>
             </div>
             <p className="text-xs text-gray-600 mb-3">
-              AI generates SEO-optimized blog posts using your business details, web search, and latest trends
+              AI generates SEO-optimized blog posts using your business details, web search, and
+              latest trends
             </p>
             <div className="flex gap-2">
               <input
@@ -658,7 +708,8 @@ function AEOGEOPage() {
               </Button>
             </div>
             <p className="text-xs text-gray-500 mt-2">
-              ⚠️ Rate limit: 5 requests per minute. Generation takes 30-60 seconds. Blogs will be automatically published to your confirmed website.
+              ⚠️ Rate limit: 5 requests per minute. Generation takes 30-60 seconds. Blogs will be
+              automatically published to your confirmed website.
             </p>
           </div>
 
@@ -683,7 +734,7 @@ function AEOGEOPage() {
                     : "border-transparent text-gray-600 hover:text-gray-900"
                 }`}
               >
-                Drafts ({blogs.filter(b => b.status === "draft").length})
+                Drafts ({blogs.filter((b) => b.status === "draft").length})
               </button>
               <button
                 onClick={() => setBlogFilter("published")}
@@ -693,14 +744,10 @@ function AEOGEOPage() {
                     : "border-transparent text-gray-600 hover:text-gray-900"
                 }`}
               >
-                Published ({blogs.filter(b => b.status === "published").length})
+                Published ({blogs.filter((b) => b.status === "published").length})
               </button>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={loadBlogs}
-            >
+            <Button variant="outline" size="sm" onClick={loadBlogs}>
               <RefreshCw size={14} />
               Refresh
             </Button>
@@ -714,7 +761,14 @@ function AEOGEOPage() {
               <p className="text-sm text-gray-500 mb-4">
                 Generate your first AI-powered blog post to get started
               </p>
-              <Button variant="hero" onClick={() => document.querySelector<HTMLInputElement>('input[placeholder*="Blog topic"]')?.focus()}>
+              <Button
+                variant="hero"
+                onClick={() =>
+                  document
+                    .querySelector<HTMLInputElement>('input[placeholder*="Blog topic"]')
+                    ?.focus()
+                }
+              >
                 <PenTool size={16} />
                 Generate Blog
               </Button>
@@ -804,11 +858,7 @@ function AEOGEOPage() {
                       Preview
                     </Button>
                     {!blog.is_published && (
-                      <Button
-                        variant="hero"
-                        size="sm"
-                        onClick={() => handlePublishBlog(blog.id)}
-                      >
+                      <Button variant="hero" size="sm" onClick={() => handlePublishBlog(blog.id)}>
                         <Send size={14} />
                         Publish
                       </Button>
@@ -828,7 +878,7 @@ function AEOGEOPage() {
           )}
         </div>
       )}
-      
+
       {/* Blog Preview Modal */}
       {selectedBlog && (
         <div
@@ -874,9 +924,7 @@ function AEOGEOPage() {
             <div className="p-6 space-y-6">
               {/* Title */}
               <div>
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                  {selectedBlog.title}
-                </h1>
+                <h1 className="text-3xl font-bold text-gray-900 mb-2">{selectedBlog.title}</h1>
                 <p className="text-gray-600">{selectedBlog.meta_description}</p>
               </div>
 

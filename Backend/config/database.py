@@ -1,12 +1,12 @@
 """
-Database Configuration
+Database Configuration - Fully Async Architecture
 """
 
 import logging
-from typing import Generator
+from typing import AsyncGenerator, Generator
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker, Session
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 import os
 from dotenv import load_dotenv
@@ -28,93 +28,111 @@ DATABASE_URL = os.getenv(
 IS_SQLITE = "sqlite" in DATABASE_URL
 
 if IS_SQLITE:
-    # For SQLite, use sync engine only
-    logger.info("📦 Using SQLite database")
+    # For SQLite, use async engine with aiosqlite
+    logger.info("📦 Using SQLite database with async support")
+    
+    # Convert to async SQLite URL
+    async_sqlite_url = DATABASE_URL.replace("sqlite:///", "sqlite+aiosqlite:///")
+    
+    # Async engine for SQLite
+    async_engine = create_async_engine(
+        async_sqlite_url,
+        echo=False,
+        pool_pre_ping=True,
+        pool_size=20,
+        max_overflow=10,
+        pool_timeout=30,
+        pool_recycle=3600,
+    )
+    
+    # Keep sync engine for migrations only
     sync_engine = create_engine(
         DATABASE_URL,
         echo=False,
         connect_args={"check_same_thread": False}
     )
-    async_engine = None
+    
 else:
-    # For PostgreSQL, try to connect, fallback to SQLite if fails
-    logger.info("🔄 Attempting to connect to PostgreSQL...")
+    # For PostgreSQL, use asyncpg for full async support
+    logger.info("🔄 Attempting to connect to PostgreSQL with asyncpg...")
     try:
-        # For PostgreSQL without asyncpg
-        import ssl
+        # Convert to asyncpg URL if needed and handle SSL
+        if "postgresql://" in DATABASE_URL and "postgresql+asyncpg://" not in DATABASE_URL:
+            ASYNC_DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://")
+        else:
+            ASYNC_DATABASE_URL = DATABASE_URL
         
-        # Use psycopg2 (sync) - asyncpg not available
+        # Remove sslmode from URL as asyncpg handles SSL differently
+        if "?sslmode=require" in ASYNC_DATABASE_URL:
+            ASYNC_DATABASE_URL = ASYNC_DATABASE_URL.replace("?sslmode=require", "")
+        
+        # Create async engine with asyncpg
+        async_engine = create_async_engine(
+            ASYNC_DATABASE_URL,
+            echo=False,
+            pool_pre_ping=True,          # Verify connections before use
+            pool_size=20,                # Number of connections to maintain
+            max_overflow=10,             # Additional connections when pool is full
+            pool_timeout=30,             # Timeout for getting connection (seconds)
+            pool_recycle=3600,           # Recycle connections after 1 hour
+            connect_args={
+                "ssl": "require",        # asyncpg SSL configuration
+                "server_settings": {
+                    "application_name": "sadhyam_backend",
+                }
+            }
+        )
+        
+        # Keep sync engine for migrations only (with original URL format)
         sync_url = DATABASE_URL.replace("postgresql+asyncpg://", "postgresql://")
-        
-        # Add SSL context for psycopg2
-        test_engine = create_engine(
+        sync_engine = create_engine(
             sync_url,
             echo=False,
             pool_pre_ping=True,
             connect_args={
-                "connect_timeout": 10,
-                "sslmode": "require"
+                "sslmode": "require",
+                "connect_timeout": 10
             }
         )
         
-        with test_engine.connect() as conn:
-            result = conn.execute(text("SELECT 1"))
-            logger.info("✅ PostgreSQL connection successful")
-        
-        # No async engine available without asyncpg
-        async_engine = None
-        
-        # Sync engine for sync operations
-        SYNC_DATABASE_URL = sync_url
-        sync_engine = create_engine(
-            SYNC_DATABASE_URL,
-            echo=False,
-            pool_pre_ping=True,
-            pool_size=10,
-            max_overflow=0,
-            connect_args={
-                "sslmode": "require"
-            }
-        )
         IS_SQLITE = False
-        test_engine.dispose()
-        logger.info("✅ Using PostgreSQL (Neon DB) database with psycopg2")
+        logger.info("✅ Using PostgreSQL (Neon DB) database with asyncpg")
         
     except Exception as e:
-        logger.error(f"❌ PostgreSQL (NeonDB) connection failed: {e}")
+        logger.error(f"❌ PostgreSQL (NeonDB) async connection failed: {e}")
         logger.error("❌ SQLite fallback is disabled. NeonDB connection is required!")
         logger.error("Please check your DATABASE_URL in .env file")
-        raise Exception(f"NeonDB connection failed: {e}")
+        raise Exception(f"NeonDB async connection failed: {e}")
 
-# Session factories
-if not IS_SQLITE:
-    AsyncSessionLocal = sessionmaker(
-        async_engine,
-        class_=AsyncSession,
-        expire_on_commit=False
-    )
+# Async Session factory (primary)
+AsyncSessionLocal = async_sessionmaker(
+    bind=async_engine,
+    class_=AsyncSession,
+    expire_on_commit=False
+)
 
+# Sync Session factory (migrations only)
 SyncSessionLocal = sessionmaker(
     bind=sync_engine,
     expire_on_commit=False
 )
 
 
-def get_db() -> Generator[Session, None, None]:
+async def get_db() -> AsyncGenerator[AsyncSession, None]:
     """
-    Get database session (sync for SQLite, sync for PostgreSQL)
+    Get async database session (primary dependency)
     """
-    db = SyncSessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+    async with AsyncSessionLocal() as session:
+        try:
+            yield session
+        finally:
+            await session.close()
 
 
 def get_db_sync() -> Generator[Session, None, None]:
     """
-    Get sync database session for Depends()
-    Properly closes connection after use
+    Get sync database session (DEPRECATED - use get_db() instead)
+    Only for migrations and legacy code
     """
     db = SyncSessionLocal()
     try:
@@ -134,17 +152,14 @@ def get_db_for_migration() -> Session:
 
 async def init_db():
     """
-    Initialize database tables
+    Initialize database tables using async engine
     """
     try:
         logger.info("🔄 Initializing database...")
         
-        if IS_SQLITE:
-            # For SQLite, use sync
-            Base.metadata.create_all(bind=sync_engine)
-        else:
-            # For PostgreSQL, use sync (easier for initialization)
-            Base.metadata.create_all(bind=sync_engine)
+        # Use async engine for table creation
+        async with async_engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
         
         logger.info("✅ Database initialized successfully")
     except Exception as e:
@@ -157,8 +172,7 @@ async def close_db():
     Close database connections
     """
     try:
-        if not IS_SQLITE and async_engine:
-            await async_engine.dispose()
+        await async_engine.dispose()
         logger.info("✅ Database connections closed")
     except Exception as e:
         logger.error(f"❌ Error closing database: {e}")

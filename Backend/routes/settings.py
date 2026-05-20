@@ -5,8 +5,8 @@ Handles Instagram automation settings, posting preferences, and notifications.
 
 import logging
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
-from config.database import get_db_sync
+from sqlalchemy.ext.asyncio import AsyncSession
+from config.database import get_db
 from utils.dependencies import get_current_user
 from models.user import User
 from services.settings_service import SettingsService
@@ -33,14 +33,14 @@ router = APIRouter(prefix="/settings", tags=["Settings"])
 )
 async def check_instagram_connection(
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db_sync),
+    db: AsyncSession = Depends(get_db),
 ):
     """
     Check if Instagram is connected and automation is enabled.
     Returns connection status, automation settings, and account info.
     """
     try:
-        status_info = SettingsService.check_instagram_connection_status(
+        status_info = await SettingsService.check_instagram_connection_status(
             db, current_user.id
         )
 
@@ -79,11 +79,11 @@ async def check_instagram_connection(
 )
 async def get_user_settings(
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db_sync),
+    db: AsyncSession = Depends(get_db),
 ):
     """Get all user settings and preferences."""
     try:
-        settings = SettingsService.get_user_settings(db, current_user.id)
+        settings = await SettingsService.get_user_settings(db, current_user.id)
 
         return UserSettingsResponse(
             id=settings.id,
@@ -128,7 +128,7 @@ async def get_user_settings(
 async def update_instagram_automation(
     request: UpdateInstagramAutomationRequest,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db_sync),
+    db: AsyncSession = Depends(get_db),
 ):
     """
     Update Instagram automation settings.
@@ -139,7 +139,7 @@ async def update_instagram_automation(
     - **instagram_save_drafts**: Save posts as drafts before publishing
     """
     try:
-        settings = SettingsService.update_instagram_automation(
+        settings = await SettingsService.update_instagram_automation(
             db,
             current_user.id,
             instagram_enabled=request.instagram_enabled,
@@ -191,7 +191,7 @@ async def update_instagram_automation(
 async def update_posting_preferences(
     request: UpdatePostingPreferencesRequest,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db_sync),
+    db: AsyncSession = Depends(get_db),
 ):
     """
     Update posting preferences.
@@ -201,7 +201,7 @@ async def update_posting_preferences(
     - **auto_generate_captions**: Auto-generate captions using AI
     """
     try:
-        settings = SettingsService.update_posting_preferences(
+        settings = await SettingsService.update_posting_preferences(
             db,
             current_user.id,
             preferred_posting_time=request.preferred_posting_time,
@@ -252,7 +252,7 @@ async def update_posting_preferences(
 async def update_notification_settings(
     request: UpdateNotificationSettingsRequest,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db_sync),
+    db: AsyncSession = Depends(get_db),
 ):
     """
     Update notification preferences.
@@ -262,7 +262,7 @@ async def update_notification_settings(
     - **notify_on_error**: Notify when automation errors occur
     """
     try:
-        settings = SettingsService.update_notification_settings(
+        settings = await SettingsService.update_notification_settings(
             db,
             current_user.id,
             notify_on_post=request.notify_on_post,
@@ -311,7 +311,7 @@ async def update_notification_settings(
 )
 async def disconnect_instagram(
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db_sync),
+    db: AsyncSession = Depends(get_db),
 ):
     """
     Disconnect Instagram account and remove all associated data.
@@ -324,7 +324,7 @@ async def disconnect_instagram(
     """
     try:
         # Use the settings service to disconnect Instagram
-        success = SettingsService.disconnect_instagram_account(db, current_user.id)
+        success = await SettingsService.disconnect_instagram_account(db, current_user.id)
         
         if success:
             return {

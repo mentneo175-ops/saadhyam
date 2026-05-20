@@ -11,6 +11,7 @@ import { BusinessOnboarding } from "@/components/dashboard/BusinessOnboarding";
 import { DashboardLoader } from "@/components/dashboard/DashboardLoader";
 import { apiClient } from "@/lib/api";
 import { useRealtimeBusiness } from "@/hooks/useRealtimeBusiness";
+import { useRoutePreservation } from "@/hooks/useRoutePreservation";
 import { formatCacheAge } from "@/lib/realtimeBusinessApi";
 import { getGrowthPlanData, type GrowthPlanData } from "@/lib/comprehensiveAnalysisApi";
 import { useDashboardContext } from "@/contexts/DashboardContext";
@@ -61,6 +62,9 @@ const iconMap: Record<string, any> = {
 function Overview() {
   const navigate = useNavigate();
   const { refreshTrigger } = useDashboardContext();
+  
+  // Use route preservation hook to handle refresh redirects
+  useRoutePreservation();
 
   // Use real-time business intelligence hook
   const {

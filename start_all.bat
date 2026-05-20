@@ -35,7 +35,7 @@ if not exist "Backend\venv\Scripts\activate.bat" (
 
 REM Check if Redis is running
 echo [INFO] Checking Redis connection...
-python -c "import redis; r = redis.Redis(host='localhost', port=6379); r.ping()" >nul 2>&1
+Backend\venv\Scripts\python.exe -c "import redis; r = redis.Redis(host='localhost', port=6379); r.ping()" >nul 2>&1
 if errorlevel 1 (
     echo [WARNING] Redis is not running on port 6379
     echo Celery tasks will not work without Redis

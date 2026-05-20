@@ -29,15 +29,17 @@ async def get_redis_client():
             socket_connect_timeout=5,
         )
         await _redis_client.ping()
-        logger.info("Connected to Redis successfully")
+        logger.info("✅ Connected to Redis successfully")
         _use_fallback = False
+        return _redis_client  # FIXED: Return the client
     except Exception as e:
-        logger.warning(f"Failed to connect to Redis: {e}")
+        logger.warning(f"⚠️ Failed to connect to Redis: {e}")
         logger.info(
             "Using in-memory fallback for token blacklist (not suitable for production)"
         )
         _use_fallback = True
         _redis_client = None
+        return None  # FIXED: Return None explicitly
 
 
 async def close_redis():

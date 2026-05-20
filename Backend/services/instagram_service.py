@@ -1,6 +1,6 @@
 import logging
-import requests
-import time
+import httpx
+import asyncio
 from typing import Optional, Dict, Any
 from datetime import datetime
 from config.settings import settings
@@ -43,18 +43,19 @@ class InstagramGraphAPIService:
         Instagram requires the image to be publicly accessible.
         """
         try:
-            response = requests.head(image_url, timeout=10)
-            if response.status_code == 200:
-                content_type = response.headers.get('content-type', '').lower()
-                if content_type.startswith('image/'):
-                    logger.info(f"✅ Image URL is valid and accessible: {image_url}")
-                    return True
+            async with httpx.AsyncClient() as client:
+                response = await client.head(image_url, timeout=10)
+                if response.status_code == 200:
+                    content_type = response.headers.get('content-type', '').lower()
+                    if content_type.startswith('image/'):
+                        logger.info(f"✅ Image URL is valid and accessible: {image_url}")
+                        return True
+                    else:
+                        logger.error(f"❌ URL is not an image: {content_type}")
+                        return False
                 else:
-                    logger.error(f"❌ URL is not an image: {content_type}")
+                    logger.error(f"❌ Image URL not accessible: {response.status_code}")
                     return False
-            else:
-                logger.error(f"❌ Image URL not accessible: {response.status_code}")
-                return False
         except Exception as e:
             logger.error(f"❌ Error validating image URL: {e}")
             return False
@@ -108,7 +109,8 @@ class InstagramGraphAPIService:
             logger.info(f"   Media URL: {image_url}")
             logger.info(f"   Caption length: {len(caption) if caption else 0} chars")
             
-            response = requests.post(url, data=data, timeout=30)
+            async with httpx.AsyncClient() as client:
+                response = await client.post(url, data=data, timeout=30)
             
             # Log full response for debugging
             logger.info(f"📥 Response Status: {response.status_code}")
@@ -151,10 +153,10 @@ class InstagramGraphAPIService:
                 logger.error(f"❌ No creation ID in response: {result}")
                 return None
 
-        except requests.exceptions.Timeout:
+        except httpx.TimeoutException:
             logger.error("❌ Request timeout while creating media container")
             return None
-        except requests.exceptions.RequestException as e:
+        except httpx.RequestError as e:
             logger.error(f"❌ Network error creating media: {e}")
             return None
         except Exception as e:
@@ -181,32 +183,33 @@ class InstagramGraphAPIService:
                 "access_token": access_token
             }
             
-            for attempt in range(max_retries):
-                logger.info(f"🔍 Checking media status (attempt {attempt + 1}/{max_retries})...")
-                
-                response = requests.get(url, params=params, timeout=10)
-                
-                if response.status_code == 200:
-                    result = response.json()
-                    status_code = result.get("status_code")
+            async with httpx.AsyncClient() as client:
+                for attempt in range(max_retries):
+                    logger.info(f"🔍 Checking media status (attempt {attempt + 1}/{max_retries})...")
                     
-                    logger.info(f"   Status code: {status_code}")
+                    response = await client.get(url, params=params, timeout=10)
                     
-                    if status_code == "FINISHED":
-                        logger.info("✅ Media is ready for publishing!")
-                        return True
-                    elif status_code == "ERROR":
-                        logger.error("❌ Media processing failed")
-                        return False
+                    if response.status_code == 200:
+                        result = response.json()
+                        status_code = result.get("status_code")
+                        
+                        logger.info(f"   Status code: {status_code}")
+                        
+                        if status_code == "FINISHED":
+                            logger.info("✅ Media is ready for publishing!")
+                            return True
+                        elif status_code == "ERROR":
+                            logger.error("❌ Media processing failed")
+                            return False
                     elif status_code in ["IN_PROGRESS", "PUBLISHED"]:
                         logger.info(f"⏳ Media is {status_code}, waiting...")
-                        time.sleep(2)  # Wait 2 seconds before next check
+                        await asyncio.sleep(2)  # Wait 2 seconds before next check
                     else:
                         logger.warning(f"⚠️ Unknown status: {status_code}")
-                        time.sleep(2)
+                        await asyncio.sleep(2)
                 else:
                     logger.warning(f"⚠️ Status check failed: HTTP {response.status_code}")
-                    time.sleep(2)
+                    await asyncio.sleep(2)
             
             logger.warning("⚠️ Max retries reached, media might not be ready")
             return False
@@ -239,7 +242,7 @@ class InstagramGraphAPIService:
             else:
                 # For images, add a small delay to ensure media container is ready
                 logger.info("⏳ Waiting 2 seconds for media container to be ready...")
-                time.sleep(2)
+                await asyncio.sleep(2)
             
             url = f"https://graph.facebook.com/{self.api_version}/{ig_user_id}/media_publish"
 
@@ -253,7 +256,8 @@ class InstagramGraphAPIService:
             logger.info(f"   IG User ID: {ig_user_id}")
             logger.info(f"   Creation ID: {creation_id}")
             
-            response = requests.post(url, data=data, timeout=30)
+            async with httpx.AsyncClient() as client:
+                response = await client.post(url, data=data, timeout=30)
             
             # Log full response for debugging
             logger.info(f"📥 Response Status: {response.status_code}")
@@ -293,10 +297,10 @@ class InstagramGraphAPIService:
                 logger.error(f"❌ No post ID in response: {result}")
                 return None
 
-        except requests.exceptions.Timeout:
+        except httpx.TimeoutException:
             logger.error("❌ Request timeout while publishing media")
             return None
-        except requests.exceptions.RequestException as e:
+        except httpx.RequestError as e:
             logger.error(f"❌ Network error publishing media: {e}")
             return None
         except Exception as e:
@@ -375,7 +379,9 @@ class InstagramGraphAPIService:
             }
             
             logger.info(f"🔍 Testing access to Instagram account: {ig_user_id}")
-            response = requests.get(url, params=params, timeout=10)
+            
+            async with httpx.AsyncClient() as client:
+                response = await client.get(url, params=params, timeout=10)
             
             if response.status_code != 200:
                 try:
@@ -401,7 +407,9 @@ class InstagramGraphAPIService:
             }
             
             logger.info("🔍 Testing media access permissions...")
-            media_response = requests.get(media_url, params=media_params, timeout=10)
+            
+            async with httpx.AsyncClient() as client:
+                media_response = await client.get(media_url, params=media_params, timeout=10)
             
             if media_response.status_code == 200:
                 logger.info("✅ Media access permissions validated")
@@ -431,8 +439,9 @@ class InstagramGraphAPIService:
                 "access_token": access_token,
             }
 
-            response = requests.get(url, params=params)
-            response.raise_for_status()
+            async with httpx.AsyncClient() as client:
+                response = await client.get(url, params=params)
+                response.raise_for_status()
 
             return response.json()
 

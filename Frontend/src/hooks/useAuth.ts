@@ -39,7 +39,7 @@ function getAuthErrorMessage(err: unknown, fallback: string): string {
 export function useAuth(): UseAuthReturn {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true); // Start as true to prevent premature redirects
   const [error, setError] = useState<string | null>(null);
 
   const clearError = useCallback(() => setError(null), []);
@@ -83,7 +83,14 @@ export function useAuth(): UseAuthReturn {
           }
           // For timeout or 500 errors, keep existing user data and continue
           // This prevents logout on slow network or backend issues
+        })
+        .finally(() => {
+          // Always set loading to false after initial check
+          setIsLoading(false);
         });
+    } else {
+      // No stored auth, set loading to false immediately
+      setIsLoading(false);
     }
 
     // Listen to Firebase auth state changes

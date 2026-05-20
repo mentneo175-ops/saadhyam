@@ -70,7 +70,7 @@ function SettingsPage() {
   const [logoutLoading, setLogoutLoading] = useState(false);
   const [expandedIntegration, setExpandedIntegration] = useState<string | null>(null);
   const { logout } = useAuthContext();
-  
+
   // Ref to track if Instagram status has been loaded
   const instagramStatusLoadedRef = useRef(false);
 
@@ -115,13 +115,13 @@ function SettingsPage() {
   // Simple useEffect - no dependencies to avoid loops
   useEffect(() => {
     setMounted(true);
-    
+
     // Load user settings on mount
     loadUserSettings();
-    
+
     // Load WhatsApp status on mount
     loadWhatsAppStatus();
-    
+
     // Check for Instagram OAuth success
     const params = new URLSearchParams(window.location.search);
     if (params.get("instagram") === "success") {
@@ -133,7 +133,7 @@ function SettingsPage() {
     const handleOAuthMessage = (event: MessageEvent) => {
       // Only accept messages from our backend
       if (event.origin !== "http://localhost:8000") return;
-      
+
       if (event.data.type === "INSTAGRAM_OAUTH_SUCCESS") {
         toast.success("Instagram connected successfully!");
         // Reload Instagram status after a short delay
@@ -146,7 +146,7 @@ function SettingsPage() {
     };
 
     window.addEventListener("message", handleOAuthMessage);
-    
+
     // Cleanup
     return () => {
       window.removeEventListener("message", handleOAuthMessage);
@@ -200,13 +200,12 @@ function SettingsPage() {
         const settingsData = await settingsResponse.json();
         if (settingsData) {
           // Update additional settings fields if they exist
-          setSettings(prev => ({
+          setSettings((prev) => ({
             ...prev,
             // Add any additional fields from settings if available
           }));
         }
       }
-
     } catch (error) {
       console.error("Error loading user settings:", error);
     } finally {
@@ -220,11 +219,11 @@ function SettingsPage() {
       console.log("Instagram status already loading, skipping...");
       return;
     }
-    
+
     try {
       setInstagramLoading(true);
       const token = localStorage.getItem("saadhyam_token");
-      
+
       if (!token) {
         console.log("No token found, skipping Instagram status load");
         setInstagramLoading(false);
@@ -240,17 +239,17 @@ function SettingsPage() {
 
       if (response.ok) {
         const data = await response.json();
-        
+
         // Mark as loaded
         instagramStatusLoadedRef.current = true;
-        
+
         // Only update state if data has actually changed
-        setInstagramStatus(prev => {
-          const hasChanged = 
+        setInstagramStatus((prev) => {
+          const hasChanged =
             prev.is_connected !== (data.is_connected || false) ||
             prev.account_username !== (data.account_username || null) ||
             prev.page_name !== (data.page_name || null);
-          
+
           if (hasChanged) {
             return {
               is_connected: data.is_connected || false,
@@ -272,15 +271,19 @@ function SettingsPage() {
           if (settingsResponse.ok) {
             const settingsData = await settingsResponse.json();
             if (settingsData?.instagram_automation) {
-              setInstagramSettings(prev => {
+              setInstagramSettings((prev) => {
                 const newSettings = {
                   instagram_enabled: settingsData.instagram_automation.instagram_enabled || false,
-                  instagram_auto_publish: settingsData.instagram_automation.instagram_auto_publish || false,
-                  instagram_auto_reply: settingsData.instagram_automation.instagram_auto_reply || false,
-                  instagram_save_drafts: settingsData.instagram_automation.instagram_save_drafts !== false,
-                  auto_generate_captions: settingsData.posting_preferences?.auto_generate_captions || false,
+                  instagram_auto_publish:
+                    settingsData.instagram_automation.instagram_auto_publish || false,
+                  instagram_auto_reply:
+                    settingsData.instagram_automation.instagram_auto_reply || false,
+                  instagram_save_drafts:
+                    settingsData.instagram_automation.instagram_save_drafts !== false,
+                  auto_generate_captions:
+                    settingsData.posting_preferences?.auto_generate_captions || false,
                 };
-                
+
                 // Only update if changed
                 const hasChanged = JSON.stringify(prev) !== JSON.stringify(newSettings);
                 return hasChanged ? newSettings : prev;
@@ -301,11 +304,11 @@ function SettingsPage() {
       console.log("WhatsApp status already loading, skipping...");
       return;
     }
-    
+
     try {
       setWhatsappLoading(true);
       const token = localStorage.getItem("saadhyam_token");
-      
+
       if (!token) {
         console.log("No token found, skipping WhatsApp status load");
         setWhatsappLoading(false);
@@ -321,7 +324,7 @@ function SettingsPage() {
 
       if (response.ok) {
         const data = await response.json();
-        
+
         setWhatsappStatus({
           is_connected: data.is_connected || false,
           phone_number: data.phone_number || null,
@@ -349,10 +352,14 @@ function SettingsPage() {
         toast.error("Not logged in. Please login first.");
         return;
       }
-      
+
       const oauthUrl = `http://localhost:8000/auth/instagram/connect?token=${token}`;
-      const popup = window.open(oauthUrl, 'instagram-oauth', 'width=600,height=700,scrollbars=yes,resizable=yes');
-      
+      const popup = window.open(
+        oauthUrl,
+        "instagram-oauth",
+        "width=600,height=700,scrollbars=yes,resizable=yes",
+      );
+
       if (!popup) {
         toast.error("Popup blocked. Please allow popups and try again.");
         return;
@@ -367,13 +374,15 @@ function SettingsPage() {
         }
       }, 1000);
 
-      setTimeout(() => {
-        if (!popup.closed) {
-          popup.close();
-        }
-        clearInterval(checkClosed);
-      }, 5 * 60 * 1000);
-
+      setTimeout(
+        () => {
+          if (!popup.closed) {
+            popup.close();
+          }
+          clearInterval(checkClosed);
+        },
+        5 * 60 * 1000,
+      );
     } catch (error) {
       console.error("Error connecting Instagram:", error);
       toast.error("Failed to connect Instagram");
@@ -384,19 +393,19 @@ function SettingsPage() {
     if (instagramLoading) return;
 
     const previousSettings = { ...instagramSettings };
-    
+
     try {
       setInstagramLoading(true);
-      
+
       const newSettings = { ...instagramSettings, [key]: value };
       setInstagramSettings(newSettings);
 
       const token = localStorage.getItem("saadhyam_token");
-      
+
       // Determine which endpoint to use based on the setting
       let endpoint = "http://localhost:8000/settings/instagram/automation";
       let requestBody: any = newSettings;
-      
+
       if (key === "auto_generate_captions") {
         // Use posting preferences endpoint for auto-generate captions
         endpoint = "http://localhost:8000/settings/posting-preferences";
@@ -410,7 +419,7 @@ function SettingsPage() {
           instagram_save_drafts: newSettings.instagram_save_drafts,
         };
       }
-      
+
       const response = await fetch(endpoint, {
         method: "PUT",
         headers: {
@@ -438,9 +447,9 @@ function SettingsPage() {
   const handleSaveSettings = async () => {
     try {
       setLoading(true);
-      
+
       const token = localStorage.getItem("saadhyam_token");
-      
+
       // Save business profile data
       const businessData = {
         business_name: settings.business_name,
@@ -467,7 +476,6 @@ function SettingsPage() {
 
       // Note: User profile fields (name, email, phone) would need a separate endpoint
       // For now, we'll just show success for business fields
-      
     } catch (error) {
       console.error("Failed to save settings:", error);
       toast.error("Failed to save settings");
@@ -492,8 +500,8 @@ function SettingsPage() {
   const handleIntegrationClick = (integrationName: string) => {
     if (integrationName === "Instagram") {
       const isExpanding = expandedIntegration !== "Instagram";
-      setExpandedIntegration(prev => prev === "Instagram" ? null : "Instagram");
-      
+      setExpandedIntegration((prev) => (prev === "Instagram" ? null : "Instagram"));
+
       // Load Instagram status only when expanding and not already loaded
       if (isExpanding && !instagramStatusLoadedRef.current && !instagramLoading) {
         // Use setTimeout to avoid state update during render
@@ -516,10 +524,7 @@ function SettingsPage() {
   if (!mounted || initialLoading) {
     return (
       <div className="p-4 md:p-6 lg:p-8 space-y-6 max-w-4xl">
-        <PageHeader
-          title="Settings"
-          subtitle="Manage your account and integration preferences"
-        />
+        <PageHeader title="Settings" subtitle="Manage your account and integration preferences" />
         <div className="flex items-center justify-center py-12">
           <Loader2 size={32} className="animate-spin text-primary" />
           <span className="ml-3 text-lg text-muted-foreground">Loading settings...</span>
@@ -551,7 +556,7 @@ function SettingsPage() {
                 </div>
               </div>
             </div>
-            
+
             <div className="p-6">
               <div className="flex items-center gap-4 mb-6 pb-6 border-b border-border/60">
                 <div className="relative">
@@ -645,7 +650,7 @@ function SettingsPage() {
                 </div>
               </div>
             </div>
-            
+
             <div className="p-6">
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -679,7 +684,9 @@ function SettingsPage() {
                   </Label>
                   <Input
                     value={settings.business_location || ""}
-                    onChange={(e) => setSettings({ ...settings, business_location: e.target.value })}
+                    onChange={(e) =>
+                      setSettings({ ...settings, business_location: e.target.value })
+                    }
                     placeholder="City, State, Country"
                     className="h-11 rounded-xl border-2"
                   />
@@ -718,15 +725,21 @@ function SettingsPage() {
                   />
                 </div>
               </div>
-              
+
               {/* Note about editing */}
               <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-xl">
                 <div className="flex items-start gap-3">
                   <AlertCircle size={18} className="text-blue-600 mt-0.5 flex-shrink-0" />
                   <div>
-                    <p className="text-sm font-medium text-blue-900">Need to update your business profile?</p>
+                    <p className="text-sm font-medium text-blue-900">
+                      Need to update your business profile?
+                    </p>
                     <p className="text-xs text-blue-700 mt-1">
-                      Visit the <a href="/dashboard/business-details" className="underline font-medium">Business Details</a> page to edit your profile with advanced import options (PDF, Voice, Website).
+                      Visit the{" "}
+                      <a href="/dashboard/business-details" className="underline font-medium">
+                        Business Details
+                      </a>{" "}
+                      page to edit your profile with advanced import options (PDF, Voice, Website).
                     </p>
                   </div>
                 </div>
@@ -750,7 +763,7 @@ function SettingsPage() {
                 </div>
               </div>
             </div>
-            
+
             <div className="p-4 space-y-3">
               <Button
                 onClick={handleSaveSettings}
@@ -764,16 +777,16 @@ function SettingsPage() {
                 )}
                 Save All Changes
               </Button>
-              
+
               <Button
                 variant="outline"
                 className="w-full border-2"
-                onClick={() => window.location.href = "/dashboard/business-details"}
+                onClick={() => (window.location.href = "/dashboard/business-details")}
               >
                 <Building2 size={16} className="mr-2" />
                 Edit Business Profile
               </Button>
-              
+
               <Button
                 variant="destructive"
                 onClick={handleLogout}
@@ -802,7 +815,7 @@ function SettingsPage() {
                   <p className="text-xs text-white/80">Unlock premium features</p>
                 </div>
               </div>
-              
+
               <div className="space-y-2 mb-4">
                 <div className="flex items-center gap-2 text-white/90">
                   <CheckCircle size={14} className="text-white flex-shrink-0" />
@@ -821,15 +834,13 @@ function SettingsPage() {
                   <p className="text-sm">Custom integrations</p>
                 </div>
               </div>
-              
+
               <Button className="w-full bg-white text-purple-600 hover:bg-white/90 font-semibold shadow-lg">
                 <CreditCard size={16} className="mr-2" />
                 Upgrade Now
               </Button>
-              
-              <p className="text-xs text-white/70 text-center mt-3">
-                Starting at ₹999/month
-              </p>
+
+              <p className="text-xs text-white/70 text-center mt-3">Starting at ₹999/month</p>
             </div>
           </div>
 
@@ -846,188 +857,215 @@ function SettingsPage() {
                 </div>
               </div>
             </div>
-            
+
             <div className="p-4">
               <div className="space-y-3">
-          {integrations.map((integration) => (
-            <div key={integration.name}>
-              <div
-                className="flex items-center gap-4 p-3 rounded-xl border border-border/60 hover:bg-muted/30 transition cursor-pointer"
-                onClick={() => handleIntegrationClick(integration.name)}
-              >
-                <div
-                  className={`h-10 w-10 rounded-xl bg-gradient-to-br ${integration.color} flex items-center justify-center shrink-0`}
-                >
-                  <integration.icon size={18} className="text-white" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-sm">{integration.name}</p>
-                  <p className="text-xs text-muted-foreground">{integration.desc}</p>
-                </div>
-                <span
-                  className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
-                    integration.name === "Instagram" && instagramStatus.is_connected
-                      ? "bg-success/15 text-success"
-                      : integration.name === "WhatsApp Business" && whatsappStatus.is_connected
-                      ? "bg-success/15 text-success"
-                      : "bg-muted text-muted-foreground"
-                  }`}
-                >
-                  {integration.name === "Instagram"
-                    ? instagramStatus.is_connected
-                      ? "Connected"
-                      : "Not connected"
-                    : integration.name === "WhatsApp Business"
-                    ? whatsappStatus.is_connected
-                      ? "Connected"
-                      : "Not Connected"
-                    : "Not connected"}
-                </span>
-                {integration.name === "Instagram" && (
-                  <button className="p-1">
-                    {expandedIntegration === "Instagram" ? (
-                      <ChevronUp size={18} className="text-muted-foreground" />
-                    ) : (
-                      <ChevronDown size={18} className="text-muted-foreground" />
-                    )}
-                  </button>
-                )}
-              </div>
-
-              {/* Instagram Settings - Expanded */}
-              {integration.name === "Instagram" && expandedIntegration === "Instagram" && (
-                <div className="mt-3 ml-14 p-4 rounded-xl bg-muted/30 border border-border/40 space-y-4">
-                  {!instagramStatus.is_connected && !instagramLoading ? (
-                    <div className="space-y-3">
-                      <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
-                        <div className="flex items-center gap-2">
-                          <AlertCircle size={16} className="text-amber-600" />
-                          <p className="text-sm font-medium text-amber-700">
-                            Instagram not connected
-                          </p>
-                        </div>
-                        <p className="text-xs text-amber-700/80 mt-1">
-                          Connect your Instagram Business account to enable automation
-                        </p>
+                {integrations.map((integration) => (
+                  <div key={integration.name}>
+                    <div
+                      className="flex items-center gap-4 p-3 rounded-xl border border-border/60 hover:bg-muted/30 transition cursor-pointer"
+                      onClick={() => handleIntegrationClick(integration.name)}
+                    >
+                      <div
+                        className={`h-10 w-10 rounded-xl bg-gradient-to-br ${integration.color} flex items-center justify-center shrink-0`}
+                      >
+                        <integration.icon size={18} className="text-white" />
                       </div>
-                      <div className="flex gap-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="h-8"
-                          onClick={handleConnectInstagram}
-                          disabled={instagramLoading}
-                        >
-                          Connect Instagram
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="h-8"
-                          onClick={handleLoadInstagramData}
-                          disabled={instagramLoading}
-                        >
-                          Check Status
-                        </Button>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm">{integration.name}</p>
+                        <p className="text-xs text-muted-foreground">{integration.desc}</p>
                       </div>
-                    </div>
-                  ) : instagramLoading ? (
-                    <div className="flex items-center justify-center py-4">
-                      <Loader2 size={18} className="animate-spin text-primary" />
-                      <span className="ml-2 text-sm text-muted-foreground">
-                        Loading settings...
+                      <span
+                        className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+                          integration.name === "Instagram" && instagramStatus.is_connected
+                            ? "bg-success/15 text-success"
+                            : integration.name === "WhatsApp Business" &&
+                                whatsappStatus.is_connected
+                              ? "bg-success/15 text-success"
+                              : "bg-muted text-muted-foreground"
+                        }`}
+                      >
+                        {integration.name === "Instagram"
+                          ? instagramStatus.is_connected
+                            ? "Connected"
+                            : "Not connected"
+                          : integration.name === "WhatsApp Business"
+                            ? whatsappStatus.is_connected
+                              ? "Connected"
+                              : "Not Connected"
+                            : "Not connected"}
                       </span>
+                      {integration.name === "Instagram" && (
+                        <button className="p-1">
+                          {expandedIntegration === "Instagram" ? (
+                            <ChevronUp size={18} className="text-muted-foreground" />
+                          ) : (
+                            <ChevronDown size={18} className="text-muted-foreground" />
+                          )}
+                        </button>
+                      )}
                     </div>
-                  ) : instagramStatus.is_connected ? (
-                    <div className="space-y-4">
-                      <div className="p-3 rounded-lg bg-success/10 border border-success/20">
-                        <div className="flex items-center gap-2">
-                          <CheckCircle size={16} className="text-success" />
-                          <p className="text-sm font-medium text-success">
-                            Connected as @{instagramStatus.account_username}
-                          </p>
-                        </div>
-                        {instagramStatus.page_name && (
-                          <p className="text-xs text-success/80 mt-1">
-                            Page: {instagramStatus.page_name}
-                          </p>
+
+                    {/* Instagram Settings - Expanded */}
+                    {integration.name === "Instagram" && expandedIntegration === "Instagram" && (
+                      <div className="mt-3 ml-14 p-4 rounded-xl bg-muted/30 border border-border/40 space-y-4">
+                        {!instagramStatus.is_connected && !instagramLoading ? (
+                          <div className="space-y-3">
+                            <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
+                              <div className="flex items-center gap-2">
+                                <AlertCircle size={16} className="text-amber-600" />
+                                <p className="text-sm font-medium text-amber-700">
+                                  Instagram not connected
+                                </p>
+                              </div>
+                              <p className="text-xs text-amber-700/80 mt-1">
+                                Connect your Instagram Business account to enable automation
+                              </p>
+                            </div>
+                            <div className="flex gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-8"
+                                onClick={handleConnectInstagram}
+                                disabled={instagramLoading}
+                              >
+                                Connect Instagram
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-8"
+                                onClick={handleLoadInstagramData}
+                                disabled={instagramLoading}
+                              >
+                                Check Status
+                              </Button>
+                            </div>
+                          </div>
+                        ) : instagramLoading ? (
+                          <div className="flex items-center justify-center py-4">
+                            <Loader2 size={18} className="animate-spin text-primary" />
+                            <span className="ml-2 text-sm text-muted-foreground">
+                              Loading settings...
+                            </span>
+                          </div>
+                        ) : instagramStatus.is_connected ? (
+                          <div className="space-y-4">
+                            <div className="p-3 rounded-lg bg-success/10 border border-success/20">
+                              <div className="flex items-center gap-2">
+                                <CheckCircle size={16} className="text-success" />
+                                <p className="text-sm font-medium text-success">
+                                  Connected as @{instagramStatus.account_username}
+                                </p>
+                              </div>
+                              {instagramStatus.page_name && (
+                                <p className="text-xs text-success/80 mt-1">
+                                  Page: {instagramStatus.page_name}
+                                </p>
+                              )}
+                            </div>
+
+                            <div className="space-y-3">
+                              <h4 className="font-medium text-sm">Automation Settings</h4>
+
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <p className="text-sm font-medium">Enable Instagram Automation</p>
+                                  <p className="text-xs text-muted-foreground">
+                                    Master switch for all features
+                                  </p>
+                                </div>
+                                <Switch
+                                  checked={instagramSettings.instagram_enabled}
+                                  onCheckedChange={(checked) =>
+                                    handleInstagramToggle("instagram_enabled", checked)
+                                  }
+                                  disabled={instagramLoading}
+                                />
+                              </div>
+
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <p className="text-sm font-medium">Auto-publish Posts</p>
+                                  <p className="text-xs text-muted-foreground">
+                                    Automatically publish scheduled posts
+                                  </p>
+                                </div>
+                                <Switch
+                                  checked={instagramSettings.instagram_auto_publish}
+                                  onCheckedChange={(checked) =>
+                                    handleInstagramToggle("instagram_auto_publish", checked)
+                                  }
+                                  disabled={
+                                    instagramLoading || !instagramSettings.instagram_enabled
+                                  }
+                                />
+                              </div>
+
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <p className="text-sm font-medium">Auto-reply to DMs</p>
+                                  <p className="text-xs text-muted-foreground">
+                                    Respond to direct messages automatically
+                                  </p>
+                                </div>
+                                <Switch
+                                  checked={instagramSettings.instagram_auto_reply}
+                                  onCheckedChange={(checked) =>
+                                    handleInstagramToggle("instagram_auto_reply", checked)
+                                  }
+                                  disabled={
+                                    instagramLoading || !instagramSettings.instagram_enabled
+                                  }
+                                />
+                              </div>
+
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <p className="text-sm font-medium">Save as Drafts</p>
+                                  <p className="text-xs text-muted-foreground">
+                                    Save posts as drafts by default
+                                  </p>
+                                </div>
+                                <Switch
+                                  checked={instagramSettings.instagram_save_drafts}
+                                  onCheckedChange={(checked) =>
+                                    handleInstagramToggle("instagram_save_drafts", checked)
+                                  }
+                                  disabled={instagramLoading}
+                                />
+                              </div>
+
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <p className="text-sm font-medium">Auto-generate Captions</p>
+                                  <p className="text-xs text-muted-foreground">
+                                    Use AI to automatically generate captions
+                                  </p>
+                                </div>
+                                <Switch
+                                  checked={instagramSettings.auto_generate_captions}
+                                  onCheckedChange={(checked) =>
+                                    handleInstagramToggle("auto_generate_captions", checked)
+                                  }
+                                  disabled={instagramLoading}
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="text-center py-4">
+                            <p className="text-sm text-muted-foreground">
+                              Click "Check Status" to load Instagram settings
+                            </p>
+                          </div>
                         )}
                       </div>
-
-                      <div className="space-y-3">
-                        <h4 className="font-medium text-sm">Automation Settings</h4>
-                        
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-sm font-medium">Enable Instagram Automation</p>
-                            <p className="text-xs text-muted-foreground">Master switch for all features</p>
-                          </div>
-                          <Switch
-                            checked={instagramSettings.instagram_enabled}
-                            onCheckedChange={(checked) => handleInstagramToggle("instagram_enabled", checked)}
-                            disabled={instagramLoading}
-                          />
-                        </div>
-
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-sm font-medium">Auto-publish Posts</p>
-                            <p className="text-xs text-muted-foreground">Automatically publish scheduled posts</p>
-                          </div>
-                          <Switch
-                            checked={instagramSettings.instagram_auto_publish}
-                            onCheckedChange={(checked) => handleInstagramToggle("instagram_auto_publish", checked)}
-                            disabled={instagramLoading || !instagramSettings.instagram_enabled}
-                          />
-                        </div>
-
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-sm font-medium">Auto-reply to DMs</p>
-                            <p className="text-xs text-muted-foreground">Respond to direct messages automatically</p>
-                          </div>
-                          <Switch
-                            checked={instagramSettings.instagram_auto_reply}
-                            onCheckedChange={(checked) => handleInstagramToggle("instagram_auto_reply", checked)}
-                            disabled={instagramLoading || !instagramSettings.instagram_enabled}
-                          />
-                        </div>
-
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-sm font-medium">Save as Drafts</p>
-                            <p className="text-xs text-muted-foreground">Save posts as drafts by default</p>
-                          </div>
-                          <Switch
-                            checked={instagramSettings.instagram_save_drafts}
-                            onCheckedChange={(checked) => handleInstagramToggle("instagram_save_drafts", checked)}
-                            disabled={instagramLoading}
-                          />
-                        </div>
-
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-sm font-medium">Auto-generate Captions</p>
-                            <p className="text-xs text-muted-foreground">Use AI to automatically generate captions</p>
-                          </div>
-                          <Switch
-                            checked={instagramSettings.auto_generate_captions}
-                            onCheckedChange={(checked) => handleInstagramToggle("auto_generate_captions", checked)}
-                            disabled={instagramLoading}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="text-center py-4">
-                      <p className="text-sm text-muted-foreground">Click "Check Status" to load Instagram settings</p>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>

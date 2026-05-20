@@ -34,8 +34,27 @@ async def get_aeo_geo_overview(
     try:
         logger.info(f"[AEOGEOService] Getting overview for user {user.id}")
         
-        # Get business analysis for AEO
+        # Get business analysis for AEO (can return error status if no analysis exists)
         business_analysis = await analyze_business_for_aeo(user, db)
+        
+        # If business analysis failed, use empty structure for frontend
+        if business_analysis.get("status") == "error":
+            business_analysis = {
+                "status": "not_started",
+                "message": business_analysis.get("message", "No business analysis available"),
+                "business_summary": f"Business for {user.business_name or 'Your Business'}",
+                "authority_topics": [],
+                "trust_signals": [],
+                "semantic_entities": {
+                    "brand": [],
+                    "service": [],
+                    "industry": [],
+                    "location": [],
+                    "user_intent": []
+                },
+                "aeo_readiness_score": 0,
+                "recommendations": ["Complete a business analysis to get started"]
+            }
         
         # Get discovered questions
         questions = await get_discovered_questions(user, db, limit=10)
@@ -72,16 +91,57 @@ async def get_aeo_geo_overview(
             },
             "schemas": {
                 "total": len(schemas),
-                "types": list(set(s["schema_type"] for s in schemas))
+                "types": list(set(s["schema_type"] for s in schemas)) if schemas else []
             },
-            "visibility": visibility.get("overview", {})
+            "visibility": visibility.get("overview", {}) if visibility.get("status") == "success" else {
+                "total_checks": 0,
+                "total_mentions": 0,
+                "total_citations": 0,
+                "avg_visibility_score": 0,
+                "mention_rate": 0
+            }
         }
         
     except Exception as e:
         logger.error(f"[AEOGEOService] ❌ Error: {e}", exc_info=True)
         return {
-            "status": "error",
-            "message": f"Failed to get AEO/GEO overview: {str(e)}"
+            "status": "success",
+            "aeo_geo_score": 0,
+            "business_analysis": {
+                "status": "error",
+                "message": f"Failed to analyze business: {str(e)}",
+                "business_summary": f"Business for {user.business_name or 'Your Business'}",
+                "authority_topics": [],
+                "trust_signals": [],
+                "semantic_entities": {
+                    "brand": [],
+                    "service": [],
+                    "industry": [],
+                    "location": [],
+                    "user_intent": []
+                },
+                "aeo_readiness_score": 0,
+                "recommendations": []
+            },
+            "questions": {
+                "total": 0,
+                "recent": []
+            },
+            "content": {
+                "total": 0,
+                "recent": []
+            },
+            "schemas": {
+                "total": 0,
+                "types": []
+            },
+            "visibility": {
+                "total_checks": 0,
+                "total_mentions": 0,
+                "total_citations": 0,
+                "avg_visibility_score": 0,
+                "mention_rate": 0
+            }
         }
 
 

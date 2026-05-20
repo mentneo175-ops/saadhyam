@@ -9,6 +9,7 @@ ONE Gemini API call to populate ALL features:
 
 This avoids rate limit issues by making only ONE API call and storing everything in database
 PLUS: Automatically stores in Pinecone for fast semantic retrieval
+PLUS: Redis caching for ultra-fast retrieval
 """
 
 import logging
@@ -21,6 +22,14 @@ from models.user import User
 from services.gemini_business_analysis_service import generate_realtime_business_analysis
 from services.pinecone_business_store import pinecone_business_store
 from services.competitor_search_service import search_competitors_combined, format_competitors_for_gemini
+from services.comprehensive_cache_service import (
+    generate_cache_key,
+    get_cached,
+    set_cached,
+    delete_pattern,
+    CACHE_PREFIX,
+    CACHE_TTL
+)
 import asyncio
 
 logger = logging.getLogger(__name__)
@@ -213,6 +222,37 @@ async def trigger_comprehensive_analysis(
         
         logger.info(f"[ComprehensiveAnalysis] ✅ Analysis stored in database (ID: {analysis_id})")
         
+        # 🆕 INVALIDATE CACHE after new analysis
+        logger.info(f"[ComprehensiveAnalysis] 🗑️ Invalidating cache for user {user.id}...")
+        try:
+            # Invalidate competitor analysis cache
+            comp_cache_key = generate_cache_key(
+                CACHE_PREFIX["competitor"],
+                "analysis_data",
+                user_id=user.id
+            )
+            await delete_pattern(comp_cache_key)
+            
+            # Invalidate daily suggestions cache
+            daily_cache_key = generate_cache_key(
+                CACHE_PREFIX["content"],
+                "daily_suggestions",
+                user_id=user.id
+            )
+            await delete_pattern(daily_cache_key)
+            
+            # Invalidate business analysis cache
+            biz_cache_key = generate_cache_key(
+                CACHE_PREFIX["business_analysis"],
+                "analysis_data",
+                user_id=user.id
+            )
+            await delete_pattern(biz_cache_key)
+            
+            logger.info(f"[ComprehensiveAnalysis] ✅ Cache invalidated for user {user.id}")
+        except Exception as cache_error:
+            logger.warning(f"[ComprehensiveAnalysis] ⚠️ Cache invalidation error: {cache_error}")
+        
         return {
             "status": "success",
             "message": "Comprehensive business analysis completed successfully",
@@ -286,12 +326,13 @@ def get_business_analysis_data(
         return None
 
 
-def get_competitor_analysis_data(
+async def get_competitor_analysis_data(
     user_id: int,
     db: Session
 ) -> Optional[Dict[str, Any]]:
     """
     Get competitor analysis data for Competitor Analysis page
+    WITH REDIS CACHING for ultra-fast retrieval
     
     Args:
         user_id: User ID
@@ -302,6 +343,22 @@ def get_competitor_analysis_data(
     """
     
     try:
+        # Generate cache key
+        cache_key = generate_cache_key(
+            CACHE_PREFIX["competitor"],
+            "analysis_data",
+            user_id=user_id
+        )
+        
+        # Try cache first
+        cached = await get_cached(cache_key)
+        if cached:
+            logger.info(f"[CompetitorAnalysisData] 🚀 Cache HIT for user {user_id}")
+            return cached.get("data")
+        
+        logger.info(f"[CompetitorAnalysisData] 💾 Cache MISS - fetching from database")
+        
+        # Cache miss - fetch from database
         analysis = db.query(BusinessAnalysis).filter(
             BusinessAnalysis.user_id == user_id,
             BusinessAnalysis.analysis_status == 'completed'
@@ -310,11 +367,17 @@ def get_competitor_analysis_data(
         if not analysis:
             return None
         
-        return {
+        result = {
             "status": "success",
             "competitor_analysis": json.loads(analysis.competitor_analysis) if analysis.competitor_analysis else {},
             "last_updated": analysis.last_analyzed_at.isoformat() if analysis.last_analyzed_at else None
         }
+        
+        # Cache the result
+        await set_cached(cache_key, result, CACHE_TTL["competitor_search"])
+        logger.info(f"[CompetitorAnalysisData] ✅ Cached for user {user_id}")
+        
+        return result
         
     except Exception as e:
         logger.error(f"[CompetitorAnalysisData] ❌ Error: {e}", exc_info=True)
@@ -356,12 +419,13 @@ def get_growth_plan_data(
         return None
 
 
-def get_daily_suggestions_data(
+async def get_daily_suggestions_data(
     user_id: int,
     db: Session
 ) -> Optional[Dict[str, Any]]:
     """
     Get daily suggestions data for Daily Ask feature
+    WITH REDIS CACHING for ultra-fast retrieval
     
     Args:
         user_id: User ID
@@ -372,6 +436,22 @@ def get_daily_suggestions_data(
     """
     
     try:
+        # Generate cache key
+        cache_key = generate_cache_key(
+            CACHE_PREFIX["content"],
+            "daily_suggestions",
+            user_id=user_id
+        )
+        
+        # Try cache first
+        cached = await get_cached(cache_key)
+        if cached:
+            logger.info(f"[DailySuggestionsData] 🚀 Cache HIT for user {user_id}")
+            return cached.get("data")
+        
+        logger.info(f"[DailySuggestionsData] 💾 Cache MISS - fetching from database")
+        
+        # Cache miss - fetch from database
         analysis = db.query(BusinessAnalysis).filter(
             BusinessAnalysis.user_id == user_id,
             BusinessAnalysis.analysis_status == 'completed'
@@ -380,11 +460,17 @@ def get_daily_suggestions_data(
         if not analysis:
             return None
         
-        return {
+        result = {
             "status": "success",
             "daily_suggestions": json.loads(analysis.daily_suggestions) if analysis.daily_suggestions else [],
             "last_updated": analysis.last_analyzed_at.isoformat() if analysis.last_analyzed_at else None
         }
+        
+        # Cache the result
+        await set_cached(cache_key, result, CACHE_TTL["content_suggestions"])
+        logger.info(f"[DailySuggestionsData] ✅ Cached for user {user_id}")
+        
+        return result
         
     except Exception as e:
         logger.error(f"[DailySuggestionsData] ❌ Error: {e}", exc_info=True)

@@ -1,6 +1,7 @@
 """
 Instagram Analytics Dashboard API Routes
 Complete production-level API endpoints for Instagram Business Analytics
+WITH REDIS CACHING to reduce API calls and database load
 """
 
 import logging
@@ -28,6 +29,14 @@ from services.instagram_analytics_crud import instagram_analytics_crud
 from services.instagram_ai_service import instagram_ai_service
 from services.instagram_sync_orchestrator import instagram_sync_orchestrator
 from schemas.instagram_analytics_schema import *
+from services.comprehensive_cache_service import (
+    generate_cache_key,
+    get_cached,
+    set_cached,
+    delete_pattern,
+    CACHE_PREFIX,
+    CACHE_TTL
+)
 
 logger = logging.getLogger(__name__)
 

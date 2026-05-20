@@ -4,7 +4,10 @@ import { TopHeader } from "@/components/dashboard/TopHeader";
 import { DashboardProvider } from "@/contexts/DashboardContext";
 import AssistantWidget from "@/components/AssistantWidget";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { useRoutePreservation } from "@/hooks/useRoutePreservation";
+import { useAuthContext } from "@/lib/AuthContext";
 import { useState, useCallback } from "react";
+import { Loader2 } from "lucide-react";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
@@ -16,6 +19,10 @@ export const Route = createFileRoute("/dashboard")({
 function DashboardLayout() {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const { isLoading: isAuthLoading } = useAuthContext();
+  
+  // Preserve current route on page refresh
+  useRoutePreservation();
 
   const refreshDashboard = useCallback(async () => {
     setIsRefreshing(true);
@@ -40,8 +47,16 @@ function DashboardLayout() {
           <Sidebar />
           <div className="flex-1 flex flex-col min-w-0 bg-white">
             <TopHeader />
-            <main className="flex-1 min-w-0 pt-14 lg:pt-0">
+            <main className="flex-1 min-w-0 pt-14 lg:pt-0 relative">
               <Outlet />
+              
+              {/* Subtle auth verification indicator - shows during page refresh */}
+              {isAuthLoading && (
+                <div className="fixed top-4 right-4 flex items-center gap-2 bg-white/80 backdrop-blur-sm px-3 py-2 rounded-lg shadow-sm border border-gray-200/50 z-40">
+                  <Loader2 className="w-4 h-4 animate-spin text-purple-600" />
+                  <span className="text-xs text-gray-600 font-medium">Verifying...</span>
+                </div>
+              )}
             </main>
           </div>
         </div>

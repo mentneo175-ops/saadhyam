@@ -51,6 +51,10 @@ class User(Base):
     # Generated Website
     last_generated_website_id = Column(String(36), nullable=True)  # UUID of last generated website
     
+    # Privacy & Sharing Controls
+    analysis_sharing = Column(String(50), default="private", nullable=False)  # 'private' | 'anonymous' | 'public'
+    share_business_data = Column(Boolean, default=False, nullable=False)  # Allow sharing with similar businesses
+    
     created_at = Column(DateTime, server_default=func.now(), nullable=False)
     updated_at = Column(
         DateTime, server_default=func.now(), onupdate=func.now(), nullable=False

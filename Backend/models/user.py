@@ -28,6 +28,7 @@ class User(Base):
     
     name = Column(String(255), nullable=True)  # User's full name
     is_active = Column(Boolean, default=True, nullable=False)  # Account active status
+    is_suspended = Column(Boolean, default=False, nullable=False)
     
     # Session Tracking Fields (for single-session enforcement)
     active_session_token = Column(String(500), nullable=True)  # Current active session token

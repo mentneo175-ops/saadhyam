@@ -1,9 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Request
-from sqlalchemy.orm import Session
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 from config.database import get_db
 from models.user import User
 from schemas.user_schema import UserRegister, UserLogin, TokenResponse, UserResponse
-from services.auth_service_sync import register_user, authenticate_user
+from services.auth_service import register_user, authenticate_user
 from services.firebase_service import firebase_service
 from services.redis_service import blacklist_token
 from services.token_blacklist_service import token_blacklist_service
@@ -52,7 +53,7 @@ class GoogleAuthRequest(BaseModel):
 async def google_auth(
     auth_request: GoogleAuthRequest,
     request: Request,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
 ) -> TokenResponse:
     """
     Authenticate user with Google Firebase token - PRODUCTION ONLY.
@@ -80,14 +81,16 @@ async def google_auth(
         user_info = await firebase_service.verify_id_token(auth_request.id_token)
         
         # Check if user exists by Firebase UID
-        user = db.query(User).filter(User.firebase_uid == user_info['firebase_uid']).first()
+        res = await db.execute(select(User).where(User.firebase_uid == user_info['firebase_uid']))
+        user = res.scalars().first()
         
         logger.info(f"🔍 Looking for existing Firebase user with UID: {user_info['firebase_uid']}")
         logger.info(f"🔍 Firebase user found: {user is not None}")
         
         if not user:
             # Check if user exists by email (for migration from email auth)
-            user = db.query(User).filter(User.email == user_info['email']).first()
+            res = await db.execute(select(User).where(User.email == user_info['email']))
+            user = res.scalars().first()
             
             logger.info(f"🔍 Looking for existing email user: {user_info['email']}")
             logger.info(f"🔍 Email user found: {user is not None}")
@@ -121,6 +124,8 @@ async def google_auth(
                     hashed_password=None  # No password for Firebase users
                 )
                 db.add(user)
+                await db.commit()
+                await db.refresh(user)
                 logger.info(f"✅ New Firebase user created: {user.email}")
         else:
             # Update existing Firebase user info
@@ -135,6 +140,11 @@ async def google_auth(
         if user.active_session_token:
             logger.warning(f"⚠️  User {user.email} already has an active session. Invalidating old session.")
             # Old session will be invalidated when new token is created
+
+        # Reject suspended or inactive users
+        if not getattr(user, 'is_active', True) or getattr(user, 'is_suspended', False):
+            logger.warning(f"Attempt to authenticate suspended/inactive user via Google: {user.email}")
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You have been suspended. Contact admin.")
         
         # Create backend JWT token
         access_token = create_access_token(user.id, user.email)
@@ -149,8 +159,8 @@ async def google_auth(
         user.session_ip_address = client_ip
         user.session_user_agent = user_agent
         
-        db.commit()
-        db.refresh(user)
+        await db.commit()
+        await db.refresh(user)
         
         logger.info(f"✅ Session registered: IP={client_ip}, Device={user_agent[:50]}...")
         logger.info(f"🎉 REAL Google authentication successful for user: {user.email}")
@@ -170,7 +180,10 @@ async def google_auth(
         raise
     except Exception as e:
         logger.error(f"Unexpected error in Google auth endpoint: {e}")
-        db.rollback()
+        try:
+            await db.rollback()
+        except Exception:
+            pass
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Authentication failed",
@@ -194,7 +207,7 @@ async def google_auth(
 async def register(
     request: Request,
     user_data: UserRegister,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
 ) -> TokenResponse:
     """
     Register a new user with email and password.
@@ -214,7 +227,7 @@ async def register(
         validate_password_strength(user_data.password)
         
         # Register user using auth service
-        user = register_user(db, user_data)
+        user = await register_user(db, user_data)
         
         # Create access token
         access_token = create_access_token(user.id, user.email)
@@ -255,7 +268,7 @@ async def register(
 async def login(
     request: Request,
     credentials: UserLogin,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
 ) -> TokenResponse:
     """
     Authenticate user with email and password.
@@ -273,7 +286,7 @@ async def login(
         logger.info(f"🔐 Login attempt for: {credentials.email}")
         
         # Authenticate user using auth service
-        user = authenticate_user(db, credentials.email, credentials.password)
+        user = await authenticate_user(db, credentials.email, credentials.password)
         logger.info(f"✅ User authenticated: {user.email}, ID: {user.id}")
         
         # Check if user already has an active session
@@ -294,7 +307,7 @@ async def login(
         user.session_created_at = datetime.utcnow()
         user.session_ip_address = client_ip
         user.session_user_agent = user_agent
-        db.commit()
+        await db.commit()
         
         logger.info(f"✅ Session registered: IP={client_ip}, Device={user_agent[:50]}...")
         
@@ -337,7 +350,7 @@ async def login(
 async def logout(
     current_user: User = Depends(get_current_user),
     authorization: str = None,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
 ) -> dict:
     """
     Logout user by clearing their active session.
@@ -350,7 +363,7 @@ async def logout(
         current_user.session_created_at = None
         current_user.session_ip_address = None
         current_user.session_user_agent = None
-        db.commit()
+        await db.commit()
         
         logger.info(f"✅ User logged out successfully: {current_user.email}")
         

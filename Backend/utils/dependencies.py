@@ -119,6 +119,15 @@ def get_current_user(
             detail="Your session has been cleared. Please login again.",
             headers={"WWW-Authenticate": "Bearer"},
         )
+
+        # Reject suspended or inactive users immediately so existing tokens cannot be used
+        if not getattr(user, 'is_active', True) or getattr(user, 'is_suspended', False):
+            logger.warning(f"❌ Suspended or inactive user attempted request: {user.email}")
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Inactive or suspended user",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
     
     if user.active_session_token != token:
         logger.warning(f"⚠️  Session mismatch for user {user.email}. User logged in from another device/browser.")

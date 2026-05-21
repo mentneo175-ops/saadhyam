@@ -450,7 +450,7 @@ async def lifespan(app: FastAPI):
         if skip_startup_migrations:
             logger.info("⏭️  Skipping startup migrations (SKIP_STARTUP_MIGRATIONS=true)")
         else:
-            logger.info("[*] Skipping migrations (disabled for faster startup)...")
+            logger.info("[*] Running startup migrations...")
             # migrate_add_name_column()
             # from migrations.add_business_analysis_table import migrate_add_business_analysis_table
             # migrate_add_business_analysis_table()

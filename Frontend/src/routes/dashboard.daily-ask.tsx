@@ -177,7 +177,7 @@ function DailyAskPage() {
   // Loading state
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-violet-50/50 via-white to-purple-50/40 p-6">
+      <div className="min-h-full bg-gradient-to-br from-violet-50/50 via-white to-purple-50/40 p-6">
         <div className="flex flex-col items-center justify-center py-32">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
@@ -255,7 +255,7 @@ function DailyAskPage() {
 
   // Success state - show daily tasks
   return (
-    <div className="min-h-screen bg-gradient-to-br from-violet-50/50 via-white to-purple-50/40 relative overflow-hidden">
+    <div className="min-h-full bg-gradient-to-br from-violet-50/50 via-white to-purple-50/40 relative overflow-hidden">
       {/* Animated Background Particles */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {[...Array(20)].map((_, i) => (
@@ -282,7 +282,7 @@ function DailyAskPage() {
       </div>
 
       {/* Premium Header */}
-      <div className="sticky top-0 z-20 backdrop-blur-xl bg-white/70 border-b border-purple-100/50 shadow-sm relative overflow-hidden">
+      <div className="sticky top-14 lg:top-0 z-20 backdrop-blur-xl bg-white/70 border-b border-purple-100/50 shadow-sm relative overflow-hidden">
         {/* Animated gradient line */}
         <motion.div
           className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-purple-500 to-transparent"

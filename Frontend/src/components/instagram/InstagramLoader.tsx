@@ -2,7 +2,7 @@ import { Instagram } from "lucide-react";
 
 export function InstagramLoader() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 p-8">
+    <div className="min-h-full flex items-center justify-center bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 p-8">
       {/* Animated background circles - subtle */}
       <div className="absolute inset-0 overflow-hidden opacity-40">
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-200/20 rounded-full blur-3xl animate-pulse"></div>

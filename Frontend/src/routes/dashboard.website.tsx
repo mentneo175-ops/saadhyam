@@ -614,7 +614,7 @@ function WebsiteAIPage() {
       />
 
       
-        <div className={showForm ? "grid lg:grid-cols-[400px_1fr] gap-4 h-[600px]" : "w-full h-screen"}>
+        <div className={showForm ? "grid lg:grid-cols-[400px_1fr] gap-4 min-h-[600px] lg:h-[calc(100vh-16rem)]" : "w-full min-h-[600px] lg:h-[calc(100vh-16rem)]"}>
           {/* Full Website Generation */}
           {showForm && (
           <div className="bg-card rounded-2xl border border-border/60 shadow-sm p-4 space-y-4 h-full flex flex-col">
@@ -638,7 +638,7 @@ function WebsiteAIPage() {
               </div>
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-3 flex-1 overflow-y-auto pr-1">
               <p className="text-sm font-semibold">Business Details</p>
               <input
                 type="text"

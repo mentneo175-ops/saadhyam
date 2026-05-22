@@ -58,7 +58,6 @@ import { Route as DashboardVoiceAgentCreateCampaignRouteImport } from './routes/
 import { Route as DashboardVoiceAgentConversationsRouteImport } from './routes/dashboard.voice-agent.conversations'
 import { Route as DashboardVoiceAgentCampaignsRouteImport } from './routes/dashboard.voice-agent.campaigns'
 import { Route as DashboardVoiceAgentAnalyticsRouteImport } from './routes/dashboard.voice-agent.analytics'
-import { Route as DashboardSettingsRedesignedRouteImport } from './routes/dashboard.settings.redesigned'
 import { Route as DashboardInstagramAnalyticsPostsRouteImport } from './routes/dashboard.instagram-analytics.posts'
 import { Route as DashboardAgentsPartnershipRouteImport } from './routes/dashboard.agents.partnership'
 import { Route as DashboardAgentsCustomerRetentionRouteImport } from './routes/dashboard.agents.customer-retention'
@@ -322,12 +321,6 @@ const DashboardVoiceAgentAnalyticsRoute =
     path: '/voice-agent/analytics',
     getParentRoute: () => DashboardRoute,
   } as any)
-const DashboardSettingsRedesignedRoute =
-  DashboardSettingsRedesignedRouteImport.update({
-    id: '/redesigned',
-    path: '/redesigned',
-    getParentRoute: () => DashboardSettingsRoute,
-  } as any)
 const DashboardInstagramAnalyticsPostsRoute =
   DashboardInstagramAnalyticsPostsRouteImport.update({
     id: '/posts',
@@ -394,7 +387,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/review-reply': typeof DashboardReviewReplyRoute
   '/dashboard/seo': typeof DashboardSeoRoute
   '/dashboard/seo-google-maps': typeof DashboardSeoGoogleMapsRoute
-  '/dashboard/settings': typeof DashboardSettingsRouteWithChildren
+  '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/website': typeof DashboardWebsiteRoute
   '/dashboard/whatsapp': typeof DashboardWhatsappRoute
   '/dashboard/whatsapp-sales': typeof DashboardWhatsappSalesRoute
@@ -403,7 +396,6 @@ export interface FileRoutesByFullPath {
   '/dashboard/agents/customer-retention': typeof DashboardAgentsCustomerRetentionRoute
   '/dashboard/agents/partnership': typeof DashboardAgentsPartnershipRoute
   '/dashboard/instagram-analytics/posts': typeof DashboardInstagramAnalyticsPostsRoute
-  '/dashboard/settings/redesigned': typeof DashboardSettingsRedesignedRoute
   '/dashboard/voice-agent/analytics': typeof DashboardVoiceAgentAnalyticsRoute
   '/dashboard/voice-agent/campaigns': typeof DashboardVoiceAgentCampaignsRouteWithChildren
   '/dashboard/voice-agent/conversations': typeof DashboardVoiceAgentConversationsRoute
@@ -449,7 +441,7 @@ export interface FileRoutesByTo {
   '/dashboard/review-reply': typeof DashboardReviewReplyRoute
   '/dashboard/seo': typeof DashboardSeoRoute
   '/dashboard/seo-google-maps': typeof DashboardSeoGoogleMapsRoute
-  '/dashboard/settings': typeof DashboardSettingsRouteWithChildren
+  '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/website': typeof DashboardWebsiteRoute
   '/dashboard/whatsapp': typeof DashboardWhatsappRoute
   '/dashboard/whatsapp-sales': typeof DashboardWhatsappSalesRoute
@@ -458,7 +450,6 @@ export interface FileRoutesByTo {
   '/dashboard/agents/customer-retention': typeof DashboardAgentsCustomerRetentionRoute
   '/dashboard/agents/partnership': typeof DashboardAgentsPartnershipRoute
   '/dashboard/instagram-analytics/posts': typeof DashboardInstagramAnalyticsPostsRoute
-  '/dashboard/settings/redesigned': typeof DashboardSettingsRedesignedRoute
   '/dashboard/voice-agent/analytics': typeof DashboardVoiceAgentAnalyticsRoute
   '/dashboard/voice-agent/campaigns': typeof DashboardVoiceAgentCampaignsRouteWithChildren
   '/dashboard/voice-agent/conversations': typeof DashboardVoiceAgentConversationsRoute
@@ -507,7 +498,7 @@ export interface FileRoutesById {
   '/dashboard/review-reply': typeof DashboardReviewReplyRoute
   '/dashboard/seo': typeof DashboardSeoRoute
   '/dashboard/seo-google-maps': typeof DashboardSeoGoogleMapsRoute
-  '/dashboard/settings': typeof DashboardSettingsRouteWithChildren
+  '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/website': typeof DashboardWebsiteRoute
   '/dashboard/whatsapp': typeof DashboardWhatsappRoute
   '/dashboard/whatsapp-sales': typeof DashboardWhatsappSalesRoute
@@ -516,7 +507,6 @@ export interface FileRoutesById {
   '/dashboard/agents/customer-retention': typeof DashboardAgentsCustomerRetentionRoute
   '/dashboard/agents/partnership': typeof DashboardAgentsPartnershipRoute
   '/dashboard/instagram-analytics/posts': typeof DashboardInstagramAnalyticsPostsRoute
-  '/dashboard/settings/redesigned': typeof DashboardSettingsRedesignedRoute
   '/dashboard/voice-agent/analytics': typeof DashboardVoiceAgentAnalyticsRoute
   '/dashboard/voice-agent/campaigns': typeof DashboardVoiceAgentCampaignsRouteWithChildren
   '/dashboard/voice-agent/conversations': typeof DashboardVoiceAgentConversationsRoute
@@ -575,7 +565,6 @@ export interface FileRouteTypes {
     | '/dashboard/agents/customer-retention'
     | '/dashboard/agents/partnership'
     | '/dashboard/instagram-analytics/posts'
-    | '/dashboard/settings/redesigned'
     | '/dashboard/voice-agent/analytics'
     | '/dashboard/voice-agent/campaigns'
     | '/dashboard/voice-agent/conversations'
@@ -630,7 +619,6 @@ export interface FileRouteTypes {
     | '/dashboard/agents/customer-retention'
     | '/dashboard/agents/partnership'
     | '/dashboard/instagram-analytics/posts'
-    | '/dashboard/settings/redesigned'
     | '/dashboard/voice-agent/analytics'
     | '/dashboard/voice-agent/campaigns'
     | '/dashboard/voice-agent/conversations'
@@ -687,7 +675,6 @@ export interface FileRouteTypes {
     | '/dashboard/agents/customer-retention'
     | '/dashboard/agents/partnership'
     | '/dashboard/instagram-analytics/posts'
-    | '/dashboard/settings/redesigned'
     | '/dashboard/voice-agent/analytics'
     | '/dashboard/voice-agent/campaigns'
     | '/dashboard/voice-agent/conversations'
@@ -1058,13 +1045,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardVoiceAgentAnalyticsRouteImport
       parentRoute: typeof DashboardRoute
     }
-    '/dashboard/settings/redesigned': {
-      id: '/dashboard/settings/redesigned'
-      path: '/redesigned'
-      fullPath: '/dashboard/settings/redesigned'
-      preLoaderRoute: typeof DashboardSettingsRedesignedRouteImport
-      parentRoute: typeof DashboardSettingsRoute
-    }
     '/dashboard/instagram-analytics/posts': {
       id: '/dashboard/instagram-analytics/posts'
       path: '/posts'
@@ -1134,17 +1114,6 @@ const DashboardInstagramAnalyticsRouteWithChildren =
     DashboardInstagramAnalyticsRouteChildren,
   )
 
-interface DashboardSettingsRouteChildren {
-  DashboardSettingsRedesignedRoute: typeof DashboardSettingsRedesignedRoute
-}
-
-const DashboardSettingsRouteChildren: DashboardSettingsRouteChildren = {
-  DashboardSettingsRedesignedRoute: DashboardSettingsRedesignedRoute,
-}
-
-const DashboardSettingsRouteWithChildren =
-  DashboardSettingsRoute._addFileChildren(DashboardSettingsRouteChildren)
-
 interface DashboardVoiceAgentCampaignsCampaignIdRouteChildren {
   DashboardVoiceAgentCampaignsCampaignIdCallingRoute: typeof DashboardVoiceAgentCampaignsCampaignIdCallingRoute
 }
@@ -1202,7 +1171,7 @@ interface DashboardRouteChildren {
   DashboardReviewReplyRoute: typeof DashboardReviewReplyRoute
   DashboardSeoRoute: typeof DashboardSeoRoute
   DashboardSeoGoogleMapsRoute: typeof DashboardSeoGoogleMapsRoute
-  DashboardSettingsRoute: typeof DashboardSettingsRouteWithChildren
+  DashboardSettingsRoute: typeof DashboardSettingsRoute
   DashboardWebsiteRoute: typeof DashboardWebsiteRoute
   DashboardWhatsappRoute: typeof DashboardWhatsappRoute
   DashboardWhatsappSalesRoute: typeof DashboardWhatsappSalesRoute
@@ -1245,7 +1214,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardReviewReplyRoute: DashboardReviewReplyRoute,
   DashboardSeoRoute: DashboardSeoRoute,
   DashboardSeoGoogleMapsRoute: DashboardSeoGoogleMapsRoute,
-  DashboardSettingsRoute: DashboardSettingsRouteWithChildren,
+  DashboardSettingsRoute: DashboardSettingsRoute,
   DashboardWebsiteRoute: DashboardWebsiteRoute,
   DashboardWhatsappRoute: DashboardWhatsappRoute,
   DashboardWhatsappSalesRoute: DashboardWhatsappSalesRoute,

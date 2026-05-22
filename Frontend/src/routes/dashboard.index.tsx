@@ -485,7 +485,7 @@ function Overview() {
       {/* Business Onboarding Modal */}
       <BusinessOnboarding isOpen={showOnboarding} onComplete={handleOnboardingComplete} />
 
-      <div className="flex min-h-screen bg-white">
+      <div className="flex flex-1 bg-white">
         <div className="flex-1 min-w-0 p-4 md:p-6 lg:p-8 space-y-6">
 
           {/* Loading state */}

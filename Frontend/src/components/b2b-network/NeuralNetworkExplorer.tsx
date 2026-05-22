@@ -248,7 +248,7 @@ export function NeuralNetworkExplorer() {
 
   if (error) {
     return (
-      <div className="relative min-h-screen flex flex-col items-center justify-center p-6">
+      <div className="relative flex-1 flex flex-col items-center justify-center p-6 min-h-[500px]">
         <AnimatedBackground />
         <motion.div
           initial={{ opacity: 0, y: 20 }}

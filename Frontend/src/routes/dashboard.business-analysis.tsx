@@ -75,7 +75,7 @@ export const Route = createFileRoute("/dashboard/business-analysis")({
 
 function PageShell({ children }: { children: ReactNode }) {
   return (
-    <div className="relative w-full min-h-screen overflow-hidden bg-background p-4 md:p-6 lg:p-8">
+    <div className="relative w-full min-h-full overflow-hidden bg-background p-4 md:p-6 lg:p-8">
       {/* Layered premium backdrop */}
       <div
         aria-hidden

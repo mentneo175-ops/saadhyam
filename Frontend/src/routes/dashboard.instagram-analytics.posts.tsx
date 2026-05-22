@@ -122,7 +122,7 @@ function InstagramPosts() {
   const viralPostsCount = posts.filter(p => p.is_viral).length
 
   return (
-    <div className="p-6 max-w-7xl mx-auto bg-gradient-to-b from-purple-50 to-white min-h-screen">
+    <div className="p-6 max-w-7xl mx-auto bg-gradient-to-b from-purple-50 to-white min-h-full">
       {/* Header */}
       <div className="mb-8 text-center">
         <h1 className="text-4xl font-extrabold text-purple-800 mb-4">Instagram Post Analytics</h1>

@@ -836,7 +836,7 @@ function InstagramPage() {
   // Show connection wizard if not connected or if explicitly requested
   if (!connectionStatus.is_connected || showConnectionWizard) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-orange-50">
+      <div className="min-h-full bg-gradient-to-br from-pink-50 via-white to-orange-50">
         <InstagramConnectionWizard
           onConnect={handleConnectInstagram}
           onCancel={() => setShowConnectionWizard(false)}

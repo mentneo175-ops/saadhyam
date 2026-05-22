@@ -115,7 +115,7 @@ export function AINetworkLoadingAnimation() {
   };
 
   return (
-    <div className="relative min-h-screen w-full flex flex-col items-center justify-center bg-gradient-to-br from-gray-50 via-purple-50/30 to-pink-50/30 dark:from-gray-950 dark:via-purple-950/30 dark:to-pink-950/30 overflow-hidden">
+    <div className="relative flex-1 w-full flex flex-col items-center justify-center bg-gradient-to-br from-gray-50 via-purple-50/30 to-pink-50/30 dark:from-gray-950 dark:via-purple-950/30 dark:to-pink-950/30 overflow-hidden min-h-[500px]">
       {/* Animated Background Grid */}
       <div className="absolute inset-0 opacity-20 dark:opacity-10">
         <svg className="w-full h-full">

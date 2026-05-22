@@ -150,7 +150,7 @@ export function TopHeader() {
   }
 
   return (
-    <header className="h-16 border-b border-purple-200 bg-white shadow-sm sticky top-0 z-50 flex items-center justify-between px-4 lg:px-6">
+    <header className="h-16 border-b border-purple-200 bg-white shadow-sm sticky top-0 z-50 hidden lg:flex items-center justify-between px-4 lg:px-6">
       {/* Left: Greeting Message (Desktop Only) */}
       <div className="flex items-center">
         <div className="hidden lg:block">

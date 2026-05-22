@@ -63,10 +63,8 @@ const items: NavItem[] = [
 
 export function Sidebar() {
   const { pathname } = useLocation();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { isMinimized, toggleMinimized } = useSidebar();
+  const { isMinimized, toggleMinimized, isMobileMenuOpen, setIsMobileMenuOpen, toggleMobileMenu } = useSidebar();
 
-  const toggleMobileMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
   const closeMobileMenu = () => setIsMobileMenuOpen(false);
 
   const NavItem = ({ item, isMinimized = false }: { item: NavItem; isMinimized?: boolean }) => {
@@ -134,23 +132,8 @@ export function Sidebar() {
         </nav>
       </aside>
 
-      {/* Mobile Menu Button */}
-      <button
-        onClick={toggleMobileMenu}
-        className="lg:hidden fixed top-4 right-4 p-2 rounded-md hover:bg-gray-100 transition-colors"
-        aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
-      >
-        <div className="relative w-5 h-5">
-          {isMobileMenuOpen ? (
-            <ArrowLeft size={20} className="text-gray-600 absolute inset-0 transition-all duration-200" />
-          ) : (
-            <Menu size={20} className="text-gray-600 absolute inset-0 transition-all duration-200" />
-          )}
-        </div>
-      </button>
-
-      {/* Mobile Sidebar */}
-      <div className={`lg:hidden fixed inset-0 z-40 transition-all duration-300 ${
+      {/* Mobile Sidebar (z-index increased to z-[60] to overlay fixed header) */}
+      <div className={`lg:hidden fixed inset-0 z-[60] transition-all duration-300 ${
         isMobileMenuOpen ? 'visible' : 'invisible'
       }`}>
         {/* Backdrop */}
@@ -161,13 +144,20 @@ export function Sidebar() {
           onClick={closeMobileMenu}
         />
         
-        {/* Mobile Sidebar Panel */}
-        <aside className={`app-sidebar absolute right-0 top-0 h-full w-64 bg-sidebar border-l border-sidebar-border sidebar-transition ${
-          isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
+        {/* Mobile Sidebar Panel (Slides from left-0 instead of right-0) */}
+        <aside className={`app-sidebar absolute left-0 top-0 h-full w-64 bg-sidebar border-r border-sidebar-border sidebar-transition ${
+          isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
         }`}>
           {/* Header */}
           <div className="px-4 h-14 flex items-center justify-between border-b border-sidebar-border">
             <Logo size="sm" />
+            <button
+              onClick={closeMobileMenu}
+              className="p-2 rounded-lg hover:bg-sidebar-accent transition-colors"
+              aria-label="Close menu"
+            >
+              <X size={18} className="text-sidebar-foreground" />
+            </button>
           </div>
 
           {/* Navigation */}

@@ -514,6 +514,12 @@ body::-webkit-scrollbar {
               transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+.content-transition {
+  transition: padding-left 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 /* Mobile menu animations */
 .mobile-menu-enter {
   transform: translateX(100%);

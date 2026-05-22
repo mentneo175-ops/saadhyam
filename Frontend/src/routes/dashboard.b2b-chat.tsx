@@ -19,7 +19,8 @@ import {
   Lock,
   Shield,
   Trash2,
-  MapPin
+  MapPin,
+  ArrowLeft
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -633,9 +634,11 @@ function B2BChatPage() {
   };
 
   return (
-    <div data-b2b-chat-container className="flex h-[calc(100vh-3.5rem)] lg:h-screen w-full overflow-hidden bg-[#f3f0f8] dark:bg-[#080512]">
+    <div data-b2b-chat-container className="flex h-[calc(100vh-3.5rem)] lg:h-[calc(100vh-4.0rem)] w-full overflow-hidden bg-[#f3f0f8] dark:bg-[#080512]">
       {/* Sidebar - Chat List */}
-      <div className="w-[380px] flex-shrink-0 border-r border-purple-100/50 dark:border-purple-950/30 bg-[#faf9fc] dark:bg-[#0e0a1f] flex flex-col h-full z-20">
+      <div className={`w-full md:w-[380px] flex-shrink-0 border-r border-purple-100/50 dark:border-purple-950/30 bg-[#faf9fc] dark:bg-[#0e0a1f] flex flex-col h-full z-20 ${
+        selectedRoom ? "hidden md:flex" : "flex"
+      }`}>
         {/* Sidebar Header */}
         <div className="flex-shrink-0 h-[60px] bg-[#f0edf5] dark:bg-[#151128] px-4 flex items-center justify-between border-b border-purple-100/50 dark:border-purple-950/30">
           <div className="flex items-center gap-3">
@@ -813,7 +816,9 @@ function B2BChatPage() {
       </div>
 
       {/* Main Chat Panel */}
-      <div className="flex flex-1 flex-col bg-[#f6f4fa] dark:bg-[#090614] overflow-hidden relative h-full">
+      <div className={`flex flex-1 flex-col bg-[#f6f4fa] dark:bg-[#090614] overflow-hidden relative h-full ${
+        selectedRoom ? "flex" : "hidden md:flex"
+      }`}>
         {/* Brand Wallpaper Grid */}
         <div 
           className="absolute inset-0 opacity-[0.06] dark:opacity-[0.04] pointer-events-none"
@@ -827,23 +832,33 @@ function B2BChatPage() {
           <>
             {/* Active Chat Header */}
             <div className="flex-shrink-0 h-[60px] bg-[#f0edf5] dark:bg-[#151128] px-4 flex items-center justify-between border-b border-purple-100/50 dark:border-purple-950/30 z-10 shadow-sm">
-              <div 
-                className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition select-none"
-                onClick={() => setShowProfileModal(true)}
-                title="View Business Profile"
-              >
-                <div className={`flex h-10 w-10 items-center justify-center rounded-full font-bold text-sm shadow-sm ${getAvatarColor(selectedRoom.other_user_name)}`}>
-                  {getInitials(selectedRoom.other_user_name)}
-                </div>
-                <div className="min-w-0">
-                  <p className="font-semibold text-gray-900 dark:text-gray-100 text-[15px] leading-tight hover:text-purple-600 dark:hover:text-purple-400 transition-colors">
-                    {selectedRoom.other_user_name}
-                  </p>
-                  {selectedRoom.other_user_business && (
-                    <p className="text-[11px] text-purple-600 dark:text-purple-400 font-medium truncate max-w-[200px] sm:max-w-[400px]">
-                      {selectedRoom.other_user_business}
+              <div className="flex items-center gap-3 min-w-0">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="md:hidden h-9 w-9 rounded-full text-gray-600 dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/5 flex-shrink-0"
+                  onClick={() => setSelectedRoom(null)}
+                >
+                  <ArrowLeft className="h-5 w-5" />
+                </Button>
+                <div 
+                  className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition select-none min-w-0"
+                  onClick={() => setShowProfileModal(true)}
+                  title="View Business Profile"
+                >
+                  <div className={`flex h-10 w-10 items-center justify-center rounded-full font-bold text-sm shadow-sm flex-shrink-0 ${getAvatarColor(selectedRoom.other_user_name)}`}>
+                    {getInitials(selectedRoom.other_user_name)}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-semibold text-gray-900 dark:text-gray-100 text-[15px] leading-tight hover:text-purple-600 dark:hover:text-purple-400 transition-colors truncate">
+                      {selectedRoom.other_user_name}
                     </p>
-                  )}
+                    {selectedRoom.other_user_business && (
+                      <p className="text-[11px] text-purple-600 dark:text-purple-400 font-medium truncate max-w-[200px] sm:max-w-[400px]">
+                        {selectedRoom.other_user_business}
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
               

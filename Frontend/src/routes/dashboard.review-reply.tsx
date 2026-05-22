@@ -159,7 +159,7 @@ function ReviewReplyPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white p-4 md:p-6 lg:p-8">
+    <div className="min-h-full bg-white p-4 md:p-6 lg:p-8">
       {/* Page Header */}
       <div className="mb-8">
         <div className="flex items-center justify-between">

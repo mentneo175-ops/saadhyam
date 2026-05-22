@@ -206,7 +206,7 @@ function BusinessDetailsPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-full bg-background flex items-center justify-center py-20">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
           <p className="text-muted-foreground">Loading business details...</p>
@@ -216,7 +216,7 @@ function BusinessDetailsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-full bg-background">
       {/* Dashboard-style Header */}
       <div className="border-b border-border bg-card">
         <div className="container mx-auto px-6 py-4">

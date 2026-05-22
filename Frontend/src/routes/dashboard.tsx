@@ -3,7 +3,7 @@ import { Sidebar } from "@/components/dashboard/Sidebar";
 import { TopHeader } from "@/components/dashboard/TopHeader";
 import { ResponsiveFeatureHeader } from "@/components/dashboard/ResponsiveFeatureHeader";
 import { DashboardProvider } from "@/contexts/DashboardContext";
-import { SidebarProvider } from "@/contexts/SidebarContext";
+import { SidebarProvider, useSidebar } from "@/contexts/SidebarContext";
 import AssistantWidget from "@/components/AssistantWidget";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { FeatureDisabledBanner } from "@/components/FeatureDisabledBanner";
@@ -19,7 +19,8 @@ export const Route = createFileRoute("/dashboard")({
   component: DashboardLayout,
 });
 
-function DashboardLayout() {
+function DashboardLayoutContent() {
+  const { isMinimized } = useSidebar();
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const { isLoading: isAuthLoading } = useAuthContext();
@@ -40,38 +41,48 @@ function DashboardLayout() {
   }, []);
 
   return (
+    <DashboardProvider
+      refreshDashboard={refreshDashboard}
+      isRefreshing={isRefreshing}
+      refreshTrigger={refreshTrigger}
+    >
+      <div className="flex min-h-screen w-full relative">
+        <Sidebar />
+        <div
+          className={`flex-1 flex flex-col min-w-0 bg-white content-transition ${
+            isMinimized ? "lg:pl-16" : "lg:pl-64"
+          }`}
+        >
+          <TopHeader />
+          <ResponsiveFeatureHeader />
+          <main className="flex-1 min-w-0 pt-14 lg:pt-0 relative flex flex-col">
+            <Outlet />
+
+            {/* Feature-blocked full-page overlay */}
+            <FeatureDisabledBanner />
+
+            {/* Subtle auth verification indicator - shows during page refresh */}
+            {isAuthLoading && (
+              <div className="fixed top-4 right-4 flex items-center gap-2 bg-white/80 backdrop-blur-sm px-3 py-2 rounded-lg shadow-sm border border-gray-200/50 z-40">
+                <Loader2 className="w-4 h-4 animate-spin text-purple-600" />
+                <span className="text-xs text-gray-600 font-medium">Verifying...</span>
+              </div>
+            )}
+          </main>
+        </div>
+      </div>
+
+      {/* AI Assistant Widget - Available on all dashboard pages */}
+      <AssistantWidget />
+    </DashboardProvider>
+  );
+}
+
+function DashboardLayout() {
+  return (
     <ProtectedRoute>
       <SidebarProvider>
-        <DashboardProvider
-          refreshDashboard={refreshDashboard}
-          isRefreshing={isRefreshing}
-          refreshTrigger={refreshTrigger}
-        >
-          <div className="flex min-h-screen w-full">
-            <Sidebar />
-            <div className="flex-1 flex flex-col min-w-0 bg-white">
-              <TopHeader />
-              <ResponsiveFeatureHeader />
-              <main className="flex-1 min-w-0 pt-14 lg:pt-0 relative">
-                <Outlet />
-
-                {/* Feature-blocked full-page overlay */}
-                <FeatureDisabledBanner />
-
-                {/* Subtle auth verification indicator - shows during page refresh */}
-                {isAuthLoading && (
-                  <div className="fixed top-4 right-4 flex items-center gap-2 bg-white/80 backdrop-blur-sm px-3 py-2 rounded-lg shadow-sm border border-gray-200/50 z-40">
-                    <Loader2 className="w-4 h-4 animate-spin text-purple-600" />
-                    <span className="text-xs text-gray-600 font-medium">Verifying...</span>
-                  </div>
-                )}
-              </main>
-            </div>
-          </div>
-
-          {/* AI Assistant Widget - Available on all dashboard pages */}
-          <AssistantWidget />
-        </DashboardProvider>
+        <DashboardLayoutContent />
       </SidebarProvider>
     </ProtectedRoute>
   );

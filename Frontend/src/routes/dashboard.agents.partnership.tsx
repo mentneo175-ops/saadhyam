@@ -141,7 +141,7 @@ function PartnershipAgentPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50">
+    <div className="min-h-full bg-gradient-to-br from-purple-50 via-white to-pink-50 p-4 md:p-6">
       <AnimatePresence mode="wait">
         {showWizard ? (
           <motion.div

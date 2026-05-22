@@ -539,7 +539,7 @@ function SettingsPage() {
 
   if (!mounted || initialLoading) {
     return (
-      <div className="flex min-h-screen bg-white">
+      <div className="flex flex-1 bg-white">
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <div className="relative inline-block mb-4">
@@ -1140,7 +1140,7 @@ function SettingsPage() {
   // ─── Main Render ───────────────────────────────────────────────────
 
   return (
-    <div className="flex min-h-screen bg-white">
+    <div className="flex flex-1 bg-white">
       <div className="flex-1 min-w-0 p-4 md:p-6 lg:p-8">
         {/* Page Header */}
         <div className="mb-8">

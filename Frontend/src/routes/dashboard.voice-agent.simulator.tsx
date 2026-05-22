@@ -23,6 +23,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card"
 import { Input } from "../components/ui/input";
 import { Badge } from "../components/ui/badge";
 import { Textarea } from "../components/ui/textarea";
+import { env } from "@/config/env";
 
 export const Route = createFileRoute("/dashboard/voice-agent/simulator")({
   component: VoiceSimulatorPage,
@@ -115,7 +116,7 @@ function VoiceSimulatorPage() {
 
     try {
       const token = localStorage.getItem("saadhyam_token");
-      const response = await fetch("http://localhost:8000/api/v2/voice-agent/conversation/simulate", {
+      const response = await fetch(`${env.apiBaseUrl}/api/v2/voice-agent/conversation/simulate`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

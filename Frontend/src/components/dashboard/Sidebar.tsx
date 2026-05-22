@@ -1,6 +1,7 @@
 import { Link, useLocation } from "@tanstack/react-router";
 import { Logo } from "@/components/brand/Logo";
 import { useState } from "react";
+import { useSidebar } from "@/contexts/SidebarContext";
 import {
   LayoutDashboard,
   CheckSquare,
@@ -28,6 +29,8 @@ import {
   Phone,
   Menu,
   X,
+  ChevronLeft,
+  ArrowLeft,
 } from "lucide-react";
 
 type NavItem = {
@@ -61,85 +64,120 @@ const items: NavItem[] = [
 export function Sidebar() {
   const { pathname } = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { isMinimized, toggleMinimized } = useSidebar();
 
   const toggleMobileMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
   const closeMobileMenu = () => setIsMobileMenuOpen(false);
 
-  const NavContent = () => (
-    <nav
-      className="flex-1 overflow-y-auto p-3 space-y-1 scrollbar-hide"
-      style={
-        {
-          scrollbarWidth: "none",
-          msOverflowStyle: "none",
-          WebkitOverflowScrolling: "touch",
-        } as React.CSSProperties
-      }
-    >
-      {items.map((it) => {
-        const active = it.exact
-          ? pathname === it.to
-          : pathname === it.to || pathname.startsWith(it.to + "/");
-        const Icon = it.icon;
-        return (
-          <Link
-            key={it.to}
-            to={it.to as "/dashboard"}
-            onClick={closeMobileMenu}
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all group ${
-              active
-                ? "bg-gradient-to-r from-[#8B5CF6] to-[#A855F7] text-white shadow-lg shadow-purple-500/20"
-                : "text-gray-700 hover:bg-[#F9F7FF] hover:text-purple-700"
-            }`}
-          >
-            <Icon
-              size={18}
-              className={active ? "text-white" : "text-gray-400 group-hover:text-purple-600"}
-            />
-            <span className="flex-1">{it.label}</span>
+  const NavItem = ({ item, isMinimized = false }: { item: NavItem; isMinimized?: boolean }) => {
+    const active = item.exact
+      ? pathname === item.to
+      : pathname === item.to || pathname.startsWith(item.to + "/");
+    const Icon = item.icon;
+    
+    return (
+      <Link
+        key={item.to}
+        to={item.to as "/dashboard"}
+        onClick={closeMobileMenu}
+        className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all group relative ${
+          active
+            ? "bg-gradient-to-r from-[#8B5CF6] to-[#A855F7] text-white shadow-lg shadow-purple-500/20"
+            : "text-gray-700 hover:bg-[#F9F7FF] hover:text-purple-700"
+        } ${isMinimized ? 'justify-center' : ''}`}
+        title={isMinimized ? item.label : undefined}
+      >
+        <Icon
+          size={18}
+          className={active ? "text-white" : "text-gray-400 group-hover:text-purple-600"}
+        />
+        {!isMinimized && (
+          <>
+            <span className="flex-1">{item.label}</span>
             {active && <ChevronRight size={14} className="text-white" />}
-          </Link>
-        );
-      })}
-    </nav>
-  );
+          </>
+        )}
+      </Link>
+    );
+  };
 
   return (
-    <aside className="hidden lg:flex flex-col w-64 shrink-0 border-r border-sidebar-border bg-sidebar h-screen sticky top-0">
-      <div className="px-4 h-14 flex items-center border-b border-sidebar-border">
-        <Logo size="sm" />
-      </div>
-      <nav
-        className="flex-1 overflow-y-auto p-3 space-y-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
-      >
-        {items.map((it) => {
-          const active = it.exact
-            ? pathname === it.to
-            : pathname === it.to || pathname.startsWith(it.to + "/");
-          const Icon = it.icon;
-          return (
-            <Link
-              key={it.to}
-              to={it.to as "/dashboard"}
-              className={`flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all group ${
-                active
-                  ? "bg-gradient-primary text-primary-foreground shadow-glow ring-1 ring-primary/25 ring-offset-1 ring-offset-sidebar"
-                  : "text-sidebar-foreground hover:bg-sidebar-accent"
-              }`}
-            >
-              <Icon
-                size={16}
-                className={
-                  active ? "" : "text-muted-foreground group-hover:text-sidebar-accent-foreground"
-                }
+    <>
+      {/* Desktop Sidebar */}
+      <aside className={`app-sidebar hidden lg:flex flex-col shrink-0 border-r border-sidebar-border bg-sidebar h-screen fixed top-0 left-0 z-30 sidebar-transition ${
+        isMinimized ? 'w-16' : 'w-64'
+      }`}>
+        {/* Header */}
+        <div className={`h-14 flex items-center border-b border-sidebar-border transition-all duration-300 ${
+          isMinimized ? 'px-2 justify-center' : 'px-4 justify-between'
+        }`}>
+          {!isMinimized && <Logo size="sm" />}
+          <button
+            onClick={toggleMinimized}
+            className="p-2 rounded-lg hover:bg-sidebar-accent transition-colors"
+            title={isMinimized ? "Expand sidebar" : "Minimize sidebar"}
+          >
+            <ChevronLeft 
+              size={16} 
+              className={`text-sidebar-foreground transition-transform duration-300 ${
+                isMinimized ? 'rotate-180' : ''
+              }`} 
               />
-              <span className="flex-1 text-sm">{it.label}</span>
-              {active && <ChevronRight size={12} />}
-            </Link>
-          );
-        })}
-      </nav>
-      
-    </aside>
+          </button>
+        </div>
+
+        {/* Navigation */}
+        <nav className="flex-1 overflow-y-auto p-3 space-y-1 scrollbar-invisible">
+          {items.map((item) => (
+            <NavItem key={item.to} item={item} isMinimized={isMinimized} />
+          ))}
+        </nav>
+      </aside>
+
+      {/* Mobile Menu Button */}
+      <button
+        onClick={toggleMobileMenu}
+        className="lg:hidden fixed top-4 right-4 p-2 rounded-md hover:bg-gray-100 transition-colors"
+        aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
+      >
+        <div className="relative w-5 h-5">
+          {isMobileMenuOpen ? (
+            <ArrowLeft size={20} className="text-gray-600 absolute inset-0 transition-all duration-200" />
+          ) : (
+            <Menu size={20} className="text-gray-600 absolute inset-0 transition-all duration-200" />
+          )}
+        </div>
+      </button>
+
+      {/* Mobile Sidebar */}
+      <div className={`lg:hidden fixed inset-0 z-40 transition-all duration-300 ${
+        isMobileMenuOpen ? 'visible' : 'invisible'
+      }`}>
+        {/* Backdrop */}
+        <div 
+          className={`absolute inset-0 bg-black transition-opacity duration-300 ${
+            isMobileMenuOpen ? 'opacity-50' : 'opacity-0'
+          }`}
+          onClick={closeMobileMenu}
+        />
+        
+        {/* Mobile Sidebar Panel */}
+        <aside className={`app-sidebar absolute right-0 top-0 h-full w-64 bg-sidebar border-l border-sidebar-border sidebar-transition ${
+          isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
+        }`}>
+          {/* Header */}
+          <div className="px-4 h-14 flex items-center justify-between border-b border-sidebar-border">
+            <Logo size="sm" />
+          </div>
+
+          {/* Navigation */}
+          <nav className="flex-1 overflow-y-auto p-3 space-y-1 scrollbar-invisible">
+            {items.map((item) => (
+              <NavItem key={item.to} item={item} />
+            ))}
+          </nav>
+        </aside>
+      </div>
+    </>
   );
 }

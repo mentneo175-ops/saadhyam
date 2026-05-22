@@ -3,6 +3,7 @@
  */
 
 import { apiClient } from "./api";
+import { env } from "@/config/env";
 import type {
   MetaConnectionStatus,
   AudienceRecommendation,
@@ -15,7 +16,7 @@ import type {
   CampaignStatus,
 } from "@/types/meta-ads";
 
-const BASE_URL = "http://localhost:8000";
+const BASE_URL = env.apiBaseUrl;
 
 /**
  * Get Meta connection status

@@ -17,6 +17,7 @@ import {
 import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { motion, AnimatePresence } from "framer-motion";
+import { env } from "@/config/env";
 
 export const Route = createFileRoute("/dashboard/daily-ask")({
   head: () => ({ meta: [{ title: "Daily Suggestions — Saadhyam AI" }] }),
@@ -79,7 +80,7 @@ function DailyAskPage() {
 
     try {
       const token = getToken();
-      const response = await fetch("http://localhost:8000/api/tasks/today", {
+      const response = await fetch(`${env.apiBaseUrl}/api/tasks/today`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -105,7 +106,7 @@ function DailyAskPage() {
 
     try {
       const token = getToken();
-      const response = await fetch("http://localhost:8000/api/tasks/generate-daily?num_tasks=5", {
+      const response = await fetch(`${env.apiBaseUrl}/api/tasks/generate-daily?num_tasks=5`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -142,8 +143,8 @@ function DailyAskPage() {
       const token = getToken();
 
       const endpoint = isCompleted
-        ? `http://localhost:8000/api/tasks/${taskId}/uncomplete`
-        : `http://localhost:8000/api/tasks/${taskId}/complete`;
+        ? `${env.apiBaseUrl}/api/tasks/${taskId}/uncomplete`
+        : `${env.apiBaseUrl}/api/tasks/${taskId}/complete`;
 
       const response = await fetch(endpoint, {
         method: "PUT",

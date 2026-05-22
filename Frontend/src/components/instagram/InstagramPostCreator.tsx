@@ -1,3 +1,4 @@
+import { toast } from "sonner";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -47,7 +48,7 @@ export const InstagramPostCreator: React.FC<PostCreatorProps> = ({
 
   const handleGenerateCaption = () => {
     if (!topic.trim()) {
-      alert("Please enter a topic");
+      toast.error("Please enter a topic");
       return;
     }
     onGenerateCaption(topic, tone);
@@ -56,7 +57,7 @@ export const InstagramPostCreator: React.FC<PostCreatorProps> = ({
 
   const handlePostNow = () => {
     if (!imageUrl.trim()) {
-      alert("Please enter an image URL");
+      toast.error("Please enter an image URL");
       return;
     }
     onPostNow({ image_url: imageUrl, caption });
@@ -65,11 +66,11 @@ export const InstagramPostCreator: React.FC<PostCreatorProps> = ({
 
   const handleSchedule = () => {
     if (!imageUrl.trim()) {
-      alert("Please enter an image URL");
+      toast.error("Please enter an image URL");
       return;
     }
     if (!scheduledTime) {
-      alert("Please select a time to schedule");
+      toast.error("Please select a time to schedule");
       return;
     }
     onSchedule({ image_url: imageUrl, caption, scheduled_time: scheduledTime });

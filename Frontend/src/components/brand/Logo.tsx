@@ -13,7 +13,7 @@ const sizeMap = {
   lg: { img: "h-16", text: "text-xl", gap: "gap-3" },
 };
 
-export function Logo({ size = "md", showText = true, to = "/" }: LogoProps) {
+export function Logo({ size = "md", showText = true, to = "/dashboard" }: LogoProps) {
   const s = sizeMap[size];
   return (
     <Link to={to} className={`flex items-center ${s.gap} group hover:opacity-80 transition-opacity`}>

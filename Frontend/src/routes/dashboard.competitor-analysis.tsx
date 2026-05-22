@@ -196,7 +196,7 @@ function CompetitorAnalysisPage() {
       <div className="p-4 md:p-6 space-y-5">
         <PageHeader title="Competitor Analysis" subtitle="Understand your competitive landscape" />
         <div className="flex flex-col items-center justify-center py-20">
-          <Loader2 size={48} className="animate-spin text-orange-600 mb-4" />
+          <Loader2 size={48} className="animate-spin text-[#8B5CF6] mb-4" />
           <p className="text-lg font-semibold text-gray-900">Loading...</p>
         </div>
       </div>
@@ -209,7 +209,7 @@ function CompetitorAnalysisPage() {
       <div className="p-4 md:p-6 space-y-5">
         <PageHeader title="Competitor Analysis" subtitle="Understand your competitive landscape" />
         <div className="flex flex-col items-center justify-center py-20">
-          <Sparkles size={48} className="animate-spin text-orange-600 mb-4" />
+          <Sparkles size={48} className="animate-spin text-[#8B5CF6] mb-4" />
           <p className="text-lg font-semibold text-gray-900">Analyzing competitors...</p>
           <p className="text-sm text-gray-600 mt-2">This may take 2-3 minutes</p>
           {/* <p className="text-xs text-gray-500 mt-1">Using Google AI Studio Gemini with Search Grounding</p> */}
@@ -224,8 +224,8 @@ function CompetitorAnalysisPage() {
       <div className="p-4 md:p-6 space-y-5">
         <PageHeader title="Competitor Analysis" subtitle="Understand your competitive landscape" />
         <div className="flex flex-col items-center justify-center py-20">
-          <div className="h-20 w-20 rounded-full bg-orange-100 flex items-center justify-center mb-6">
-            <Users size={40} className="text-orange-600" />
+            <div className="h-20 w-20 rounded-2xl bg-gradient-to-br from-[#8B5CF6]/10 to-[#A855F7]/10 flex items-center justify-center mb-6">
+              <Users size={40} className="text-[#8B5CF6]" />
           </div>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">No Analysis Found</h2>
           <p className="text-gray-600 mb-6 text-center max-w-md">

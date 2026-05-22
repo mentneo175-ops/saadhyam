@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, Save, Send, Loader2, Plus, X } from "lucide-react";
 import { toast } from "sonner";
+import { env } from "@/config/env";
 
 interface Campaign {
   id: number;
@@ -121,8 +122,8 @@ export function CampaignForm({ campaign, onClose, onSuccess }: CampaignFormProps
 
       // Create or update campaign
       const url = campaign
-        ? `http://localhost:8000/api/whatsapp/campaigns/${campaign.id}`
-        : "http://localhost:8000/api/whatsapp/campaigns";
+        ? `${env.apiBaseUrl}/api/whatsapp/campaigns/${campaign.id}`
+        : `${env.apiBaseUrl}/api/whatsapp/campaigns`;
 
       const response = await fetch(url, {
         method: campaign ? "PUT" : "POST",
@@ -144,7 +145,7 @@ export function CampaignForm({ campaign, onClose, onSuccess }: CampaignFormProps
       // Execute immediately if requested
       if (executeNow) {
         const executeResponse = await fetch(
-          `http://localhost:8000/api/whatsapp/campaigns/${campaignId}/execute`,
+          `${env.apiBaseUrl}/api/whatsapp/campaigns/${campaignId}/execute`,
           {
             method: "POST",
             headers: {

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
+import { env } from "@/config/env";
 import {
   CheckCircle2,
   Circle,
@@ -51,7 +52,7 @@ export function DailyTasksWidget() {
         return;
       }
 
-      const response = await fetch("http://localhost:8000/api/tasks/today", {
+      const response = await fetch(`${env.apiBaseUrl}/api/tasks/today`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -81,7 +82,7 @@ export function DailyTasksWidget() {
 
   const autoGenerateTasks = async (token: string) => {
     try {
-      const response = await fetch("http://localhost:8000/api/tasks/generate-daily?num_tasks=5", {
+      const response = await fetch(`${env.apiBaseUrl}/api/tasks/generate-daily?num_tasks=5`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -109,8 +110,8 @@ export function DailyTasksWidget() {
       if (!token) return;
 
       const endpoint = isCompleted
-        ? `http://localhost:8000/api/tasks/${taskId}/uncomplete`
-        : `http://localhost:8000/api/tasks/${taskId}/complete`;
+        ? `${env.apiBaseUrl}/api/tasks/${taskId}/uncomplete`
+        : `${env.apiBaseUrl}/api/tasks/${taskId}/complete`;
 
       const response = await fetch(endpoint, {
         method: "PUT",

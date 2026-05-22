@@ -1,5 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { PageHeader } from "@/components/dashboard/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -26,10 +25,20 @@ import {
   Bell,
   CreditCard,
   Sparkles,
+  Settings,
+  Link2,
+  Palette,
+  ChevronRight,
+  ExternalLink,
+  Zap,
+  Lock,
+  Eye,
+  Crown,
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { useAuthContext } from "@/lib/AuthContext";
 import { toast } from "sonner";
+import { env } from "@/config/env";
 
 export const Route = createFileRoute("/dashboard/settings")({
   head: () => ({ meta: [{ title: "Settings — Saadhyam AI" }] }),
@@ -39,28 +48,37 @@ export const Route = createFileRoute("/dashboard/settings")({
 const integrations = [
   {
     name: "Instagram",
-    desc: "Post and analyze",
+    desc: "Post and analyze your content",
     icon: Instagram,
-    color: "from-pink-500 to-fuchsia-500",
+    gradient: "from-pink-500 via-rose-500 to-fuchsia-500",
+    bgLight: "bg-pink-50",
+    iconColor: "text-pink-600",
   },
   {
     name: "WhatsApp Business",
     desc: "Send and receive messages",
     icon: MessageCircle,
-    color: "from-emerald-500 to-teal-500",
+    gradient: "from-emerald-500 to-teal-500",
+    bgLight: "bg-emerald-50",
+    iconColor: "text-emerald-600",
   },
   {
     name: "Email (Gmail)",
     desc: "Campaigns and automations",
     icon: Mail,
-    color: "from-blue-500 to-indigo-500",
+    gradient: "from-blue-500 to-indigo-500",
+    bgLight: "bg-blue-50",
+    iconColor: "text-blue-600",
   },
-  // {
-  //   name: "Shopify",
-  //   desc: "Orders and customers",
-  //   icon: ShoppingBag,
-  //   color: "from-emerald-500 to-green-500",
-  // },
+];
+
+type SettingsTab = "profile" | "business" | "integrations" | "preferences";
+
+const tabs: { id: SettingsTab; label: string; icon: typeof User; desc: string }[] = [
+  { id: "profile", label: "Profile", icon: User, desc: "Account information" },
+  { id: "business", label: "Business", icon: Building2, desc: "Company details" },
+  { id: "integrations", label: "Integrations", icon: Link2, desc: "Connected services" },
+  { id: "preferences", label: "Preferences", icon: Palette, desc: "App settings" },
 ];
 
 function SettingsPage() {
@@ -69,6 +87,7 @@ function SettingsPage() {
   const [initialLoading, setInitialLoading] = useState(true);
   const [logoutLoading, setLogoutLoading] = useState(false);
   const [expandedIntegration, setExpandedIntegration] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<SettingsTab>("profile");
   const { logout } = useAuthContext();
 
   // Ref to track if Instagram status has been loaded
@@ -132,7 +151,7 @@ function SettingsPage() {
     // Add message listener for OAuth popup
     const handleOAuthMessage = (event: MessageEvent) => {
       // Only accept messages from our backend
-      if (event.origin !== "http://localhost:8000") return;
+      if (event.origin !== env.apiBaseUrl) return;
 
       if (event.data.type === "INSTAGRAM_OAUTH_SUCCESS") {
         toast.success("Instagram connected successfully!");
@@ -160,7 +179,7 @@ function SettingsPage() {
       if (!token) return;
 
       // Load user profile data
-      const profileResponse = await fetch("http://localhost:8000/api/profile", {
+      const profileResponse = await fetch(`${env.apiBaseUrl}/api/profile`, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
@@ -189,7 +208,7 @@ function SettingsPage() {
       }
 
       // Also load settings data for additional fields
-      const settingsResponse = await fetch("http://localhost:8000/settings", {
+      const settingsResponse = await fetch(`${env.apiBaseUrl}/settings`, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
@@ -230,7 +249,7 @@ function SettingsPage() {
         return;
       }
 
-      const response = await fetch("http://localhost:8000/settings/instagram/connection-status", {
+      const response = await fetch(`${env.apiBaseUrl}/settings/instagram/connection-status`, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
@@ -261,7 +280,7 @@ function SettingsPage() {
         });
 
         if (data.is_connected) {
-          const settingsResponse = await fetch("http://localhost:8000/settings", {
+          const settingsResponse = await fetch(`${env.apiBaseUrl}/settings`, {
             headers: {
               Authorization: `Bearer ${token}`,
               "Content-Type": "application/json",
@@ -315,7 +334,7 @@ function SettingsPage() {
         return;
       }
 
-      const response = await fetch("http://localhost:8000/api/whatsapp/connection-status", {
+      const response = await fetch(`${env.apiBaseUrl}/api/whatsapp/connection-status`, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
@@ -353,7 +372,7 @@ function SettingsPage() {
         return;
       }
 
-      const oauthUrl = `http://localhost:8000/auth/instagram/connect?token=${token}`;
+      const oauthUrl = `${env.apiBaseUrl}/auth/instagram/connect?token=${token}`;
       const popup = window.open(
         oauthUrl,
         "instagram-oauth",
@@ -403,12 +422,12 @@ function SettingsPage() {
       const token = localStorage.getItem("saadhyam_token");
 
       // Determine which endpoint to use based on the setting
-      let endpoint = "http://localhost:8000/settings/instagram/automation";
+      let endpoint = `${env.apiBaseUrl}/settings/instagram/automation`;
       let requestBody: any = newSettings;
 
       if (key === "auto_generate_captions") {
         // Use posting preferences endpoint for auto-generate captions
-        endpoint = "http://localhost:8000/settings/posting-preferences";
+        endpoint = `${env.apiBaseUrl}/settings/posting-preferences`;
         requestBody = { auto_generate_captions: value };
       } else {
         // Use Instagram automation endpoint for other settings
@@ -458,7 +477,7 @@ function SettingsPage() {
         business_description: settings.description,
       };
 
-      const businessResponse = await fetch("http://localhost:8000/api/profile/business", {
+      const businessResponse = await fetch(`${env.apiBaseUrl}/api/profile/business`, {
         method: "PUT",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -468,14 +487,11 @@ function SettingsPage() {
       });
 
       if (businessResponse.ok) {
-        toast.success("Business settings saved successfully!");
+        toast.success("Settings saved successfully!");
       } else {
         console.error("Failed to save business settings:", businessResponse.status);
         toast.error("Failed to save some settings");
       }
-
-      // Note: User profile fields (name, email, phone) would need a separate endpoint
-      // For now, we'll just show success for business fields
     } catch (error) {
       console.error("Failed to save settings:", error);
       toast.error("Failed to save settings");
@@ -523,275 +539,638 @@ function SettingsPage() {
 
   if (!mounted || initialLoading) {
     return (
-      <div className="p-4 md:p-6 lg:p-8 space-y-6 max-w-4xl">
-        <PageHeader title="Settings" subtitle="Manage your account and integration preferences" />
-        <div className="flex items-center justify-center py-12">
-          <Loader2 size={32} className="animate-spin text-primary" />
-          <span className="ml-3 text-lg text-muted-foreground">Loading settings...</span>
+      <div className="flex min-h-screen bg-white">
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <div className="relative inline-block mb-4">
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-fuchsia-600 rounded-full blur-xl opacity-30 animate-pulse" />
+              <div className="relative w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500 to-fuchsia-500 flex items-center justify-center shadow-lg">
+                <Settings
+                  size={28}
+                  className="text-white animate-spin"
+                  style={{ animationDuration: "3s" }}
+                />
+              </div>
+            </div>
+            <p className="text-gray-700 font-semibold text-lg">Loading settings...</p>
+            <p className="text-gray-400 text-sm mt-1">Preparing your preferences</p>
+          </div>
         </div>
       </div>
     );
   }
 
-  return (
-    <div className="p-4 md:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto">
-      <PageHeader
-        title="Settings"
-        subtitle="Manage your account, business profile, and integration preferences"
-      />
+  // ─── Tab Content Renderers ─────────────────────────────────────────
 
-      <div className="grid lg:grid-cols-3 gap-6">
-        {/* LEFT COLUMN - Profile & Business (2/3 width) */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Profile Section */}
-          <div className="bg-card rounded-2xl border border-border/60 shadow-soft overflow-hidden">
-            <div className="bg-gradient-to-r from-purple-50 via-pink-50 to-blue-50 px-6 py-4 border-b border-border/60">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-white rounded-lg shadow-sm">
-                  <User size={18} className="text-purple-600" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-lg">Account Profile</h3>
-                  <p className="text-sm text-muted-foreground">Your personal information</p>
-                </div>
+  const renderProfileTab = () => (
+    <div className="space-y-6 animate-fadeIn">
+      {/* Profile Card */}
+      <div className="bg-white rounded-2xl border border-gray-200/60 shadow-xl shadow-gray-200/40 overflow-hidden hover:shadow-2xl transition-shadow duration-300">
+        {/* Gradient Banner */}
+        <div className="h-28 bg-gradient-to-r from-purple-600 via-fuchsia-500 to-pink-500 relative overflow-hidden">
+          <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PHBhdGggZD0iTTM2IDM0djJIMjR2LTJoMTJ6TTI0IDI0aDEydjJIMjR2LTJ6Ii8+PC9nPjwvZz48L3N2Zz4=')] opacity-40" />
+          {/* Decorative circles */}
+          <div className="absolute -top-8 -right-8 w-40 h-40 bg-white/10 rounded-full blur-sm" />
+          <div className="absolute -bottom-12 -left-8 w-48 h-48 bg-white/5 rounded-full" />
+        </div>
+
+        {/* Avatar + Info — avatar overlaps banner, text stays in white zone */}
+        <div className="px-8 pb-6">
+          {/* Avatar row — pulls up into the banner */}
+          <div className="flex items-end gap-5 -mt-10">
+            <div className="relative group shrink-0">
+              <div className="w-20 h-20 bg-gradient-to-br from-purple-500 via-purple-600 to-fuchsia-600 rounded-2xl flex items-center justify-center shadow-xl shadow-purple-500/30 border-4 border-white ring-2 ring-purple-100">
+                <span className="text-2xl font-bold text-white">
+                  {settings.full_name ? settings.full_name.charAt(0).toUpperCase() : "U"}
+                </span>
               </div>
+              <button className="absolute -bottom-1 -right-1 p-1.5 bg-white rounded-lg shadow-lg border border-gray-200 hover:bg-gray-50 hover:shadow-xl transition-all duration-200 group-hover:scale-110">
+                <Camera size={12} className="text-gray-600" />
+              </button>
             </div>
-
-            <div className="p-6">
-              <div className="flex items-center gap-4 mb-6 pb-6 border-b border-border/60">
-                <div className="relative">
-                  <div className="w-20 h-20 bg-gradient-to-br from-purple-500 via-purple-600 to-pink-500 rounded-full flex items-center justify-center shadow-lg">
-                    <span className="text-2xl font-bold text-white">
-                      {settings.full_name ? settings.full_name.charAt(0).toUpperCase() : "U"}
-                    </span>
-                  </div>
-                  <button className="absolute bottom-0 right-0 p-1.5 bg-white rounded-full shadow-md border-2 border-card hover:bg-gray-50 transition-colors">
-                    <Camera size={14} className="text-gray-600" />
-                  </button>
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-semibold text-xl">{settings.full_name || "Your Name"}</h3>
-                  <p className="text-muted-foreground text-sm">{settings.email}</p>
-                  <div className="flex items-center gap-2 mt-2">
-                    <span className="text-xs bg-purple-100 text-purple-700 px-3 py-1 rounded-full font-medium">
-                      Free Plan
-                    </span>
-                    <span className="text-xs bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full font-medium flex items-center gap-1">
-                      <CheckCircle size={12} />
-                      Active
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium flex items-center gap-2">
-                    <User size={14} className="text-muted-foreground" />
-                    Full name
-                  </Label>
-                  <Input
-                    value={settings.full_name}
-                    onChange={(e) => setSettings({ ...settings, full_name: e.target.value })}
-                    placeholder="Your full name"
-                    className="h-11 rounded-xl border-2"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium flex items-center gap-2">
-                    <Mail size={14} className="text-muted-foreground" />
-                    Email
-                  </Label>
-                  <Input
-                    value={settings.email}
-                    onChange={(e) => setSettings({ ...settings, email: e.target.value })}
-                    placeholder="your@email.com"
-                    className="h-11 rounded-xl border-2"
-                    type="email"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium flex items-center gap-2">
-                    <Phone size={14} className="text-muted-foreground" />
-                    Phone
-                  </Label>
-                  <Input
-                    value={settings.phone}
-                    onChange={(e) => setSettings({ ...settings, phone: e.target.value })}
-                    placeholder="+91 98765 43210"
-                    className="h-11 rounded-xl border-2"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium flex items-center gap-2">
-                    <Globe size={14} className="text-muted-foreground" />
-                    Timezone
-                  </Label>
-                  <Input
-                    value={settings.timezone}
-                    className="h-11 rounded-xl border-2 bg-muted/30"
-                    readOnly
-                  />
-                </div>
-              </div>
+            {/* Badges sit at the bottom of avatar — inside the white area */}
+            <div className="flex items-center gap-2 pb-1">
+              <span className="inline-flex items-center gap-1.5 text-xs bg-purple-100 text-purple-700 px-3 py-1 rounded-full font-semibold">
+                <Sparkles size={12} />
+                Free Plan
+              </span>
+              <span className="inline-flex items-center gap-1.5 text-xs bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full font-semibold">
+                <CheckCircle size={12} />
+                Active
+              </span>
             </div>
           </div>
 
-          {/* Business Info */}
-          <div className="bg-card rounded-2xl border border-border/60 shadow-soft overflow-hidden">
-            <div className="bg-gradient-to-r from-emerald-50 via-teal-50 to-cyan-50 px-6 py-4 border-b border-border/60">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-white rounded-lg shadow-sm">
-                  <Building2 size={18} className="text-emerald-600" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-lg">Business Information</h3>
-                  <p className="text-sm text-muted-foreground">Your business details and profile</p>
-                </div>
-              </div>
+          {/* Name + Email — fully in white area, never overlaps gradient */}
+          <div className="mt-4">
+            <h2 className="text-xl font-bold text-gray-900 truncate">
+              {settings.full_name || "Your Name"}
+            </h2>
+            <p className="text-gray-500 text-sm mt-0.5 truncate">{settings.email}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Personal Information Form */}
+      <div className="bg-white rounded-2xl border border-gray-200/60 shadow-lg shadow-gray-100/50 overflow-hidden">
+        <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
+          <div className="p-2 bg-purple-100 rounded-xl">
+            <User size={16} className="text-purple-600" />
+          </div>
+          <div>
+            <h3 className="font-semibold text-gray-900">Personal Information</h3>
+            <p className="text-xs text-gray-500">Update your personal details</p>
+          </div>
+        </div>
+        <div className="p-6">
+          <div className="grid md:grid-cols-2 gap-5">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                <User size={13} className="text-gray-400" />
+                Full name
+              </Label>
+              <Input
+                value={settings.full_name}
+                onChange={(e) => setSettings({ ...settings, full_name: e.target.value })}
+                placeholder="Your full name"
+                className="h-11 rounded-xl border-gray-200 focus:border-purple-400 focus:ring-purple-100 transition-all"
+              />
             </div>
-
-            <div className="p-6">
-              <div className="grid md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium flex items-center gap-2">
-                    <Building2 size={14} className="text-muted-foreground" />
-                    Business name
-                  </Label>
-                  <Input
-                    value={settings.business_name}
-                    onChange={(e) => setSettings({ ...settings, business_name: e.target.value })}
-                    placeholder="Your business name"
-                    className="h-11 rounded-xl border-2"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium flex items-center gap-2">
-                    <ShoppingBag size={14} className="text-muted-foreground" />
-                    Industry
-                  </Label>
-                  <Input
-                    value={settings.industry}
-                    onChange={(e) => setSettings({ ...settings, industry: e.target.value })}
-                    placeholder="e.g., Restaurant, Retail"
-                    className="h-11 rounded-xl border-2"
-                  />
-                </div>
-                <div className="space-y-2 md:col-span-2">
-                  <Label className="text-sm font-medium flex items-center gap-2">
-                    <MapPin size={14} className="text-muted-foreground" />
-                    Location
-                  </Label>
-                  <Input
-                    value={settings.business_location || ""}
-                    onChange={(e) =>
-                      setSettings({ ...settings, business_location: e.target.value })
-                    }
-                    placeholder="City, State, Country"
-                    className="h-11 rounded-xl border-2"
-                  />
-                </div>
-                <div className="space-y-2 md:col-span-2">
-                  <Label className="text-sm font-medium">Business description</Label>
-                  <div className="relative">
-                    <textarea
-                      value={settings.description}
-                      onChange={(e) => setSettings({ ...settings, description: e.target.value })}
-                      placeholder="Describe your business, services, challenges, and goals..."
-                      rows={4}
-                      className="w-full px-4 py-3 border-2 border-border rounded-xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 outline-none transition-all duration-300 bg-background resize-none text-sm"
-                    />
-                    <p className="text-xs text-muted-foreground mt-2">
-                      {settings.description.length}/5,000 characters
-                    </p>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">Brand voice</Label>
-                  <Input
-                    value={settings.brand_voice}
-                    onChange={(e) => setSettings({ ...settings, brand_voice: e.target.value })}
-                    placeholder="Warm, premium, playful"
-                    className="h-11 rounded-xl border-2"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">Target audience</Label>
-                  <Input
-                    value={settings.target_audience}
-                    onChange={(e) => setSettings({ ...settings, target_audience: e.target.value })}
-                    placeholder="Women 25-40, urban India"
-                    className="h-11 rounded-xl border-2"
-                  />
-                </div>
-              </div>
-
-              {/* Note about editing */}
-              <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-xl">
-                <div className="flex items-start gap-3">
-                  <AlertCircle size={18} className="text-blue-600 mt-0.5 flex-shrink-0" />
-                  <div>
-                    <p className="text-sm font-medium text-blue-900">
-                      Need to update your business profile?
-                    </p>
-                    <p className="text-xs text-blue-700 mt-1">
-                      Visit the{" "}
-                      <a href="/dashboard/business-details" className="underline font-medium">
-                        Business Details
-                      </a>{" "}
-                      page to edit your profile with advanced import options (PDF, Voice, Website).
-                    </p>
-                  </div>
-                </div>
-              </div>
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                <Mail size={13} className="text-gray-400" />
+                Email
+              </Label>
+              <Input
+                value={settings.email}
+                onChange={(e) => setSettings({ ...settings, email: e.target.value })}
+                placeholder="your@email.com"
+                className="h-11 rounded-xl border-gray-200 focus:border-purple-400 focus:ring-purple-100 transition-all"
+                type="email"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                <Phone size={13} className="text-gray-400" />
+                Phone number
+              </Label>
+              <Input
+                value={settings.phone}
+                onChange={(e) => setSettings({ ...settings, phone: e.target.value })}
+                placeholder="+91 98765 43210"
+                className="h-11 rounded-xl border-gray-200 focus:border-purple-400 focus:ring-purple-100 transition-all"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                <Globe size={13} className="text-gray-400" />
+                Timezone
+              </Label>
+              <Input
+                value={settings.timezone}
+                className="h-11 rounded-xl border-gray-200 bg-gray-50 text-gray-500 cursor-not-allowed"
+                readOnly
+              />
             </div>
           </div>
         </div>
+      </div>
 
-        {/* RIGHT COLUMN - Quick Actions & Integrations (1/3 width) */}
-        <div className="space-y-6">
-          {/* Quick Actions Card */}
-          <div className="bg-card rounded-2xl border border-border/60 shadow-soft overflow-hidden">
-            <div className="bg-gradient-to-r from-amber-50 via-orange-50 to-red-50 px-6 py-4 border-b border-border/60">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-white rounded-lg shadow-sm">
-                  <Shield size={18} className="text-amber-600" />
-                </div>
-                <div>
-                  <h3 className="font-semibold">Quick Actions</h3>
-                  <p className="text-xs text-muted-foreground">Account management</p>
-                </div>
+      {/* Security */}
+      <div className="bg-white rounded-2xl border border-gray-200/60 shadow-lg shadow-gray-100/50 overflow-hidden">
+        <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
+          <div className="p-2 bg-amber-100 rounded-xl">
+            <Shield size={16} className="text-amber-600" />
+          </div>
+          <div>
+            <h3 className="font-semibold text-gray-900">Security</h3>
+            <p className="text-xs text-gray-500">Protect your account</p>
+          </div>
+        </div>
+        <div className="p-6 space-y-4">
+          <div className="flex items-center justify-between p-4 rounded-xl bg-gray-50/80 border border-gray-100">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-white rounded-lg shadow-sm">
+                <Lock size={16} className="text-gray-500" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-900">Password</p>
+                <p className="text-xs text-gray-500">Last changed 30 days ago</p>
               </div>
             </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="rounded-xl border-gray-200 text-gray-700 hover:bg-white"
+            >
+              Change
+            </Button>
+          </div>
+          <div className="flex items-center justify-between p-4 rounded-xl bg-gray-50/80 border border-gray-100">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-white rounded-lg shadow-sm">
+                <Shield size={16} className="text-gray-500" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-900">Two-Factor Authentication</p>
+                <p className="text-xs text-gray-500">Add an extra layer of security</p>
+              </div>
+            </div>
+            <span className="text-xs font-semibold text-amber-600 bg-amber-50 px-3 py-1 rounded-full">
+              Coming Soon
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 
-            <div className="p-4 space-y-3">
+  const renderBusinessTab = () => (
+    <div className="space-y-6 animate-fadeIn">
+      {/* Business Details */}
+      <div className="bg-white rounded-2xl border border-gray-200/60 shadow-lg shadow-gray-100/50 overflow-hidden">
+        <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-emerald-100 rounded-xl">
+              <Building2 size={16} className="text-emerald-600" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-gray-900">Business Details</h3>
+              <p className="text-xs text-gray-500">Your company information</p>
+            </div>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            className="rounded-xl border-gray-200 text-gray-600 hover:bg-white"
+            onClick={() => (window.location.href = "/dashboard/business-details")}
+          >
+            <ExternalLink size={14} className="mr-1.5" />
+            Advanced Edit
+          </Button>
+        </div>
+        <div className="p-6">
+          <div className="grid md:grid-cols-2 gap-5">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                <Building2 size={13} className="text-gray-400" />
+                Business name
+              </Label>
+              <Input
+                value={settings.business_name}
+                onChange={(e) => setSettings({ ...settings, business_name: e.target.value })}
+                placeholder="Your business name"
+                className="h-11 rounded-xl border-gray-200 focus:border-purple-400 focus:ring-purple-100 transition-all"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                <ShoppingBag size={13} className="text-gray-400" />
+                Industry
+              </Label>
+              <Input
+                value={settings.industry}
+                onChange={(e) => setSettings({ ...settings, industry: e.target.value })}
+                placeholder="e.g., Restaurant, Retail, SaaS"
+                className="h-11 rounded-xl border-gray-200 focus:border-purple-400 focus:ring-purple-100 transition-all"
+              />
+            </div>
+            <div className="space-y-2 md:col-span-2">
+              <Label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                <MapPin size={13} className="text-gray-400" />
+                Business location
+              </Label>
+              <Input
+                value={settings.business_location || ""}
+                onChange={(e) => setSettings({ ...settings, business_location: e.target.value })}
+                placeholder="City, State, Country"
+                className="h-11 rounded-xl border-gray-200 focus:border-purple-400 focus:ring-purple-100 transition-all"
+              />
+            </div>
+            <div className="space-y-2 md:col-span-2">
+              <Label className="text-sm font-medium text-gray-700">Business description</Label>
+              <textarea
+                value={settings.description}
+                onChange={(e) => setSettings({ ...settings, description: e.target.value })}
+                placeholder="Describe your business, services, challenges, and goals..."
+                rows={4}
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-purple-400 focus:ring-4 focus:ring-purple-50 outline-none transition-all duration-200 bg-white resize-none text-sm leading-relaxed"
+              />
+              <p className="text-xs text-gray-400">
+                {settings.description.length}/5,000 characters
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Branding */}
+      <div className="bg-white rounded-2xl border border-gray-200/60 shadow-lg shadow-gray-100/50 overflow-hidden">
+        <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
+          <div className="p-2 bg-fuchsia-100 rounded-xl">
+            <Palette size={16} className="text-fuchsia-600" />
+          </div>
+          <div>
+            <h3 className="font-semibold text-gray-900">Brand Identity</h3>
+            <p className="text-xs text-gray-500">Define how your brand communicates</p>
+          </div>
+        </div>
+        <div className="p-6">
+          <div className="grid md:grid-cols-2 gap-5">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-gray-700">Brand voice</Label>
+              <Input
+                value={settings.brand_voice}
+                onChange={(e) => setSettings({ ...settings, brand_voice: e.target.value })}
+                placeholder="e.g., Warm, premium, playful"
+                className="h-11 rounded-xl border-gray-200 focus:border-purple-400 focus:ring-purple-100 transition-all"
+              />
+              <p className="text-xs text-gray-400">Helps AI generate content in your tone</p>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-gray-700">Target audience</Label>
+              <Input
+                value={settings.target_audience}
+                onChange={(e) => setSettings({ ...settings, target_audience: e.target.value })}
+                placeholder="e.g., Women 25-40, urban India"
+                className="h-11 rounded-xl border-gray-200 focus:border-purple-400 focus:ring-purple-100 transition-all"
+              />
+              <p className="text-xs text-gray-400">Personalizes recommendations for your market</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Tip Card */}
+      <div className="rounded-2xl bg-gradient-to-r from-purple-50 via-fuchsia-50 to-pink-50 border border-purple-100 p-5">
+        <div className="flex items-start gap-4">
+          <div className="p-2.5 bg-white rounded-xl shadow-sm shrink-0">
+            <Sparkles size={18} className="text-purple-600" />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-purple-900">Power up your business profile</p>
+            <p className="text-xs text-purple-700/80 mt-1 leading-relaxed">
+              Visit the{" "}
+              <a
+                href="/dashboard/business-details"
+                className="underline font-semibold hover:text-purple-800 transition-colors"
+              >
+                Business Details
+              </a>{" "}
+              page for advanced import options including PDF upload, voice input, and website
+              scanning.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderIntegrationsTab = () => (
+    <div className="space-y-6 animate-fadeIn">
+      {/* Integration Cards */}
+      <div className="space-y-4">
+        {integrations.map((integration) => (
+          <div
+            key={integration.name}
+            className="bg-white rounded-2xl border border-gray-200/60 shadow-lg shadow-gray-100/50 overflow-hidden hover:shadow-xl transition-all duration-300"
+          >
+            <div
+              className="flex items-center gap-4 p-5 cursor-pointer"
+              onClick={() => handleIntegrationClick(integration.name)}
+            >
+              <div
+                className={`h-12 w-12 rounded-xl bg-gradient-to-br ${integration.gradient} flex items-center justify-center shrink-0 shadow-lg`}
+              >
+                <integration.icon size={22} className="text-white" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <p className="font-semibold text-gray-900">{integration.name}</p>
+                  <span
+                    className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wide ${
+                      integration.name === "Instagram" && instagramStatus.is_connected
+                        ? "bg-emerald-100 text-emerald-700"
+                        : integration.name === "WhatsApp Business" && whatsappStatus.is_connected
+                          ? "bg-emerald-100 text-emerald-700"
+                          : "bg-gray-100 text-gray-500"
+                    }`}
+                  >
+                    {integration.name === "Instagram"
+                      ? instagramStatus.is_connected
+                        ? "● Connected"
+                        : "Not connected"
+                      : integration.name === "WhatsApp Business"
+                        ? whatsappStatus.is_connected
+                          ? "● Connected"
+                          : "Not Connected"
+                        : "Not connected"}
+                  </span>
+                </div>
+                <p className="text-sm text-gray-500 mt-0.5">{integration.desc}</p>
+              </div>
+              {integration.name === "Instagram" && (
+                <button className="p-2 rounded-lg hover:bg-gray-100 transition-colors">
+                  {expandedIntegration === "Instagram" ? (
+                    <ChevronUp size={18} className="text-gray-400" />
+                  ) : (
+                    <ChevronDown size={18} className="text-gray-400" />
+                  )}
+                </button>
+              )}
+            </div>
+
+            {/* Instagram Settings - Expanded */}
+            {integration.name === "Instagram" && expandedIntegration === "Instagram" && (
+              <div className="border-t border-gray-100 p-5 bg-gray-50/50">
+                {!instagramStatus.is_connected && !instagramLoading ? (
+                  <div className="space-y-4">
+                    <div className="p-4 rounded-xl bg-amber-50 border border-amber-200/60">
+                      <div className="flex items-center gap-2.5">
+                        <AlertCircle size={18} className="text-amber-600" />
+                        <p className="text-sm font-semibold text-amber-800">
+                          Instagram not connected
+                        </p>
+                      </div>
+                      <p className="text-xs text-amber-700/80 mt-1.5 ml-7">
+                        Connect your Instagram Business account to enable content posting and
+                        analytics automation.
+                      </p>
+                    </div>
+                    <div className="flex gap-3">
+                      <Button
+                        size="sm"
+                        className="bg-gradient-to-r from-pink-500 to-fuchsia-500 hover:from-pink-600 hover:to-fuchsia-600 text-white shadow-lg shadow-pink-500/20 rounded-xl"
+                        onClick={handleConnectInstagram}
+                        disabled={instagramLoading}
+                      >
+                        <Instagram size={14} className="mr-1.5" />
+                        Connect Instagram
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="rounded-xl border-gray-200"
+                        onClick={handleLoadInstagramData}
+                        disabled={instagramLoading}
+                      >
+                        Check Status
+                      </Button>
+                    </div>
+                  </div>
+                ) : instagramLoading ? (
+                  <div className="flex items-center justify-center py-6">
+                    <Loader2 size={20} className="animate-spin text-purple-500" />
+                    <span className="ml-2.5 text-sm text-gray-500">Loading settings...</span>
+                  </div>
+                ) : instagramStatus.is_connected ? (
+                  <div className="space-y-5">
+                    <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200/60">
+                      <div className="flex items-center gap-2.5">
+                        <CheckCircle size={18} className="text-emerald-600" />
+                        <p className="text-sm font-semibold text-emerald-800">
+                          Connected as @{instagramStatus.account_username}
+                        </p>
+                      </div>
+                      {instagramStatus.page_name && (
+                        <p className="text-xs text-emerald-600 mt-1 ml-7">
+                          Page: {instagramStatus.page_name}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="space-y-1">
+                      <h4 className="font-semibold text-sm text-gray-900 mb-3">
+                        Automation Settings
+                      </h4>
+
+                      {[
+                        {
+                          key: "instagram_enabled",
+                          label: "Enable Instagram Automation",
+                          desc: "Master switch for all features",
+                          icon: Zap,
+                          alwaysEnabled: true,
+                        },
+                        {
+                          key: "instagram_auto_publish",
+                          label: "Auto-publish Posts",
+                          desc: "Automatically publish scheduled posts",
+                          icon: Instagram,
+                          alwaysEnabled: false,
+                        },
+                        {
+                          key: "instagram_auto_reply",
+                          label: "Auto-reply to DMs",
+                          desc: "Respond to direct messages automatically",
+                          icon: MessageCircle,
+                          alwaysEnabled: false,
+                        },
+                        {
+                          key: "instagram_save_drafts",
+                          label: "Save as Drafts",
+                          desc: "Save posts as drafts by default",
+                          icon: Eye,
+                          alwaysEnabled: true,
+                        },
+                        {
+                          key: "auto_generate_captions",
+                          label: "Auto-generate Captions",
+                          desc: "Use AI to generate captions automatically",
+                          icon: Sparkles,
+                          alwaysEnabled: true,
+                        },
+                      ].map((item) => (
+                        <div
+                          key={item.key}
+                          className="flex items-center justify-between p-3.5 rounded-xl hover:bg-white transition-colors"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="p-1.5 bg-white rounded-lg shadow-sm border border-gray-100">
+                              <item.icon size={14} className="text-gray-500" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-gray-900">{item.label}</p>
+                              <p className="text-xs text-gray-400">{item.desc}</p>
+                            </div>
+                          </div>
+                          <Switch
+                            checked={instagramSettings[item.key as keyof typeof instagramSettings]}
+                            onCheckedChange={(checked) => handleInstagramToggle(item.key, checked)}
+                            disabled={
+                              instagramLoading ||
+                              (!item.alwaysEnabled && !instagramSettings.instagram_enabled)
+                            }
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-6">
+                    <p className="text-sm text-gray-400">
+                      Click "Check Status" to load Instagram settings
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  const renderPreferencesTab = () => (
+    <div className="space-y-6 animate-fadeIn">
+      {/* Notifications */}
+      <div className="bg-white rounded-2xl border border-gray-200/60 shadow-lg shadow-gray-100/50 overflow-hidden">
+        <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
+          <div className="p-2 bg-blue-100 rounded-xl">
+            <Bell size={16} className="text-blue-600" />
+          </div>
+          <div>
+            <h3 className="font-semibold text-gray-900">Notifications</h3>
+            <p className="text-xs text-gray-500">Manage how you receive updates</p>
+          </div>
+        </div>
+        <div className="p-6 space-y-1">
+          {[
+            {
+              label: "Email notifications",
+              desc: "Receive important updates via email",
+              enabled: true,
+            },
+            {
+              label: "Push notifications",
+              desc: "Browser push notifications for real-time alerts",
+              enabled: false,
+            },
+            {
+              label: "Weekly report",
+              desc: "Get a summary of your business performance",
+              enabled: true,
+            },
+            { label: "Marketing tips", desc: "AI-generated marketing suggestions", enabled: true },
+          ].map((pref, idx) => (
+            <div
+              key={idx}
+              className="flex items-center justify-between p-3.5 rounded-xl hover:bg-gray-50 transition-colors"
+            >
+              <div>
+                <p className="text-sm font-medium text-gray-900">{pref.label}</p>
+                <p className="text-xs text-gray-400">{pref.desc}</p>
+              </div>
+              <Switch defaultChecked={pref.enabled} />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Danger Zone */}
+      <div className="bg-white rounded-2xl border border-red-200/60 shadow-lg shadow-gray-100/50 overflow-hidden">
+        <div className="px-6 py-4 border-b border-red-100 flex items-center gap-3">
+          <div className="p-2 bg-red-100 rounded-xl">
+            <AlertCircle size={16} className="text-red-600" />
+          </div>
+          <div>
+            <h3 className="font-semibold text-red-900">Danger Zone</h3>
+            <p className="text-xs text-red-500">Irreversible actions</p>
+          </div>
+        </div>
+        <div className="p-6 space-y-4">
+          <div className="flex items-center justify-between p-4 rounded-xl bg-red-50/50 border border-red-100">
+            <div>
+              <p className="text-sm font-medium text-gray-900">Delete account</p>
+              <p className="text-xs text-gray-500">Permanently delete your account and all data</p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="rounded-xl border-red-200 text-red-600 hover:bg-red-50"
+            >
+              Delete
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  // ─── Main Render ───────────────────────────────────────────────────
+
+  return (
+    <div className="flex min-h-screen bg-white">
+      <div className="flex-1 min-w-0 p-4 md:p-6 lg:p-8">
+        {/* Page Header */}
+        <div className="mb-8">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-900 tracking-tight">
+                Settings
+              </h1>
+              <p className="text-sm text-gray-500 mt-1">
+                Manage your account, business profile, and preferences
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
               <Button
                 onClick={handleSaveSettings}
                 disabled={loading}
-                className="w-full bg-gradient-to-r from-purple-500 via-purple-600 to-pink-500 hover:from-purple-600 hover:via-purple-700 hover:to-pink-600 text-white shadow-lg hover:shadow-xl transition-all"
+                className="bg-gradient-to-r from-purple-600 to-fuchsia-600 hover:from-purple-700 hover:to-fuchsia-700 text-white shadow-lg shadow-purple-500/25 hover:shadow-xl hover:shadow-purple-500/30 rounded-xl transition-all duration-300"
               >
                 {loading ? (
                   <Loader2 size={16} className="animate-spin mr-2" />
                 ) : (
                   <Save size={16} className="mr-2" />
                 )}
-                Save All Changes
+                Save Changes
               </Button>
-
               <Button
                 variant="outline"
-                className="w-full border-2"
-                onClick={() => (window.location.href = "/dashboard/business-details")}
-              >
-                <Building2 size={16} className="mr-2" />
-                Edit Business Profile
-              </Button>
-
-              <Button
-                variant="destructive"
                 onClick={handleLogout}
                 disabled={logoutLoading}
-                className="w-full"
+                className="rounded-xl border-gray-200 text-gray-600 hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-all duration-200"
               >
                 {logoutLoading ? (
                   <Loader2 size={16} className="animate-spin mr-2" />
@@ -802,271 +1181,88 @@ function SettingsPage() {
               </Button>
             </div>
           </div>
+        </div>
 
-          {/* Upgrade to Pro Card */}
-          <div className="bg-card rounded-2xl border border-border/60 shadow-soft overflow-hidden">
-            <div className="p-6 bg-gradient-to-br from-[#5D2F8F] to-[#A855F7]">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="h-10 w-10 rounded-xl bg-white/20 flex items-center justify-center">
-                  <Sparkles size={20} className="text-white" />
+        <div className="grid lg:grid-cols-[260px_1fr] gap-8">
+          {/* Sidebar Navigation */}
+          <div className="space-y-3">
+            {/* Tab Navigation */}
+            <nav className="bg-white rounded-2xl border border-gray-200/60 shadow-lg shadow-gray-100/50 overflow-hidden p-2">
+              {tabs.map((tab) => {
+                const Icon = tab.icon;
+                const isActive = activeTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all duration-200 group mb-1 last:mb-0 ${
+                      isActive
+                        ? "bg-gradient-to-r from-purple-600 to-fuchsia-600 text-white shadow-lg shadow-purple-500/25"
+                        : "text-gray-600 hover:bg-purple-50 hover:text-purple-700"
+                    }`}
+                  >
+                    <Icon
+                      size={18}
+                      className={
+                        isActive ? "text-white" : "text-gray-400 group-hover:text-purple-500"
+                      }
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className={`text-sm font-semibold ${isActive ? "text-white" : ""}`}>
+                        {tab.label}
+                      </p>
+                      <p className={`text-[11px] ${isActive ? "text-white/70" : "text-gray-400"}`}>
+                        {tab.desc}
+                      </p>
+                    </div>
+                    {isActive && <ChevronRight size={14} className="text-white/70" />}
+                  </button>
+                );
+              })}
+            </nav>
+
+            {/* Upgrade Card */}
+            <div className="bg-gradient-to-br from-[#5D2F8F] via-purple-600 to-fuchsia-600 rounded-2xl p-5 text-white shadow-xl shadow-purple-500/25 overflow-hidden relative">
+              {/* Decorative element */}
+              <div className="absolute -top-6 -right-6 w-24 h-24 bg-white/10 rounded-full blur-sm" />
+              <div className="absolute -bottom-4 -left-4 w-20 h-20 bg-white/5 rounded-full" />
+
+              <div className="relative">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="h-10 w-10 rounded-xl bg-white/15 backdrop-blur-sm flex items-center justify-center">
+                    <Crown size={20} className="text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-base">Go Pro</h3>
+                    <p className="text-[11px] text-white/60">Unlock everything</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-lg font-bold text-white">Upgrade to Pro</h3>
-                  <p className="text-xs text-white/80">Unlock premium features</p>
+
+                <div className="space-y-2 mb-4">
+                  {["Unlimited AI generations", "Advanced analytics", "Priority support"].map(
+                    (feature) => (
+                      <div key={feature} className="flex items-center gap-2">
+                        <CheckCircle size={12} className="text-white/80 shrink-0" />
+                        <p className="text-xs text-white/80">{feature}</p>
+                      </div>
+                    ),
+                  )}
                 </div>
+
+                <Button className="w-full bg-white text-purple-700 hover:bg-white/90 font-semibold shadow-lg rounded-xl h-10">
+                  <CreditCard size={14} className="mr-2" />
+                  Upgrade — ₹999/mo
+                </Button>
               </div>
-
-              <div className="space-y-2 mb-4">
-                <div className="flex items-center gap-2 text-white/90">
-                  <CheckCircle size={14} className="text-white flex-shrink-0" />
-                  <p className="text-sm">Unlimited AI generations</p>
-                </div>
-                <div className="flex items-center gap-2 text-white/90">
-                  <CheckCircle size={14} className="text-white flex-shrink-0" />
-                  <p className="text-sm">Advanced analytics & insights</p>
-                </div>
-                <div className="flex items-center gap-2 text-white/90">
-                  <CheckCircle size={14} className="text-white flex-shrink-0" />
-                  <p className="text-sm">Priority support</p>
-                </div>
-                <div className="flex items-center gap-2 text-white/90">
-                  <CheckCircle size={14} className="text-white flex-shrink-0" />
-                  <p className="text-sm">Custom integrations</p>
-                </div>
-              </div>
-
-              <Button className="w-full bg-white text-purple-600 hover:bg-white/90 font-semibold shadow-lg">
-                <CreditCard size={16} className="mr-2" />
-                Upgrade Now
-              </Button>
-
-              <p className="text-xs text-white/70 text-center mt-3">Starting at ₹999/month</p>
             </div>
           </div>
 
-          {/* Integrations */}
-          <div className="bg-card rounded-2xl border border-border/60 shadow-soft overflow-hidden">
-            <div className="bg-gradient-to-r from-pink-50 via-fuchsia-50 to-purple-50 px-6 py-4 border-b border-border/60">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-white rounded-lg shadow-sm">
-                  <Globe size={18} className="text-pink-600" />
-                </div>
-                <div>
-                  <h3 className="font-semibold">Integrations</h3>
-                  <p className="text-xs text-muted-foreground">Connected services</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="p-4">
-              <div className="space-y-3">
-                {integrations.map((integration) => (
-                  <div key={integration.name}>
-                    <div
-                      className="flex items-center gap-4 p-3 rounded-xl border border-border/60 hover:bg-muted/30 transition cursor-pointer"
-                      onClick={() => handleIntegrationClick(integration.name)}
-                    >
-                      <div
-                        className={`h-10 w-10 rounded-xl bg-gradient-to-br ${integration.color} flex items-center justify-center shrink-0`}
-                      >
-                        <integration.icon size={18} className="text-white" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-sm">{integration.name}</p>
-                        <p className="text-xs text-muted-foreground">{integration.desc}</p>
-                      </div>
-                      <span
-                        className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
-                          integration.name === "Instagram" && instagramStatus.is_connected
-                            ? "bg-success/15 text-success"
-                            : integration.name === "WhatsApp Business" &&
-                                whatsappStatus.is_connected
-                              ? "bg-success/15 text-success"
-                              : "bg-muted text-muted-foreground"
-                        }`}
-                      >
-                        {integration.name === "Instagram"
-                          ? instagramStatus.is_connected
-                            ? "Connected"
-                            : "Not connected"
-                          : integration.name === "WhatsApp Business"
-                            ? whatsappStatus.is_connected
-                              ? "Connected"
-                              : "Not Connected"
-                            : "Not connected"}
-                      </span>
-                      {integration.name === "Instagram" && (
-                        <button className="p-1">
-                          {expandedIntegration === "Instagram" ? (
-                            <ChevronUp size={18} className="text-muted-foreground" />
-                          ) : (
-                            <ChevronDown size={18} className="text-muted-foreground" />
-                          )}
-                        </button>
-                      )}
-                    </div>
-
-                    {/* Instagram Settings - Expanded */}
-                    {integration.name === "Instagram" && expandedIntegration === "Instagram" && (
-                      <div className="mt-3 ml-14 p-4 rounded-xl bg-muted/30 border border-border/40 space-y-4">
-                        {!instagramStatus.is_connected && !instagramLoading ? (
-                          <div className="space-y-3">
-                            <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
-                              <div className="flex items-center gap-2">
-                                <AlertCircle size={16} className="text-amber-600" />
-                                <p className="text-sm font-medium text-amber-700">
-                                  Instagram not connected
-                                </p>
-                              </div>
-                              <p className="text-xs text-amber-700/80 mt-1">
-                                Connect your Instagram Business account to enable automation
-                              </p>
-                            </div>
-                            <div className="flex gap-2">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="h-8"
-                                onClick={handleConnectInstagram}
-                                disabled={instagramLoading}
-                              >
-                                Connect Instagram
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                className="h-8"
-                                onClick={handleLoadInstagramData}
-                                disabled={instagramLoading}
-                              >
-                                Check Status
-                              </Button>
-                            </div>
-                          </div>
-                        ) : instagramLoading ? (
-                          <div className="flex items-center justify-center py-4">
-                            <Loader2 size={18} className="animate-spin text-primary" />
-                            <span className="ml-2 text-sm text-muted-foreground">
-                              Loading settings...
-                            </span>
-                          </div>
-                        ) : instagramStatus.is_connected ? (
-                          <div className="space-y-4">
-                            <div className="p-3 rounded-lg bg-success/10 border border-success/20">
-                              <div className="flex items-center gap-2">
-                                <CheckCircle size={16} className="text-success" />
-                                <p className="text-sm font-medium text-success">
-                                  Connected as @{instagramStatus.account_username}
-                                </p>
-                              </div>
-                              {instagramStatus.page_name && (
-                                <p className="text-xs text-success/80 mt-1">
-                                  Page: {instagramStatus.page_name}
-                                </p>
-                              )}
-                            </div>
-
-                            <div className="space-y-3">
-                              <h4 className="font-medium text-sm">Automation Settings</h4>
-
-                              <div className="flex items-center justify-between">
-                                <div>
-                                  <p className="text-sm font-medium">Enable Instagram Automation</p>
-                                  <p className="text-xs text-muted-foreground">
-                                    Master switch for all features
-                                  </p>
-                                </div>
-                                <Switch
-                                  checked={instagramSettings.instagram_enabled}
-                                  onCheckedChange={(checked) =>
-                                    handleInstagramToggle("instagram_enabled", checked)
-                                  }
-                                  disabled={instagramLoading}
-                                />
-                              </div>
-
-                              <div className="flex items-center justify-between">
-                                <div>
-                                  <p className="text-sm font-medium">Auto-publish Posts</p>
-                                  <p className="text-xs text-muted-foreground">
-                                    Automatically publish scheduled posts
-                                  </p>
-                                </div>
-                                <Switch
-                                  checked={instagramSettings.instagram_auto_publish}
-                                  onCheckedChange={(checked) =>
-                                    handleInstagramToggle("instagram_auto_publish", checked)
-                                  }
-                                  disabled={
-                                    instagramLoading || !instagramSettings.instagram_enabled
-                                  }
-                                />
-                              </div>
-
-                              <div className="flex items-center justify-between">
-                                <div>
-                                  <p className="text-sm font-medium">Auto-reply to DMs</p>
-                                  <p className="text-xs text-muted-foreground">
-                                    Respond to direct messages automatically
-                                  </p>
-                                </div>
-                                <Switch
-                                  checked={instagramSettings.instagram_auto_reply}
-                                  onCheckedChange={(checked) =>
-                                    handleInstagramToggle("instagram_auto_reply", checked)
-                                  }
-                                  disabled={
-                                    instagramLoading || !instagramSettings.instagram_enabled
-                                  }
-                                />
-                              </div>
-
-                              <div className="flex items-center justify-between">
-                                <div>
-                                  <p className="text-sm font-medium">Save as Drafts</p>
-                                  <p className="text-xs text-muted-foreground">
-                                    Save posts as drafts by default
-                                  </p>
-                                </div>
-                                <Switch
-                                  checked={instagramSettings.instagram_save_drafts}
-                                  onCheckedChange={(checked) =>
-                                    handleInstagramToggle("instagram_save_drafts", checked)
-                                  }
-                                  disabled={instagramLoading}
-                                />
-                              </div>
-
-                              <div className="flex items-center justify-between">
-                                <div>
-                                  <p className="text-sm font-medium">Auto-generate Captions</p>
-                                  <p className="text-xs text-muted-foreground">
-                                    Use AI to automatically generate captions
-                                  </p>
-                                </div>
-                                <Switch
-                                  checked={instagramSettings.auto_generate_captions}
-                                  onCheckedChange={(checked) =>
-                                    handleInstagramToggle("auto_generate_captions", checked)
-                                  }
-                                  disabled={instagramLoading}
-                                />
-                              </div>
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="text-center py-4">
-                            <p className="text-sm text-muted-foreground">
-                              Click "Check Status" to load Instagram settings
-                            </p>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
+          {/* Tab Content */}
+          <div className="min-w-0">
+            {activeTab === "profile" && renderProfileTab()}
+            {activeTab === "business" && renderBusinessTab()}
+            {activeTab === "integrations" && renderIntegrationsTab()}
+            {activeTab === "preferences" && renderPreferencesTab()}
           </div>
         </div>
       </div>

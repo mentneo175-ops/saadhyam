@@ -1,4 +1,5 @@
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+import { env } from "@/config/env";
+const API_URL = import.meta.env.VITE_API_URL || env.apiBaseUrl;
 const REQUEST_TIMEOUT_MS = 90000; // Increased to 90 seconds for AI processing with retries
 
 export async function sendQuery(query, token) {

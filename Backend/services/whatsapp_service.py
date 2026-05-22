@@ -5,7 +5,7 @@ Handles all interactions with Meta WhatsApp Cloud API
 
 import logging
 import os
-import requests
+import httpx
 import hmac
 import hashlib
 from typing import Dict, Any, Optional, List
@@ -21,7 +21,7 @@ class WhatsAppCloudAPIService:
         self.api_version = os.getenv("WHATSAPP_API_VERSION", "v21.0")
         self.base_url = f"https://graph.facebook.com/{self.api_version}"
         
-    def send_text_message(
+    async def send_text_message(
         self,
         phone_number_id: str,
         access_token: str,
@@ -68,7 +68,8 @@ class WhatsAppCloudAPIService:
             
             logger.info(f"   Payload: {payload}")
             
-            response = requests.post(url, json=payload, headers=headers, timeout=30)
+            async with httpx.AsyncClient() as client:
+                response = await client.post(url, json=payload, headers=headers, timeout=30)
             
             # Log response status
             logger.info(f"📥 Response status: {response.status_code}")
@@ -93,7 +94,7 @@ class WhatsAppCloudAPIService:
                     "error": "Unexpected response format"
                 }
                 
-        except requests.exceptions.RequestException as e:
+        except httpx.RequestError as e:
             logger.error(f"❌ Failed to send message: {e}")
             error_message = str(e)
             error_details = {}
@@ -123,7 +124,7 @@ class WhatsAppCloudAPIService:
                 "error_details": error_details
             }
     
-    def send_template_message(
+    async def send_template_message(
         self,
         phone_number_id: str,
         access_token: str,
@@ -170,7 +171,8 @@ class WhatsAppCloudAPIService:
             if components:
                 payload["template"]["components"] = components
             
-            response = requests.post(url, json=payload, headers=headers, timeout=30)
+            async with httpx.AsyncClient() as client:
+                response = await client.post(url, json=payload, headers=headers, timeout=30)
             response.raise_for_status()
             
             data = response.json()
@@ -189,7 +191,7 @@ class WhatsAppCloudAPIService:
                     "error": "Unexpected response format"
                 }
                 
-        except requests.exceptions.RequestException as e:
+        except httpx.RequestError as e:
             logger.error(f"❌ Failed to send template message: {e}")
             error_message = str(e)
             
@@ -205,7 +207,7 @@ class WhatsAppCloudAPIService:
                 "error": error_message
             }
     
-    def send_media_message(
+    async def send_media_message(
         self,
         phone_number_id: str,
         access_token: str,
@@ -260,7 +262,8 @@ class WhatsAppCloudAPIService:
                 media_type: media_object
             }
             
-            response = requests.post(url, json=payload, headers=headers, timeout=30)
+            async with httpx.AsyncClient() as client:
+                response = await client.post(url, json=payload, headers=headers, timeout=30)
             response.raise_for_status()
             
             data = response.json()
@@ -279,7 +282,7 @@ class WhatsAppCloudAPIService:
                     "error": "Unexpected response format"
                 }
                 
-        except requests.exceptions.RequestException as e:
+        except httpx.RequestError as e:
             logger.error(f"❌ Failed to send media message: {e}")
             error_message = str(e)
             
@@ -295,7 +298,7 @@ class WhatsAppCloudAPIService:
                 "error": error_message
             }
     
-    def mark_message_as_read(
+    async def mark_message_as_read(
         self,
         phone_number_id: str,
         access_token: str,
@@ -326,7 +329,8 @@ class WhatsAppCloudAPIService:
                 "message_id": message_id
             }
             
-            response = requests.post(url, json=payload, headers=headers, timeout=30)
+            async with httpx.AsyncClient() as client:
+                response = await client.post(url, json=payload, headers=headers, timeout=30)
             response.raise_for_status()
             
             return {
@@ -334,14 +338,14 @@ class WhatsAppCloudAPIService:
                 "data": response.json()
             }
                 
-        except requests.exceptions.RequestException as e:
+        except httpx.RequestError as e:
             logger.error(f"❌ Failed to mark message as read: {e}")
             return {
                 "success": False,
                 "error": str(e)
             }
     
-    def get_business_profile(
+    async def get_business_profile(
         self,
         phone_number_id: str,
         access_token: str
@@ -367,7 +371,8 @@ class WhatsAppCloudAPIService:
                 "fields": "about,address,description,email,profile_picture_url,websites,vertical"
             }
             
-            response = requests.get(url, headers=headers, params=params, timeout=30)
+            async with httpx.AsyncClient() as client:
+                response = await client.get(url, headers=headers, params=params, timeout=30)
             response.raise_for_status()
             
             data = response.json()
@@ -377,7 +382,7 @@ class WhatsAppCloudAPIService:
                 "data": data.get("data", [{}])[0] if data.get("data") else {}
             }
                 
-        except requests.exceptions.RequestException as e:
+        except httpx.RequestError as e:
             logger.error(f"❌ Failed to get business profile: {e}")
             return {
                 "success": False,

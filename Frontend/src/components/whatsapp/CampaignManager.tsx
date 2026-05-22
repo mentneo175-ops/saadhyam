@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { CampaignForm } from "./CampaignForm";
+import { env } from "@/config/env";
 
 interface Campaign {
   id: number;
@@ -52,7 +53,7 @@ export function CampaignManager() {
       setLoading(true);
       const token = localStorage.getItem("saadhyam_token");
       const response = await fetch(
-        "http://localhost:8000/api/whatsapp/campaigns?limit=50&offset=0",
+        `${env.apiBaseUrl}/api/whatsapp/campaigns?limit=50&offset=0`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -79,7 +80,7 @@ export function CampaignManager() {
       setExecuting(campaignId);
       const token = localStorage.getItem("saadhyam_token");
       const response = await fetch(
-        `http://localhost:8000/api/whatsapp/campaigns/${campaignId}/execute`,
+        `${env.apiBaseUrl}/api/whatsapp/campaigns/${campaignId}/execute`,
         {
           method: "POST",
           headers: {
@@ -112,7 +113,7 @@ export function CampaignManager() {
     try {
       const token = localStorage.getItem("saadhyam_token");
       const response = await fetch(
-        `http://localhost:8000/api/whatsapp/campaigns/${campaignId}`,
+        `${env.apiBaseUrl}/api/whatsapp/campaigns/${campaignId}`,
         {
           method: "DELETE",
           headers: {

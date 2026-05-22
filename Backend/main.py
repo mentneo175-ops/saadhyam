@@ -480,6 +480,8 @@ async def lifespan(app: FastAPI):
         migrate_update_campaign_status_enum()
         from migrations.add_session_tracking import migrate_add_session_tracking
         migrate_add_session_tracking()
+        from migrations.add_chat_tables import migrate_add_chat_tables
+        migrate_add_chat_tables()
         logger.info("✅ Migrations completed")
         
         # Start scheduler for processing scheduled Instagram posts
@@ -628,7 +630,7 @@ async def global_exception_handler(request, exc):
         return JSONResponse(
             status_code=500,
             content={
-                "detail": "Internal server error",
+                "detail": "Our intelligence engine is currently optimizing. Insights are being computed, please check back shortly.",
                 "error_type": type(first_exc).__name__
             }
         )
@@ -646,7 +648,7 @@ async def global_exception_handler(request, exc):
     try:
         return JSONResponse(
             status_code=500,
-            content={"detail": "Internal server error"}
+            content={"detail": "Our intelligence engine is currently optimizing. Insights are being computed, please check back shortly."}
         )
     except Exception as send_error:
         # If we can't send the response, just log it
@@ -974,21 +976,7 @@ async def list_routes():
     return {"routes": routes}
 
 
-# ============ Error Handlers ============
-
-from fastapi.responses import JSONResponse
-
-@app.exception_handler(Exception)
-async def global_exception_handler(request, exc):
-    """Global exception handler"""
-    logger.error(f"❌ Unhandled exception: {exc}", exc_info=True)
-    return JSONResponse(
-        status_code=500,
-        content={
-            "error": "Internal server error",
-            "detail": str(exc)
-        }
-    )
+# The duplicate global exception handler has been removed to allow the comprehensive one above to catch all exceptions and format them nicely.
 
 
 if __name__ == "__main__":

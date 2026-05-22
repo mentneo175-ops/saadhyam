@@ -370,7 +370,7 @@ async def analyze_business(
         )
     except Exception as e:
         logger.error(f"Business analysis error: {e}")
-        raise HTTPException(status_code=500, detail="Analysis failed")
+        raise HTTPException(status_code=500, detail="Unable to process your request right now")
 
 
 # Content Generation

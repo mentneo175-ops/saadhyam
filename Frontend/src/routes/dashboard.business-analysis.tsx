@@ -1,3 +1,4 @@
+import { toast } from "sonner";
 import { createFileRoute } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { useEffect, useState, useMemo } from "react";
@@ -208,7 +209,7 @@ function BusinessAnalysisPage() {
 
     const printWindow = window.open("", "_blank");
     if (!printWindow) {
-      alert("Please allow popups to download the PDF report");
+      toast.error("Please allow popups to download the PDF report");
       return;
     }
 

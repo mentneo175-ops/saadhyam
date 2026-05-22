@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { AutomationForm } from "./AutomationForm";
+import { env } from "@/config/env";
 
 interface Automation {
   id: number;
@@ -63,7 +64,7 @@ export function AutomationSettings() {
       setLoading(true);
       const token = localStorage.getItem("saadhyam_token");
       const response = await fetch(
-        "http://localhost:8000/api/whatsapp/automation?limit=50&offset=0",
+        `${env.apiBaseUrl}/api/whatsapp/automation?limit=50&offset=0`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -89,7 +90,7 @@ export function AutomationSettings() {
     try {
       const token = localStorage.getItem("saadhyam_token");
       const response = await fetch(
-        "http://localhost:8000/api/whatsapp/automation/stats/overview",
+        `${env.apiBaseUrl}/api/whatsapp/automation/stats/overview`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -111,7 +112,7 @@ export function AutomationSettings() {
       setToggling(automationId);
       const token = localStorage.getItem("saadhyam_token");
       const response = await fetch(
-        `http://localhost:8000/api/whatsapp/automation/${automationId}/toggle`,
+        `${env.apiBaseUrl}/api/whatsapp/automation/${automationId}/toggle`,
         {
           method: "POST",
           headers: {
@@ -145,7 +146,7 @@ export function AutomationSettings() {
     try {
       const token = localStorage.getItem("saadhyam_token");
       const response = await fetch(
-        `http://localhost:8000/api/whatsapp/automation/${automationId}`,
+        `${env.apiBaseUrl}/api/whatsapp/automation/${automationId}`,
         {
           method: "DELETE",
           headers: {

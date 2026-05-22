@@ -3,7 +3,9 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider } from "@/lib/AuthContext";
 import { NotificationProvider } from "@/components/notifications";
 import { RateLimitProvider } from "@/contexts/RateLimitContext";
+import { Toaster } from "@/components/ui/sonner";
 import AssistantWidget from "@/components/AssistantWidget";
+import { ResponsiveHeader } from "@/components/layout/ResponsiveHeader";
 import { initializeConsoleFilter } from "@/utils/consoleFilter";
 
 import appCss from "../styles.css?url";
@@ -97,8 +99,10 @@ function RootComponent() {
       <AuthProvider>
         <NotificationProvider>
           <RateLimitProvider>
+            <ResponsiveHeader />
             <Outlet />
             <AssistantWidget />
+            <Toaster />
           </RateLimitProvider>
         </NotificationProvider>
       </AuthProvider>

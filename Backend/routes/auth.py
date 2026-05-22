@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Request
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 from config.database import get_db
 from models.user import User
 from schemas.user_schema import UserRegister, UserLogin, TokenResponse, UserResponse
@@ -52,7 +53,7 @@ class GoogleAuthRequest(BaseModel):
 async def google_auth(
     auth_request: GoogleAuthRequest,
     request: Request,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
 ) -> TokenResponse:
     """
     Authenticate user with Google Firebase token - PRODUCTION ONLY.
@@ -80,14 +81,18 @@ async def google_auth(
         user_info = await firebase_service.verify_id_token(auth_request.id_token)
         
         # Check if user exists by Firebase UID
-        user = db.query(User).filter(User.firebase_uid == user_info['firebase_uid']).first()
+        stmt = select(User).where(User.firebase_uid == user_info['firebase_uid'])
+        result = await db.execute(stmt)
+        user = result.scalar_one_or_none()
         
         logger.info(f"🔍 Looking for existing Firebase user with UID: {user_info['firebase_uid']}")
         logger.info(f"🔍 Firebase user found: {user is not None}")
         
         if not user:
             # Check if user exists by email (for migration from email auth)
-            user = db.query(User).filter(User.email == user_info['email']).first()
+            stmt = select(User).where(User.email == user_info['email'])
+            result = await db.execute(stmt)
+            user = result.scalar_one_or_none()
             
             logger.info(f"🔍 Looking for existing email user: {user_info['email']}")
             logger.info(f"🔍 Email user found: {user is not None}")
@@ -149,8 +154,8 @@ async def google_auth(
         user.session_ip_address = client_ip
         user.session_user_agent = user_agent
         
-        db.commit()
-        db.refresh(user)
+        await db.commit()
+        await db.refresh(user)
         
         logger.info(f"✅ Session registered: IP={client_ip}, Device={user_agent[:50]}...")
         logger.info(f"🎉 REAL Google authentication successful for user: {user.email}")
@@ -170,7 +175,7 @@ async def google_auth(
         raise
     except Exception as e:
         logger.error(f"Unexpected error in Google auth endpoint: {e}")
-        db.rollback()
+        await db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Authentication failed",
@@ -194,7 +199,7 @@ async def google_auth(
 async def register(
     request: Request,
     user_data: UserRegister,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
 ) -> TokenResponse:
     """
     Register a new user with email and password.
@@ -255,7 +260,7 @@ async def register(
 async def login(
     request: Request,
     credentials: UserLogin,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
 ) -> TokenResponse:
     """
     Authenticate user with email and password.
@@ -294,7 +299,7 @@ async def login(
         user.session_created_at = datetime.utcnow()
         user.session_ip_address = client_ip
         user.session_user_agent = user_agent
-        db.commit()
+        await db.commit()
         
         logger.info(f"✅ Session registered: IP={client_ip}, Device={user_agent[:50]}...")
         
@@ -337,7 +342,7 @@ async def login(
 async def logout(
     current_user: User = Depends(get_current_user),
     authorization: str = None,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
 ) -> dict:
     """
     Logout user by clearing their active session.

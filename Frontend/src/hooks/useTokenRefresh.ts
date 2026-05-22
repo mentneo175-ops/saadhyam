@@ -5,6 +5,7 @@
 
 import { useEffect, useRef } from 'react';
 import { apiClient } from '@/lib/api';
+import { env } from "@/config/env";
 
 const TOKEN_REFRESH_INTERVAL = 5 * 60 * 1000; // 5 minutes
 const TOKEN_EXPIRY_BUFFER = 10 * 60 * 1000; // 10 minutes before expiry
@@ -37,7 +38,7 @@ export function useTokenRefresh() {
       try {
         console.log('Token expiring soon, refreshing...');
         
-        const response = await fetch('http://localhost:8000/auth/refresh', {
+        const response = await fetch(`${env.apiBaseUrl}/auth/refresh`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

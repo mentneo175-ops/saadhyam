@@ -46,7 +46,7 @@ export function SEOTabPanel({ data }: SEOTabPanelProps) {
   return (
     <TabContentWrapper tabKey="seo-panel">
       <div className="space-y-6">
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <MetricCard
             label="Target keywords"
             value={String(keywords.length)}
@@ -67,21 +67,11 @@ export function SEOTabPanel({ data }: SEOTabPanelProps) {
             icon={Lightbulb}
             delay={0.1}
           />
-          <MetricCard
-            label="Weekly trend"
-            value="+18%"
-            delta="Est."
-            icon={Search}
-            delay={0.15}
-          />
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-3">
+        <div className="grid gap-6 lg:grid-cols-1">
           <div className="lg:col-span-1">
             <SEOScoreGauge score={score} label="SEO health score" />
-          </div>
-          <div className="lg:col-span-2">
-            <SearchPerformanceChart keywordCount={keywords.length} delay={0.08} />
           </div>
         </div>
 
@@ -99,8 +89,8 @@ export function SEOTabPanel({ data }: SEOTabPanelProps) {
 
           {keywords.length > 0 && (
             <SectionCard
-              title="Keyword rankings"
-              subtitle="Estimated positions for your target terms"
+              title="Target keywords"
+              subtitle="Keywords being tracked for your business"
               icon={Star}
               delay={0.14}
             >
@@ -122,8 +112,7 @@ export function SEOTabPanel({ data }: SEOTabPanelProps) {
         </div>
 
         {tips.length > 0 && (
-          <div className="grid gap-6 lg:grid-cols-2">
-            <WebsiteAuditPanel tips={tips} delay={0.18} />
+          <div className="grid gap-6 lg:grid-cols-1">
             <SectionCard
               title="Ranking recommendations"
               subtitle="Actions to improve search visibility"
@@ -199,25 +188,11 @@ export function MapsTabPanel({ data }: SEOTabPanelProps) {
           />
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-3">
+        <div className="grid gap-6 lg:grid-cols-1">
           <div className="lg:col-span-1">
             <SEOScoreGauge score={mapsScore} label="Local presence score" />
           </div>
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.08 }}
-            className="lg:col-span-2"
-          >
-            <MapsLocationInsights
-              ideasCount={ideas.length}
-              tipsCount={tips.length}
-              delay={0.1}
-            />
-          </motion.div>
         </div>
-
-        <ReviewsOverview delay={0.14} />
 
         {tips.length > 0 && (
           <SectionCard

@@ -35,6 +35,7 @@ import {
 } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../components/ui/card";
+import { env } from "@/config/env";
 
 export const Route = createFileRoute("/dashboard/voice-agent/analytics")({
   component: AnalyticsPage,
@@ -83,7 +84,7 @@ function AnalyticsPage() {
     queryKey: ["voice-agent-campaigns"],
     queryFn: async () => {
       const token = localStorage.getItem("saadhyam_token");
-      const response = await fetch("http://localhost:8000/api/v2/voice-agent/campaigns", {
+      const response = await fetch(`${env.apiBaseUrl}/api/v2/voice-agent/campaigns`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       return response.json();
@@ -100,7 +101,7 @@ function AnalyticsPage() {
       if (campaignsData?.campaigns) {
         for (const campaign of campaignsData.campaigns) {
           const response = await fetch(
-            `http://localhost:8000/api/voice-agent/campaigns/${campaign.id}/calls`,
+            `${env.apiBaseUrl}/api/voice-agent/campaigns/${campaign.id}/calls`,
             { headers: { Authorization: `Bearer ${token}` } }
           );
           const result = await response.json();

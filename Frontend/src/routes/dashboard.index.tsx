@@ -62,7 +62,6 @@ const iconMap: Record<string, any> = {
 function Overview() {
   const navigate = useNavigate();
   const { refreshTrigger } = useDashboardContext();
-  
   // Use route preservation hook to handle refresh redirects
   useRoutePreservation();
 
@@ -488,14 +487,15 @@ function Overview() {
 
       <div className="flex min-h-screen bg-white">
         <div className="flex-1 min-w-0 p-4 md:p-6 lg:p-8 space-y-6">
+
           {/* Loading state */}
           {checkingProfile && (
             <div className="text-center py-16">
               <div className="relative inline-block">
-                <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-fuchsia-600 rounded-full blur-xl opacity-30 animate-pulse"></div>
+                <div className="absolute inset-0 bg-linear-to-r from-[#8B5CF6] to-[#A855F7] rounded-full blur-xl opacity-30 animate-pulse"></div>
                 <Sparkles
                   size={32}
-                  className="animate-spin mx-auto text-purple-600 relative z-10 mb-4"
+                  className="animate-spin mx-auto text-[#8B5CF6] relative z-10 mb-4"
                 />
               </div>
               <p className="text-gray-700 text-base font-medium">
@@ -507,27 +507,47 @@ function Overview() {
 
           {/* Error state */}
           {profileError && !checkingProfile && (
-            <div className="bg-red-50 border border-red-200 rounded-2xl p-5 text-center shadow-sm">
-              <p className="text-red-700 text-sm font-medium">{profileError}</p>
+            <div className="bg-amber-50 border border-amber-300 rounded-2xl p-6 text-center shadow-md">
+              <h3 className="text-amber-900 text-lg font-bold mb-2">Business Profile Not Found</h3>
+              <p className="text-amber-800 text-sm mb-4">{profileError}</p>
               <Button
                 variant="hero"
                 size="sm"
                 onClick={() => setShowOnboarding(true)}
-                className="mt-3 bg-gradient-to-r from-purple-600 to-fuchsia-600 hover:from-purple-700 hover:to-fuchsia-700 shadow-lg shadow-purple-500/30"
+                className="bg-linear-to-r from-[#8B5CF6] to-[#A855F7] hover:from-[#7C3AED] hover:to-[#9333EA] shadow-lg shadow-[#8B5CF6]/30"
               >
-                Complete Business Setup
+                Complete Business Setup Here
               </Button>
+            </div>
+          )}
+
+          {/* Analysis Error State */}
+          {analysis?.status === "error" && !analysisLoading && (
+            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-6 text-center shadow-xs">
+              <h3 className="text-slate-900 text-lg font-semibold mb-2">System Optimizing</h3>
+              <p className="text-slate-600 text-sm mb-4">
+                Our intelligence engine is currently optimizing. Insights are being computed, please check back shortly.
+              </p>
+              <div className="flex gap-3 justify-center">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={refreshAll}
+                  className="border-slate-300 text-slate-700 hover:bg-slate-100"
+                >
+                  <RefreshCw size={14} className="mr-2" />
+                  Refresh Overview
+                </Button>
+              </div>
             </div>
           )}
 
           {/* Main content - show even without profile */}
           {!checkingProfile && (
             <>
-              {/* Welcome Header */}
-              
 
-              {/* Snapshot cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
+              {/* Snapshot cards - Mobile: 2x2 Grid, Desktop: Single Row */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
                 {updatedSnapshots.map((s) => (
                   <SnapshotCard key={s.title} {...s} />
                 ))}
@@ -586,9 +606,9 @@ function Overview() {
                     {[1, 2, 3].map((i) => (
                       <div
                         key={i}
-                        className="min-w-[280px] h-36 bg-white/50 backdrop-blur-sm rounded-2xl border border-gray-200/50 shadow-sm relative overflow-hidden"
+                        className="min-w-70 h-36 bg-white/50 backdrop-blur-sm rounded-2xl border border-gray-200/50 shadow-sm relative overflow-hidden"
                       >
-                        <div className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/60 to-transparent" />
+                        <div className="absolute inset-0 -translate-x-full animate-shimmer bg-linear-to-r from-transparent via-white/60 to-transparent" />
                         <div className="p-5 space-y-3">
                           <div className="h-10 w-10 bg-gray-200/70 rounded-xl animate-pulse" />
                           <div className="space-y-2">
@@ -601,14 +621,7 @@ function Overview() {
                     ))}
                   </div>
                 ) : (
-                  <div
-                    className="flex gap-5 overflow-x-auto pb-3 -mx-1 px-1 scrollbar-hide"
-                    style={{
-                      scrollbarWidth: "none",
-                      msOverflowStyle: "none",
-                      WebkitOverflowScrolling: "touch",
-                    }}
-                  >
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
                     {actionsToShow.map((a, idx) => (
                       <ActionCard key={`${a.title}-${idx}`} {...a} />
                     ))}
@@ -619,7 +632,7 @@ function Overview() {
               {/* 30-Day Growth Plan */}
               {growthPlan?.thirty_day_growth_plan && (
                 <div className="bg-white rounded-2xl shadow-xl shadow-gray-200/50 overflow-hidden border border-gray-200/50 backdrop-blur-sm hover:shadow-2xl hover:shadow-purple-300/50 transition-all duration-300">
-                  <div className="bg-gradient-to-r from-purple-600 to-fuchsia-600 p-6">
+                  <div className="bg-linear-to-r from-[#8B5CF6] to-[#A855F7] p-6">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-4">
                         <div className="h-14 w-14 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg">
@@ -627,7 +640,7 @@ function Overview() {
                         </div>
                         <div>
                           <h3 className="font-bold text-xl text-white">30-Day Growth Plan</h3>
-                          <p className="text-sm text-purple-100">
+                          <p className="text-sm text-[#E9D5FF]">
                             Your personalized roadmap to success
                           </p>
                         </div>
@@ -647,7 +660,7 @@ function Overview() {
                       growthPlan.thirty_day_growth_plan.week_1.length > 0 && (
                         <div className="bg-white rounded-xl p-5 border border-gray-200 hover:border-blue-300 hover:shadow-lg transition-all duration-300 group">
                           <div className="flex items-center gap-3 mb-4">
-                            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center shadow-lg shadow-blue-500/30 group-hover:shadow-xl group-hover:shadow-blue-500/40 transition-all">
+                            <div className="h-10 w-10 rounded-xl bg-linear-to-br from-blue-500 to-indigo-500 flex items-center justify-center shadow-lg shadow-blue-500/30 group-hover:shadow-xl group-hover:shadow-blue-500/40 transition-all">
                               <span className="text-base font-bold text-white">1</span>
                             </div>
                             <div>
@@ -679,7 +692,7 @@ function Overview() {
                       growthPlan.thirty_day_growth_plan.week_2.length > 0 && (
                         <div className="bg-white rounded-xl p-5 border border-gray-200 hover:border-purple-300 hover:shadow-lg transition-all duration-300 group">
                           <div className="flex items-center gap-3 mb-4">
-                            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-purple-500/30 group-hover:shadow-xl group-hover:shadow-purple-500/40 transition-all">
+                            <div className="h-10 w-10 rounded-xl bg-linear-to-br from-[#8B5CF6] to-[#A855F7] flex items-center justify-center shadow-lg shadow-[#8B5CF6]/30 group-hover:shadow-xl group-hover:shadow-[#8B5CF6]/40 transition-all">
                               <span className="text-base font-bold text-white">2</span>
                             </div>
                             <div>
@@ -711,7 +724,7 @@ function Overview() {
                       growthPlan.thirty_day_growth_plan.week_3.length > 0 && (
                         <div className="bg-white rounded-xl p-5 border border-gray-200 hover:border-orange-300 hover:shadow-lg transition-all duration-300 group">
                           <div className="flex items-center gap-3 mb-4">
-                            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center shadow-lg shadow-orange-500/30 group-hover:shadow-xl group-hover:shadow-orange-500/40 transition-all">
+                            <div className="h-10 w-10 rounded-xl bg-linear-to-br from-orange-500 to-amber-500 flex items-center justify-center shadow-lg shadow-orange-500/30 group-hover:shadow-xl group-hover:shadow-orange-500/40 transition-all">
                               <span className="text-base font-bold text-white">3</span>
                             </div>
                             <div>
@@ -743,7 +756,7 @@ function Overview() {
                       growthPlan.thirty_day_growth_plan.week_4.length > 0 && (
                         <div className="bg-white rounded-xl p-5 border border-gray-200 hover:border-emerald-300 hover:shadow-lg transition-all duration-300 group">
                           <div className="flex items-center gap-3 mb-4">
-                            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-lg shadow-emerald-500/30 group-hover:shadow-xl group-hover:shadow-emerald-500/40 transition-all">
+                            <div className="h-10 w-10 rounded-xl bg-linear-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-lg shadow-emerald-500/30 group-hover:shadow-xl group-hover:shadow-emerald-500/40 transition-all">
                               <span className="text-base font-bold text-white">4</span>
                             </div>
                             <div>

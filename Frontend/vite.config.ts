@@ -36,4 +36,7 @@ export default defineConfig({
   optimizeDeps: {
     include: ['react', 'react-dom', 'framer-motion'],
   },
+  esbuild: {
+    drop: ['console', 'debugger'],
+  },
 });

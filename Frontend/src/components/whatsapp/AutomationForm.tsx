@@ -8,6 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, Save, Loader2, Plus, X } from "lucide-react";
 import { toast } from "sonner";
+import { env } from "@/config/env";
 
 interface Automation {
   id: number;
@@ -105,8 +106,8 @@ export function AutomationForm({ automation, onClose, onSuccess }: AutomationFor
       };
 
       const url = automation
-        ? `http://localhost:8000/api/whatsapp/automation/${automation.id}`
-        : "http://localhost:8000/api/whatsapp/automation";
+        ? `${env.apiBaseUrl}/api/whatsapp/automation/${automation.id}`
+        : `${env.apiBaseUrl}/api/whatsapp/automation`;
 
       const response = await fetch(url, {
         method: automation ? "PUT" : "POST",

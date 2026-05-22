@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 from pydantic import BaseModel
 from datetime import datetime
+import asyncio
 from config.database import get_db_sync
 from models.chat import ChatRoom, ChatMessage, ConnectionRequest
 from models.user import User
@@ -39,6 +40,8 @@ class ChatRoomResponse(BaseModel):
     other_user_id: str
     other_user_name: str
     other_user_business: Optional[str]
+    other_user_business_description: Optional[str] = None
+    other_user_business_location: Optional[str] = None
     last_message: Optional[str]
     last_message_time: Optional[datetime]
     unread_count: int
@@ -68,24 +71,24 @@ async def send_connection_request(
     Send a connection request to another business user
     """
     try:
-        logger.info(f"📨 Connection request received: sender={current_user.id}, receiver={request.receiver_id}")
+        logger.info(f"[CONN_REQ] Connection request received: sender={current_user.id}, receiver={request.receiver_id}")
         
         # Validate receiver_id is numeric
         try:
             receiver_id_int = int(request.receiver_id)
         except ValueError:
-            logger.error(f"❌ Invalid receiver_id format: {request.receiver_id}")
+            logger.error(f"[ERROR] Invalid receiver_id format: {request.receiver_id}")
             raise HTTPException(status_code=400, detail=f"Invalid receiver_id format: {request.receiver_id}")
         
         # Check if receiver exists and is a Sadhyam user
         receiver = db.query(User).filter(User.id == receiver_id_int).first()
         if not receiver:
-            logger.error(f"❌ Receiver not found: {receiver_id_int}")
+            logger.error(f"[ERROR] Receiver not found: {receiver_id_int}")
             raise HTTPException(status_code=404, detail="User not found")
         
         # Prevent self-connection
         if receiver_id_int == current_user.id:
-            logger.error(f"❌ User trying to connect with themselves: {current_user.id}")
+            logger.error(f"[ERROR] User trying to connect with themselves: {current_user.id}")
             raise HTTPException(status_code=400, detail="Cannot connect with yourself")
         
         # Check if connection request already exists
@@ -98,10 +101,10 @@ async def send_connection_request(
         
         if existing:
             if existing.status == "pending":
-                logger.warning(f"⚠️ Connection request already pending: {existing.id}")
+                logger.warning(f"[WARNING] Connection request already pending: {existing.id}")
                 raise HTTPException(status_code=400, detail="Connection request already sent")
             elif existing.status == "accepted":
-                logger.warning(f"⚠️ Users already connected")
+                logger.warning(f"[WARNING] Users already connected")
                 raise HTTPException(status_code=400, detail="Already connected")
         
         # Create connection request
@@ -116,7 +119,7 @@ async def send_connection_request(
         db.commit()
         db.refresh(connection_request)
         
-        logger.info(f"✅ Connection request sent: {current_user.id} -> {receiver_id_int}, request_id={connection_request.id}")
+        logger.info(f"[SUCCESS] Connection request sent: {current_user.id} -> {receiver_id_int}, request_id={connection_request.id}")
         
         return {
             "success": True,
@@ -127,7 +130,7 @@ async def send_connection_request(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"❌ Error sending connection request: {e}", exc_info=True)
+        logger.error(f"[ERROR] Error sending connection request: {e}", exc_info=True)
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -164,7 +167,7 @@ async def get_connection_requests(
         return result
         
     except Exception as e:
-        logger.error(f"❌ Error fetching connection requests: {e}")
+        logger.error(f"[ERROR] Error fetching connection requests: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -201,7 +204,7 @@ async def accept_connection_request(
         db.commit()
         db.refresh(chat_room)
         
-        logger.info(f"✅ Connection accepted: {conn_request.sender_id} <-> {conn_request.receiver_id}")
+        logger.info(f"[SUCCESS] Connection accepted: {conn_request.sender_id} <-> {conn_request.receiver_id}")
         
         return {
             "success": True,
@@ -212,7 +215,7 @@ async def accept_connection_request(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"❌ Error accepting connection: {e}")
+        logger.error(f"[ERROR] Error accepting connection: {e}")
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -239,14 +242,14 @@ async def reject_connection_request(
         conn_request.status = "rejected"
         db.commit()
         
-        logger.info(f"❌ Connection rejected: {request_id}")
+        logger.info(f"[REJECTED] Connection rejected: {request_id}")
         
         return {"success": True, "message": "Connection request rejected"}
         
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"❌ Error rejecting connection: {e}")
+        logger.error(f"[ERROR] Error rejecting connection: {e}")
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -291,6 +294,8 @@ async def get_chat_rooms(
                 other_user_id=str(other_user_id),
                 other_user_name=other_user.name or other_user.email,
                 other_user_business=other_user.business_name,
+                other_user_business_description=other_user.business_description,
+                other_user_business_location=other_user.business_location,
                 last_message=last_message.message if last_message else None,
                 last_message_time=last_message.created_at if last_message else None,
                 unread_count=unread_count
@@ -302,7 +307,7 @@ async def get_chat_rooms(
         return result
         
     except Exception as e:
-        logger.error(f"❌ Error fetching chat rooms: {e}")
+        logger.error(f"[ERROR] Error fetching chat rooms: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -360,7 +365,7 @@ async def get_messages(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"❌ Error fetching messages: {e}")
+        logger.error(f"[ERROR] Error fetching messages: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -422,7 +427,7 @@ async def send_message(
             }
         )
         
-        logger.info(f"✅ Message sent in room {room_id} and broadcasted via Socket.IO")
+        logger.info(f"[SUCCESS] Message sent in room {room_id} and broadcasted via Socket.IO")
         
         return {
             "success": True,
@@ -433,7 +438,49 @@ async def send_message(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"❌ Error sending message: {e}")
+        logger.error(f"[ERROR] Error sending message: {e}")
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/rooms/{room_id}/clear")
+async def clear_chat(
+    room_id: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db_sync)
+):
+    """
+    Clear all messages in a chat room (only messages, not the room itself)
+    """
+    try:
+        # Verify user is part of this room
+        room = db.query(ChatRoom).filter(
+            ChatRoom.id == room_id,
+            ((ChatRoom.user1_id == current_user.id) |
+             (ChatRoom.user2_id == current_user.id))
+        ).first()
+        
+        if not room:
+            raise HTTPException(status_code=404, detail="Chat room not found")
+        
+        # Delete all messages in this room
+        db.query(ChatMessage).filter(ChatMessage.room_id == room_id).delete(synchronize_session=False)
+        
+        # Update room timestamp to reflect activity
+        room.updated_at = datetime.utcnow()
+        
+        db.commit()
+        
+        # Broadcast chat cleared event via Socket.IO
+        await realtime_service.broadcast_chat_cleared(room_id)
+        
+        logger.info(f"[CLEAR] Chat cleared for room {room_id} by user {current_user.id}")
+        return {"success": True, "message": "Chat cleared successfully"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[ERROR] Error clearing chat: {e}")
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -485,5 +532,5 @@ async def check_connection(
         }
         
     except Exception as e:
-        logger.error(f"❌ Error checking connection: {e}")
+        logger.error(f"[ERROR] Error checking connection: {e}")
         raise HTTPException(status_code=500, detail=str(e))

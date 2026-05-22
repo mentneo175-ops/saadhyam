@@ -4,8 +4,9 @@
  */
 
 import { io, Socket } from 'socket.io-client';
+import { env } from "@/config/env";
 
-const BACKEND_URL = 'http://localhost:8000';
+const BACKEND_URL = env.apiBaseUrl;
 
 export interface RealtimeMessage {
   id: number;

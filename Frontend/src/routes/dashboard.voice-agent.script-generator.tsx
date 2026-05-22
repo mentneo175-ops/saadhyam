@@ -18,6 +18,7 @@ import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Textarea } from "../components/ui/textarea";
 import { Badge } from "../components/ui/badge";
+import { env } from "@/config/env";
 
 export const Route = createFileRoute("/dashboard/voice-agent/script-generator")({
   component: ScriptGeneratorPage,
@@ -52,7 +53,7 @@ function ScriptGeneratorPage() {
     setIsGenerating(true);
     try {
       const token = localStorage.getItem("saadhyam_token");
-      const response = await fetch("http://localhost:8000/api/v2/voice-agent/script/generate", {
+      const response = await fetch(`${env.apiBaseUrl}/api/v2/voice-agent/script/generate`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

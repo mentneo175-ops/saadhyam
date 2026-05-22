@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2, Save, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
+import { env } from "@/config/env";
 
 interface ManualSetupProps {
   onSuccess: () => void;
@@ -30,7 +31,7 @@ export function ManualSetup({ onSuccess, onBack }: ManualSetupProps) {
       const token = localStorage.getItem("saadhyam_token");
 
       const response = await fetch(
-        "http://localhost:8000/api/whatsapp/connect-manual",
+        `${env.apiBaseUrl}/api/whatsapp/connect-manual`,
         {
           method: "POST",
           headers: {

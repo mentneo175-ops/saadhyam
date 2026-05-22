@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { MessageCircle, Send, Settings, Loader2, Wrench, MoreVertical, Unplug, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { env } from "@/config/env";
 
 export const Route = createFileRoute("/dashboard/whatsapp")({
   head: () => ({ meta: [{ title: "WhatsApp Sales — Saadhyam AI" }] }),
@@ -61,7 +62,7 @@ function WhatsAppPage() {
       const token = localStorage.getItem("saadhyam_token");
 
       const response = await fetch(
-        "http://localhost:8000/api/whatsapp/connection-status",
+        `${env.apiBaseUrl}/api/whatsapp/connection-status`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -103,8 +104,8 @@ function WhatsAppPage() {
       setDisconnecting(true);
       const token = localStorage.getItem("saadhyam_token");
       const endpoint = permanent 
-        ? "http://localhost:8000/api/whatsapp/disconnect/permanent"
-        : "http://localhost:8000/api/whatsapp/disconnect";
+        ? `${env.apiBaseUrl}/api/whatsapp/disconnect/permanent`
+        : `${env.apiBaseUrl}/api/whatsapp/disconnect`;
       
       const method = permanent ? "DELETE" : "POST";
 

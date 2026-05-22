@@ -1,9 +1,19 @@
-import { Bell, ChevronDown, Sparkles, Building2, Settings, LogOut, RefreshCw } from "lucide-react";
+import {
+  Bell,
+  ChevronDown,
+  Sparkles,
+  Building2,
+  Settings,
+  LogOut,
+  RefreshCw,
+  Menu,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { apiClient } from "@/lib/api";
 import { useNavigate, useRouter, useLocation } from "@tanstack/react-router";
 import { useDashboardContext } from "@/contexts/DashboardContext";
+import { useSidebar } from "@/contexts/SidebarContext";
 
 interface BusinessProfile {
   business_name?: string;
@@ -19,6 +29,7 @@ export function TopHeader() {
   const router = useRouter();
   const location = useLocation();
   const { refreshDashboard, isRefreshing: contextRefreshing } = useDashboardContext();
+  const { toggleMinimized } = useSidebar();
 
   const [isHydrated, setIsHydrated] = useState(false);
   const [businessProfile, setBusinessProfile] = useState<BusinessProfile | null>(null);
@@ -29,33 +40,30 @@ export function TopHeader() {
 
   const isRefreshing = contextRefreshing || isLocalRefreshing;
 
-  // Only show TopHeader on the main dashboard page
+  // Only show TopHeader on main dashboard page
   const isMainDashboard = location.pathname === "/dashboard" || location.pathname === "/dashboard/";
 
   useEffect(() => {
     setIsHydrated(true);
-    if (isMainDashboard) {
-      loadBusinessData();
-    }
-  }, [isMainDashboard]);
+    loadBusinessData(); // Load data for all dashboard pages
+  }, []);
 
-  // Don't render if not on main dashboard
-  if (!isMainDashboard) {
-    return null;
-  }
+  // Show on all dashboard pages
 
   const loadBusinessData = async () => {
     try {
       setIsLoading(true);
 
       // Load business profile from API
-      if (apiClient.isAuthenticated()) {
-        const profile = await apiClient.getBusinessProfile();
-        setBusinessProfile(profile);
+      if (apiClient.isAuthenticated?.()) {
+        const profile = await apiClient.getBusinessProfile?.();
+        if (profile) {
+          setBusinessProfile(profile);
+        }
 
         // Load latest business analysis from API
         try {
-          const analysis = await apiClient.getLatestBusinessAnalysis();
+          const analysis = await apiClient.getLatestBusinessAnalysis?.();
           if (analysis) {
             setBusinessAnalysis(analysis);
           }
@@ -71,16 +79,13 @@ export function TopHeader() {
     } catch (error) {
       console.error("Failed to load business data:", error);
       // Fallback to localStorage for business info if API fails
-      const info = localStorage.getItem("businessInfo");
-      if (info) {
-        const parsedInfo = JSON.parse(info);
-        setBusinessProfile({
-          business_name: parsedInfo.businessName,
-          business_type: parsedInfo.businessType,
-          business_location: parsedInfo.location,
-          business_description: parsedInfo.description,
-          business_setup_completed: true,
-        });
+      const stored = localStorage.getItem("businessProfile");
+      if (stored) {
+        try {
+          setBusinessProfile(JSON.parse(stored));
+        } catch (e) {
+          console.error("Failed to parse stored business profile");
+        }
       }
 
       // Fallback to localStorage for business analysis
@@ -96,9 +101,11 @@ export function TopHeader() {
   const handleLogout = async () => {
     try {
       await logout();
-      navigate({ to: "/login" });
     } catch (error) {
       console.error("Logout failed:", error);
+    } finally {
+      // Always navigate to login, even if logout fails
+      navigate({ to: "/login", replace: true });
     }
   };
 
@@ -116,15 +123,6 @@ export function TopHeader() {
     }
   };
 
-  // Get greeting based on time of day
-  const hour = new Date().getHours();
-  let greeting = "Good morning";
-  if (hour >= 12 && hour < 18) greeting = "Good afternoon";
-  if (hour >= 18) greeting = "Good evening";
-
-  // Get user name (extract first name if full name)
-  const firstName = user?.name?.split(" ")[0] || "User";
-
   // Generate avatar letter from business name or user name
   const getAvatarLetter = () => {
     if (businessProfile?.business_name) {
@@ -136,154 +134,152 @@ export function TopHeader() {
     return "U";
   };
 
-  const displayName = isHydrated ? user?.name || "User" : "User";
+  const displayName = isHydrated
+    ? businessProfile?.business_name || user?.name || "Business"
+    : "Business";
   const displayEmail = isHydrated ? user?.email || "user@example.com" : "user@example.com";
   const avatarLetter = getAvatarLetter();
 
   // Display business name in profile dropdown if available, otherwise user name
-  const profileDisplayName = businessProfile?.business_name || displayName;
-  const profileDisplaySubtext = businessProfile?.business_name
-    ? businessProfile.business_type || "Business"
-    : displayEmail;
+  const profileDisplayName = businessProfile?.business_name || user?.name || "User";
+  const profileDisplaySubtext = businessProfile?.business_type || "E-commerce";
+
+  // Only render on main dashboard page
+  if (!isMainDashboard) {
+    return null;
+  }
 
   return (
-    <header className="h-12 border-b border-purple-200 bg-white/90 backdrop-blur-md sticky top-0 z-40 flex items-center px-2.5 lg:px-4 gap-2">
-      <div className="flex-1 justify-between">
-        <div className="relative">
-          {/* Business Greeting or Default Greeting */}
-          {!isLoading &&
-          businessProfile &&
-          businessProfile.business_setup_completed &&
-          businessProfile.business_name ? (
-            <div>
-              <h1 className="text-base md:text-lg font-bold tracking-tight text-gray-900">
-                Welcome back, {businessProfile.business_name}! 👋
-              </h1>
-              <div className="flex items-center gap-2.5 mt-0.5">
-                <p className="text-[11px] text-gray-600">
-                  {businessProfile.business_type || "Business"} •{" "}
-                  {businessProfile.business_location || "Location"}
-                </p>
-                {businessAnalysis && (
-                  <div className="flex items-center gap-1">
-                    {/* <Sparkles size={10} className="text-purple-600" />
-                    <p className="text-[11px] text-purple-700 font-medium">
-                      AI Analysis Complete - {businessAnalysis.recommendations?.length || 0} recommendations ready
-                    </p> */}
-                  </div>
-                )}
-              </div>
-            </div>
-          ) : (
-            <div>
-              <h1 className="text-base md:text-lg font-bold tracking-tight text-gray-900">
-                {greeting}, {isHydrated ? firstName : "User"} 👋
-              </h1>
-              <p className="mt-0.5 text-[11px] text-gray-600">
-                Here's what's happening with your business today.
-              </p>
-            </div>
-          )}
+    <header className="h-16 border-b border-purple-200 bg-white shadow-sm sticky top-0 z-50 flex items-center justify-between px-4 lg:px-6">
+      {/* Left: Greeting Message (Desktop Only) */}
+      <div className="flex items-center">
+        <div className="hidden lg:block">
+          <h1 className="text-lg font-semibold text-gray-900">
+            Good{" "}
+            {new Date().getHours() < 12
+              ? "Morning"
+              : new Date().getHours() < 17
+                ? "Afternoon"
+                : "Evening"}
+            !
+          </h1>
+          <p className="text-sm text-gray-600">Welcome back to your dashboard</p>
         </div>
       </div>
 
-      {/* Refresh Button */}
-      <button
-        onClick={handleRefresh}
-        disabled={isRefreshing}
-        aria-label="Refresh Data"
-        className="h-7 px-2 rounded-lg border border-purple-200 hover:bg-purple-50 flex items-center justify-center gap-1 transition disabled:opacity-50 disabled:cursor-not-allowed"
-        title="Refresh all dashboard data"
-      >
-        <RefreshCw
-          size={12}
-          className={isRefreshing ? "animate-spin text-purple-600" : "text-purple-600"}
-        />
-        <span className="hidden md:inline text-[11px] font-medium text-gray-900">Refresh</span>
-      </button>
+      {/* Center: Empty space */}
+      <div className="flex-1"></div>
 
-      <button
-        aria-label="Notifications"
-        className="relative h-7 w-7 rounded-lg border border-purple-200 hover:bg-purple-50 flex items-center justify-center transition"
-      >
-        <Bell size={14} className="text-purple-600" />
-        <span className="absolute top-1 right-1 h-1.5 w-1.5 rounded-full bg-red-500 ring-2 ring-white" />
-      </button>
-
-      {/* Profile Dropdown */}
-      <div className="relative">
+      {/* Right: Controls */}
+      <div className="flex items-center gap-3">
+        {/* Refresh Button */}
         <button
-          onClick={() => setShowProfileMenu(!showProfileMenu)}
-          className="flex items-center gap-1 h-7 pl-0.5 pr-2 rounded-full border border-purple-200 hover:bg-purple-50 transition"
+          onClick={handleRefresh}
+          disabled={isRefreshing}
+          aria-label="Refresh Data"
+          className="h-9 px-3 rounded-lg border border-purple-200 hover:bg-purple-50 flex items-center justify-center gap-2 transition disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+          title="Refresh all dashboard data"
         >
-          <div className="h-6 w-6 rounded-full bg-linear-to-br from-[#5D2F8F] to-[#A855F7] text-white flex items-center justify-center text-[10px] font-bold">
-            {avatarLetter}
-          </div>
-          <div className="hidden md:block text-left leading-tight">
-            <p className="text-[11px] font-semibold text-gray-900">{profileDisplayName}</p>
-            <p className="text-[9px] text-gray-600">{profileDisplaySubtext}</p>
-          </div>
-          <ChevronDown size={10} className="text-purple-600" />
+          <RefreshCw
+            size={16}
+            className={isRefreshing ? "animate-spin text-purple-600" : "text-purple-600"}
+          />
+          <span className="hidden lg:inline text-sm font-medium text-gray-900">Refresh</span>
         </button>
 
-        {/* Dropdown Menu */}
-        {showProfileMenu && (
-          <>
-            {/* Backdrop */}
-            <div className="fixed inset-0 z-40" onClick={() => setShowProfileMenu(false)} />
+        {/* Notifications */}
+        <button
+          aria-label="Notifications"
+          className="relative h-9 w-9 rounded-lg border border-purple-200 hover:bg-purple-50 flex items-center justify-center transition shadow-sm"
+        >
+          <Bell size={16} className="text-purple-600" />
+          <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-red-500 ring-2 ring-white flex items-center justify-center">
+            <span className="text-[8px] text-white font-bold">3</span>
+          </span>
+        </button>
 
-            {/* Menu */}
-            <div className="absolute right-0 top-10 z-50 w-56 bg-white rounded-lg border border-gray-200 shadow-lg py-1.5">
-              {/* User Info */}
-              <div className="px-3 py-2 border-b border-gray-100">
-                <p className="font-semibold text-sm text-gray-900">{profileDisplayName}</p>
-                <p className="text-xs text-gray-600">{profileDisplaySubtext}</p>
-                {businessProfile?.business_name && (
-                  <p className="text-xs text-gray-500 mt-1">{displayEmail}</p>
-                )}
-              </div>
-
-              {/* Menu Items */}
-              <div className="py-1.5">
-                <button
-                  onClick={() => {
-                    setShowProfileMenu(false);
-                    navigate({ to: "/dashboard/business-details" });
-                  }}
-                  className="w-full flex items-center gap-2.5 px-3 py-1.5 text-sm text-gray-700 hover:bg-purple-50 transition"
-                >
-                  <Building2 size={14} className="text-purple-600" />
-                  Business Details
-                </button>
-
-                <button
-                  onClick={() => {
-                    setShowProfileMenu(false);
-                    navigate({ to: "/dashboard/settings" });
-                  }}
-                  className="w-full flex items-center gap-2.5 px-3 py-1.5 text-sm text-gray-700 hover:bg-purple-50 transition"
-                >
-                  <Settings size={14} className="text-purple-600" />
-                  Settings
-                </button>
-              </div>
-
-              {/* Logout */}
-              <div className="border-t border-purple-100 pt-1.5">
-                <button
-                  onClick={() => {
-                    setShowProfileMenu(false);
-                    handleLogout();
-                  }}
-                  className="w-full flex items-center gap-2.5 px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 transition"
-                >
-                  <LogOut size={14} className="text-red-600" />
-                  Sign Out
-                </button>
-              </div>
+        {/* Profile Dropdown */}
+        <div className="relative">
+          <button
+            onClick={() => setShowProfileMenu(!showProfileMenu)}
+            className="flex items-center gap-2 h-10 pl-2 pr-3 rounded-lg border border-purple-200 hover:bg-purple-50 transition min-w-0 shadow-sm"
+          >
+            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-[#5D2F8F] to-[#A855F7] text-white flex items-center justify-center text-sm font-bold shrink-0">
+              {avatarLetter}
             </div>
-          </>
-        )}
+            <div className="hidden sm:block text-left leading-tight min-w-0 max-w-32">
+              <p className="text-sm font-semibold text-gray-900 truncate">{profileDisplayName}</p>
+              <p className="text-xs text-gray-600 truncate">{profileDisplaySubtext}</p>
+            </div>
+            <ChevronDown size={12} className="text-purple-600 shrink-0" />
+          </button>
+
+          {/* Dropdown Menu */}
+          {showProfileMenu && (
+            <>
+              {/* Backdrop */}
+              <div className="fixed inset-0 z-40" onClick={() => setShowProfileMenu(false)} />
+
+              {/* Menu */}
+              <div className="absolute right-0 top-12 z-50 w-64 bg-white rounded-xl border border-gray-200 shadow-xl py-2">
+                {/* User Info */}
+                <div className="px-4 py-3 border-b border-gray-100">
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-[#5D2F8F] to-[#A855F7] text-white flex items-center justify-center text-sm font-bold">
+                      {avatarLetter}
+                    </div>
+                    <div>
+                      <p className="font-semibold text-sm text-gray-900">{profileDisplayName}</p>
+                      <p className="text-xs text-gray-600">{profileDisplaySubtext}</p>
+                      {businessProfile?.business_name && (
+                        <p className="text-xs text-gray-500 mt-1">{displayEmail}</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Menu Items */}
+                <div className="py-2">
+                  <button
+                    onClick={() => {
+                      setShowProfileMenu(false);
+                      navigate({ to: "/dashboard/business-details" });
+                    }}
+                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-purple-50 transition"
+                  >
+                    <Building2 size={16} className="text-purple-600" />
+                    Business Details
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setShowProfileMenu(false);
+                      navigate({ to: "/dashboard/settings" });
+                    }}
+                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-purple-50 transition"
+                  >
+                    <Settings size={16} className="text-purple-600" />
+                    Settings & Preferences
+                  </button>
+                </div>
+
+                {/* Logout */}
+                <div className="border-t border-gray-100 pt-2">
+                  <button
+                    onClick={() => {
+                      setShowProfileMenu(false);
+                      handleLogout();
+                    }}
+                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition"
+                  >
+                    <LogOut size={16} className="text-red-600" />
+                    Sign Out
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
       </div>
     </header>
   );

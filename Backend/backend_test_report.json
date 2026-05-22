@@ -1,0 +1,24 @@
+{
+  "timestamp": "2026-05-22T12:01:10.577360",
+  "summary": {
+    "total_categories": 13,
+    "passed_categories": 12,
+    "failed_categories": 1,
+    "success_rate": 92.3076923076923
+  },
+  "detailed_results": {
+    "Database Connection": "\u2705 PASSED",
+    "User Authentication": "\u274c FAILED: User auth test failed: name 'Depends' is not defined",
+    "Instagram Integration": "\u2705 PASSED",
+    "Settings Management": "\u2705 PASSED",
+    "Content Creator": "\u2705 PASSED",
+    "Business Analysis": "\u2705 PASSED",
+    "WhatsApp Integration": "\u2705 PASSED",
+    "Voice Agent": "\u2705 PASSED",
+    "Meta Ads": "\u2705 PASSED",
+    "Blog Management": "\u2705 PASSED",
+    "Real-time Features": "\u2705 PASSED",
+    "File Operations": "\u2705 PASSED",
+    "API Routes": "\u2705 PASSED"
+  }
+}

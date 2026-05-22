@@ -3,7 +3,8 @@
  * Redirects unauthenticated users to login page
  * Works in both development and production
  * 
- * Now shows dashboard while auth is being verified instead of blocking with a spinner
+ * Security: Shows loading spinner during auth verification to prevent
+ * unauthorized access to protected content
  */
 
 import { useEffect } from "react";
@@ -33,13 +34,23 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     }
   }, [isAuthenticated, isLoading, user, navigate]);
 
+  // Show loading spinner while auth is being verified
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="w-8 h-8 animate-spin text-purple-600" />
+          <p className="text-sm text-gray-600 font-medium">Verifying authentication...</p>
+        </div>
+      </div>
+    );
+  }
+
   // If not authenticated and not loading, show nothing (will redirect)
-  if (!isLoading && (!isAuthenticated || !user)) {
+  if (!isAuthenticated || !user) {
     return null;
   }
 
-  // User is authenticated OR still loading - render children
-  // This allows the dashboard to show while auth is being verified on refresh
-  // The auth redirect will happen if needed when isLoading becomes false
+  // User is authenticated - render children
   return <>{children}</>;
 }

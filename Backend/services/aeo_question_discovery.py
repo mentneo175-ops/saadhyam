@@ -229,9 +229,9 @@ Focus on questions that:
             # Apply rate limiting for fallback request too
             await gemini_rate_limiter.acquire()
             
-            # Fallback to Gemini 2.0 Flash
+            # Fallback to Gemini 1.5 Flash
             model = genai.GenerativeModel(
-                'models/gemini-2.0-flash',
+                'models/gemini-1.5-flash',
                 generation_config={
                     "temperature": 0.7,
                     "top_p": 0.95,

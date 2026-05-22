@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Query, Request
 from fastapi.responses import RedirectResponse, HTMLResponse
-from sqlalchemy.orm import Session
-from config.database import get_db_sync
+from sqlalchemy.ext.asyncio import AsyncSession
+from config.database import get_db
 from services.instagram_crud import InstagramCRUD
 from services.instagram_service import InstagramGraphAPIService
 from utils.dependencies import get_current_user
@@ -189,7 +189,7 @@ async def connect_instagram(
 )
 async def instagram_callback(
     request: Request,
-    db: Session = Depends(get_db_sync),
+    db: AsyncSession = Depends(get_db),
 ):
     """
     Handle Facebook OAuth callback for Instagram Graph API connection.
@@ -347,10 +347,8 @@ async def instagram_callback(
         # Step 3: Save to database
         logger.info("Step 3: Saving Instagram account to database...")
         try:
-            instagram_crud = InstagramCRUD()
-            
             # Create or update social account
-            social_account = instagram_crud.create_social_account(
+            social_account = await InstagramCRUD.create_social_account(
                 db=db,
                 user_id=int(user_id),
                 platform="instagram",
@@ -688,16 +686,14 @@ async def test_callback(
 )
 async def disconnect_instagram(
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db_sync),
+    db: AsyncSession = Depends(get_db),
 ):
     """
     Disconnect the user's Instagram account.
     """
     try:
-        instagram_crud = InstagramCRUD()
-        
         # Get user's Instagram accounts
-        accounts = instagram_crud.get_user_social_accounts(db, current_user.id)
+        accounts = await InstagramCRUD.get_user_social_accounts(db, current_user.id)
         instagram_accounts = [acc for acc in accounts if acc.platform == "instagram"]
         
         if not instagram_accounts:
@@ -708,7 +704,7 @@ async def disconnect_instagram(
         
         # Disconnect all Instagram accounts
         for account in instagram_accounts:
-            instagram_crud.disconnect_account(db, account.id)
+            await InstagramCRUD.disconnect_account(db, account.id)
         
         logger.info(f"User {current_user.id} disconnected Instagram")
         

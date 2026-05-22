@@ -192,7 +192,10 @@ class NearbyBusinessService:
                     response = await self.client.post(
                         url,
                         data=query,  # Raw query string, NOT json or params
-                        headers={"Content-Type": "text/plain"},  # MUST be text/plain
+                        headers={
+                            "Content-Type": "text/plain",
+                            "User-Agent": "SaadhyamBusinessDiscoveryApp/1.0 (saikiranmain1708@gmail.com)"
+                        },  # MUST be text/plain and have a descriptive User-Agent
                         timeout=15.0  # Reduced from 60s to 15s
                     )
                     

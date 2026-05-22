@@ -23,6 +23,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../co
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Badge } from "../components/ui/badge";
+import { env } from "@/config/env";
 
 export const Route = createFileRoute("/dashboard/voice-agent/leads")({
   component: LeadsPage,
@@ -65,7 +66,7 @@ function LeadsPage() {
     queryKey: ["voice-campaigns"],
     queryFn: async () => {
       const token = localStorage.getItem("saadhyam_token");
-      const response = await fetch("http://localhost:8000/api/v2/voice-agent/campaigns", {
+      const response = await fetch(`${env.apiBaseUrl}/api/v2/voice-agent/campaigns`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       return response.json();
@@ -79,7 +80,7 @@ function LeadsPage() {
       if (!selectedCampaign) return null;
       const token = localStorage.getItem("saadhyam_token");
       const response = await fetch(
-        `http://localhost:8000/api/v2/voice-agent/campaigns/${selectedCampaign}/leads`,
+        `${env.apiBaseUrl}/api/v2/voice-agent/campaigns/${selectedCampaign}/leads`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -99,7 +100,7 @@ function LeadsPage() {
 
       const token = localStorage.getItem("saadhyam_token");
       const response = await fetch(
-        `http://localhost:8000/api/v2/voice-agent/campaigns/${selectedCampaign}/leads/upload`,
+        `${env.apiBaseUrl}/api/v2/voice-agent/campaigns/${selectedCampaign}/leads/upload`,
         {
           method: "POST",
           headers: { Authorization: `Bearer ${token}` },
@@ -124,7 +125,7 @@ function LeadsPage() {
 
       const token = localStorage.getItem("saadhyam_token");
       const response = await fetch(
-        `http://localhost:8000/api/v2/voice-agent/campaigns/${selectedCampaign}/leads`,
+        `${env.apiBaseUrl}/api/v2/voice-agent/campaigns/${selectedCampaign}/leads`,
         {
           method: "POST",
           headers: {

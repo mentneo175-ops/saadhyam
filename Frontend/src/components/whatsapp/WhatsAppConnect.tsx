@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { MessageCircle, Loader2, CheckCircle, AlertCircle, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
+import { env } from "@/config/env";
 
 interface WhatsAppConnectProps {
   onConnectionSuccess: () => void;
@@ -19,7 +20,7 @@ export function WhatsAppConnect({ onConnectionSuccess, onShowOnboarding }: Whats
 
       // Get the embedded signup URL
       const response = await fetch(
-        "http://localhost:8000/api/whatsapp/embedded-signup",
+        `${env.apiBaseUrl}/api/whatsapp/embedded-signup`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -46,7 +47,7 @@ export function WhatsAppConnect({ onConnectionSuccess, onShowOnboarding }: Whats
 
           // Listen for messages from popup
           const handleMessage = (event: MessageEvent) => {
-            if (event.origin !== "http://localhost:8000") return;
+            if (event.origin !== env.apiBaseUrl) return;
 
             if (event.data.type === "WHATSAPP_OAUTH_SUCCESS") {
               // Check if we have account data to save
@@ -69,7 +70,7 @@ export function WhatsAppConnect({ onConnectionSuccess, onShowOnboarding }: Whats
             try {
               const token = localStorage.getItem("saadhyam_token");
               const response = await fetch(
-                "http://localhost:8000/api/whatsapp/connect-manual",
+                `${env.apiBaseUrl}/api/whatsapp/connect-manual`,
                 {
                   method: "POST",
                   headers: {

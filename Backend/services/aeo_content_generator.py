@@ -226,8 +226,8 @@ Make the content:
             # Apply rate limiting for fallback request too
             await gemini_rate_limiter.acquire()
             
-            # Fallback to Gemini 2.0 Flash
-            model = genai.GenerativeModel('models/gemini-2.0-flash')
+            # Fallback to Gemini 1.5 Flash
+            model = genai.GenerativeModel('models/gemini-1.5-flash')
             response = model.generate_content(
                 prompt,
                 generation_config={

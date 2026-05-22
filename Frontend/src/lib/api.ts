@@ -1,9 +1,10 @@
+import { toast } from "sonner";
 /**
  * API Service - Handles all backend API communication
  * Includes authentication, error handling, and token management
  */
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+const API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
 const TOKEN_STORAGE_KEY = "saadhyam_token";
 const USER_STORAGE_KEY = "saadhyam_user";
 
@@ -302,7 +303,7 @@ class ApiClient {
           // Clear token and redirect to login immediately
           this.setToken(null);
           if (typeof window !== 'undefined') {
-            alert('Your account has been logged in from another device or browser. Please login again.');
+            toast.error('Your account has been logged in from another device or browser. Please login again.');
             window.location.href = '/login';
           }
           throw new ApiError(401, errorData, 'Session invalidated');
@@ -523,35 +524,43 @@ class ApiClient {
   /**
    * Generic GET request
    */
-  async get<T>(endpoint: string): Promise<T> {
-    return this.fetchJson(endpoint, { method: "GET" });
+  async get<T = any>(endpoint: string, requestKey?: string): Promise<T> {
+    return this.fetchJson(endpoint, { method: "GET" }, requestKey);
   }
 
   /**
    * Generic POST request
    */
-  async post<T>(endpoint: string, body: any): Promise<T> {
-    return this.fetchJson(endpoint, {
-      method: "POST",
-      body: JSON.stringify(body),
-    });
+  async post<T = any>(endpoint: string, body?: any, requestKey?: string): Promise<T> {
+    return this.fetchJson(
+      endpoint,
+      {
+        method: "POST",
+        body: body ? JSON.stringify(body) : undefined,
+      },
+      requestKey
+    );
   }
 
   /**
    * Generic PUT request
    */
-  async put<T>(endpoint: string, body: any): Promise<T> {
-    return this.fetchJson(endpoint, {
-      method: "PUT",
-      body: JSON.stringify(body),
-    });
+  async put<T = any>(endpoint: string, body?: any, requestKey?: string): Promise<T> {
+    return this.fetchJson(
+      endpoint,
+      {
+        method: "PUT",
+        body: body ? JSON.stringify(body) : undefined,
+      },
+      requestKey
+    );
   }
 
   /**
    * Generic DELETE request
    */
-  async delete<T>(endpoint: string): Promise<T> {
-    return this.fetchJson(endpoint, { method: "DELETE" });
+  async delete<T = any>(endpoint: string, requestKey?: string): Promise<T> {
+    return this.fetchJson(endpoint, { method: "DELETE" }, requestKey);
   }
 
   // AI Feature Methods
@@ -1000,49 +1009,7 @@ class ApiClient {
     return response.json();
   }
 
-  // ============= HTTP METHOD WRAPPERS =============
 
-  /**
-   * GET request with automatic cancellation support
-   */
-  async get(endpoint: string, requestKey?: string): Promise<any> {
-    return this.fetchJson(endpoint, { method: "GET" }, requestKey);
-  }
-
-  /**
-   * POST request with automatic cancellation support
-   */
-  async post(endpoint: string, data?: any, requestKey?: string): Promise<any> {
-    return this.fetchJson(
-      endpoint,
-      {
-        method: "POST",
-        body: data ? JSON.stringify(data) : undefined,
-      },
-      requestKey
-    );
-  }
-
-  /**
-   * PUT request with automatic cancellation support
-   */
-  async put(endpoint: string, data?: any, requestKey?: string): Promise<any> {
-    return this.fetchJson(
-      endpoint,
-      {
-        method: "PUT",
-        body: data ? JSON.stringify(data) : undefined,
-      },
-      requestKey
-    );
-  }
-
-  /**
-   * DELETE request with automatic cancellation support
-   */
-  async delete(endpoint: string, requestKey?: string): Promise<any> {
-    return this.fetchJson(endpoint, { method: "DELETE" }, requestKey);
-  }
 }
 
 // Export singleton instance

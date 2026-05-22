@@ -4,6 +4,7 @@ import { ContactList } from "./ContactList";
 import { ChatWindow } from "./ChatWindow";
 import { Loader2, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
+import { env } from "@/config/env";
 
 interface ConnectionStatus {
   is_connected: boolean;
@@ -36,7 +37,7 @@ export function ChatDashboard({ connectionStatus }: ChatDashboardProps) {
     try {
       const token = localStorage.getItem("saadhyam_token");
       const response = await fetch(
-        "http://localhost:8000/api/whatsapp/messages/stats",
+        `${env.apiBaseUrl}/api/whatsapp/messages/stats`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

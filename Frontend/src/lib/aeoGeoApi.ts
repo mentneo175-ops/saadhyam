@@ -1,9 +1,10 @@
+import { env } from "@/config/env";
 /**
  * AEO/GEO API Client
  * Answer Engine Optimization + Generative Engine Optimization
  */
 
-const API_BASE_URL = 'http://localhost:8000';
+const API_BASE_URL = env.apiBaseUrl;
 
 export interface AEOGEOOverview {
   status: string;

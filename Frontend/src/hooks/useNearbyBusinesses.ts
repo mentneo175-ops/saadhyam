@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import type { Business } from "@/components/b2b-network/types";
+import { env } from "@/config/env";
 
 // Fetch function for React Query with timeout
 async function fetchNearbyBusinesses(
@@ -23,7 +24,7 @@ async function fetchNearbyBusinesses(
 
   try {
     const response = await fetch(
-      `http://localhost:8000/api/b2b-network/nearby/me?${params.toString()}`,
+      `${env.apiBaseUrl}/api/b2b-network/nearby/me?${params.toString()}`,
       {
         headers: { Authorization: `Bearer ${token}` },
         signal: controller.signal,

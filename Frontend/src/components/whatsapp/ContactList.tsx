@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Search, Loader2, User, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
+import { env } from "@/config/env";
 
 interface Conversation {
   customer_phone: string;
@@ -37,7 +38,7 @@ export function ContactList({ selectedContact, onSelectContact }: ContactListPro
     try {
       const token = localStorage.getItem("saadhyam_token");
       const response = await fetch(
-        "http://localhost:8000/api/whatsapp/messages/conversations?limit=50&offset=0",
+        `${env.apiBaseUrl}/api/whatsapp/messages/conversations?limit=50&offset=0`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

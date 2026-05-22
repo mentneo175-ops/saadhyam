@@ -38,11 +38,6 @@ if IS_SQLITE:
     async_engine = create_async_engine(
         async_sqlite_url,
         echo=False,
-        pool_pre_ping=True,
-        pool_size=20,
-        max_overflow=10,
-        pool_timeout=30,
-        pool_recycle=3600,
     )
     
     # Keep sync engine for migrations only

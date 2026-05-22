@@ -139,7 +139,7 @@ async def trigger_comprehensive_analysis(
             
             return {
                 "status": "error",
-                "message": analysis_result.get("message", "Analysis failed")
+                "message": "Unable to complete analysis right now"
             }
         
         logger.info(f"[ComprehensiveAnalysis] ✅ Gemini API call successful")
@@ -249,6 +249,14 @@ async def trigger_comprehensive_analysis(
             )
             await delete_pattern(biz_cache_key)
             
+            # Invalidate SEO & Google Maps cache
+            seo_cache_key = generate_cache_key(
+                CACHE_PREFIX["seo"],
+                "google_maps_data",
+                user_id=user.id
+            )
+            await delete_pattern(seo_cache_key)
+            
             logger.info(f"[ComprehensiveAnalysis] ✅ Cache invalidated for user {user.id}")
         except Exception as cache_error:
             logger.warning(f"[ComprehensiveAnalysis] ⚠️ Cache invalidation error: {cache_error}")
@@ -296,10 +304,22 @@ def get_business_analysis_data(
     """
     
     try:
+        # First try to get completed analysis
         analysis = db.query(BusinessAnalysis).filter(
             BusinessAnalysis.user_id == user_id,
             BusinessAnalysis.analysis_status == 'completed'
         ).order_by(BusinessAnalysis.last_analyzed_at.desc()).first()
+        
+        # If no completed analysis, try to get any analysis with data (even if status is error)
+        if not analysis:
+            logger.info(f"[BusinessAnalysisData] No completed analysis found, checking for any analysis with data...")
+            analysis = db.query(BusinessAnalysis).filter(
+                BusinessAnalysis.user_id == user_id,
+                BusinessAnalysis.strengths_data.isnot(None)  # Has some data
+            ).order_by(BusinessAnalysis.last_analyzed_at.desc()).first()
+            
+            if analysis:
+                logger.info(f"[BusinessAnalysisData] ✅ Found analysis with data (status: {analysis.analysis_status})")
         
         if not analysis:
             return None
@@ -318,7 +338,8 @@ def get_business_analysis_data(
             "growth_opportunities": json.loads(analysis.growth_opportunities_data) if analysis.growth_opportunities_data else [],
             "local_market_insights": json.loads(analysis.local_market_insights) if analysis.local_market_insights else {},
             "health_score": analysis.health_score,
-            "last_updated": analysis.last_analyzed_at.isoformat() if analysis.last_analyzed_at else None
+            "last_updated": analysis.last_analyzed_at.isoformat() if analysis.last_analyzed_at else None,
+            "note": "Retrieved from previous analysis" if analysis.analysis_status != 'completed' else None
         }
         
     except Exception as e:
@@ -359,10 +380,22 @@ async def get_competitor_analysis_data(
         logger.info(f"[CompetitorAnalysisData] 💾 Cache MISS - fetching from database")
         
         # Cache miss - fetch from database
+        # First try to get completed analysis
         analysis = db.query(BusinessAnalysis).filter(
             BusinessAnalysis.user_id == user_id,
             BusinessAnalysis.analysis_status == 'completed'
         ).order_by(BusinessAnalysis.last_analyzed_at.desc()).first()
+        
+        # If no completed analysis, try to get any analysis with competitor data
+        if not analysis:
+            logger.info(f"[CompetitorAnalysisData] No completed analysis found, checking for any analysis with competitor data...")
+            analysis = db.query(BusinessAnalysis).filter(
+                BusinessAnalysis.user_id == user_id,
+                BusinessAnalysis.competitor_analysis.isnot(None)  # Has competitor data
+            ).order_by(BusinessAnalysis.last_analyzed_at.desc()).first()
+            
+            if analysis:
+                logger.info(f"[CompetitorAnalysisData] ✅ Found analysis with competitor data (status: {analysis.analysis_status})")
         
         if not analysis:
             return None
@@ -370,7 +403,8 @@ async def get_competitor_analysis_data(
         result = {
             "status": "success",
             "competitor_analysis": json.loads(analysis.competitor_analysis) if analysis.competitor_analysis else {},
-            "last_updated": analysis.last_analyzed_at.isoformat() if analysis.last_analyzed_at else None
+            "last_updated": analysis.last_analyzed_at.isoformat() if analysis.last_analyzed_at else None,
+            "note": "Retrieved from previous analysis" if analysis.analysis_status != 'completed' else None
         }
         
         # Cache the result
@@ -400,10 +434,22 @@ def get_growth_plan_data(
     """
     
     try:
+        # First try to get completed analysis
         analysis = db.query(BusinessAnalysis).filter(
             BusinessAnalysis.user_id == user_id,
             BusinessAnalysis.analysis_status == 'completed'
         ).order_by(BusinessAnalysis.last_analyzed_at.desc()).first()
+        
+        # If no completed analysis, try to get any analysis with growth plan data
+        if not analysis:
+            logger.info(f"[GrowthPlanData] No completed analysis found, checking for any analysis with growth plan...")
+            analysis = db.query(BusinessAnalysis).filter(
+                BusinessAnalysis.user_id == user_id,
+                BusinessAnalysis.thirty_day_growth_plan.isnot(None)  # Has growth plan
+            ).order_by(BusinessAnalysis.last_analyzed_at.desc()).first()
+            
+            if analysis:
+                logger.info(f"[GrowthPlanData] ✅ Found analysis with growth plan (status: {analysis.analysis_status})")
         
         if not analysis:
             return None
@@ -411,7 +457,8 @@ def get_growth_plan_data(
         return {
             "status": "success",
             "thirty_day_growth_plan": json.loads(analysis.thirty_day_growth_plan) if analysis.thirty_day_growth_plan else {},
-            "last_updated": analysis.last_analyzed_at.isoformat() if analysis.last_analyzed_at else None
+            "last_updated": analysis.last_analyzed_at.isoformat() if analysis.last_analyzed_at else None,
+            "note": "Retrieved from previous analysis" if analysis.analysis_status != 'completed' else None
         }
         
     except Exception as e:
@@ -452,10 +499,22 @@ async def get_daily_suggestions_data(
         logger.info(f"[DailySuggestionsData] 💾 Cache MISS - fetching from database")
         
         # Cache miss - fetch from database
+        # First try to get completed analysis
         analysis = db.query(BusinessAnalysis).filter(
             BusinessAnalysis.user_id == user_id,
             BusinessAnalysis.analysis_status == 'completed'
         ).order_by(BusinessAnalysis.last_analyzed_at.desc()).first()
+        
+        # If no completed analysis, try to get any analysis with daily suggestions
+        if not analysis:
+            logger.info(f"[DailySuggestionsData] No completed analysis found, checking for any analysis with daily suggestions...")
+            analysis = db.query(BusinessAnalysis).filter(
+                BusinessAnalysis.user_id == user_id,
+                BusinessAnalysis.daily_suggestions.isnot(None)  # Has daily suggestions
+            ).order_by(BusinessAnalysis.last_analyzed_at.desc()).first()
+            
+            if analysis:
+                logger.info(f"[DailySuggestionsData] ✅ Found analysis with daily suggestions (status: {analysis.analysis_status})")
         
         if not analysis:
             return None
@@ -463,7 +522,8 @@ async def get_daily_suggestions_data(
         result = {
             "status": "success",
             "daily_suggestions": json.loads(analysis.daily_suggestions) if analysis.daily_suggestions else [],
-            "last_updated": analysis.last_analyzed_at.isoformat() if analysis.last_analyzed_at else None
+            "last_updated": analysis.last_analyzed_at.isoformat() if analysis.last_analyzed_at else None,
+            "note": "Retrieved from previous analysis" if analysis.analysis_status != 'completed' else None
         }
         
         # Cache the result
@@ -477,12 +537,13 @@ async def get_daily_suggestions_data(
         return None
 
 
-def get_seo_google_maps_data(
+async def get_seo_google_maps_data(
     user_id: int,
     db: Session
 ) -> Optional[Dict[str, Any]]:
     """
     Get SEO & Google Maps tips data for SEO/Google Maps feature
+    WITH REDIS CACHING for ultra-fast retrieval
     
     Args:
         user_id: User ID
@@ -493,6 +554,22 @@ def get_seo_google_maps_data(
     """
     
     try:
+        # Generate cache key
+        cache_key = generate_cache_key(
+            CACHE_PREFIX["seo"],
+            "google_maps_data",
+            user_id=user_id
+        )
+        
+        # Try cache first
+        cached = await get_cached(cache_key)
+        if cached:
+            logger.info(f"[SEOGoogleMapsData] 🚀 Cache HIT for user {user_id}")
+            return cached.get("data")
+        
+        logger.info(f"[SEOGoogleMapsData] 💾 Cache MISS - fetching from database")
+        
+        # Cache miss - fetch from database
         analysis = db.query(BusinessAnalysis).filter(
             BusinessAnalysis.user_id == user_id,
             BusinessAnalysis.analysis_status == 'completed'
@@ -501,11 +578,17 @@ def get_seo_google_maps_data(
         if not analysis:
             return None
         
-        return {
+        result = {
             "status": "success",
             "seo_google_maps_tips": json.loads(analysis.seo_google_maps_tips) if analysis.seo_google_maps_tips else {},
             "last_updated": analysis.last_analyzed_at.isoformat() if analysis.last_analyzed_at else None
         }
+        
+        # Cache the result
+        await set_cached(cache_key, result, CACHE_TTL["seo_keywords"])
+        logger.info(f"[SEOGoogleMapsData] ✅ Cached for user {user_id}")
+        
+        return result
         
     except Exception as e:
         logger.error(f"[SEOGoogleMapsData] ❌ Error: {e}", exc_info=True)

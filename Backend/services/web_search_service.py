@@ -392,7 +392,6 @@ class WebSearchService:
         return results
 
 
-class WebSearchService:
 class WebSearchServiceMultiProvider:
     """
     Web search service with multiple providers and automatic fallback

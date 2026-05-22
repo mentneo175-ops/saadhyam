@@ -8,7 +8,21 @@ from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
 
-from app.models.schema import ImageGenerationRequest
+# Try to import from the correct path depending on where this is called from
+try:
+    from app.models.schema import ImageGenerationRequest
+except ImportError:
+    # Fallback: create a minimal schema class if import fails
+    from dataclasses import dataclass
+    from typing import Optional
+    
+    @dataclass
+    class ImageGenerationRequest:
+        business_type: str = ""
+        use_case: str = ""
+        style: str = ""
+        model: str = "flux"
+        prompt: str = ""
 
 
 logger = logging.getLogger(__name__)
@@ -69,7 +83,7 @@ def _from_groq_fallback(data: ImageGenerationRequest) -> ContentCreatorOutput:
     )
     
     completion = client.chat.completions.create(
-        model="llama-3.1-70b-versatile",
+        model="llama-3.1-8b-instant",  # Updated to supported model
         messages=[
             {
                 "role": "system",
@@ -274,3 +288,44 @@ def generate_content_with_mistral_adapter(data: ImageGenerationRequest) -> Conte
             # Final fallback to safe template
             logger.warning("All methods failed, using safe template fallback")
             return _safe_fallback_content(data)
+
+
+def generate_content(business_type: str, platform: str, goal: str, tone: str, language: str, user_input: str) -> dict:
+    """
+    Wrapper function to match the expected interface from content_creator_service.py
+    Converts the parameters to ImageGenerationRequest and returns a dict format
+    """
+    try:
+        # Create a mock ImageGenerationRequest-like object
+        class MockRequest:
+            def __init__(self, business_type, platform, goal, tone, language, user_input):
+                self.business_type = business_type
+                self.use_case = goal
+                self.style = tone
+                self.model = "flux"  # default
+                self.prompt = user_input
+        
+        mock_data = MockRequest(business_type, platform, goal, tone, language, user_input)
+        
+        # Generate content using the existing function
+        result = generate_content_with_mistral_adapter(mock_data)
+        
+        # Convert to expected format
+        return {
+            "headline": f"{business_type} - {goal.title()}",
+            "caption": result.caption,
+            "subtext": result.image_prompt[:100] + "..." if len(result.image_prompt) > 100 else result.image_prompt,
+            "cta": "Learn more!",
+            "hashtags": f"#{business_type.lower().replace(' ', '')} #{platform} #{goal}"
+        }
+        
+    except Exception as e:
+        logger.error(f"Mistral wrapper failed: {e}")
+        # Return template fallback
+        return {
+            "headline": f"{business_type} Deals",
+            "caption": f"Discover amazing {business_type.lower()} deals and offers!",
+            "subtext": f"Perfect for your {goal} needs",
+            "cta": "Shop now!",
+            "hashtags": f"#{business_type.lower().replace(' ', '')} #{platform}"
+        }

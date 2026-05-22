@@ -9,9 +9,11 @@ import secrets
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import RedirectResponse, HTMLResponse
 from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, func
 from pydantic import BaseModel
 from typing import Optional
-from config.database import get_db_sync
+from config.database import get_db
 from models.user import User
 from models.whatsapp_account import WhatsAppAccount
 from utils.dependencies import get_current_user
@@ -112,7 +114,7 @@ async def whatsapp_callback(
     error_description: Optional[str] = Query(None),
     state: Optional[str] = Query(None),
     request: Request = None,
-    db: Session = Depends(get_db_sync)
+    db: AsyncSession = Depends(get_db)
 ):
     """
     Handle OAuth callback from Meta
@@ -878,7 +880,7 @@ class EmbeddedSignupCompleteRequest(BaseModel):
 async def complete_embedded_signup(
     request: EmbeddedSignupCompleteRequest,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_sync_db)
+    db: AsyncSession = Depends(get_db)
 ):
     """
     Complete Embedded Signup with WABA details from JavaScript SDK
@@ -979,8 +981,8 @@ async def complete_embedded_signup(
             existing_account.facebook_user_id = facebook_user_id
             existing_account.token_type = token_type
             existing_account.connected_at = datetime.utcnow()
-            db.commit()
-            db.refresh(existing_account)
+            await db.commit()
+            await db.refresh(existing_account)
             
             logger.info(f"✅ Updated WhatsApp account for user {current_user.id}")
             
@@ -1012,8 +1014,8 @@ async def complete_embedded_signup(
             )
             
             db.add(new_account)
-            db.commit()
-            db.refresh(new_account)
+            await db.commit()
+            await db.refresh(new_account)
             
             logger.info(f"✅ Created WhatsApp account for user {current_user.id}")
             logger.info(f"   WABA ID: {new_account.waba_id}")
@@ -1038,7 +1040,7 @@ async def complete_embedded_signup(
         raise
     except Exception as e:
         logger.error(f"❌ Error completing embedded signup: {e}", exc_info=True)
-        db.rollback()
+        await db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -1046,7 +1048,7 @@ async def complete_embedded_signup(
 async def connect_whatsapp_account(
     request: WhatsAppConnectRequest,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db_sync)
+    db: AsyncSession = Depends(get_db)
 ):
     """
     Connect WhatsApp Business Account
@@ -1086,7 +1088,7 @@ async def connect_whatsapp_account(
         phone_number = phone_data.get("display_phone_number", "")
         
         # Get business profile
-        profile_result = whatsapp_service.get_business_profile(
+        profile_result = await whatsapp_service.get_business_profile(
             phone_number_id=request.phone_number_id,
             access_token=access_token
         )
@@ -1107,8 +1109,8 @@ async def connect_whatsapp_account(
             existing_account.business_name = business_name or existing_account.business_name
             existing_account.is_active = True
             existing_account.connected_at = datetime.utcnow()
-            db.commit()
-            db.refresh(existing_account)
+            await db.commit()
+            await db.refresh(existing_account)
             
             logger.info(f"✅ Updated WhatsApp account: {phone_number}")
             
@@ -1134,8 +1136,8 @@ async def connect_whatsapp_account(
             )
             
             db.add(new_account)
-            db.commit()
-            db.refresh(new_account)
+            await db.commit()
+            await db.refresh(new_account)
             
             logger.info(f"✅ Connected WhatsApp account: {phone_number}")
             
@@ -1153,7 +1155,7 @@ async def connect_whatsapp_account(
         raise
     except Exception as e:
         logger.error(f"❌ Error connecting WhatsApp account: {e}", exc_info=True)
-        db.rollback()
+        await db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -1161,7 +1163,7 @@ async def connect_whatsapp_account(
 async def connect_whatsapp_manual(
     request: ManualConnectRequest,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db_sync)
+    db: AsyncSession = Depends(get_db)
 ):
     """
     Manually connect WhatsApp Business Account with credentials
@@ -1184,7 +1186,7 @@ async def connect_whatsapp_manual(
         # Get business profile if possible
         business_name = request.business_name
         if not business_name:
-            profile_result = whatsapp_service.get_business_profile(
+            profile_result = await whatsapp_service.get_business_profile(
                 phone_number_id=request.phone_number_id,
                 access_token=request.access_token
             )
@@ -1207,8 +1209,8 @@ async def connect_whatsapp_manual(
             existing_account.facebook_user_id = request.facebook_user_id
             existing_account.token_type = request.token_type or "system_user"
             existing_account.connected_at = datetime.utcnow()
-            db.commit()
-            db.refresh(existing_account)
+            await db.commit()
+            await db.refresh(existing_account)
             
             logger.info(f"✅ Updated WhatsApp account manually: {phone_number}")
             logger.info(f"   Token Type: {existing_account.token_type}")
@@ -1240,8 +1242,8 @@ async def connect_whatsapp_manual(
             )
             
             db.add(new_account)
-            db.commit()
-            db.refresh(new_account)
+            await db.commit()
+            await db.refresh(new_account)
             
             logger.info(f"✅ Connected WhatsApp account manually: {phone_number}")
             logger.info(f"   Token Type: {new_account.token_type}")
@@ -1263,7 +1265,7 @@ async def connect_whatsapp_manual(
         raise
     except Exception as e:
         logger.error(f"❌ Error connecting WhatsApp account manually: {e}", exc_info=True)
-        db.rollback()
+        await db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -1345,7 +1347,7 @@ async def debug_token(
 @router.get("/connection-status", response_model=WhatsAppConnectionStatus)
 async def get_connection_status(
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db_sync)
+    db: AsyncSession = Depends(get_db)
 ):
     """
     Get WhatsApp connection status for current user
@@ -1374,7 +1376,7 @@ async def get_connection_status(
 @router.post("/disconnect")
 async def disconnect_whatsapp_account(
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db_sync)
+    db: AsyncSession = Depends(get_db)
 ):
     """
     Disconnect WhatsApp Business Account
@@ -1419,10 +1421,10 @@ async def disconnect_whatsapp_account(
         # logger.info(f"   Deleted automations for account {account.id}")
         
         # Delete the account itself
-        # db.delete(account)
+        # await db.delete(account)
         # logger.info(f"   Deleted account {account.id}")
         
-        db.commit()
+        await db.commit()
         
         logger.info(f"✅ Disconnected WhatsApp account: {account.phone_number}")
         logger.info(f"   Account deactivated (data preserved)")
@@ -1438,7 +1440,7 @@ async def disconnect_whatsapp_account(
         raise
     except Exception as e:
         logger.error(f"❌ Error disconnecting WhatsApp account: {e}", exc_info=True)
-        db.rollback()
+        await db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -1448,7 +1450,7 @@ from datetime import datetime
 @router.delete("/disconnect/permanent")
 async def disconnect_whatsapp_permanent(
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db_sync)
+    db: AsyncSession = Depends(get_db)
 ):
     """
     Permanently disconnect WhatsApp account and DELETE ALL DATA
@@ -1506,10 +1508,10 @@ async def disconnect_whatsapp_permanent(
         logger.info(f"   🗑️  Deleted {automation_count} automations")
         
         # Delete the account itself
-        db.delete(account)
+        await db.delete(account)
         logger.info(f"   🗑️  Deleted account {account_id}")
         
-        db.commit()
+        await db.commit()
         
         logger.warning(f"✅ PERMANENTLY DELETED WhatsApp account: {phone_number}")
         logger.warning(f"   - {message_count} messages deleted")
@@ -1531,5 +1533,5 @@ async def disconnect_whatsapp_permanent(
         raise
     except Exception as e:
         logger.error(f"❌ Error permanently deleting WhatsApp account: {e}", exc_info=True)
-        db.rollback()
+        await db.rollback()
         raise HTTPException(status_code=500, detail=str(e))

@@ -1,8 +1,10 @@
+import { toast } from "sonner";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, ExternalLink, Download, Edit, Share2 } from "lucide-react";
 import { apiClient } from "@/lib/api";
+import { env } from "@/config/env";
 
 export const Route = createFileRoute("/website/$websiteId")({
   head: () => ({ meta: [{ title: "Website Preview — Saadhyam AI" }] }),
@@ -21,7 +23,7 @@ function WebsitePreviewPage() {
         setLoading(true);
         
         // Fetch website data from the backend
-        const response = await fetch(`http://localhost:8000/api/v1/websites/${websiteId}`, {
+        const response = await fetch(`${env.apiBaseUrl}/api/v1/websites/${websiteId}`, {
           headers: {
             "Authorization": `Bearer ${apiClient.getToken()}`,
           },
@@ -48,13 +50,13 @@ function WebsitePreviewPage() {
 
   const handleViewLive = () => {
     if (websiteData?.preview_url) {
-      window.open(`http://localhost:8000${websiteData.preview_url}`, '_blank');
+      window.open(`${env.apiBaseUrl}${websiteData.preview_url}`, '_blank');
     }
   };
 
   const handleDownload = () => {
     if (websiteData?.html_url) {
-      window.open(`http://localhost:8000${websiteData.html_url}`, '_blank');
+      window.open(`${env.apiBaseUrl}${websiteData.html_url}`, '_blank');
     }
   };
 
@@ -74,7 +76,7 @@ function WebsitePreviewPage() {
     } else {
       // Fallback: copy to clipboard
       navigator.clipboard.writeText(shareUrl);
-      alert("Website link copied to clipboard!");
+      toast.success("Website link copied to clipboard!");
     }
   };
 
@@ -160,7 +162,7 @@ function WebsitePreviewPage() {
           <div className="aspect-[16/10] bg-white">
             {websiteData?.preview_url ? (
               <iframe
-                src={`http://localhost:8000${websiteData.preview_url}`}
+                src={`${env.apiBaseUrl}${websiteData.preview_url}`}
                 className="w-full h-full border-0"
                 title={`${websiteData.business_name} Website Preview`}
               />

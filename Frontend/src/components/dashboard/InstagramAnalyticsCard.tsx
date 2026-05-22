@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { env } from "@/config/env";
 
 interface InstagramStats {
   followers_count: number;
@@ -47,7 +48,7 @@ export function InstagramAnalyticsCard() {
       
       // Check if Instagram is connected
       const connectionResponse = await fetch(
-        "http://localhost:8000/settings/instagram/connection-status",
+        `${env.apiBaseUrl}/settings/instagram/connection-status`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -79,7 +80,7 @@ export function InstagramAnalyticsCard() {
 
       // Get analytics account
       const accountResponse = await fetch(
-        "http://localhost:8000/api/instagram-analytics/accounts/from-social",
+        `${env.apiBaseUrl}/api/instagram-analytics/accounts/from-social`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -96,7 +97,7 @@ export function InstagramAnalyticsCard() {
           
           // Get dashboard data
           const dashboardResponse = await fetch(
-            `http://localhost:8000/api/instagram-analytics/dashboard/${account.id}`,
+            `${env.apiBaseUrl}/api/instagram-analytics/dashboard/${account.id}`,
             {
               headers: {
                 Authorization: `Bearer ${token}`,

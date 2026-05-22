@@ -42,7 +42,7 @@ if (typeof window !== 'undefined') {
     console.warn('⚠️ Missing environment variables:', missingEnvVars);
     console.warn('⚠️ Using default values. Create .env.development file with:');
     missingEnvVars.forEach(key => {
-      console.warn(`   ${key}=http://localhost:8000`);
+      console.warn(`   ${key}='http://localhost:8000'`);
     });
   }
 }

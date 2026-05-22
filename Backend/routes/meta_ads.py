@@ -6,6 +6,8 @@ Complete API for Meta Ads campaign management
 import logging
 from fastapi import APIRouter, Depends, HTTPException, Body
 from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, func
 from typing import Optional, List
 from pydantic import BaseModel
 
@@ -61,7 +63,7 @@ class UpdateCampaignStatusRequest(BaseModel):
 async def promote_post(
     request: PromotePostRequest,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
 ):
     """
     Promote an Instagram post as a Meta Ad
@@ -91,10 +93,12 @@ async def promote_post(
         logger.info(f"   campaign_name: {request.campaign_name}")
         
         # Get Meta account
-        meta_account = db.query(MetaAccount).filter(
+        stmt = select(MetaAccount).where(
             MetaAccount.user_id == current_user.id,
             MetaAccount.is_active == True,
-        ).first()
+        )
+        result = await db.execute(stmt)
+        meta_account = result.scalar_one_or_none()
         
         if not meta_account:
             raise HTTPException(
@@ -107,10 +111,12 @@ async def promote_post(
         
         if request.post_id:
             # Mode 1: Promote scheduled post
-            post = db.query(ScheduledPost).filter(
+            stmt = select(ScheduledPost).where(
                 ScheduledPost.id == request.post_id,
                 ScheduledPost.user_id == current_user.id,
-            ).first()
+            )
+            result = await db.execute(stmt)
+            post = result.scalar_one_or_none()
             
             if not post:
                 raise HTTPException(status_code=404, detail="Scheduled post not found")
@@ -120,9 +126,11 @@ async def promote_post(
             from models.instagram_analytics import PostAnalytics
             
             # Try to find the post in analytics
-            analytics_post = db.query(PostAnalytics).filter(
+            stmt = select(PostAnalytics).where(
                 PostAnalytics.media_id == request.instagram_media_id,
-            ).first()
+            )
+            result = await db.execute(stmt)
+            analytics_post = result.scalar_one_or_none()
             
             if not analytics_post:
                 raise HTTPException(
@@ -182,13 +190,15 @@ async def promote_post(
 @router.get("/campaigns")
 async def get_campaigns(
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
 ):
     """Get all campaigns for current user"""
     try:
-        campaigns = db.query(AdCampaign).filter(
+        stmt = select(AdCampaign).where(
             AdCampaign.user_id == current_user.id,
-        ).order_by(AdCampaign.created_at.desc()).all()
+        ).order_by(AdCampaign.created_at.desc())
+        result = await db.execute(stmt)
+        campaigns = result.scalars().all()
         
         return {
             "success": True,
@@ -219,14 +229,16 @@ async def get_campaigns(
 async def get_campaign(
     campaign_id: int,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
 ):
     """Get campaign details"""
     try:
-        campaign = db.query(AdCampaign).filter(
+        stmt = select(AdCampaign).where(
             AdCampaign.id == campaign_id,
             AdCampaign.user_id == current_user.id,
-        ).first()
+        )
+        result = await db.execute(stmt)
+        campaign = result.scalar_one_or_none()
         
         if not campaign:
             raise HTTPException(status_code=404, detail="Campaign not found")
@@ -274,22 +286,26 @@ async def update_campaign_status(
     campaign_id: int,
     request: UpdateCampaignStatusRequest,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
 ):
     """Update campaign status (pause/resume/delete)"""
     try:
-        campaign = db.query(AdCampaign).filter(
+        stmt = select(AdCampaign).where(
             AdCampaign.id == campaign_id,
             AdCampaign.user_id == current_user.id,
-        ).first()
+        )
+        result = await db.execute(stmt)
+        campaign = result.scalar_one_or_none()
         
         if not campaign:
             raise HTTPException(status_code=404, detail="Campaign not found")
         
         # Get Meta account
-        meta_account = db.query(MetaAccount).filter(
+        stmt = select(MetaAccount).where(
             MetaAccount.id == campaign.meta_account_id,
-        ).first()
+        )
+        result = await db.execute(stmt)
+        meta_account = result.scalar_one_or_none()
         
         if not meta_account:
             raise HTTPException(status_code=400, detail="Meta account not found")
@@ -315,7 +331,7 @@ async def update_campaign_status(
         
         # Update in database
         campaign.status = new_status
-        db.commit()
+        await db.commit()
         
         return {
             "success": True,
@@ -338,22 +354,26 @@ async def get_campaign_analytics(
     campaign_id: int,
     date_preset: str = "last_7d",
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
 ):
     """Get campaign analytics"""
     try:
-        campaign = db.query(AdCampaign).filter(
+        stmt = select(AdCampaign).where(
             AdCampaign.id == campaign_id,
             AdCampaign.user_id == current_user.id,
-        ).first()
+        )
+        result = await db.execute(stmt)
+        campaign = result.scalar_one_or_none()
         
         if not campaign:
             raise HTTPException(status_code=404, detail="Campaign not found")
         
         # Get Meta account
-        meta_account = db.query(MetaAccount).filter(
+        stmt = select(MetaAccount).where(
             MetaAccount.id == campaign.meta_account_id,
-        ).first()
+        )
+        result = await db.execute(stmt)
+        meta_account = result.scalar_one_or_none()
         
         if not meta_account:
             raise HTTPException(status_code=400, detail="Meta account not found")
@@ -384,7 +404,7 @@ async def get_campaign_analytics(
 async def get_audience_recommendations(
     request: AudienceRecommendationRequest,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
 ):
     """Get AI-powered audience targeting recommendations"""
     try:
@@ -407,7 +427,7 @@ async def get_audience_recommendations(
 async def get_budget_recommendations(
     request: BudgetRecommendationRequest,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
 ):
     """Get AI-powered budget recommendations"""
     try:
@@ -431,14 +451,16 @@ async def get_budget_recommendations(
 @router.get("/dashboard/summary")
 async def get_dashboard_summary(
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
 ):
     """Get Meta Ads dashboard summary"""
     try:
         # Get all campaigns
-        campaigns = db.query(AdCampaign).filter(
+        stmt = select(AdCampaign).where(
             AdCampaign.user_id == current_user.id,
-        ).all()
+        )
+        result = await db.execute(stmt)
+        campaigns = result.scalars().all()
         
         # Calculate summary
         total_campaigns = len(campaigns)

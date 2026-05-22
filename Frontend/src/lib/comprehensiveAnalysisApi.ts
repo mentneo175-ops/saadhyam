@@ -1,9 +1,10 @@
+import { env } from "@/config/env";
 /**
  * Comprehensive Business Analysis API Client
  * ONE API call populates ALL features - no rate limit issues
  */
 
-const API_BASE_URL = 'http://localhost:8000';
+const API_BASE_URL = env.apiBaseUrl;
 
 export interface AnalysisStatus {
   status: 'not_started' | 'pending' | 'analyzing' | 'completed' | 'error';

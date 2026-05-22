@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
+import { env } from "@/config/env";
 import {
   Users,
   Upload,
@@ -77,7 +78,7 @@ function CustomerRetentionAgentPage() {
     setSendingEmail(customer.email);
 
     try {
-      const response = await fetch("http://localhost:8000/api/customer-retention/send-email", {
+      const response = await fetch(`${env.apiBaseUrl}/api/customer-retention/send-email`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -154,7 +155,7 @@ function CustomerRetentionAgentPage() {
       const formData = new FormData();
       formData.append("file", file);
 
-      const response = await fetch("http://localhost:8000/api/customer-retention/analyze", {
+      const response = await fetch(`${env.apiBaseUrl}/api/customer-retention/analyze`, {
         method: "POST",
         body: formData,
       });

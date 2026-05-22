@@ -1,3 +1,4 @@
+import { toast } from "sonner";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -5,6 +6,7 @@ import { Loader2, Sparkles } from "lucide-react";
 import PartnershipWizard from "../components/PartnershipWizard";
 import PartnershipNetworkExplorer from "../components/PartnershipNetworkExplorer";
 import { parseFollowers, parseEngagement, formatFollowers, formatEngagement } from "../utils/formatters";
+import { env } from "@/config/env";
 
 export const Route = createFileRoute("/dashboard/agents/partnership")({
   head: () => ({ meta: [{ title: "Partnership Agent — Saadhyam AI" }] }),
@@ -70,7 +72,7 @@ function PartnershipAgentPage() {
     try {
       console.log("🚀 Submitting partnership request:", data);
 
-      const response = await fetch("http://localhost:8000/api/partnership/agent", {
+      const response = await fetch(`${env.apiBaseUrl}/api/partnership/agent`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -124,7 +126,7 @@ function PartnershipAgentPage() {
       }
     } catch (error) {
       console.error("❌ Partnership API error:", error);
-      alert("Error fetching influencers. Please check your API configuration and try again.");
+      toast.error("Error fetching influencers. Please check your API configuration and try again.");
       setShowWizard(true);
     } finally {
       clearInterval(messageInterval);

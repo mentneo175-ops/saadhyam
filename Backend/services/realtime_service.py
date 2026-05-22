@@ -42,7 +42,7 @@ class RealtimeService:
         # Store online users: {user_id: last_seen}
         self.online_users: Dict[int, datetime] = {}
         
-        logger.info("✅ Real-time service initialized")
+        logger.info("[SUCCESS] Real-time service initialized")
         
         # Register event handlers
         self._register_handlers()
@@ -66,7 +66,7 @@ class RealtimeService:
                     # Mark user as online
                     self.online_users[user_id] = datetime.now()
                     
-                    logger.info(f"✅ User {user_id} connected (sid: {sid})")
+                    logger.info(f"[SUCCESS] User {user_id} connected (sid: {sid})")
                     
                     # Notify others about online status
                     await self.sio.emit('user_online', {
@@ -74,12 +74,12 @@ class RealtimeService:
                         'timestamp': datetime.now().isoformat()
                     }, skip_sid=sid)
                 else:
-                    logger.warning(f"⚠️  Anonymous connection (sid: {sid})")
+                    logger.warning(f"[WARNING] Anonymous connection (sid: {sid})")
                 
                 return True
                 
             except Exception as e:
-                logger.error(f"❌ Connection error: {e}")
+                logger.error(f"[ERROR] Connection error: {e}")
                 return False
         
         @self.sio.event
@@ -107,12 +107,12 @@ class RealtimeService:
                             'last_seen': datetime.now().isoformat()
                         })
                     
-                    logger.info(f"✅ User {user_id} disconnected (sid: {sid})")
+                    logger.info(f"[SUCCESS] User {user_id} disconnected (sid: {sid})")
                 else:
-                    logger.info(f"✅ Anonymous user disconnected (sid: {sid})")
+                    logger.info(f"[SUCCESS] Anonymous user disconnected (sid: {sid})")
                     
             except Exception as e:
-                logger.error(f"❌ Disconnection error: {e}")
+                logger.error(f"[ERROR] Disconnection error: {e}")
         
         @self.sio.event
         async def join_conversation(sid, data):
@@ -124,14 +124,14 @@ class RealtimeService:
                 if conversation_id:
                     room = f"conversation_{conversation_id}"
                     await self.sio.enter_room(sid, room)
-                    logger.info(f"✅ User {user_id} joined conversation {conversation_id}")
+                    logger.info(f"[SUCCESS] User {user_id} joined conversation {conversation_id}")
                     
                     return {'success': True, 'room': room}
                 else:
                     return {'success': False, 'error': 'Missing conversation_id'}
                     
             except Exception as e:
-                logger.error(f"❌ Join conversation error: {e}")
+                logger.error(f"[ERROR] Join conversation error: {e}")
                 return {'success': False, 'error': str(e)}
         
         @self.sio.event
@@ -144,14 +144,14 @@ class RealtimeService:
                 if conversation_id:
                     room = f"conversation_{conversation_id}"
                     await self.sio.leave_room(sid, room)
-                    logger.info(f"✅ User {user_id} left conversation {conversation_id}")
+                    logger.info(f"[SUCCESS] User {user_id} left conversation {conversation_id}")
                     
                     return {'success': True}
                 else:
                     return {'success': False, 'error': 'Missing conversation_id'}
                     
             except Exception as e:
-                logger.error(f"❌ Leave conversation error: {e}")
+                logger.error(f"[ERROR] Leave conversation error: {e}")
                 return {'success': False, 'error': str(e)}
         
         @self.sio.event
@@ -180,7 +180,7 @@ class RealtimeService:
                     return {'success': False, 'error': 'Missing data'}
                     
             except Exception as e:
-                logger.error(f"❌ Typing start error: {e}")
+                logger.error(f"[ERROR] Typing start error: {e}")
                 return {'success': False, 'error': str(e)}
         
         @self.sio.event
@@ -208,7 +208,7 @@ class RealtimeService:
                     return {'success': False, 'error': 'Missing data'}
                     
             except Exception as e:
-                logger.error(f"❌ Typing stop error: {e}")
+                logger.error(f"[ERROR] Typing stop error: {e}")
                 return {'success': False, 'error': str(e)}
         
         @self.sio.event
@@ -234,7 +234,7 @@ class RealtimeService:
                     return {'success': False, 'error': 'Missing data'}
                     
             except Exception as e:
-                logger.error(f"❌ Mark read error: {e}")
+                logger.error(f"[ERROR] Mark read error: {e}")
                 return {'success': False, 'error': str(e)}
     
     # ============ Public Methods for Broadcasting ============
@@ -255,10 +255,29 @@ class RealtimeService:
                 'timestamp': datetime.now().isoformat()
             }, room=room)
             
-            logger.info(f"✅ Broadcasted new message to conversation {conversation_id}")
+            logger.info(f"[SUCCESS] Broadcasted new message to conversation {conversation_id}")
             
         except Exception as e:
-            logger.error(f"❌ Broadcast message error: {e}")
+            logger.error(f"[ERROR] Broadcast message error: {e}")
+
+    async def broadcast_chat_cleared(self, conversation_id: str):
+        """
+        Broadcast chat cleared event to conversation participants
+        
+        Args:
+            conversation_id: Conversation ID
+        """
+        try:
+            room = f"conversation_{conversation_id}"
+            await self.sio.emit('chat_cleared', {
+                'conversation_id': conversation_id,
+                'timestamp': datetime.now().isoformat()
+            }, room=room)
+            
+            logger.info(f"[SUCCESS] Broadcasted chat cleared to conversation {conversation_id}")
+            
+        except Exception as e:
+            logger.error(f"[ERROR] Broadcast chat cleared error: {e}")
     
     async def broadcast_collaboration_update(self, collaboration_id: int, update_data: Dict[str, Any]):
         """
@@ -275,10 +294,10 @@ class RealtimeService:
                 'timestamp': datetime.now().isoformat()
             })
             
-            logger.info(f"✅ Broadcasted collaboration update for {collaboration_id}")
+            logger.info(f"[SUCCESS] Broadcasted collaboration update for {collaboration_id}")
             
         except Exception as e:
-            logger.error(f"❌ Broadcast collaboration update error: {e}")
+            logger.error(f"[ERROR] Broadcast collaboration update error: {e}")
     
     async def broadcast_influencer_update(self, influencer_id: int, update_data: Dict[str, Any]):
         """
@@ -295,10 +314,10 @@ class RealtimeService:
                 'timestamp': datetime.now().isoformat()
             })
             
-            logger.info(f"✅ Broadcasted influencer update for {influencer_id}")
+            logger.info(f"[SUCCESS] Broadcasted influencer update for {influencer_id}")
             
         except Exception as e:
-            logger.error(f"❌ Broadcast influencer update error: {e}")
+            logger.error(f"[ERROR] Broadcast influencer update error: {e}")
     
     async def broadcast_trust_score_update(self, influencer_id: int, trust_data: Dict[str, Any]):
         """
@@ -315,10 +334,10 @@ class RealtimeService:
                 'timestamp': datetime.now().isoformat()
             })
             
-            logger.info(f"✅ Broadcasted trust score update for influencer {influencer_id}")
+            logger.info(f"[SUCCESS] Broadcasted trust score update for influencer {influencer_id}")
             
         except Exception as e:
-            logger.error(f"❌ Broadcast trust score update error: {e}")
+            logger.error(f"[ERROR] Broadcast trust score update error: {e}")
     
     async def notify_user(self, user_id: int, notification: Dict[str, Any]):
         """
@@ -338,10 +357,10 @@ class RealtimeService:
                     'timestamp': datetime.now().isoformat()
                 }, room=sid)
             
-            logger.info(f"✅ Sent notification to user {user_id}")
+            logger.info(f"[SUCCESS] Sent notification to user {user_id}")
             
         except Exception as e:
-            logger.error(f"❌ Notify user error: {e}")
+            logger.error(f"[ERROR] Notify user error: {e}")
     
     def is_user_online(self, user_id: int) -> bool:
         """

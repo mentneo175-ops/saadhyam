@@ -5,6 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Send, Loader2, X, Sparkles, User, Check, CheckCheck } from "lucide-react";
 import { toast } from "sonner";
+import { env } from "@/config/env";
 
 interface Message {
   id: number;
@@ -52,7 +53,7 @@ export function ChatWindow({ customerPhone, onClose }: ChatWindowProps) {
     try {
       const token = localStorage.getItem("saadhyam_token");
       const response = await fetch(
-        `http://localhost:8000/api/whatsapp/messages/conversation/${encodeURIComponent(customerPhone)}?limit=50&offset=0`,
+        `${env.apiBaseUrl}/api/whatsapp/messages/conversation/${encodeURIComponent(customerPhone)}?limit=50&offset=0`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -76,7 +77,7 @@ export function ChatWindow({ customerPhone, onClose }: ChatWindowProps) {
       setLoadingAi(true);
       const token = localStorage.getItem("saadhyam_token");
       const response = await fetch(
-        `http://localhost:8000/api/whatsapp/messages/ai-suggestion?customer_phone=${encodeURIComponent(customerPhone)}`,
+        `${env.apiBaseUrl}/api/whatsapp/messages/ai-suggestion?customer_phone=${encodeURIComponent(customerPhone)}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -112,7 +113,7 @@ export function ChatWindow({ customerPhone, onClose }: ChatWindowProps) {
       const token = localStorage.getItem("saadhyam_token");
       
       const response = await fetch(
-        "http://localhost:8000/api/whatsapp/messages/send",
+        `${env.apiBaseUrl}/api/whatsapp/messages/send`,
         {
           method: "POST",
           headers: {

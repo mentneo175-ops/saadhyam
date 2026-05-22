@@ -1,9 +1,11 @@
+import { toast } from "sonner";
 import { createFileRoute } from "@tanstack/react-router";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Sparkles, Globe, Download, Loader2, Code, ExternalLink, Share2, Brain, Zap, Target, Check, RefreshCw } from "lucide-react";
 import { useState, useEffect } from "react";
 import { apiClient } from "@/lib/api";
+import { env } from "@/config/env";
 
 export const Route = createFileRoute("/dashboard/website")({
   head: () => ({ meta: [{ title: "Website AI — Saadhyam AI" }] }),
@@ -120,7 +122,7 @@ function WebsiteAIPage() {
       console.log("🔍 Fetching website HTML for preview:", websiteId);
       console.log("🔑 Token:", apiClient.getToken() ? "Present" : "Missing");
       
-      const url = `http://localhost:8000/saadhyam/${websiteId}`;
+      const url = `${env.apiBaseUrl}/saadhyam/${websiteId}`;
       console.log("🌐 Fetching from URL:", url);
       
       const response = await fetch(url, {
@@ -150,7 +152,7 @@ function WebsiteAIPage() {
       }
         
         // Add base URL for resolving relative links
-        const baseUrl = `http://localhost:8000/website-ai/output/`;
+        const baseUrl = `${env.apiBaseUrl}/website-ai/output/`;
         const baseTag = `<base href="${baseUrl}" target="_self">`;
         
         // Minimal navigation script - handle hash links and blog navigation
@@ -180,7 +182,7 @@ function WebsiteAIPage() {
                 // Handle blog links (blogs.html, blog-*.html) - open in new tab
                 if (href && (href.includes('blogs.html') || href.includes('blog-'))) {
                   e.preventDefault();
-                  const fullUrl = href.startsWith('http') ? href : 'http://localhost:8000/website-ai/output/' + href;
+                  const fullUrl = href.startsWith('http') ? href : env.apiBaseUrl + '/website-ai/output/' + href;
                   console.log('📝 Opening blog page in new tab:', fullUrl);
                   window.open(fullUrl, '_blank');
                   return;
@@ -190,7 +192,7 @@ function WebsiteAIPage() {
                 if (href && href.startsWith('/api/')) {
                   e.preventDefault();
                   console.log('🔗 Opening API link in new tab:', href);
-                  window.open('http://localhost:8000' + href, '_blank');
+                  window.open(env.apiBaseUrl + href, '_blank');
                   return;
                 }
                 
@@ -198,7 +200,7 @@ function WebsiteAIPage() {
                 if (href && href.includes('://') && !href.includes('localhost')) {
                   e.preventDefault();
                   console.log('🚫 External link blocked in preview:', href);
-                  alert('External links are disabled in preview mode');
+                  toast.info('External links are disabled in preview mode');
                   return;
                 }
               }
@@ -207,7 +209,7 @@ function WebsiteAIPage() {
             // Prevent form submissions in preview
             document.addEventListener('submit', function(e) {
               e.preventDefault();
-              alert('Form submissions are disabled in preview mode');
+              toast.info('Form submissions are disabled in preview mode');
             }, true);
             
             console.log('✅ Navigation ready');
@@ -278,7 +280,7 @@ function WebsiteAIPage() {
   // Download website HTML file
   const downloadWebsiteHtml = async (websiteId: string, businessName: string) => {
     try {
-      const response = await fetch(`http://localhost:8000/saadhyam/${websiteId}`, {
+      const response = await fetch(`${env.apiBaseUrl}/saadhyam/${websiteId}`, {
         headers: {
           "Authorization": `Bearer ${apiClient.getToken()}`,
         },
@@ -305,7 +307,7 @@ function WebsiteAIPage() {
   // View website source code
   const viewWebsiteCode = async (websiteId: string) => {
     try {
-      const response = await fetch(`http://localhost:8000/saadhyam/${websiteId}`, {
+      const response = await fetch(`${env.apiBaseUrl}/saadhyam/${websiteId}`, {
         headers: {
           "Authorization": `Bearer ${apiClient.getToken()}`,
         },
@@ -386,7 +388,7 @@ function WebsiteAIPage() {
       
       console.log("📤 Sending request data:", requestData);
       
-      const response = await fetch("http://localhost:8000/api/v1/website-ai/generate", {
+      const response = await fetch(`${env.apiBaseUrl}/api/v1/website-ai/generate`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -458,7 +460,7 @@ function WebsiteAIPage() {
           return;
         }
         
-        const response = await fetch(`http://localhost:8000/api/v1/website-ai/jobs/${jobId}`, {
+        const response = await fetch(`${env.apiBaseUrl}/api/v1/website-ai/jobs/${jobId}`, {
           headers: {
             "Authorization": `Bearer ${apiClient.getToken()}`,
           },
@@ -502,7 +504,7 @@ function WebsiteAIPage() {
           console.log("✅ Job completed! Fetching result...");
           // Fetch the result data when job is completed
           try {
-            const resultResponse = await fetch(`http://localhost:8000/api/v1/website-ai/jobs/${jobId}/result`, {
+            const resultResponse = await fetch(`${env.apiBaseUrl}/api/v1/website-ai/jobs/${jobId}/result`, {
               headers: {
                 "Authorization": `Bearer ${apiClient.getToken()}`,
               },
@@ -564,7 +566,7 @@ function WebsiteAIPage() {
     try {
       console.log("📝 Confirming website:", websiteResult.website_id);
       
-      const response = await fetch('http://localhost:8000/api/profile/confirm-website', {
+      const response = await fetch(`${env.apiBaseUrl}/api/profile/confirm-website`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -589,7 +591,7 @@ function WebsiteAIPage() {
       
     } catch (error) {
       console.error("❌ Error confirming website:", error);
-      alert("Failed to confirm website. Please try again.");
+      toast.error("Failed to confirm website. Please try again.");
     }
   };
 
@@ -745,39 +747,37 @@ function WebsiteAIPage() {
 
             {/* Confirmation Button - Show after generation */}
             {showConfirmButton && !isWebsiteConfirmed && websiteResult && (
-              <div className="mb-3 p-4 bg-green-50 border border-green-200 rounded-lg">
-                <p className="text-sm font-medium text-green-900 mb-2">
+              <div className="mb-3 p-4 bg-[#F3EEFF] border border-[#E9D5FF] rounded-xl">
+                <p className="text-sm font-semibold text-[#8B5CF6] mb-2">
                   ✅ Website Generated Successfully!
                 </p>
-                <p className="text-xs text-green-700 mb-3">
-                  Review your website preview below. Click "Confirm & Use This Website" to make it your official website. Your published blogs will be automatically added to this website.
+                <p className="text-xs text-[#7C3AED] mb-3">
+                  Review your website preview below. Click "Confirm &amp; Use This Website" to make it your official website. Your published blogs will be automatically added to this website.
                 </p>
-                <Button
+                <button
                   onClick={handleConfirmWebsite}
-                  className="w-full bg-green-600 hover:bg-green-700 text-white"
+                  className="w-full h-10 bg-gradient-to-r from-[#8B5CF6] to-[#A855F7] hover:from-[#7C3AED] hover:to-[#9333EA] text-white font-semibold rounded-xl text-sm flex items-center justify-center gap-2 shadow-lg shadow-[#8B5CF6]/25 transition-all"
                 >
-                  <Check size={16} className="mr-2" />
-                  Confirm & Use This Website
-                </Button>
+                  <Check size={16} />
+                  Confirm &amp; Use This Website
+                </button>
               </div>
             )}
 
             {/* Regenerate Button - Show when website is confirmed and form is hidden */}
             {isWebsiteConfirmed && !showForm && (
-              <div className="mb-3 flex items-center justify-between p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="mb-3 flex items-center justify-between p-3 bg-[#F3EEFF] border border-[#E9D5FF] rounded-xl">
                 <div>
-                  <p className="text-sm font-medium text-blue-900">Your Confirmed Website</p>
-                  <p className="text-xs text-blue-700">This is your official website. Blogs will be published here.</p>
+                  <p className="text-sm font-semibold text-[#8B5CF6]">Your Confirmed Website</p>
+                  <p className="text-xs text-[#7C3AED]">This is your official website. Blogs will be published here.</p>
                 </div>
-                <Button
+                <button
                   onClick={handleRegenerateWebsite}
-                  variant="outline"
-                  size="sm"
-                  className="border-blue-300 text-blue-700 hover:bg-blue-100"
+                  className="px-3 py-1.5 text-xs font-semibold border border-[#E9D5FF] text-[#8B5CF6] hover:bg-[#F3EEFF] rounded-lg transition-all"
                 >
-                  <RefreshCw size={14} className="mr-2" />
+                  <RefreshCw size={12} className="inline mr-1" />
                   Regenerate
-                </Button>
+                </button>
               </div>
             )}
 
@@ -797,7 +797,7 @@ function WebsiteAIPage() {
                   size="sm"
                   onClick={() => {
                     if (websiteResult?.preview_url) {
-                      window.open(`http://localhost:8000${websiteResult.preview_url}`, '_blank');
+                      window.open(`${env.apiBaseUrl}${websiteResult.preview_url}`, '_blank');
                     }
                   }}
                   className="flex-1"
@@ -960,7 +960,7 @@ function WebsiteAIPage() {
                     <div className="flex-1 flex items-center gap-2">
                       <input
                         type="text"
-                        value={websiteResult?.preview_url ? `http://localhost:8000${websiteResult.preview_url}${currentPreviewPath}` : ''}
+                        value={websiteResult?.preview_url ? `${env.apiBaseUrl}${websiteResult.preview_url}${currentPreviewPath}` : ''}
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                           const newUrl = e.target.value;
                           if (newUrl.includes('localhost:8000/saadhyam/')) {
@@ -1003,7 +1003,7 @@ function WebsiteAIPage() {
                       <button
                         onClick={() => {
                           if (websiteResult?.preview_url) {
-                            window.open(`http://localhost:8000${websiteResult.preview_url}`, '_blank');
+                            window.open(`${env.apiBaseUrl}${websiteResult.preview_url}`, '_blank');
                           }
                         }}
                         className="text-gray-500 hover:text-gray-700 p-1"

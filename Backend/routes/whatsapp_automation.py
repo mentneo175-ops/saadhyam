@@ -6,11 +6,13 @@ Handles automation rules, follow-ups, and auto-replies
 import logging
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, func
 from sqlalchemy import desc
 from pydantic import BaseModel
 from typing import Optional, List, Dict, Any
 from datetime import datetime
-from config.database import get_db_sync
+from config.database import get_db
 from models.user import User
 from models.whatsapp_account import WhatsAppAccount
 from models.whatsapp_automation import WhatsAppAutomation, AutomationType, TriggerEvent
@@ -50,7 +52,7 @@ class UpdateAutomationRequest(BaseModel):
 async def create_automation(
     request: CreateAutomationRequest,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db_sync)
+    db: AsyncSession = Depends(get_db)
 ):
     """
     Create a new automation rule
@@ -94,8 +96,8 @@ async def create_automation(
         )
         
         db.add(automation)
-        db.commit()
-        db.refresh(automation)
+        await db.commit()
+        await db.refresh(automation)
         
         logger.info(f"✅ Created automation: {automation.id} - {automation.name}")
         
@@ -115,14 +117,14 @@ async def create_automation(
         raise
     except Exception as e:
         logger.error(f"❌ Error creating automation: {e}", exc_info=True)
-        db.rollback()
+        await db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.get("")
 async def get_automations(
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db_sync),
+    db: AsyncSession = Depends(get_db),
     automation_type: Optional[str] = Query(None),
     is_enabled: Optional[bool] = Query(None),
     limit: int = Query(50, ge=1, le=100),
@@ -206,7 +208,7 @@ async def get_automations(
 async def get_automation(
     automation_id: int,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db_sync)
+    db: AsyncSession = Depends(get_db)
 ):
     """
     Get a specific automation by ID
@@ -253,7 +255,7 @@ async def update_automation(
     automation_id: int,
     request: UpdateAutomationRequest,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db_sync)
+    db: AsyncSession = Depends(get_db)
 ):
     """
     Update an automation
@@ -286,8 +288,8 @@ async def update_automation(
             automation.trigger_keywords = request.trigger_keywords
         
         automation.updated_at = datetime.utcnow()
-        db.commit()
-        db.refresh(automation)
+        await db.commit()
+        await db.refresh(automation)
         
         return {
             "success": True,
@@ -303,7 +305,7 @@ async def update_automation(
         raise
     except Exception as e:
         logger.error(f"❌ Error updating automation: {e}", exc_info=True)
-        db.rollback()
+        await db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -311,7 +313,7 @@ async def update_automation(
 async def toggle_automation(
     automation_id: int,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db_sync)
+    db: AsyncSession = Depends(get_db)
 ):
     """
     Toggle automation enabled/disabled status
@@ -327,8 +329,8 @@ async def toggle_automation(
         
         automation.is_enabled = not automation.is_enabled
         automation.updated_at = datetime.utcnow()
-        db.commit()
-        db.refresh(automation)
+        await db.commit()
+        await db.refresh(automation)
         
         return {
             "success": True,
@@ -340,7 +342,7 @@ async def toggle_automation(
         raise
     except Exception as e:
         logger.error(f"❌ Error toggling automation: {e}", exc_info=True)
-        db.rollback()
+        await db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -348,7 +350,7 @@ async def toggle_automation(
 async def delete_automation(
     automation_id: int,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db_sync)
+    db: AsyncSession = Depends(get_db)
 ):
     """
     Delete an automation
@@ -362,8 +364,8 @@ async def delete_automation(
         if not automation:
             raise HTTPException(status_code=404, detail="Automation not found")
         
-        db.delete(automation)
-        db.commit()
+        await db.delete(automation)
+        await db.commit()
         
         return {"success": True, "message": "Automation deleted successfully"}
         
@@ -371,14 +373,14 @@ async def delete_automation(
         raise
     except Exception as e:
         logger.error(f"❌ Error deleting automation: {e}", exc_info=True)
-        db.rollback()
+        await db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.get("/stats/overview")
 async def get_automation_stats(
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db_sync)
+    db: AsyncSession = Depends(get_db)
 ):
     """
     Get automation statistics overview

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Instagram, X, CheckCircle, AlertCircle, Loader } from 'lucide-react'
+import { env } from "@/config/env";
 
 interface InstagramConnectProps {
   onClose: () => void
@@ -16,7 +17,7 @@ export function InstagramConnect({ onClose, onSuccess }: InstagramConnectProps) 
     try {
       // Step 1: Get OAuth URL from backend
       const token = localStorage.getItem('token')
-      const response = await fetch('http://localhost:8000/api/instagram-analytics/oauth-url', {
+      const response = await fetch(`${env.apiBaseUrl}/api/instagram-analytics/oauth-url`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -49,7 +50,7 @@ export function InstagramConnect({ onClose, onSuccess }: InstagramConnectProps) 
           
           // Connect account with received data
           try {
-            const connectResponse = await fetch('http://localhost:8000/api/instagram-analytics/connect', {
+            const connectResponse = await fetch(`${env.apiBaseUrl}/api/instagram-analytics/connect`, {
               method: 'POST',
               headers: {
                 'Authorization': `Bearer ${token}`,

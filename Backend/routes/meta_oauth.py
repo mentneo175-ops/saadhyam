@@ -7,7 +7,8 @@ import logging
 import secrets
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 from datetime import datetime, timedelta
 
 from config.database import get_db
@@ -24,7 +25,7 @@ router = APIRouter(prefix="/auth/meta", tags=["Meta OAuth"])
 @router.get("/connect")
 async def connect_meta(
     token: str = Query(..., description="User auth token"),
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
 ):
     """
     Initiate Meta OAuth flow
@@ -38,7 +39,9 @@ async def connect_meta(
         try:
             payload = decode_token(token)
             user_id = payload.get("user_id")
-            user = db.query(User).filter(User.id == user_id).first()
+            stmt = select(User).where(User.id == user_id)
+            result = await db.execute(stmt)
+            user = result.scalar_one_or_none()
         except:
             user = None
         
@@ -96,7 +99,7 @@ async def meta_callback(
     state: str = Query(None),
     error: str = Query(None),
     error_description: str = Query(None),
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
 ):
     """
     Meta OAuth callback
@@ -159,7 +162,9 @@ async def meta_callback(
             raise HTTPException(status_code=400, detail="Invalid state parameter")
         
         # Get user
-        user = db.query(User).filter(User.id == user_id).first()
+        stmt = select(User).where(User.id == user_id)
+        result = await db.execute(stmt)
+        user = result.scalar_one_or_none()
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
         
@@ -301,10 +306,12 @@ async def meta_callback(
         encrypted_page_token = meta_oauth_service.encrypt_token(page_access_token)
         
         # Check if account already exists
-        existing_account = db.query(MetaAccount).filter(
+        stmt = select(MetaAccount).where(
             MetaAccount.user_id == user.id,
             MetaAccount.ad_account_id == ad_account_id,
-        ).first()
+        )
+        result = await db.execute(stmt)
+        existing_account = result.scalar_one_or_none()
         
         if existing_account:
             # Update existing account
@@ -343,7 +350,7 @@ async def meta_callback(
             )
             db.add(meta_account)
         
-        db.commit()
+        await db.commit()
         
         logger.info(f"✅ Meta account connected successfully for user {user.id}")
         
@@ -463,14 +470,16 @@ async def meta_callback(
 @router.get("/status")
 async def get_meta_connection_status(
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
 ):
     """Get Meta connection status for current user"""
     try:
-        meta_account = db.query(MetaAccount).filter(
+        stmt = select(MetaAccount).where(
             MetaAccount.user_id == current_user.id,
             MetaAccount.is_active == True,
-        ).first()
+        )
+        result = await db.execute(stmt)
+        meta_account = result.scalar_one_or_none()
         
         if not meta_account:
             return {
@@ -495,14 +504,16 @@ async def get_meta_connection_status(
 @router.post("/disconnect")
 async def disconnect_meta(
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
 ):
     """Disconnect Meta account"""
     try:
-        meta_account = db.query(MetaAccount).filter(
+        stmt = select(MetaAccount).where(
             MetaAccount.user_id == current_user.id,
             MetaAccount.is_active == True,
-        ).first()
+        )
+        result = await db.execute(stmt)
+        meta_account = result.scalar_one_or_none()
         
         if not meta_account:
             raise HTTPException(status_code=404, detail="No Meta account connected")
@@ -513,7 +524,7 @@ async def disconnect_meta(
         
         # Deactivate account
         meta_account.is_active = False
-        db.commit()
+        await db.commit()
         
         logger.info(f"✅ Meta account disconnected for user {current_user.id}")
         

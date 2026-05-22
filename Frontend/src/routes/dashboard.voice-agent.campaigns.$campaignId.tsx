@@ -22,6 +22,7 @@ import { Button } from "../components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
+import { env } from "@/config/env";
 
 export const Route = createFileRoute("/dashboard/voice-agent/campaigns/$campaignId")({
   component: CampaignDetailsPage,
@@ -114,7 +115,7 @@ function CampaignDetailsPage() {
     queryFn: async () => {
       const token = localStorage.getItem("saadhyam_token");
       const response = await fetch(
-        `http://localhost:8000/api/voice-agent/campaigns/${campaignId}`,
+        `${env.apiBaseUrl}/api/voice-agent/campaigns/${campaignId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -130,7 +131,7 @@ function CampaignDetailsPage() {
     queryFn: async () => {
       const token = localStorage.getItem("saadhyam_token");
       const response = await fetch(
-        `http://localhost:8000/api/voice-agent/campaigns/${campaignId}/analytics`,
+        `${env.apiBaseUrl}/api/voice-agent/campaigns/${campaignId}/analytics`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -146,7 +147,7 @@ function CampaignDetailsPage() {
     queryFn: async () => {
       const token = localStorage.getItem("saadhyam_token");
       const response = await fetch(
-        `http://localhost:8000/api/voice-agent/campaigns/${campaignId}/contacts`,
+        `${env.apiBaseUrl}/api/voice-agent/campaigns/${campaignId}/contacts`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -163,7 +164,7 @@ function CampaignDetailsPage() {
     queryFn: async () => {
       const token = localStorage.getItem("saadhyam_token");
       const response = await fetch(
-        `http://localhost:8000/api/voice-agent/campaigns/${campaignId}/calls`,
+        `${env.apiBaseUrl}/api/voice-agent/campaigns/${campaignId}/calls`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -180,7 +181,7 @@ function CampaignDetailsPage() {
     queryFn: async () => {
       const token = localStorage.getItem("saadhyam_token");
       const response = await fetch(
-        `http://localhost:8000/api/voice-agent/campaigns/${campaignId}/leads`,
+        `${env.apiBaseUrl}/api/voice-agent/campaigns/${campaignId}/leads`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -196,7 +197,7 @@ function CampaignDetailsPage() {
     mutationFn: async (newStatus: string) => {
       const token = localStorage.getItem("saadhyam_token");
       const response = await fetch(
-        `http://localhost:8000/api/voice-agent/campaigns/${campaignId}/status?status_update=${newStatus}`,
+        `${env.apiBaseUrl}/api/voice-agent/campaigns/${campaignId}/status?status_update=${newStatus}`,
         {
           method: "PATCH",
           headers: { Authorization: `Bearer ${token}` },
@@ -215,7 +216,7 @@ function CampaignDetailsPage() {
     mutationFn: async () => {
       const token = localStorage.getItem("saadhyam_token");
       const response = await fetch(
-        `http://localhost:8000/api/voice-agent/campaigns/${campaignId}/start-calling`,
+        `${env.apiBaseUrl}/api/voice-agent/campaigns/${campaignId}/start-calling`,
         {
           method: "POST",
           headers: { Authorization: `Bearer ${token}` },
@@ -720,7 +721,7 @@ function ContactUploadModal({
     mutationFn: async (data: { contacts: Array<{ name: string; phone_number: string; email?: string }> }) => {
       const token = localStorage.getItem("saadhyam_token");
       const response = await fetch(
-        `http://localhost:8000/api/voice-agent/campaigns/${campaignId}/contacts/bulk`,
+        `${env.apiBaseUrl}/api/voice-agent/campaigns/${campaignId}/contacts/bulk`,
         {
           method: "POST",
           headers: {

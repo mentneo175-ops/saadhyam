@@ -9,6 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Loader2, CheckCircle, AlertCircle } from "lucide-react";
 import { connectMetaAccount, getMetaConnectionStatus } from "@/lib/meta-ads-api";
 import { toast } from "sonner";
+import { env } from "@/config/env";
 
 interface MetaConnectionWizardProps {
   onSuccess?: () => void;
@@ -24,7 +25,7 @@ export function MetaConnectionWizard({ onSuccess }: MetaConnectionWizardProps) {
 
     // Listen for OAuth success message
     const handleMessage = (event: MessageEvent) => {
-      if (event.origin !== "http://localhost:8000") return;
+      if (event.origin !== env.apiBaseUrl) return;
 
       if (event.data.type === "meta-auth-success") {
         toast.success("Meta Ads connected successfully!");

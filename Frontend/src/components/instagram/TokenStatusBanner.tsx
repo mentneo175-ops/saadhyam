@@ -1,3 +1,4 @@
+import { toast } from "sonner";
 /**
  * Instagram Token Status Banner
  * Shows token expiry status and allows manual refresh
@@ -6,6 +7,7 @@
 import { useState, useEffect } from 'react';
 import { AlertTriangle, RefreshCw, CheckCircle, XCircle, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { env } from "@/config/env";
 
 interface TokenStatus {
   connected: boolean;
@@ -25,7 +27,7 @@ export function TokenStatusBanner() {
     setLoading(true);
     try {
       const token = localStorage.getItem('saadhyam_token');
-      const response = await fetch('http://localhost:8000/api/instagram/tokens/status', {
+      const response = await fetch(`${env.apiBaseUrl}/api/instagram/tokens/status`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -44,22 +46,22 @@ export function TokenStatusBanner() {
     setRefreshing(true);
     try {
       const token = localStorage.getItem('saadhyam_token');
-      const response = await fetch('http://localhost:8000/api/instagram/tokens/refresh', {
+      const response = await fetch(`${env.apiBaseUrl}/api/instagram/tokens/refresh`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
       });
 
       if (response.ok) {
         const data = await response.json();
-        alert(`Token refreshed successfully! Valid for ${data.expires_in_days} more days.`);
+        toast.success(`Token refreshed successfully! Valid for ${data.expires_in_days} more days.`);
         fetchTokenStatus(); // Reload status
       } else {
         const error = await response.json();
-        alert(`Failed to refresh token: ${error.detail}`);
+        toast.error(`Failed to refresh token: ${error.detail}`);
       }
     } catch (error) {
       console.error('Failed to refresh token:', error);
-      alert('Failed to refresh token. Please try reconnecting your Instagram account.');
+      toast.error('Failed to refresh token. Please try reconnecting your Instagram account.');
     } finally {
       setRefreshing(false);
     }

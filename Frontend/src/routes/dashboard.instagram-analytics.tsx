@@ -20,6 +20,7 @@ import {
 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
+import { env } from "@/config/env";
 
 export const Route = createFileRoute('/dashboard/instagram-analytics')({
   component: InstagramAnalytics,
@@ -133,7 +134,7 @@ function InstagramAnalytics() {
   const fetchAccounts = async () => {
     try {
       const token = localStorage.getItem('token')
-      const response = await fetch('http://localhost:8000/api/instagram-analytics/accounts', {
+      const response = await fetch(`${env.apiBaseUrl}/api/instagram-analytics/accounts`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -155,7 +156,7 @@ function InstagramAnalytics() {
     try {
       setLoading(true)
       const token = localStorage.getItem('token')
-      const response = await fetch(`http://localhost:8000/api/instagram-analytics/dashboard/${accountId}`, {
+      const response = await fetch(`${env.apiBaseUrl}/api/instagram-analytics/dashboard/${accountId}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -175,7 +176,7 @@ function InstagramAnalytics() {
     try {
       setSyncing(true)
       const token = localStorage.getItem('token')
-      await fetch(`http://localhost:8000/api/instagram-analytics/sync/${selectedAccount}`, {
+      await fetch(`${env.apiBaseUrl}/api/instagram-analytics/sync/${selectedAccount}`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`

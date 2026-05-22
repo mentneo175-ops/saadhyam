@@ -4,13 +4,13 @@ Instagram posting routes with Cloudinary integration.
 
 import logging
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_
-from config.database import get_db_sync
+from config.database import get_db
 from utils.dependencies import get_current_user
 from models.user import User
 from models.instagram import ScheduledPost
-from services.instagram_crud import InstagramCRUD
+from services.instagram_crud import InstagramCRUD, instagram_crud
 from services.instagram_service import InstagramGraphAPIService
 from services.cloudinary_service import CloudinaryService
 from typing import Optional
@@ -24,7 +24,6 @@ router = APIRouter(prefix="/instagram", tags=["Instagram Posting"])
 # Services
 instagram_service = InstagramGraphAPIService()
 cloudinary_service = CloudinaryService()
-instagram_crud = InstagramCRUD()
 
 
 @router.post(
@@ -40,7 +39,7 @@ async def upload_and_post(
     media: UploadFile = File(..., description="Image or video file to upload and post"),
     caption: str = Form("", description="Caption for the Instagram post"),
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db_sync),
+    db: AsyncSession = Depends(get_db),
 ):
     """
     Upload image or video to Cloudinary and post immediately to Instagram.
@@ -57,7 +56,7 @@ async def upload_and_post(
     """
     try:
         # Check if user has connected Instagram account
-        accounts = instagram_crud.get_user_social_accounts(db, current_user.id)
+        accounts = await instagram_crud.get_user_social_accounts(db, current_user.id)
         instagram_accounts = [acc for acc in accounts if acc.platform == "instagram"]
         
         logger.info(f"🔍 Instagram posting attempt by User ID: {current_user.id} ({current_user.email})")
@@ -157,7 +156,7 @@ async def upload_and_post(
             )
         
         # Save post record in database
-        post = instagram_crud.create_scheduled_post(
+        post = await instagram_crud.create_scheduled_post(
             db=db,
             user_id=current_user.id,
             social_account_id=account.id,
@@ -168,7 +167,7 @@ async def upload_and_post(
         )
         
         # Update post status to posted
-        instagram_crud.update_post_status(
+        await instagram_crud.update_post_status(
             db=db,
             post_id=post.id,
             status="posted",
@@ -233,7 +232,7 @@ async def schedule_post(
     caption: str = Form("", description="Caption for the Instagram post"),
     scheduled_time: str = Form(..., description="Scheduled time in ISO format (YYYY-MM-DDTHH:MM:SS)"),
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db_sync),
+    db: AsyncSession = Depends(get_db),
 ):
     """
     Upload image or video to Cloudinary and schedule Instagram post.
@@ -264,7 +263,7 @@ async def schedule_post(
             )
         
         # Check if user has connected Instagram account
-        accounts = instagram_crud.get_user_social_accounts(db, current_user.id)
+        accounts = await instagram_crud.get_user_social_accounts(db, current_user.id)
         instagram_accounts = [acc for acc in accounts if acc.platform == "instagram"]
         
         if not instagram_accounts:
@@ -379,7 +378,7 @@ async def schedule_post(
         cloudinary_public_id = upload_result["public_id"]
         
         # Save scheduled post in database
-        post = instagram_crud.create_scheduled_post(
+        post = await instagram_crud.create_scheduled_post(
             db=db,
             user_id=current_user.id,
             social_account_id=account.id,
@@ -427,7 +426,7 @@ async def get_posts(
     limit: int = 20,
     page: int = 1,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db_sync),
+    db: AsyncSession = Depends(get_db),
 ):
     """
     Get user's Instagram posts with pagination.
@@ -441,7 +440,7 @@ async def get_posts(
         logger.info(f"Getting posts for user {current_user.id}, status: {status}, limit: {limit}, page: {page}")
         
         offset = (page - 1) * limit
-        posts, total = instagram_crud.get_user_posts(
+        posts, total = await instagram_crud.get_user_posts(
             db=db,
             user_id=current_user.id,
             skip=offset,
@@ -564,7 +563,7 @@ async def get_upload_signature(
 )
 async def process_scheduled_posts(
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db_sync),
+    db: AsyncSession = Depends(get_db),
 ):
     """
     Manually trigger processing of scheduled posts for the current user.
@@ -586,7 +585,7 @@ async def process_scheduled_posts(
         stmt_all = select(ScheduledPost).where(
             ScheduledPost.user_id == current_user.id
         )
-        result_all = db.execute(stmt_all)
+        result_all = await db.execute(stmt_all)
         all_posts = result_all.scalars().all()
         
         logger.info(f"📊 Total posts for user: {len(all_posts)}")
@@ -611,7 +610,7 @@ async def process_scheduled_posts(
                 ScheduledPost.scheduled_time <= utc_now,  # UTC <= UTC ✓
             )
         )
-        result = db.execute(stmt)
+        result = await db.execute(stmt)
         posts = result.scalars().all()
         
         logger.info(f"✅ Found {len(posts)} posts ready to post")
@@ -662,7 +661,7 @@ async def process_scheduled_posts(
                 
                 if post_result.get("success"):
                     # Update post status
-                    instagram_crud.update_post_status(
+                    await instagram_crud.update_post_status(
                         db=db,
                         post_id=post.id,
                         status="posted",

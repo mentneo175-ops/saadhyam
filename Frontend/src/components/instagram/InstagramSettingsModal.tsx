@@ -32,6 +32,7 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import { toast } from "sonner";
+import { env } from "@/config/env";
 
 interface InstagramConnectionStatus {
   is_connected: boolean;
@@ -101,7 +102,7 @@ export const InstagramSettingsModal: React.FC<InstagramSettingsModalProps> = ({
       setSettingsLoading(true);
       const token = localStorage.getItem("saadhyam_token");
       
-      const response = await fetch("http://localhost:8000/settings", {
+      const response = await fetch(`${env.apiBaseUrl}/settings`, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
@@ -146,7 +147,7 @@ export const InstagramSettingsModal: React.FC<InstagramSettingsModalProps> = ({
       setAutomationSettings(updatedSettings);
 
       const token = localStorage.getItem("saadhyam_token");
-      const response = await fetch("http://localhost:8000/settings/instagram/automation", {
+      const response = await fetch(`${env.apiBaseUrl}/settings/instagram/automation`, {
         method: "PUT",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -176,7 +177,7 @@ export const InstagramSettingsModal: React.FC<InstagramSettingsModalProps> = ({
       setPostingPreferences(updatedPreferences);
 
       const token = localStorage.getItem("saadhyam_token");
-      const response = await fetch("http://localhost:8000/settings/posting-preferences", {
+      const response = await fetch(`${env.apiBaseUrl}/settings/posting-preferences`, {
         method: "PUT",
         headers: {
           Authorization: `Bearer ${token}`,

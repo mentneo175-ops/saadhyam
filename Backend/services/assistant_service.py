@@ -47,21 +47,38 @@ def get_business_context(db: Session, user: User) -> str:
         if analysis.location:
             context_parts.append(f"Location: {analysis.location}")
         
-        # SWOT Analysis
-        if analysis.strengths:
-            context_parts.append(f"Strengths: {', '.join(analysis.strengths[:3])}")
-        if analysis.weaknesses:
-            context_parts.append(f"Weaknesses: {', '.join(analysis.weaknesses[:2])}")
-        if analysis.opportunities:
-            context_parts.append(f"Opportunities: {', '.join(analysis.opportunities[:2])}")
+        import json
+        
+        # SWOT Analysis (handle JSON string parsing safely)
+        def parse_json_list(field):
+            if not field: return []
+            try: return json.loads(field) if isinstance(field, str) else field
+            except: return [field]
+
+        strengths = parse_json_list(analysis.strengths)
+        if strengths:
+            context_parts.append(f"Strengths: {', '.join(strengths[:3])}")
+            
+        weaknesses = parse_json_list(analysis.weaknesses)
+        if weaknesses:
+            context_parts.append(f"Weaknesses: {', '.join(weaknesses[:2])}")
+            
+        opportunities = parse_json_list(analysis.opportunities)
+        if opportunities:
+            context_parts.append(f"Opportunities: {', '.join(opportunities[:2])}")
         
         # Target audience
         if analysis.target_audience:
-            context_parts.append(f"Target Audience: {analysis.target_audience.get('description', 'Not specified')}")
+            try:
+                ta = json.loads(analysis.target_audience)
+                context_parts.append(f"Target Audience: {ta.get('description', 'Not specified') if isinstance(ta, dict) else ta}")
+            except:
+                context_parts.append(f"Target Audience: {analysis.target_audience}")
         
         # USPs
-        if analysis.unique_selling_points:
-            context_parts.append(f"USPs: {', '.join(analysis.unique_selling_points[:2])}")
+        if hasattr(analysis, 'unique_selling_points') and getattr(analysis, 'unique_selling_points'):
+            usps = parse_json_list(getattr(analysis, 'unique_selling_points'))
+            context_parts.append(f"USPs: {', '.join(usps[:2])}")
         
         return "\n".join(context_parts)
         

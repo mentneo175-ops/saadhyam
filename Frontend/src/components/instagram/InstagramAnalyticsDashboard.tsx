@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { PromotePostModal } from "@/components/meta-ads/PromotePostModal";
+import { env } from "@/config/env";
 
 interface AnalyticsAccount {
   id: number;
@@ -85,7 +86,7 @@ export function InstagramAnalyticsDashboard() {
 
       // Get or create analytics account from existing Instagram connection
       const accountResponse = await fetch(
-        "http://localhost:8000/api/instagram-analytics/accounts/from-social",
+        `${env.apiBaseUrl}/api/instagram-analytics/accounts/from-social`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -139,7 +140,7 @@ export function InstagramAnalyticsDashboard() {
       const token = localStorage.getItem("saadhyam_token");
 
       const response = await fetch(
-        `http://localhost:8000/api/instagram-analytics/sync/${accountId}`,
+        `${env.apiBaseUrl}/api/instagram-analytics/sync/${accountId}`,
         {
           method: "POST",
           headers: {
@@ -188,7 +189,7 @@ export function InstagramAnalyticsDashboard() {
       const token = localStorage.getItem("saadhyam_token");
 
       const response = await fetch(
-        `http://localhost:8000/api/instagram-analytics/dashboard/${accountId}`,
+        `${env.apiBaseUrl}/api/instagram-analytics/dashboard/${accountId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

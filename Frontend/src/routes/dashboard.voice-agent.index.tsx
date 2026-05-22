@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { env } from "@/config/env";
 import {
   Phone,
   Users,
@@ -13,12 +13,12 @@ import {
   Clock,
   AlertCircle,
   BarChart3,
+  Sparkles,
+  ArrowRight,
 } from "lucide-react";
-import { Button } from "../components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
-import { Badge } from "../components/ui/badge";
 
 export const Route = createFileRoute("/dashboard/voice-agent/")({
+  head: () => ({ meta: [{ title: "AI Voice Agent — Saadhyam AI" }] }),
   component: VoiceAgentDashboard,
 });
 
@@ -37,372 +37,187 @@ interface Campaign {
   created_at: string;
 }
 
-interface DashboardOverview {
-  total_campaigns: number;
-  active_campaigns: number;
-  total_calls: number;
-  total_leads: number;
-  recent_campaigns: Campaign[];
-}
-
 function VoiceAgentDashboard() {
   const [selectedView, setSelectedView] = useState<"overview" | "campaigns">("overview");
   const [statsData, setStatsData] = useState<any>(null);
   const [campaignsData, setCampaignsData] = useState<any>(null);
 
-  // Load data on mount with timeout
   useEffect(() => {
     const loadData = async () => {
       const token = localStorage.getItem("saadhyam_token");
-      
-      // Fetch stats with timeout
-      try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 3000);
-        
-        const statsResponse = await fetch("http://localhost:8000/api/v2/voice-agent/dashboard/stats", {
-          headers: {
-            Authorization: `Bearer ${token || ""}`,
-          },
-          signal: controller.signal,
-        });
-        clearTimeout(timeoutId);
-        
-        if (statsResponse.ok) {
-          const data = await statsResponse.json();
-          setStatsData(data);
-        }
-      } catch (error) {
-        console.log("Stats fetch failed or timed out");
-      }
 
-      // Fetch campaigns with timeout
       try {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 3000);
-        
-        const campaignsResponse = await fetch("http://localhost:8000/api/v2/voice-agent/campaigns", {
-          headers: {
-            Authorization: `Bearer ${token || ""}`,
-          },
+        const statsResponse = await fetch(`${env.apiBaseUrl}/api/v2/voice-agent/dashboard/stats`, {
+          headers: { Authorization: `Bearer ${token || ""}` },
           signal: controller.signal,
         });
         clearTimeout(timeoutId);
-        
-        if (campaignsResponse.ok) {
-          const data = await campaignsResponse.json();
-          setCampaignsData(data);
-        }
-      } catch (error) {
-        console.log("Campaigns fetch failed or timed out");
-      }
+        if (statsResponse.ok) setStatsData(await statsResponse.json());
+      } catch {}
+
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 3000);
+        const campaignsResponse = await fetch(`${env.apiBaseUrl}/api/v2/voice-agent/campaigns`, {
+          headers: { Authorization: `Bearer ${token || ""}` },
+          signal: controller.signal,
+        });
+        clearTimeout(timeoutId);
+        if (campaignsResponse.ok) setCampaignsData(await campaignsResponse.json());
+      } catch {}
     };
-
     loadData();
   }, []);
 
-  const getStatusColor = (status: string) => {
+  const getStatusBadge = (status: string) => {
     switch (status) {
-      case "active":
-        return "bg-green-100 text-green-700 border-green-200";
-      case "paused":
-        return "bg-yellow-100 text-yellow-700 border-yellow-200";
-      case "completed":
-        return "bg-blue-100 text-blue-700 border-blue-200";
-      case "draft":
-        return "bg-gray-100 text-gray-700 border-gray-200";
-      default:
-        return "bg-gray-100 text-gray-700 border-gray-200";
+      case "active": return "bg-emerald-50 text-emerald-700 border-emerald-200";
+      case "paused": return "bg-amber-50 text-amber-700 border-amber-200";
+      case "completed": return "bg-[#F3EEFF] text-[#8B5CF6] border-[#E9D5FF]";
+      case "draft": return "bg-gray-50 text-gray-600 border-gray-200";
+      default: return "bg-gray-50 text-gray-600 border-gray-200";
     }
   };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case "active":
-        return <Play size={14} />;
-      case "paused":
-        return <Pause size={14} />;
-      case "completed":
-        return <CheckCircle size={14} />;
-      case "draft":
-        return <Clock size={14} />;
-      default:
-        return <AlertCircle size={14} />;
+      case "active": return <Play size={12} />;
+      case "paused": return <Pause size={12} />;
+      case "completed": return <CheckCircle size={12} />;
+      case "draft": return <Clock size={12} />;
+      default: return <AlertCircle size={12} />;
     }
   };
 
-  // Fallback data if queries fail
   const stats = statsData?.stats || { total_campaigns: 0, active_campaigns: 0, total_calls: 0, total_leads: 0 };
   const campaigns = campaignsData?.campaigns || [];
 
+  const statCards = [
+    { label: "Total Calls", value: statsData?.stats?.total_calls || 0, sub: `${statsData?.stats?.calls_today || 0} today`, icon: BarChart3, color: "from-[#8B5CF6] to-[#A855F7]", bg: "bg-[#F3EEFF]", text: "text-[#8B5CF6]" },
+    { label: "Calls Processed", value: statsData?.stats?.total_calls || 0, sub: "Total processed", icon: Phone, color: "from-blue-500 to-cyan-500", bg: "bg-blue-50", text: "text-blue-600" },
+    { label: "Leads Generated", value: statsData?.stats?.positive_leads || 0, sub: "Positive outcomes", icon: Users, color: "from-emerald-500 to-teal-500", bg: "bg-emerald-50", text: "text-emerald-600" },
+    { label: "Active Campaigns", value: statsData?.stats?.active_campaigns || 0, sub: "Currently running", icon: Activity, color: "from-amber-500 to-orange-500", bg: "bg-amber-50", text: "text-amber-600" },
+  ];
+
   return (
-    <div className="p-6 space-y-6">
+    <div className="min-h-screen bg-white p-4 md:p-6 lg:p-8">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">AI Voice Agent</h1>
-          <p className="text-gray-600 mt-1">
-            Automated calling campaigns with AI-powered conversations
-          </p>
+          <div className="flex items-center gap-3 mb-2">
+            <div className="p-2.5 bg-gradient-to-br from-[#8B5CF6] to-[#A855F7] rounded-xl shadow-lg shadow-[#8B5CF6]/30">
+              <Phone size={18} className="text-white" />
+            </div>
+            <h1 className="text-2xl font-bold text-gray-900">AI Voice Agent</h1>
+          </div>
+          <p className="text-sm text-gray-500 ml-[52px]">Automated calling campaigns with AI-powered conversations</p>
         </div>
-        <Button
+        <button
           onClick={() => (window.location.href = "/dashboard/voice-agent/create-campaign")}
-          className="bg-purple-600 hover:bg-purple-700"
+          className="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-[#8B5CF6] to-[#A855F7] hover:from-[#7C3AED] hover:to-[#9333EA] text-white text-sm font-semibold rounded-xl shadow-lg shadow-[#8B5CF6]/25 hover:shadow-xl hover:shadow-[#8B5CF6]/30 transition-all"
         >
-          <Plus size={20} className="mr-2" />
-          New Campaign
-        </Button>
+          <Plus size={16} /> New Campaign
+        </button>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">
-              Total Campaigns
-            </CardTitle>
-            <div className="h-10 w-10 rounded-full bg-purple-100 flex items-center justify-center">
-              <BarChart3 size={20} className="text-purple-600" />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+        {statCards.map((stat, i) => (
+          <div key={i} className="bg-white rounded-2xl border border-gray-200/60 shadow-lg shadow-gray-100/50 p-5 hover:shadow-xl hover:shadow-gray-100/80 transition-all duration-300">
+            <div className="flex items-center justify-between mb-4">
+              <p className="text-sm font-medium text-gray-500">{stat.label}</p>
+              <div className={`p-2.5 ${stat.bg} rounded-xl`}>
+                <stat.icon size={18} className={stat.text} />
+              </div>
             </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-gray-900">
-              {statsData?.stats.total_calls || 0}
-            </div>
-            <p className="text-sm text-gray-500 mt-1">
-              {statsData?.stats.calls_today || 0} today
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">
-              Total Calls
-            </CardTitle>
-            <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
-              <Phone size={20} className="text-blue-600" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-gray-900">
-              {statsData?.stats.total_calls || 0}
-            </div>
-            <p className="text-sm text-gray-500 mt-1">Calls processed</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">
-              Total Leads
-            </CardTitle>
-            <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center">
-              <Users size={20} className="text-green-600" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-gray-900">
-              {statsData?.stats.positive_leads || 0}
-            </div>
-            <p className="text-sm text-gray-500 mt-1">Leads generated</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">
-              Active Now
-            </CardTitle>
-            <div className="h-10 w-10 rounded-full bg-orange-100 flex items-center justify-center">
-              <Activity size={20} className="text-orange-600" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-gray-900">
-              {statsData?.stats.active_campaigns || 0}
-            </div>
-            <p className="text-sm text-gray-500 mt-1">Running campaigns</p>
-          </CardContent>
-        </Card>
+            <p className="text-3xl font-bold text-gray-900 mb-1">{stat.value}</p>
+            <p className="text-xs text-gray-500">{stat.sub}</p>
+          </div>
+        ))}
       </div>
 
-      {/* View Tabs */}
-      <div className="flex gap-2 border-b border-gray-200">
-        <button
-          onClick={() => setSelectedView("overview")}
-          className={`px-4 py-2 font-medium transition-colors ${
-            selectedView === "overview"
-              ? "text-purple-600 border-b-2 border-purple-600"
-              : "text-gray-600 hover:text-gray-900"
-          }`}
-        >
-          Overview
-        </button>
-        <button
-          onClick={() => setSelectedView("campaigns")}
-          className={`px-4 py-2 font-medium transition-colors ${
-            selectedView === "campaigns"
-              ? "text-purple-600 border-b-2 border-purple-600"
-              : "text-gray-600 hover:text-gray-900"
-          }`}
-        >
-          All Campaigns
-        </button>
+      {/* Tabs */}
+      <div className="flex gap-1 mb-6 p-1 bg-gray-100 rounded-xl w-fit">
+        {(["overview", "campaigns"] as const).map((view) => (
+          <button
+            key={view}
+            onClick={() => setSelectedView(view)}
+            className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all ${
+              selectedView === view
+                ? "bg-white text-[#8B5CF6] shadow-sm border border-gray-200/60"
+                : "text-gray-500 hover:text-gray-700"
+            }`}
+          >
+            {view === "overview" ? "Overview" : "All Campaigns"}
+          </button>
+        ))}
       </div>
 
-      {/* Recent Campaigns */}
-      {selectedView === "overview" && (
-        <div>
-          <h2 className="text-xl font-bold text-gray-900 mb-4">Recent Campaigns</h2>
-          <div className="grid grid-cols-1 gap-4">
-            {campaignsData?.campaigns?.slice(0, 5).map((campaign) => (
-              <Card
-                key={campaign.id}
-                className="hover:shadow-lg transition-shadow cursor-pointer"
-                onClick={() =>
-                  (window.location.href = `/dashboard/voice-agent/campaigns/${campaign.id}`)
-                }
-              >
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <CardTitle className="text-lg">{campaign.name}</CardTitle>
-                      <CardDescription className="mt-1">
-                        {campaign.description || "No description"}
-                      </CardDescription>
-                    </div>
-                    <Badge className={`${getStatusColor(campaign.status)} flex items-center gap-1`}>
-                      {getStatusIcon(campaign.status)}
-                      {campaign.status}
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div>
-                      <p className="text-sm text-gray-500">Total Contacts</p>
-                      <p className="text-2xl font-bold text-gray-900">
-                        {campaign.total_contacts}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500">Completed</p>
-                      <p className="text-2xl font-bold text-green-600">
-                        {campaign.calls_completed}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500">Pending</p>
-                      <p className="text-2xl font-bold text-yellow-600">
-                        {campaign.calls_pending}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500">Conversion</p>
-                      <p className="text-2xl font-bold text-purple-600">
-                        {campaign.conversion_rate.toFixed(1)}%
-                      </p>
-                    </div>
-                  </div>
-                  <div className="mt-4 flex items-center gap-4 text-sm text-gray-500">
-                    <span className="flex items-center gap-1">
-                      <TrendingUp size={16} />
-                      Avg Duration: {Math.round(campaign.avg_call_duration)}s
+      {/* Campaign List */}
+      <div>
+        <h2 className="text-lg font-bold text-gray-900 mb-4">
+          {selectedView === "overview" ? "Recent Campaigns" : "All Campaigns"}
+        </h2>
+        <div className="space-y-4">
+          {(selectedView === "overview" ? campaigns.slice(0, 5) : campaigns).map((campaign: Campaign) => (
+            <div
+              key={campaign.id}
+              className="bg-white rounded-2xl border border-gray-200/60 shadow-lg shadow-gray-100/50 p-6 hover:shadow-xl hover:shadow-gray-100/80 hover:border-[#8B5CF6]/20 transition-all duration-300 cursor-pointer group"
+              onClick={() => (window.location.href = `/dashboard/voice-agent/campaigns/${campaign.id}`)}
+            >
+              <div className="flex items-start justify-between mb-5">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-3 mb-1">
+                    <h3 className="text-base font-bold text-gray-900 group-hover:text-[#8B5CF6] transition-colors truncate">{campaign.name}</h3>
+                    <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full border ${getStatusBadge(campaign.status)}`}>
+                      {getStatusIcon(campaign.status)} {campaign.status}
                     </span>
-                    <span>Language: {campaign.language}</span>
                   </div>
-                </CardContent>
-              </Card>
-            ))}
+                  <p className="text-sm text-gray-500">{campaign.description || "No description"}</p>
+                </div>
+                <ArrowRight size={18} className="text-gray-300 group-hover:text-[#8B5CF6] transition-colors shrink-0 ml-4" />
+              </div>
 
-            {(!campaignsData?.campaigns ||
-              campaignsData.campaigns.length === 0) && (
-              <Card className="border-dashed">
-                <CardContent className="flex flex-col items-center justify-center py-12">
-                  <Phone size={48} className="text-gray-300 mb-4" />
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                    No campaigns yet
-                  </h3>
-                  <p className="text-gray-500 text-center mb-4">
-                    Create your first voice campaign to start automated calling
-                  </p>
-                  <Button
-                    onClick={() =>
-                      (window.location.href = "/dashboard/voice-agent/create-campaign")
-                    }
-                    className="bg-purple-600 hover:bg-purple-700"
-                  >
-                    <Plus size={20} className="mr-2" />
-                    Create Campaign
-                  </Button>
-                </CardContent>
-              </Card>
-            )}
-          </div>
-        </div>
-      )}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {[
+                  { label: "Total Contacts", value: campaign.total_contacts, color: "text-gray-900" },
+                  { label: "Completed", value: campaign.calls_completed, color: "text-emerald-600" },
+                  { label: "Pending", value: campaign.calls_pending, color: "text-amber-600" },
+                  { label: "Conversion", value: `${campaign.conversion_rate.toFixed(1)}%`, color: "text-[#8B5CF6]" },
+                ].map((m, j) => (
+                  <div key={j} className="text-center p-3 bg-gray-50 rounded-xl">
+                    <p className="text-xs text-gray-500 mb-1">{m.label}</p>
+                    <p className={`text-xl font-bold ${m.color}`}>{m.value}</p>
+                  </div>
+                ))}
+              </div>
 
-      {/* All Campaigns */}
-      {selectedView === "campaigns" && (
-        <div>
-          <h2 className="text-xl font-bold text-gray-900 mb-4">All Campaigns</h2>
-          <div className="grid grid-cols-1 gap-4">
-            {campaignsData?.campaigns.map((campaign) => (
-              <Card
-                key={campaign.id}
-                className="hover:shadow-lg transition-shadow cursor-pointer"
-                onClick={() =>
-                  (window.location.href = `/dashboard/voice-agent/campaigns/${campaign.id}`)
-                }
+              <div className="flex items-center gap-4 text-xs text-gray-400 mt-4 pt-4 border-t border-gray-100">
+                <span className="flex items-center gap-1"><TrendingUp size={12} /> Avg: {Math.round(campaign.avg_call_duration)}s/call</span>
+                <span>Language: {campaign.language}</span>
+              </div>
+            </div>
+          ))}
+
+          {campaigns.length === 0 && (
+            <div className="bg-white rounded-2xl border-2 border-dashed border-gray-200 p-16 text-center">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#8B5CF6]/10 to-[#A855F7]/10 flex items-center justify-center mx-auto mb-4">
+                <Phone size={28} className="text-[#8B5CF6]" />
+              </div>
+              <h3 className="text-lg font-bold text-gray-900 mb-2">No campaigns yet</h3>
+              <p className="text-sm text-gray-500 mb-6 max-w-xs mx-auto">Create your first voice campaign to start automated calling with AI</p>
+              <button
+                onClick={() => (window.location.href = "/dashboard/voice-agent/create-campaign")}
+                className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#8B5CF6] to-[#A855F7] hover:from-[#7C3AED] hover:to-[#9333EA] text-white text-sm font-semibold rounded-xl shadow-lg shadow-[#8B5CF6]/25 transition-all"
               >
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <CardTitle className="text-lg">{campaign.name}</CardTitle>
-                      <CardDescription className="mt-1">
-                        {campaign.description || "No description"}
-                      </CardDescription>
-                    </div>
-                    <Badge className={`${getStatusColor(campaign.status)} flex items-center gap-1`}>
-                      {getStatusIcon(campaign.status)}
-                      {campaign.status}
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div>
-                      <p className="text-sm text-gray-500">Total Contacts</p>
-                      <p className="text-2xl font-bold text-gray-900">
-                        {campaign.total_contacts}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500">Completed</p>
-                      <p className="text-2xl font-bold text-green-600">
-                        {campaign.calls_completed}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500">Pending</p>
-                      <p className="text-2xl font-bold text-yellow-600">
-                        {campaign.calls_pending}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500">Conversion</p>
-                      <p className="text-2xl font-bold text-purple-600">
-                        {campaign.conversion_rate.toFixed(1)}%
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                <Plus size={16} /> Create Campaign
+              </button>
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 }

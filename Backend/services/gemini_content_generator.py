@@ -9,6 +9,7 @@ import json
 from typing import Dict, Any
 import google.generativeai as genai
 from dotenv import load_dotenv
+from config.settings import settings
 
 load_dotenv()
 
@@ -44,19 +45,24 @@ def generate_gemini_content(
         }
     """
     try:
-        # Get API keys
-        api_keys = [
+        # Get API keys and remove duplicates
+        raw_keys = [
             os.getenv("GEMINI_API_KEY"),
             os.getenv("GEMINI_API_KEY_2"),
             os.getenv("GEMINI_API_KEY_3")
         ]
-        api_keys = [key for key in api_keys if key]
+        api_keys = []
+        _seen = set()
+        for key in raw_keys:
+            if key and key not in _seen:
+                api_keys.append(key)
+                _seen.add(key)
         
         if not api_keys:
             logger.warning("⚠️ No Gemini API keys found")
             return None
         
-        logger.info(f"🔑 Found {len(api_keys)} Gemini API key(s)")
+        logger.info(f"🔑 Found {len(api_keys)} unique Gemini API key(s)")
         
         # Extract context
         context = _extract_context(user_input, business_type, platform, goal)
@@ -143,8 +149,8 @@ If language is not English, translate the content appropriately while keeping ha
                 # Configure Gemini
                 genai.configure(api_key=api_key)
                 
-                # Get model name from env or use default
-                model_name = os.getenv("GEMINI_CONTENT_MODEL", "gemini-1.5-flash")
+                # Get model name from settings
+                model_name = settings.GEMINI_CONTENT_MODEL
                 logger.info(f"📦 Using Gemini model: {model_name}")
                 
                 model = genai.GenerativeModel(model_name)

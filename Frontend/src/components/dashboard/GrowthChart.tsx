@@ -9,6 +9,7 @@ import {
   CartesianGrid,
 } from "recharts";
 import { apiClient } from "@/lib/api";
+import { env } from "@/config/env";
 
 interface GrowthMetric {
   metric_date: string;
@@ -62,7 +63,7 @@ export function GrowthChart() {
         return;
       }
 
-      const response = await fetch("http://localhost:8000/api/tasks/growth/chart-data?days=90", {
+      const response = await fetch(`${env.apiBaseUrl}/api/tasks/growth/chart-data?days=90`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -219,7 +220,7 @@ export function GrowthChart() {
                 <stop offset="100%" stopColor="#1e3a8a" stopOpacity={0} />
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
+
             <XAxis
               dataKey="label"
               tick={{ fill: "#64748b", fontSize: 11 }}

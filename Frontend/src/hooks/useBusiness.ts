@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import type { Business } from "@/components/b2b-network/types";
+import { env } from "@/config/env";
 
 export function useBusiness() {
   const [business, setBusiness] = useState<Business | null>(null);
@@ -19,7 +20,7 @@ export function useBusiness() {
         throw new Error("No authentication token found");
       }
 
-      const response = await fetch("http://localhost:8000/api/profile/business", {
+      const response = await fetch(`${env.apiBaseUrl}/api/profile/business`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

@@ -1,9 +1,10 @@
+import { env } from "@/config/env";
 /**
  * Blog API Client
  * Manages blog generation, publishing, and management
  */
 
-const API_BASE_URL = 'http://localhost:8000';
+const API_BASE_URL = env.apiBaseUrl;
 
 export interface Blog {
   id: number;

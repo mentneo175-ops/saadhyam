@@ -20,6 +20,7 @@ import { Button } from "../components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
 import { Input } from "../components/ui/input";
+import { env } from "@/config/env";
 
 export const Route = createFileRoute("/dashboard/voice-agent/campaigns")({
   component: CampaignsPage,
@@ -56,8 +57,8 @@ function CampaignsPage() {
     try {
       const token = localStorage.getItem("saadhyam_token");
       const url = statusFilter === "all" 
-        ? "http://localhost:8000/api/voice-agent/campaigns"
-        : `http://localhost:8000/api/voice-agent/campaigns?status_filter=${statusFilter}`;
+        ? `${env.apiBaseUrl}/api/voice-agent/campaigns`
+        : `${env.apiBaseUrl}/api/voice-agent/campaigns?status_filter=${statusFilter}`;
       
       const response = await fetch(url, {
         headers: {
@@ -81,7 +82,7 @@ function CampaignsPage() {
     try {
       const token = localStorage.getItem("saadhyam_token");
       const response = await fetch(
-        `http://localhost:8000/api/voice-agent/campaigns/${campaignId}/status?status_update=${newStatus}`,
+        `${env.apiBaseUrl}/api/voice-agent/campaigns/${campaignId}/status?status_update=${newStatus}`,
         {
           method: "PATCH",
           headers: {

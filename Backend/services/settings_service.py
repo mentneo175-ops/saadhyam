@@ -265,6 +265,7 @@ class SettingsService:
             raise
 
     @staticmethod
+    @staticmethod
     async def disconnect_instagram_account(db: AsyncSession, user_id: int) -> bool:
         """
         Disconnect Instagram account and clean up all related data.
@@ -278,39 +279,55 @@ class SettingsService:
         Returns True if disconnection was successful, False if no account was connected.
         """
         try:
-            # Check if user has any Instagram accounts
+            # Check if user has any Instagram accounts (active or inactive)
             stmt = select(SocialAccount).where(
                 SocialAccount.user_id == user_id,
                 SocialAccount.platform == "instagram",
-                SocialAccount.is_active == True,
             )
             result = await db.execute(stmt)
             accounts = result.scalars().all()
             accounts = list(accounts)
             
             if not accounts:
-                logger.info(f"No active Instagram accounts found for user {user_id}")
+                logger.info(f"No Instagram accounts found for user {user_id}")
+                # Still check and reset settings in case of orphaned data
+                settings = await SettingsService.get_user_settings(db, user_id)
+                if settings.instagram_enabled:
+                    settings.instagram_enabled = False
+                    settings.instagram_auto_publish = False
+                    settings.instagram_auto_reply = False
+                    settings.instagram_save_drafts = False
+                    db.add(settings)
+                    await db.commit()
+                    logger.info(f"Reset orphaned Instagram settings for user {user_id}")
+                    return True
                 return False
             
             # Deactivate all Instagram accounts
+            disconnected_any = False
             for account in accounts:
-                account.is_active = False
-                account.disconnected_at = datetime.utcnow()
-                # Don't modify access_token or refresh_token - keep them for potential reconnection
-                db.add(account)
-                logger.info(f"Deactivated Instagram account {account.ig_username} for user {user_id}")
+                if account.is_active:
+                    account.is_active = False
+                    account.disconnected_at = datetime.utcnow()
+                    # Clear sensitive tokens for security
+                    account.access_token = None
+                    account.refresh_token = None
+                    db.add(account)
+                    disconnected_any = True
+                    logger.info(f"Deactivated Instagram account {account.ig_username} for user {user_id}")
             
             # Cancel all scheduled posts
+            from models.instagram import ScheduledPost
             scheduled_posts_stmt = select(ScheduledPost).where(
                 ScheduledPost.user_id == user_id,
-                ScheduledPost.status == "scheduled",
+                ScheduledPost.status.in_(["scheduled", "pending"]),
             )
             scheduled_result = await db.execute(scheduled_posts_stmt)
             scheduled_posts = scheduled_result.scalars().all()
             scheduled_posts = list(scheduled_posts)
             
             for post in scheduled_posts:
-                post.status = "failed"  # Use string instead of enum
+                post.status = "failed"
                 post.error_message = "Account disconnected by user"
                 db.add(post)
                 logger.info(f"Cancelled scheduled post {post.id} for user {user_id}")

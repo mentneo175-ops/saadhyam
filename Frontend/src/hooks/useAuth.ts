@@ -7,6 +7,7 @@ import { useState, useCallback, useEffect } from "react";
 import { apiClient, User, ApiError } from "@/lib/api";
 import { signInWithGoogle, signOutFromFirebase, auth } from "@/lib/firebase";
 import { onAuthStateChanged } from "firebase/auth";
+import { env } from "@/config/env";
 
 interface UseAuthReturn {
   user: User | null;
@@ -24,7 +25,7 @@ interface UseAuthReturn {
 function getAuthErrorMessage(err: unknown, fallback: string): string {
   if (err instanceof ApiError) {
     if (err.status === 0) {
-      return "Cannot reach the API server. Start the backend on http://localhost:8000 and try again.";
+      return "Cannot reach the API server. Start the backend on ${env.apiBaseUrl} and try again.";
     }
     if (typeof err.data === "object" && err.data && "detail" in err.data) {
       const detail = (err.data as { detail?: string }).detail;
@@ -192,18 +193,31 @@ export function useAuth(): UseAuthReturn {
     try {
       // Sign out from Firebase if configured and user used Google auth
       if (auth && user?.auth_provider === 'google') {
-        await signOutFromFirebase();
+        try {
+          await signOutFromFirebase();
+        } catch (error) {
+          console.error("Firebase sign out error:", error);
+          // Continue with logout even if Firebase fails
+        }
       }
       
       // Clear backend session
-      await apiClient.logout();
+      try {
+        await apiClient.logout();
+      } catch (error) {
+        console.error("API logout error:", error);
+        // Continue with clearing state even if API fails
+      }
       
+      // Always clear local state
       setUser(null);
       setToken(null);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Logout failed";
       setError(message);
-      throw err;
+      // Still clear state even if there's an error
+      setUser(null);
+      setToken(null);
     } finally {
       setIsLoading(false);
     }

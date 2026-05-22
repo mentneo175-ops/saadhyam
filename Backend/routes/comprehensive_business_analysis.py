@@ -278,6 +278,7 @@ async def get_seo_google_maps(
 ) -> Dict[str, Any]:
     """
     Get SEO & Google Maps Tips data from database (no API call)
+    WITH REDIS CACHING for ultra-fast retrieval
     
     Returns:
     - Keywords
@@ -285,8 +286,8 @@ async def get_seo_google_maps(
     - Local visibility ideas
     """
     
-    # Call synchronous function (no await)
-    result = get_seo_google_maps_data(current_user.id, db)
+    # Call async function (with await)
+    result = await get_seo_google_maps_data(current_user.id, db)
     
     if not result:
         raise HTTPException(

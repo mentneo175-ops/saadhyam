@@ -10,6 +10,7 @@ from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
 from sqlalchemy import func, and_, or_
 import google.generativeai as genai
+from config.settings import settings
 
 from models.voice_agent import (
     VoiceCampaign,
@@ -25,23 +26,81 @@ from models.voice_agent import (
 
 logger = logging.getLogger(__name__)
 
-# Configure Gemini AI
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
-if GEMINI_API_KEY:
-    genai.configure(api_key=GEMINI_API_KEY)
+# Initialize Gemini API keys
+raw_gemini_keys = [
+    os.getenv("GEMINI_API_KEY"),
+    os.getenv("GEMINI_API_KEY_2"),
+    os.getenv("GEMINI_API_KEY_3")
+]
+GEMINI_API_KEYS = []
+_seen_keys = set()
+for k in raw_gemini_keys:
+    if k and k not in _seen_keys:
+        GEMINI_API_KEYS.append(k)
+        _seen_keys.add(k)
+
+# Configure default key
+if GEMINI_API_KEYS:
+    genai.configure(api_key=GEMINI_API_KEYS[0])
 
 
 class VoiceAgentService:
     """Service for managing voice campaigns and AI conversations"""
     
     def __init__(self):
-        self.model = None
-        if GEMINI_API_KEY:
+        from config.settings import settings
+        groq_api_key = settings.GROQ_API_KEY or os.getenv("GROQ_API_KEY")
+        self.ai_available = len(GEMINI_API_KEYS) > 0 or bool(groq_api_key)
+        logger.info(f"✅ VoiceAgentService initialized. Gemini keys: {len(GEMINI_API_KEYS)}, Groq available: {bool(groq_api_key)}")
+
+    def _generate_with_fallback(self, prompt: str, system_instruction: Optional[str] = None) -> Optional[str]:
+        """Try Gemini keys in sequence, fall back to Groq, and return text content"""
+        # Try Gemini keys
+        for i, key in enumerate(GEMINI_API_KEYS):
             try:
-                self.model = genai.GenerativeModel('gemini-2.0-flash-exp')
-                logger.info("✅ Gemini AI initialized for voice conversations")
+                logger.info(f"🤖 Trying Voice Agent Gemini key {i+1}/{len(GEMINI_API_KEYS)}")
+                genai.configure(api_key=key)
+                model_name = settings.GEMINI_CONTENT_MODEL
+                
+                model = genai.GenerativeModel(
+                    model_name=model_name,
+                    system_instruction=system_instruction
+                )
+                response = model.generate_content(prompt)
+                if response and response.text:
+                    return response.text.strip()
             except Exception as e:
-                logger.error(f"❌ Failed to initialize Gemini AI: {e}")
+                logger.warning(f"⚠️ Voice Agent Gemini key {i+1} failed: {e}")
+        
+        # If all Gemini keys fail, try Groq
+        from config.settings import settings
+        from groq import Groq
+        groq_api_key = settings.GROQ_API_KEY or os.getenv("GROQ_API_KEY")
+        if groq_api_key:
+            try:
+                logger.info("🚀 Voice Agent falling back to Groq API...")
+                client = Groq(api_key=groq_api_key)
+                model_name = os.getenv("GROQ_CONTENT_MODEL", "llama-3.1-8b-instant")
+                
+                messages = []
+                if system_instruction:
+                    messages.append({"role": "system", "content": system_instruction})
+                messages.append({"role": "user", "content": prompt})
+                
+                response = client.chat.completions.create(
+                    model=model_name,
+                    messages=messages,
+                    temperature=0.7,
+                    max_tokens=600,
+                    timeout=15
+                )
+                if response and response.choices:
+                    logger.info("✅ Voice Agent Groq API fallback successful!")
+                    return response.choices[0].message.content.strip()
+            except Exception as e:
+                logger.error(f"❌ Voice Agent Groq fallback failed: {e}")
+        
+        return None
     
     # ==================== Campaign Management ====================
     
@@ -296,7 +355,7 @@ class VoiceAgentService:
     ) -> str:
         """Generate AI response for customer conversation"""
         try:
-            if not self.model:
+            if not self.ai_available:
                 return "I understand. Let me connect you with our team."
             
             # Build conversation context
@@ -327,9 +386,11 @@ Conversation History:
             context += f"\n\nCustomer: {customer_message}\n\nYour response (keep it natural and conversational):"
             
             # Generate response
-            response = self.model.generate_content(context)
+            response_text = self._generate_with_fallback(context)
+            if response_text:
+                return response_text
             
-            return response.text.strip()
+            return "I understand. Let me connect you with our team."
             
         except Exception as e:
             logger.error(f"❌ Failed to generate conversation response: {e}")
@@ -338,7 +399,7 @@ Conversation History:
     def analyze_conversation_sentiment(self, transcript: str) -> str:
         """Analyze customer sentiment from conversation"""
         try:
-            if not self.model:
+            if not self.ai_available:
                 return "neutral"
             
             prompt = f"""
@@ -350,11 +411,11 @@ Transcript:
 
 Sentiment:"""
             
-            response = self.model.generate_content(prompt)
-            sentiment = response.text.strip().lower()
-            
-            if sentiment in ["positive", "neutral", "negative"]:
-                return sentiment
+            response_text = self._generate_with_fallback(prompt)
+            if response_text:
+                sentiment = response_text.strip().lower()
+                if sentiment in ["positive", "neutral", "negative"]:
+                    return sentiment
             return "neutral"
             
         except Exception as e:
@@ -364,7 +425,7 @@ Sentiment:"""
     def generate_conversation_summary(self, transcript: str) -> str:
         """Generate summary of conversation"""
         try:
-            if not self.model:
+            if not self.ai_available:
                 return "Conversation completed."
             
             prompt = f"""
@@ -376,8 +437,10 @@ Transcript:
 
 Summary:"""
             
-            response = self.model.generate_content(prompt)
-            return response.text.strip()
+            response_text = self._generate_with_fallback(prompt)
+            if response_text:
+                return response_text
+            return "Conversation completed."
             
         except Exception as e:
             logger.error(f"❌ Failed to generate summary: {e}")

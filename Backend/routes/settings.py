@@ -4,6 +4,7 @@ Handles Instagram automation settings, posting preferences, and notifications.
 """
 
 import logging
+from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from config.database import get_db
@@ -333,13 +334,112 @@ async def disconnect_instagram(
                 "is_connected": False,
             }
         else:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="No Instagram account was connected",
-            )
+            return {
+                "success": True,
+                "message": "No Instagram account was connected or already disconnected",
+                "is_connected": False,
+            }
     except Exception as e:
         logger.error(f"Error disconnecting Instagram account: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to disconnect Instagram account",
+        )
+
+
+@router.post(
+    "/instagram/refresh-status",
+    summary="Refresh Instagram connection status",
+)
+async def refresh_instagram_status(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Refresh Instagram connection status by checking if tokens are still valid.
+    
+    This is useful when users disconnect from Facebook/Instagram directly
+    and the app needs to detect the disconnection.
+    """
+    try:
+        logger.info(f"Refreshing Instagram status for user {current_user.id}")
+        
+        # Get user's Instagram accounts
+        from services.instagram_crud import InstagramCRUD
+        accounts = await InstagramCRUD.get_user_social_accounts(db, current_user.id)
+        instagram_accounts = [acc for acc in accounts if acc.platform == "instagram" and acc.is_active]
+        
+        if not instagram_accounts:
+            return {
+                "success": True,
+                "message": "No Instagram accounts to check",
+                "is_connected": False,
+                "accounts_checked": 0,
+                "accounts_disconnected": 0,
+            }
+        
+        disconnected_count = 0
+        
+        # Check each account's token validity
+        for account in instagram_accounts:
+            logger.info(f"Checking token validity for @{account.ig_username}")
+            
+            try:
+                from services.instagram_service import instagram_service
+                is_valid = await instagram_service.validate_access_token(
+                    account.access_token, 
+                    account.ig_user_id
+                )
+                
+                if not is_valid:
+                    logger.warning(f"Token invalid for @{account.ig_username}, marking as disconnected")
+                    account.is_active = False
+                    account.disconnected_at = datetime.utcnow()
+                    account.access_token = None
+                    account.refresh_token = None
+                    db.add(account)
+                    disconnected_count += 1
+                else:
+                    logger.info(f"Token still valid for @{account.ig_username}")
+                    
+            except Exception as e:
+                logger.error(f"Error checking token for @{account.ig_username}: {e}")
+                # Assume disconnected if we can't validate
+                account.is_active = False
+                account.disconnected_at = datetime.utcnow()
+                account.access_token = None
+                account.refresh_token = None
+                db.add(account)
+                disconnected_count += 1
+        
+        # If any accounts were disconnected, also update settings
+        if disconnected_count > 0:
+            remaining_active = len(instagram_accounts) - disconnected_count
+            if remaining_active == 0:
+                # No active accounts left, disable automation
+                settings = await SettingsService.get_user_settings(db, current_user.id)
+                settings.instagram_enabled = False
+                settings.instagram_auto_publish = False
+                settings.instagram_auto_reply = False
+                db.add(settings)
+                logger.info(f"Disabled Instagram automation for user {current_user.id}")
+        
+        await db.commit()
+        
+        remaining_active = len(instagram_accounts) - disconnected_count
+        
+        return {
+            "success": True,
+            "message": f"Checked {len(instagram_accounts)} accounts, {disconnected_count} were disconnected",
+            "is_connected": remaining_active > 0,
+            "accounts_checked": len(instagram_accounts),
+            "accounts_disconnected": disconnected_count,
+            "accounts_remaining": remaining_active,
+        }
+        
+    except Exception as e:
+        logger.error(f"Error refreshing Instagram status: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to refresh Instagram status",
         )

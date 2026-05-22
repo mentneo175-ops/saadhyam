@@ -196,34 +196,24 @@ export function KeywordRankingList({
 
   return (
     <div className="space-y-2">
-      {filtered.map((keyword, idx) => {
-        const rank = deriveKeywordRank(idx);
-        return (
-          <motion.div
-            key={`${keyword}-${idx}`}
-            initial={{ opacity: 0, x: -6 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: delay + idx * 0.04 }}
-            whileHover={{ x: 2 }}
-            className="flex items-center justify-between gap-3 rounded-xl border border-border/50 bg-muted/30 px-4 py-3 transition-colors hover:border-primary/20 hover:bg-primary/5"
-          >
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-medium text-foreground">{keyword}</p>
-              <p className="text-xs text-muted-foreground">Target keyword</p>
-            </div>
-            <span
-              className={cn(
-                "shrink-0 rounded-lg px-2.5 py-1 text-xs font-bold",
-                rank <= 10
-                  ? "bg-success/10 text-success"
-                  : "bg-primary/10 text-primary",
-              )}
-            >
-              #{rank}
-            </span>
-          </motion.div>
-        );
-      })}
+      {filtered.map((keyword, idx) => (
+        <motion.div
+          key={`${keyword}-${idx}`}
+          initial={{ opacity: 0, x: -6 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: delay + idx * 0.04 }}
+          whileHover={{ x: 2 }}
+          className="flex items-center justify-between gap-3 rounded-xl border border-border/50 bg-muted/30 px-4 py-3 transition-colors hover:border-primary/20 hover:bg-primary/5"
+        >
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-medium text-foreground">{keyword}</p>
+            <p className="text-xs text-muted-foreground">Target keyword</p>
+          </div>
+          <span className="shrink-0 rounded-lg px-2.5 py-1 text-xs font-medium bg-primary/10 text-primary">
+            Tracked
+          </span>
+        </motion.div>
+      ))}
     </div>
   );
 }
@@ -248,38 +238,9 @@ export function KeywordPills({ keywords }: { keywords: string[] }) {
 }
 
 export function ReviewsOverview({ delay = 0.2 }: { delay?: number }) {
-  const stats = [
-    { label: "Avg. rating", value: "4.6", icon: Star },
-    { label: "Review velocity", value: "+12%", icon: MessageSquare },
-    { label: "Profile views", value: "2.4k", icon: Eye },
-    { label: "Direction requests", value: "186", icon: Navigation },
-  ];
-
-  return (
-    <SectionCard
-      title="Reviews overview"
-      subtitle="Local reputation signals for Google Maps"
-      icon={MessageSquare}
-      delay={delay}
-    >
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-        {stats.map((stat, idx) => (
-          <motion.div
-            key={stat.label}
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: delay + idx * 0.05 }}
-            whileHover={{ y: -2 }}
-            className="rounded-xl border border-border/50 bg-muted/25 p-3 text-center transition-shadow hover:shadow-soft"
-          >
-            <stat.icon className="mx-auto mb-2 h-4 w-4 text-primary" />
-            <p className="text-lg font-bold text-foreground">{stat.value}</p>
-            <p className="text-[11px] text-muted-foreground">{stat.label}</p>
-          </motion.div>
-        ))}
-      </div>
-    </SectionCard>
-  );
+  // Removed demo data - this component is now disabled
+  // To enable real reviews data, integrate with Google My Business API
+  return null;
 }
 
 export function MapsLocationInsights({

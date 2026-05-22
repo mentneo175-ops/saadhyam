@@ -7,6 +7,7 @@ import logging
 import os
 from typing import Dict, Any, Optional
 import google.generativeai as genai
+from config.settings import settings
 
 logger = logging.getLogger(__name__)
 
@@ -15,16 +16,77 @@ class WhatsAppAIService:
     """Service for AI-powered WhatsApp features"""
     
     def __init__(self):
-        # Initialize Gemini API
-        api_key = os.getenv("GEMINI_API_KEY")
-        if api_key:
-            genai.configure(api_key=api_key)
-            self.model = genai.GenerativeModel('gemini-2.0-flash-exp')
-            self.ai_available = True
-            logger.info("✅ WhatsApp AI Service initialized with Gemini")
+        # Initialize Gemini API Keys and remove duplicates
+        raw_keys = [
+            os.getenv("GEMINI_API_KEY"),
+            os.getenv("GEMINI_API_KEY_2"),
+            os.getenv("GEMINI_API_KEY_3")
+        ]
+        self.gemini_keys = []
+        _seen = set()
+        for key in raw_keys:
+            if key and key not in _seen:
+                self.gemini_keys.append(key)
+                _seen.add(key)
+        
+        # Check Groq key availability
+        from config.settings import settings
+        groq_api_key = settings.GROQ_API_KEY or os.getenv("GROQ_API_KEY")
+        
+        self.ai_available = len(self.gemini_keys) > 0 or bool(groq_api_key)
+        if self.ai_available:
+            logger.info(f"✅ WhatsApp AI Service initialized. Gemini keys: {len(self.gemini_keys)}, Groq available: {bool(groq_api_key)}")
         else:
-            self.ai_available = False
-            logger.warning("⚠️  Gemini API key not found, AI features disabled")
+            logger.warning("⚠️ WhatsApp AI Service keys not found, AI features will use static fallbacks")
+            
+    def _generate_with_fallback(self, prompt: str, system_instruction: Optional[str] = None) -> Optional[str]:
+        """Try Gemini keys in sequence, fall back to Groq, and return text content"""
+        # Try Gemini keys
+        for i, key in enumerate(self.gemini_keys):
+            try:
+                logger.info(f"🤖 Trying WhatsApp AI Gemini key {i+1}/{len(self.gemini_keys)}")
+                genai.configure(api_key=key)
+                model_name = settings.GEMINI_CONTENT_MODEL
+                
+                model = genai.GenerativeModel(
+                    model_name=model_name,
+                    system_instruction=system_instruction
+                )
+                response = model.generate_content(prompt)
+                if response and response.text:
+                    return response.text.strip()
+            except Exception as e:
+                logger.warning(f"⚠️ WhatsApp AI Gemini key {i+1} failed: {e}")
+        
+        # If all Gemini keys fail, try Groq
+        from config.settings import settings
+        from groq import Groq
+        groq_api_key = settings.GROQ_API_KEY or os.getenv("GROQ_API_KEY")
+        if groq_api_key:
+            try:
+                logger.info("🚀 WhatsApp AI falling back to Groq API...")
+                client = Groq(api_key=groq_api_key)
+                model_name = os.getenv("GROQ_CONTENT_MODEL", "llama-3.1-8b-instant")
+                
+                messages = []
+                if system_instruction:
+                    messages.append({"role": "system", "content": system_instruction})
+                messages.append({"role": "user", "content": prompt})
+                
+                response = client.chat.completions.create(
+                    model=model_name,
+                    messages=messages,
+                    temperature=0.7,
+                    max_tokens=600,
+                    timeout=15
+                )
+                if response and response.choices:
+                    logger.info("✅ WhatsApp AI Groq API fallback successful!")
+                    return response.choices[0].message.content.strip()
+            except Exception as e:
+                logger.error(f"❌ WhatsApp AI Groq fallback failed: {e}")
+        
+        return None
     
     def generate_reply(
         self,
@@ -62,11 +124,9 @@ class WhatsAppAIService:
             )
             
             # Generate response
-            response = self.model.generate_content(prompt)
+            reply_text = self._generate_with_fallback(prompt)
             
-            if response and response.text:
-                reply_text = response.text.strip()
-                
+            if reply_text:
                 # Calculate confidence score (simple heuristic)
                 confidence = self._calculate_confidence(reply_text, customer_message)
                 
@@ -185,11 +245,9 @@ class WhatsAppAIService:
             
             prompt = "\n".join(prompt_parts)
             
-            response = self.model.generate_content(prompt)
+            message = self._generate_with_fallback(prompt)
             
-            if response and response.text:
-                message = response.text.strip()
-                
+            if message:
                 logger.info(f"✅ Generated campaign message")
                 
                 return {
@@ -242,11 +300,11 @@ Intent: [intent]
 Confidence: [score]
 Explanation: [brief explanation]"""
             
-            response = self.model.generate_content(prompt)
+            response_text = self._generate_with_fallback(prompt)
             
-            if response and response.text:
+            if response_text:
                 # Parse response
-                lines = response.text.strip().split('\n')
+                lines = response_text.strip().split('\n')
                 intent = "other"
                 confidence = 50
                 explanation = ""

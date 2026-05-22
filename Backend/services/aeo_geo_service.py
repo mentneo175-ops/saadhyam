@@ -5,6 +5,7 @@ Main service that coordinates all AEO/GEO features
 
 import logging
 from typing import Dict, Any
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 from models.user import User
 from services.aeo_business_analyzer import analyze_business_for_aeo
@@ -18,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 async def get_aeo_geo_overview(
     user: User,
-    db: Session
+    db: AsyncSession
 ) -> Dict[str, Any]:
     """
     Get comprehensive AEO/GEO overview

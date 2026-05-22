@@ -1,3 +1,4 @@
+import { toast } from "sonner";
 import { createFileRoute } from "@tanstack/react-router";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -64,6 +65,7 @@ function AEOGEOPage() {
   const [blogs, setBlogs] = useState<Blog[]>([]);
   const [blogFilter, setBlogFilter] = useState<"all" | "draft" | "published">("all");
   const [selectedBlog, setSelectedBlog] = useState<Blog | null>(null);
+  const [publishingBlogIds, setPublishingBlogIds] = useState<Set<number>>(new Set());
 
   // Cooldown for optimization button (2 hours)
   const optimizeCooldown = useCooldown({
@@ -223,16 +225,26 @@ function AEOGEOPage() {
       await loadBlogs();
 
       // Show success message (stay on same page)
-      alert(`Blog "${result.blog.title}" generated successfully!`);
+      toast.success(`Blog "${result.blog.title}" generated successfully!`, {
+        duration: 4000,
+        position: 'top-right'
+      });
     } catch (err: any) {
       console.error("Error generating blog:", err);
-      setError(err.message || "Failed to generate blog post");
+      const errorMessage = err.message || "Failed to generate blog post";
+      toast.error(errorMessage, {
+        duration: 4000,
+        position: 'top-right'
+      });
     } finally {
       setIsGeneratingBlog(false);
     }
   };
 
   const handlePublishBlog = async (blogId: number) => {
+    // Add blog ID to publishing set
+    setPublishingBlogIds(prev => new Set(prev).add(blogId));
+    
     try {
       const token = getToken();
       await publishBlog(token, blogId);
@@ -240,19 +252,28 @@ function AEOGEOPage() {
       // Reload blogs
       await loadBlogs();
 
-      alert("Blog published successfully and integrated into your confirmed website!");
+      toast.success("Blog published successfully and integrated into your confirmed website!", {
+        duration: 4000,
+        position: 'top-right'
+      });
     } catch (err: any) {
       console.error("Error publishing blog:", err);
       const errorMessage = err.message || "Failed to publish blog";
 
       // Check if error is about missing website
       if (errorMessage.includes("create a website first") || errorMessage.includes("Website AI")) {
-        alert(
-          "⚠️ Website Required\n\nYou need to create a website first before publishing blogs.\n\nPlease go to 'Website AI' in the sidebar to create your website, then come back to publish your blogs.",
+        toast.error("⚠️ Website Required\n\nYou need to create a website first before publishing blogs.\n\nPlease go to 'Website AI' in the sidebar to create your website, then come back to publish your blogs.",
         );
       } else {
-        setError(errorMessage);
+        toast.error(errorMessage);
       }
+    } finally {
+      // Remove blog ID from publishing set
+      setPublishingBlogIds(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(blogId);
+        return newSet;
+      });
     }
   };
 
@@ -688,8 +709,7 @@ function AEOGEOPage() {
               </Button>
             </div>
             <p className="text-xs text-gray-500 mt-2">
-              ⚠️ Rate limit: 5 requests per minute. Generation takes 30-60 seconds. Blogs will be
-              automatically published to your confirmed website.
+              Generation takes 30-60 seconds. Blogs will be automatically published to your confirmed website.
             </p>
           </div>
 
@@ -838,9 +858,23 @@ function AEOGEOPage() {
                       Preview
                     </Button>
                     {!blog.is_published && (
-                      <Button variant="hero" size="sm" onClick={() => handlePublishBlog(blog.id)}>
-                        <Send size={14} />
-                        Publish
+                      <Button 
+                        variant="hero" 
+                        size="sm" 
+                        onClick={() => handlePublishBlog(blog.id)}
+                        disabled={publishingBlogIds.has(blog.id)}
+                      >
+                        {publishingBlogIds.has(blog.id) ? (
+                          <>
+                            <Loader2 size={14} className="animate-spin" />
+                            Publishing...
+                          </>
+                        ) : (
+                          <>
+                            <Send size={14} />
+                            Publish
+                          </>
+                        )}
                       </Button>
                     )}
                     <Button
@@ -866,7 +900,7 @@ function AEOGEOPage() {
           onClick={() => setSelectedBlog(null)}
         >
           <div
-            className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+            className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto scrollbar-invisible"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Preview Header */}
@@ -886,9 +920,19 @@ function AEOGEOPage() {
                       handlePublishBlog(selectedBlog.id);
                       setSelectedBlog(null);
                     }}
+                    disabled={publishingBlogIds.has(selectedBlog.id)}
                   >
-                    <Send size={14} />
-                    Publish
+                    {publishingBlogIds.has(selectedBlog.id) ? (
+                      <>
+                        <Loader2 size={14} className="animate-spin" />
+                        Publishing...
+                      </>
+                    ) : (
+                      <>
+                        <Send size={14} />
+                        Publish
+                      </>
+                    )}
                   </Button>
                 )}
                 <button

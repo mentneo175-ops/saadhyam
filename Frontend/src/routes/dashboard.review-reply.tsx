@@ -1,9 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { PageHeader } from "@/components/dashboard/PageHeader";
 import { Button } from "@/components/ui/button";
-import { Sparkles, Star, Copy, RefreshCcw, ThumbsUp, ThumbsDown, Clock } from "lucide-react";
+import { Sparkles, Star, Copy, RefreshCcw, ThumbsUp, ThumbsDown, Clock, MessageSquare, Loader2, CheckCircle } from "lucide-react";
 import { useState, useEffect } from "react";
 import { apiClient } from "@/lib/api";
+import { env } from "@/config/env";
 
 export const Route = createFileRoute("/dashboard/review-reply")({
   head: () => ({ meta: [{ title: "Review Reply AI — Saadhyam AI" }] }),
@@ -33,18 +33,11 @@ function ReviewReplyPage() {
   const [copied, setCopied] = useState(false);
 
   const businessTypes = [
-    "Restaurant",
-    "Hotel",
-    "E-commerce",
-    "Retail",
-    "Service",
-    "Healthcare",
-    "Education",
-    "Other",
+    "Restaurant", "Hotel", "E-commerce", "Retail",
+    "Service", "Healthcare", "Education", "Other",
   ];
   const tones = ["professional", "friendly", "grateful", "apologetic", "calm"];
 
-  // Fetch history on component mount
   useEffect(() => {
     fetchHistory();
   }, []);
@@ -57,34 +50,21 @@ function ReviewReplyPage() {
         "Content-Type": "application/json",
         ...(token && { Authorization: `Bearer ${token}` }),
       };
-
       const endpoints = [
-        "http://localhost:8000/ai/review-reply-history?limit=3",
-        "http://localhost:8000/api/review-reply/history?limit=3",
+        `${env.apiBaseUrl}/ai/review-reply-history?limit=3`,
+        `${env.apiBaseUrl}/api/review-reply/history?limit=3`,
       ];
-
       for (const endpoint of endpoints) {
         const response = await fetch(endpoint, { method: "GET", headers });
-
-        if (response.status === 404 || response.status === 422) {
-          // Endpoint not available or validation error - skip silently
-          continue;
-        }
-
-        if (!response.ok) {
-          continue;
-        }
-
+        if (response.status === 404 || response.status === 422) continue;
+        if (!response.ok) continue;
         const data = await response.json();
-        console.log("History response:", data);
-
         const historyItems = Array.isArray(data) ? data : data.history;
         if (historyItems) {
           setHistory(historyItems.slice(0, 3));
           return;
         }
       }
-
       setHistory([]);
     } catch (error) {
       console.error("Error fetching history:", error);
@@ -94,92 +74,50 @@ function ReviewReplyPage() {
   };
 
   const handleGenerate = async () => {
-    if (!reviewText.trim()) {
-      setError("Please enter a review");
-      return;
-    }
-
+    if (!reviewText.trim()) { setError("Please enter a review"); return; }
     setError("");
     setIsGenerating(true);
     try {
-      console.log("Sending request to backend...");
       const token = localStorage.getItem("token");
-      const response = await fetch("http://localhost:8000/ai/generate-review-reply", {
+      const response = await fetch(`${env.apiBaseUrl}/ai/generate-review-reply`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token && { Authorization: `Bearer ${token}` }),
-        },
-        body: JSON.stringify({
-          review_text: reviewText,
-          rating,
-          business_type: businessType,
-          tone,
-        }),
+        headers: { "Content-Type": "application/json", ...(token && { Authorization: `Bearer ${token}` }) },
+        body: JSON.stringify({ review_text: reviewText, rating, business_type: businessType, tone }),
       });
-
-      console.log("Response status:", response.status);
       const data = await response.json();
-      console.log("Response data:", data);
-
       if (data.success && data.reply) {
         setGeneratedReply(data.reply);
-        // Refresh history after successful generation
         await fetchHistory();
       } else {
         setError(data.error || "Failed to generate reply");
       }
     } catch (error) {
-      console.error("Generation error:", error);
-      setError(
-        "Failed to generate reply: " + (error instanceof Error ? error.message : "Unknown error"),
-      );
+      setError("Failed to generate reply: " + (error instanceof Error ? error.message : "Unknown error"));
     } finally {
       setIsGenerating(false);
     }
   };
 
   const handleRegenerate = async () => {
-    if (!reviewText.trim()) {
-      setError("Please enter a review");
-      return;
-    }
-
+    if (!reviewText.trim()) { setError("Please enter a review"); return; }
     setError("");
     setIsGenerating(true);
     try {
-      console.log("Sending regenerate request to backend...");
       const token = localStorage.getItem("token");
-      const response = await fetch("http://localhost:8000/ai/generate-review-reply", {
+      const response = await fetch(`${env.apiBaseUrl}/ai/generate-review-reply`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token && { Authorization: `Bearer ${token}` }),
-        },
-        body: JSON.stringify({
-          review_text: reviewText,
-          rating,
-          business_type: businessType,
-          tone,
-        }),
+        headers: { "Content-Type": "application/json", ...(token && { Authorization: `Bearer ${token}` }) },
+        body: JSON.stringify({ review_text: reviewText, rating, business_type: businessType, tone }),
       });
-
-      console.log("Response status:", response.status);
       const data = await response.json();
-      console.log("Response data:", data);
-
       if (data.success && data.reply) {
         setGeneratedReply(data.reply);
-        // Refresh history after successful generation
         await fetchHistory();
       } else {
         setError(data.error || "Failed to regenerate reply");
       }
     } catch (error) {
-      console.error("Regeneration error:", error);
-      setError(
-        "Failed to regenerate reply: " + (error instanceof Error ? error.message : "Unknown error"),
-      );
+      setError("Failed to regenerate reply: " + (error instanceof Error ? error.message : "Unknown error"));
     } finally {
       setIsGenerating(false);
     }
@@ -187,16 +125,8 @@ function ReviewReplyPage() {
 
   const formatDate = (dateString: string) => {
     try {
-      const date = new Date(dateString);
-      return date.toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      });
-    } catch {
-      return dateString;
-    }
+      return new Date(dateString).toLocaleDateString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+    } catch { return dateString; }
   };
 
   const loadFromHistory = (item: HistoryItem) => {
@@ -209,266 +139,286 @@ function ReviewReplyPage() {
 
   const handleCopyReply = async () => {
     if (!generatedReply) return;
-
     try {
       await navigator.clipboard.writeText(generatedReply);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-    } catch (error) {
-      console.error("Failed to copy:", error);
-      // Fallback for older browsers
+    } catch {
       const textArea = document.createElement("textarea");
       textArea.value = generatedReply;
       document.body.appendChild(textArea);
       textArea.select();
-      try {
-        document.execCommand("copy");
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-      } catch (err) {
-        console.error("Fallback copy failed:", err);
-      }
+      try { document.execCommand("copy"); setCopied(true); setTimeout(() => setCopied(false), 2000); } catch {}
       document.body.removeChild(textArea);
     }
   };
 
   const handleCopyHistoryReply = async (reply: string, event: React.MouseEvent) => {
-    event.stopPropagation(); // Prevent loading the history item
-
-    try {
-      await navigator.clipboard.writeText(reply);
-      // You could add a toast notification here
-    } catch (error) {
-      console.error("Failed to copy:", error);
-    }
+    event.stopPropagation();
+    try { await navigator.clipboard.writeText(reply); } catch {}
   };
 
   return (
-    <div className="p-4 md:p-6 space-y-5">
-      <PageHeader
-        title="Review Reply AI"
-        subtitle="Generate professional replies to Google reviews instantly"
-        actions={
-          <Button variant="hero" size="sm">
-            <Sparkles size={14} /> Quick Reply
-          </Button>
-        }
-      />
-
-      <div className="grid lg:grid-cols-2 gap-4">
-        {/* Input Panel */}
-        <div className="bg-card rounded-2xl border border-border/60 shadow-sm p-4 space-y-4">
+    <div className="min-h-screen bg-white p-4 md:p-6 lg:p-8">
+      {/* Page Header */}
+      <div className="mb-8">
+        <div className="flex items-center justify-between">
           <div>
-            <label className="text-sm font-semibold mb-2 block">Review Rating</label>
-            <div className="flex gap-2">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2.5 bg-gradient-to-br from-[#8B5CF6] to-[#A855F7] rounded-xl shadow-lg shadow-[#8B5CF6]/30">
+                <MessageSquare size={18} className="text-white" />
+              </div>
+              <h1 className="text-2xl font-bold text-gray-900">Review Reply AI</h1>
+            </div>
+            <p className="text-sm text-gray-500 ml-[52px]">Generate professional replies to Google reviews instantly</p>
+          </div>
+          <button
+            onClick={handleGenerate}
+            disabled={isGenerating || !reviewText.trim()}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#8B5CF6] to-[#A855F7] hover:from-[#7C3AED] hover:to-[#9333EA] text-white text-sm font-semibold rounded-xl shadow-lg shadow-[#8B5CF6]/25 hover:shadow-xl hover:shadow-[#8B5CF6]/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Sparkles size={14} /> Quick Reply
+          </button>
+        </div>
+      </div>
+
+      <div className="grid lg:grid-cols-2 gap-6 mb-6">
+        {/* Input Panel */}
+        <div className="bg-white rounded-2xl border border-gray-200/60 shadow-lg shadow-gray-100/50 p-6 space-y-5">
+          <div className="flex items-center gap-3 pb-4 border-b border-gray-100">
+            <div className="p-2 bg-[#F3EEFF] rounded-xl">
+              <Star size={15} className="text-[#8B5CF6]" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-gray-900 text-sm">Review Details</h3>
+              <p className="text-xs text-gray-500">Configure the review parameters</p>
+            </div>
+          </div>
+
+          {/* Rating */}
+          <div>
+            <label className="text-sm font-semibold text-gray-700 mb-2.5 block">Review Rating</label>
+            <div className="flex gap-1.5">
               {[1, 2, 3, 4, 5].map((star) => (
                 <button
                   key={star}
                   onClick={() => setRating(star)}
-                  className={`transition ${star <= rating ? "text-yellow-500" : "text-gray-300"}`}
+                  className="transition-transform hover:scale-110"
                 >
-                  <Star size={24} fill={star <= rating ? "currentColor" : "none"} />
+                  <Star
+                    size={28}
+                    className={star <= rating ? "text-yellow-400" : "text-gray-200"}
+                    fill={star <= rating ? "currentColor" : "none"}
+                  />
+                </button>
+              ))}
+              <span className="ml-2 text-sm text-gray-500 self-center">{rating}/5 stars</span>
+            </div>
+          </div>
+
+          {/* Business Type */}
+          <div>
+            <label className="text-sm font-semibold text-gray-700 mb-2.5 block">Business Type</label>
+            <select
+              value={businessType}
+              onChange={(e) => setBusinessType(e.target.value)}
+              className="w-full rounded-xl border-2 border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-700 focus:border-[#8B5CF6] focus:ring-2 focus:ring-[#8B5CF6]/20 outline-none transition-all"
+            >
+              {businessTypes.map((type) => (
+                <option key={type} value={type}>{type}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Tone */}
+          <div>
+            <label className="text-sm font-semibold text-gray-700 mb-2.5 block">Reply Tone</label>
+            <div className="flex gap-2 flex-wrap">
+              {tones.map((t) => (
+                <button
+                  key={t}
+                  onClick={() => setTone(t)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all border ${
+                    tone === t
+                      ? "bg-[#F3EEFF] text-[#8B5CF6] border-[#E9D5FF]"
+                      : "border-gray-200 text-gray-600 hover:border-[#8B5CF6]/40 hover:bg-[#F9F7FF]"
+                  }`}
+                >
+                  {t.charAt(0).toUpperCase() + t.slice(1)}
                 </button>
               ))}
             </div>
           </div>
 
+          {/* Review Text */}
           <div>
-            <label className="text-sm font-semibold mb-2 block">Business Type</label>
-            <select
-              value={businessType}
-              onChange={(e) => setBusinessType(e.target.value)}
-              className="w-full rounded-xl border border-border bg-background p-3 text-sm focus:border-primary focus:ring-2 focus:ring-primary/15 outline-none"
-            >
-              {businessTypes.map((type) => (
-                <option key={type} value={type}>
-                  {type}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="text-sm font-semibold mb-2 block">Reply Tone</label>
-            <select
-              value={tone}
-              onChange={(e) => setTone(e.target.value)}
-              className="w-full rounded-xl border border-border bg-background p-3 text-sm focus:border-primary focus:ring-2 focus:ring-primary/15 outline-none"
-            >
-              {tones.map((t) => (
-                <option key={t} value={t}>
-                  {t.charAt(0).toUpperCase() + t.slice(1)}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="text-sm font-semibold mb-2 block">Customer Review</label>
+            <label className="text-sm font-semibold text-gray-700 mb-2.5 block">Customer Review</label>
             <textarea
               value={reviewText}
               onChange={(e) => setReviewText(e.target.value)}
-              rows={6}
+              rows={5}
               placeholder="Paste the customer's review here..."
-              className="w-full rounded-xl border border-border bg-background p-3 text-sm focus:border-primary focus:ring-2 focus:ring-primary/15 outline-none resize-none"
+              className="w-full rounded-xl border-2 border-gray-200 bg-white p-3 text-sm text-gray-700 focus:border-[#8B5CF6] focus:ring-2 focus:ring-[#8B5CF6]/20 outline-none resize-none transition-all placeholder:text-gray-400"
             />
           </div>
 
           {error && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-700">
-              {error}
+            <div className="flex items-start gap-3 p-3 rounded-xl bg-red-50 border border-red-200">
+              <span className="text-red-500 text-xs font-medium">{error}</span>
             </div>
           )}
 
-          <Button
-            variant="hero"
-            className="w-full"
-            size="lg"
+          <button
             onClick={handleGenerate}
             disabled={isGenerating || !reviewText.trim()}
+            className="w-full h-12 bg-gradient-to-r from-[#8B5CF6] to-[#A855F7] hover:from-[#7C3AED] hover:to-[#9333EA] text-white font-semibold rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#8B5CF6]/25 hover:shadow-xl hover:shadow-[#8B5CF6]/30 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isGenerating ? (
-              <>
-                <RefreshCcw size={16} className="animate-spin" /> Generating...
-              </>
+              <><Loader2 size={16} className="animate-spin" /> Generating...</>
             ) : (
-              <>
-                <Sparkles size={16} /> Generate Reply
-              </>
+              <><Sparkles size={16} /> Generate Reply</>
             )}
-          </Button>
+          </button>
         </div>
 
         {/* Output Panel */}
-        <div className="bg-card rounded-2xl border border-border/60 shadow-sm p-4 flex flex-col">
-          <div className="flex items-center justify-between mb-3">
-            <p className="text-sm font-semibold">AI Generated Reply</p>
-            <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-1 rounded-full bg-success/10 text-success">
-              <Sparkles size={10} /> Ready
-            </span>
+        <div className="bg-white rounded-2xl border border-gray-200/60 shadow-lg shadow-gray-100/50 p-6 flex flex-col">
+          <div className="flex items-center justify-between pb-4 border-b border-gray-100 mb-5">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-[#F3EEFF] rounded-xl">
+                <Sparkles size={15} className="text-[#8B5CF6]" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-900 text-sm">AI Generated Reply</h3>
+                <p className="text-xs text-gray-500">Ready to copy & use</p>
+              </div>
+            </div>
+            {generatedReply && (
+              <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                <CheckCircle size={11} /> Ready
+              </span>
+            )}
           </div>
 
-          <div className="flex-1 rounded-xl bg-gradient-soft border border-border/40 p-4 mb-4 min-h-64">
-            <p className="text-sm leading-relaxed whitespace-pre-line">
-              {generatedReply || "Click 'Generate Reply' to create a professional response"}
-            </p>
+          <div className="flex-1 rounded-xl bg-gradient-to-br from-[#F8F7FC] to-[#F3F1F9] border border-gray-200/60 p-5 mb-5 min-h-64">
+            {generatedReply ? (
+              <p className="text-sm leading-relaxed text-gray-700 whitespace-pre-line">{generatedReply}</p>
+            ) : (
+              <div className="h-full flex flex-col items-center justify-center text-center gap-3">
+                <div className="w-14 h-14 rounded-2xl bg-white border border-gray-200 flex items-center justify-center shadow-sm">
+                  <MessageSquare size={22} className="text-gray-300" />
+                </div>
+                <p className="text-sm text-gray-400 font-medium">Your reply will appear here</p>
+                <p className="text-xs text-gray-400">Fill in the details and click Generate Reply</p>
+              </div>
+            )}
           </div>
 
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className="flex-1"
-              disabled={!generatedReply}
+          <div className="flex gap-3">
+            <button
               onClick={handleCopyReply}
+              disabled={!generatedReply}
+              className="flex-1 h-10 flex items-center justify-center gap-2 rounded-xl border-2 border-gray-200 text-gray-600 text-sm font-medium hover:border-[#8B5CF6] hover:text-[#8B5CF6] hover:bg-[#F9F7FF] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
             >
-              {copied ? (
-                <>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="13"
-                    height="13"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="text-green-600"
-                  >
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                  </svg>
-                  <span className="text-green-600">Copied!</span>
-                </>
-              ) : (
-                <>
-                  <Copy size={13} /> Copy Reply
-                </>
-              )}
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="flex-1"
-              disabled={!generatedReply || isGenerating}
+              {copied ? <><CheckCircle size={14} className="text-emerald-600" /><span className="text-emerald-600">Copied!</span></> : <><Copy size={14} /> Copy Reply</>}
+            </button>
+            <button
               onClick={handleRegenerate}
+              disabled={!generatedReply || isGenerating}
+              className="flex-1 h-10 flex items-center justify-center gap-2 rounded-xl border-2 border-gray-200 text-gray-600 text-sm font-medium hover:border-[#8B5CF6] hover:text-[#8B5CF6] hover:bg-[#F9F7FF] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
             >
-              <RefreshCcw size={13} className={isGenerating ? "animate-spin" : ""} /> Regenerate
-            </Button>
+              <RefreshCcw size={14} className={isGenerating ? "animate-spin" : ""} /> Regenerate
+            </button>
           </div>
         </div>
       </div>
 
       {/* Recent Replies History */}
-      <div className="bg-card rounded-2xl border border-border/60 shadow-sm p-4">
-        <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
-          <Clock size={16} /> Recent Replies {history.length > 0 ? `(${history.length})` : ""}
-        </h3>
+      <div className="bg-white rounded-2xl border border-gray-200/60 shadow-lg shadow-gray-100/50 p-6 mb-6">
+        <div className="flex items-center gap-3 pb-4 border-b border-gray-100 mb-5">
+          <div className="p-2 bg-[#F3EEFF] rounded-xl">
+            <Clock size={15} className="text-[#8B5CF6]" />
+          </div>
+          <div>
+            <h3 className="font-semibold text-gray-900 text-sm">Recent Replies {history.length > 0 ? `(${history.length})` : ""}</h3>
+            <p className="text-xs text-gray-500">Click to reload a previous reply</p>
+          </div>
+        </div>
         {isLoadingHistory ? (
-          <div className="rounded-lg border border-dashed border-border/50 p-4 text-sm text-muted-foreground">
-            Loading saved replies...
+          <div className="flex items-center gap-2 text-sm text-gray-400 py-4">
+            <Loader2 size={16} className="animate-spin" /> Loading saved replies...
           </div>
         ) : history.length > 0 ? (
-          <div className="space-y-2">
+          <div className="space-y-3">
             {history.map((item) => (
               <div
                 key={item.id}
-                className="rounded-lg border border-border/40 p-3 hover:bg-accent/20 transition cursor-pointer group"
+                className="rounded-xl border border-gray-200/60 p-4 hover:border-[#8B5CF6]/30 hover:bg-[#F9F7FF] transition-all cursor-pointer group"
                 onClick={() => loadFromHistory(item)}
               >
                 <div className="flex items-start justify-between gap-3 mb-2">
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs font-medium text-muted-foreground mb-1">
-                      {item.business_type} • {item.tone} • ⭐ {item.rating}/5
-                    </p>
-                    <p className="text-sm line-clamp-2 text-foreground">{item.review}</p>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-xs font-semibold text-[#8B5CF6] bg-[#F3EEFF] px-2 py-0.5 rounded-full">{item.business_type}</span>
+                      <span className="text-xs text-gray-500">{item.tone}</span>
+                      <span className="text-xs text-yellow-500">{"★".repeat(item.rating)}</span>
+                    </div>
+                    <p className="text-sm text-gray-700 line-clamp-2">{item.review}</p>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 shrink-0">
                     <button
                       onClick={(e) => handleCopyHistoryReply(item.reply, e)}
-                      className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 hover:bg-accent rounded-md"
+                      className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 hover:bg-white rounded-lg"
                       title="Copy reply"
                     >
-                      <Copy size={14} className="text-muted-foreground hover:text-foreground" />
+                      <Copy size={14} className="text-gray-400 hover:text-[#8B5CF6]" />
                     </button>
-                    <p className="text-[10px] text-muted-foreground whitespace-nowrap">
-                      {formatDate(item.created_at)}
-                    </p>
+                    <p className="text-xs text-gray-400 whitespace-nowrap">{formatDate(item.created_at)}</p>
                   </div>
                 </div>
-                <p className="text-xs text-muted-foreground line-clamp-1 italic">
-                  Reply: {item.reply}
-                </p>
+                <p className="text-xs text-gray-500 line-clamp-1 italic">Reply: {item.reply}</p>
               </div>
             ))}
           </div>
         ) : (
-          <div className="rounded-lg border border-dashed border-border/50 p-4 text-sm text-muted-foreground">
-            No saved replies yet. Generate one and it will appear here.
+          <div className="rounded-xl border-2 border-dashed border-gray-200 p-8 text-center">
+            <div className="w-12 h-12 rounded-xl bg-gray-50 flex items-center justify-center mx-auto mb-3">
+              <MessageSquare size={20} className="text-gray-300" />
+            </div>
+            <p className="text-sm font-medium text-gray-500">No saved replies yet</p>
+            <p className="text-xs text-gray-400 mt-1">Generate one and it will appear here.</p>
           </div>
         )}
       </div>
 
       {/* Quick Templates */}
-      <div className="bg-card rounded-2xl border border-border/60 shadow-sm p-4">
-        <h3 className="text-sm font-semibold mb-3">Quick Reply Templates</h3>
-        <div className="grid md:grid-cols-2 gap-3">
-          <div className="bg-emerald-50 rounded-lg p-3 border border-emerald-100">
+      <div className="bg-white rounded-2xl border border-gray-200/60 shadow-lg shadow-gray-100/50 p-6">
+        <div className="flex items-center gap-3 pb-4 border-b border-gray-100 mb-5">
+          <div className="p-2 bg-[#F3EEFF] rounded-xl">
+            <Sparkles size={15} className="text-[#8B5CF6]" />
+          </div>
+          <div>
+            <h3 className="font-semibold text-gray-900 text-sm">Quick Reply Templates</h3>
+            <p className="text-xs text-gray-500">Example responses for common scenarios</p>
+          </div>
+        </div>
+        <div className="grid md:grid-cols-2 gap-4">
+          <div className="bg-emerald-50 rounded-xl p-4 border border-emerald-100">
             <div className="flex items-center gap-2 mb-2">
               <ThumbsUp size={14} className="text-emerald-600" />
-              <p className="text-xs font-semibold text-emerald-700">Positive Review (4-5 stars)</p>
+              <p className="text-xs font-semibold text-emerald-700">Positive Review (4–5 stars)</p>
             </div>
-            <p className="text-xs text-gray-700">
-              Thank you for the wonderful feedback! We're delighted to have served you...
+            <p className="text-xs text-gray-600 leading-relaxed">
+              Thank you for the wonderful feedback! We're delighted to have served you and hope to see you again soon.
             </p>
           </div>
-          <div className="bg-red-50 rounded-lg p-3 border border-red-100">
+          <div className="bg-red-50 rounded-xl p-4 border border-red-100">
             <div className="flex items-center gap-2 mb-2">
-              <ThumbsDown size={14} className="text-red-600" />
-              <p className="text-xs font-semibold text-red-700">Negative Review (1-3 stars)</p>
+              <ThumbsDown size={14} className="text-red-500" />
+              <p className="text-xs font-semibold text-red-700">Negative Review (1–3 stars)</p>
             </div>
-            <p className="text-xs text-gray-700">
-              We apologize for your experience. Please contact us so we can make it right...
+            <p className="text-xs text-gray-600 leading-relaxed">
+              We sincerely apologize for your experience. Please contact us directly so we can make it right for you.
             </p>
           </div>
         </div>

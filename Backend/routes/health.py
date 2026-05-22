@@ -5,9 +5,10 @@ Monitor backend service health and dependencies
 
 import logging
 from fastapi import APIRouter, Depends
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 from datetime import datetime
-from config.database import get_db
+from config.database import get_db, get_db_sync
 from services.vector_storage_service import vector_storage
 from services.firebase_service import firebase_service
 
@@ -27,7 +28,7 @@ async def health_check():
 
 
 @router.get("/detailed")
-async def detailed_health_check(db: Session = Depends(get_db)):
+async def detailed_health_check(db: AsyncSession = Depends(get_db)):
     """Detailed health check - monitor all dependencies"""
     health_status = {
         "status": "healthy",
@@ -38,7 +39,7 @@ async def detailed_health_check(db: Session = Depends(get_db)):
     try:
         # Check Database
         try:
-            db.execute("SELECT 1")
+            await db.execute("SELECT 1")
             health_status["services"]["database"] = {
                 "status": "healthy",
                 "message": "PostgreSQL connection OK"
@@ -105,11 +106,11 @@ async def detailed_health_check(db: Session = Depends(get_db)):
 
 
 @router.get("/ready")
-async def readiness_check(db: Session = Depends(get_db)):
+async def readiness_check(db: AsyncSession = Depends(get_db)):
     """Readiness check - for Kubernetes/load balancer"""
     try:
         # Check critical dependencies
-        db.execute("SELECT 1")
+        await db.execute("SELECT 1")
         
         if not firebase_service.is_firebase_available():
             return {
@@ -131,7 +132,7 @@ async def readiness_check(db: Session = Depends(get_db)):
 
 
 @router.get("/stats")
-async def service_stats(db: Session = Depends(get_db)):
+async def service_stats(db: Session = Depends(get_db_sync)):
     """Get service statistics"""
     try:
         stats = {

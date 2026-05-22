@@ -27,6 +27,7 @@ import { Button } from "../components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Input } from "../components/ui/input";
 import { Badge } from "../components/ui/badge";
+import { env } from "@/config/env";
 
 export const Route = createFileRoute("/dashboard/voice-agent/conversations")({
   component: ConversationsPage,
@@ -64,7 +65,7 @@ function ConversationsPage() {
       const token = localStorage.getItem("saadhyam_token");
       
       // Get all campaigns first
-      const campaignsResponse = await fetch("http://localhost:8000/api/v2/voice-agent/campaigns", {
+      const campaignsResponse = await fetch(`${env.apiBaseUrl}/api/v2/voice-agent/campaigns`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const campaignsData = await campaignsResponse.json();
@@ -73,7 +74,7 @@ function ConversationsPage() {
       const allCalls: Call[] = [];
       for (const campaign of campaignsData.campaigns || []) {
         const callsResponse = await fetch(
-          `http://localhost:8000/api/voice-agent/campaigns/${campaign.id}/calls`,
+          `${env.apiBaseUrl}/api/voice-agent/campaigns/${campaign.id}/calls`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }

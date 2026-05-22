@@ -1,7 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
+import { env } from "@/config/env";
 import { 
-  Heart, 
+  Heart,
   MessageCircle, 
   Share2, 
   Bookmark,
@@ -57,10 +58,10 @@ function InstagramPosts() {
       setLoading(true)
       const token = localStorage.getItem('token')
       
-      let url = `http://localhost:8000/api/instagram-analytics/content/${selectedAccount}/posts?limit=50`
+      let url = `${env.apiBaseUrl}/api/instagram-analytics/content/${selectedAccount}/posts?limit=50`
       
       if (filter === 'top') {
-        url = `http://localhost:8000/api/instagram-analytics/content/${selectedAccount}/top-posts?limit=20`
+        url = `${env.apiBaseUrl}/api/instagram-analytics/content/${selectedAccount}/top-posts?limit=20`
       }
       
       const response = await fetch(url, {

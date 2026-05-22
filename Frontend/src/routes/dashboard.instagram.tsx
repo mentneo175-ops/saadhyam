@@ -55,6 +55,7 @@ import { InstagramConnectionSuccess } from "@/components/instagram/InstagramConn
 import { InstagramAnalyticsDashboard } from "@/components/instagram/InstagramAnalyticsDashboard";
 import { PromotePostModal } from "@/components/meta-ads/PromotePostModal";
 import { InstagramLoader } from "@/components/instagram/InstagramLoader";
+import { env } from "@/config/env";
 
 export const Route = createFileRoute("/dashboard/instagram")({
   head: () => ({ meta: [{ title: "Instagram — Saadhyam AI" }] }),
@@ -224,7 +225,7 @@ function InstagramPage() {
     try {
       setConnectionLoading(true);
       const token = localStorage.getItem("saadhyam_token");
-      const response = await fetch("http://localhost:8000/settings/instagram/connection-status", {
+      const response = await fetch(`${env.apiBaseUrl}/settings/instagram/connection-status`, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
@@ -252,7 +253,7 @@ function InstagramPage() {
   const loadAISettings = async () => {
     try {
       const token = localStorage.getItem("saadhyam_token");
-      const response = await fetch("http://localhost:8000/settings", {
+      const response = await fetch(`${env.apiBaseUrl}/settings`, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
@@ -279,7 +280,7 @@ function InstagramPage() {
     try {
       setGeneratingCaption(true);
       
-      const response = await fetch("http://localhost:8000/instagram/generate-caption", {
+      const response = await fetch(`${env.apiBaseUrl}/instagram/generate-caption`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${localStorage.getItem("saadhyam_token")}`,
@@ -315,7 +316,7 @@ function InstagramPage() {
       
       const token = localStorage.getItem("saadhyam_token");
       const popup = window.open(
-        `http://localhost:8000/auth/instagram/connect?token=${token}`,
+        `${env.apiBaseUrl}/auth/instagram/connect?token=${token}`,
         "instagram-connect",
         "width=600,height=700,scrollbars=yes,resizable=yes"
       );
@@ -338,7 +339,7 @@ function InstagramPage() {
 
       // Listen for messages from popup
       const messageListener = (event: MessageEvent) => {
-        if (event.origin !== "http://localhost:8000") return;
+        if (event.origin !== env.apiBaseUrl) return;
         
         if (event.data.type === "instagram-auth-success") {
           popup.close();
@@ -376,7 +377,7 @@ function InstagramPage() {
       setConnectionLoading(true);
       const token = localStorage.getItem("saadhyam_token");
       
-      const response = await fetch("http://localhost:8000/settings/instagram/disconnect", {
+      const response = await fetch(`${env.apiBaseUrl}/settings/instagram/disconnect`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -435,7 +436,7 @@ function InstagramPage() {
         return;
       }
       
-      const response = await fetch("http://localhost:8000/instagram/posts", {
+      const response = await fetch(`${env.apiBaseUrl}/instagram/posts`, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
@@ -567,7 +568,7 @@ function InstagramPage() {
         topic = "new post";
       }
 
-      const response = await fetch("http://localhost:8000/instagram/generate-caption", {
+      const response = await fetch(`${env.apiBaseUrl}/instagram/generate-caption`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${localStorage.getItem("saadhyam_token")}`,
@@ -644,7 +645,7 @@ function InstagramPage() {
         });
       }
 
-      const response = await fetch(`http://localhost:8000${endpoint}`, {
+      const response = await fetch(`${env.apiBaseUrl}${endpoint}`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${localStorage.getItem("saadhyam_token")}`,
@@ -776,7 +777,7 @@ function InstagramPage() {
       
       if (!token) return;
       
-      const response = await fetch("http://localhost:8000/instagram/process-scheduled", {
+      const response = await fetch(`${env.apiBaseUrl}/instagram/process-scheduled`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,

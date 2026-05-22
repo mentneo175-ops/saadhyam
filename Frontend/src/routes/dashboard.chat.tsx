@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { env } from "@/config/env";
 
 export const Route = createFileRoute("/dashboard/chat")({
   component: ChatPage,
@@ -87,7 +88,7 @@ function ChatPage() {
   const loadRooms = async () => {
     try {
       const token = localStorage.getItem("saadhyam_token"); // Fixed: was "token"
-      const response = await fetch("http://localhost:8000/api/b2b-chat/rooms", {
+      const response = await fetch(`${env.apiBaseUrl}/api/b2b-chat/rooms`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -108,7 +109,7 @@ function ChatPage() {
     try {
       const token = localStorage.getItem("saadhyam_token"); // Fixed: was "token"
       const response = await fetch(
-        `http://localhost:8000/api/b2b-chat/rooms/${roomId}/messages`,
+        `${env.apiBaseUrl}/api/b2b-chat/rooms/${roomId}/messages`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -135,7 +136,7 @@ function ChatPage() {
     try {
       const token = localStorage.getItem("saadhyam_token"); // Fixed: was "token"
       const response = await fetch(
-        `http://localhost:8000/api/b2b-chat/rooms/${selectedRoom.id}/messages?message=${encodeURIComponent(newMessage)}`,
+        `${env.apiBaseUrl}/api/b2b-chat/rooms/${selectedRoom.id}/messages?message=${encodeURIComponent(newMessage)}`,
         {
           method: "POST",
           headers: {
@@ -165,7 +166,10 @@ function ChatPage() {
   };
 
   const formatTime = (dateString: string) => {
-    const date = new Date(dateString);
+    if (!dateString) return "";
+    const hasTimezone = /Z|[+-]\d{2}:?\d{2}$/.test(dateString);
+    const utcDateString = hasTimezone ? dateString : `${dateString}Z`;
+    const date = new Date(utcDateString);
     return date.toLocaleTimeString("en-US", {
       hour: "2-digit",
       minute: "2-digit",

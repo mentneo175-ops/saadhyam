@@ -18,6 +18,8 @@ import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import type { Business } from "./types";
+import { env } from "@/config/env";
+import { apiClient } from "@/lib/api";
 
 interface BusinessDetailPanelProps {
   business: Business;
@@ -48,23 +50,10 @@ export function BusinessDetailPanel({
 
   const checkConnection = async () => {
     try {
-      const token = localStorage.getItem("saadhyam_token");
       // Extract numeric ID from "saadhyam-29" format
       const numericId = business.id.replace("saadhyam-", "");
-      
-      const response = await fetch(
-        `http://localhost:8000/api/b2b-chat/check-connection/${numericId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (response.ok) {
-        const data = await response.json();
-        setConnectionStatus(data);
-      }
+      const data = await apiClient.get(`/api/b2b-chat/check-connection/${numericId}`);
+      setConnectionStatus(data);
     } catch (error) {
       console.error("Error checking connection:", error);
     }
@@ -73,11 +62,9 @@ export function BusinessDetailPanel({
   const handleConnect = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem("saadhyam_token");
-
       // If already connected, open chat
       if (connectionStatus?.connected && connectionStatus.roomId) {
-        window.location.href = `/dashboard/chat?room=${connectionStatus.roomId}`;
+        window.location.href = `/dashboard/b2b-chat?room=${connectionStatus.roomId}`;
         return;
       }
 
@@ -99,35 +86,23 @@ export function BusinessDetailPanel({
         businessName: business.name
       });
 
-      // Send connection request
-      const response = await fetch(
-        "http://localhost:8000/api/b2b-chat/connections/request",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            receiver_id: numericId,
-            message: `Hi! I'd like to connect with ${business.name}.`,
-          }),
-        }
-      );
-
-      if (response.ok) {
-        // NO TOAST - Just refresh connection status to update button
+      // Send connection request using apiClient
+      try {
+        await apiClient.post("/api/b2b-chat/connections/request", {
+          receiver_id: numericId,
+          message: `Hi! I'd like to connect with ${business.name}.`,
+        });
         await checkConnection();
-      } else {
-        const error = await response.json();
+      } catch (error) {
         console.error("Connection request error:", error);
+        const detail = error.data?.detail || error.message;
         
         // Handle specific error cases - still refresh to update UI
-        if (error.detail === "Connection request already sent" || error.detail === "Already connected") {
+        if (detail === "Connection request already sent" || detail === "Already connected") {
           await checkConnection();
         } else {
           toast.error("Error", {
-            description: error.detail || "Failed to send connection request",
+            description: detail || "Failed to send connection request",
           });
         }
       }

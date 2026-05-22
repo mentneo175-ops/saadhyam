@@ -172,7 +172,7 @@ async def health_check():
         "service": "Business Analysis (Gemini AI with Google Search)",
         "version": "2.0.0",
         "gemini_configured": gemini_configured,
-        "model": "gemini-2.0-flash-exp",
+        "model": "gemini-2.5-flash",
         "features": [
             "Real-time business analysis",
             "Google Search grounding",

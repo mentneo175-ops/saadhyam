@@ -20,6 +20,7 @@ import { Button } from "../components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
 import { Progress } from "../components/ui/progress";
+import { env } from "@/config/env";
 
 export const Route = createFileRoute("/dashboard/voice-agent/campaigns/$campaignId/calling")({
   component: CallingInterfacePage,
@@ -57,7 +58,7 @@ function CallingInterfacePage() {
     queryFn: async () => {
       const token = localStorage.getItem("saadhyam_token");
       const response = await fetch(
-        `http://localhost:8000/api/voice-agent/campaigns/${campaignId}/call-progress`,
+        `${env.apiBaseUrl}/api/voice-agent/campaigns/${campaignId}/call-progress`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -76,7 +77,7 @@ function CallingInterfacePage() {
     mutationFn: async () => {
       const token = localStorage.getItem("saadhyam_token");
       const response = await fetch(
-        `http://localhost:8000/api/voice-agent/campaigns/${campaignId}/pause-calling`,
+        `${env.apiBaseUrl}/api/voice-agent/campaigns/${campaignId}/pause-calling`,
         {
           method: "POST",
           headers: { Authorization: `Bearer ${token}` },
@@ -95,7 +96,7 @@ function CallingInterfacePage() {
     mutationFn: async () => {
       const token = localStorage.getItem("saadhyam_token");
       const response = await fetch(
-        `http://localhost:8000/api/voice-agent/campaigns/${campaignId}/resume-calling`,
+        `${env.apiBaseUrl}/api/voice-agent/campaigns/${campaignId}/resume-calling`,
         {
           method: "POST",
           headers: { Authorization: `Bearer ${token}` },

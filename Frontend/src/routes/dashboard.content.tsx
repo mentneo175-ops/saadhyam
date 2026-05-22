@@ -20,6 +20,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { apiClient } from "@/lib/api";
 import { toast } from "sonner";
+import { env } from "@/config/env";
 
 export const Route = createFileRoute("/dashboard/content")({
   head: () => ({ meta: [{ title: "Content Creator — Saadhyam AI" }] }),
@@ -186,7 +187,7 @@ function ContentStudio() {
       console.log("📥 Image generation response:", response);
 
       if (response.status === "success" && response.image_url) {
-        const fullImageUrl = `http://localhost:8000${response.image_url}`;
+        const fullImageUrl = `${env.apiBaseUrl}${response.image_url}`;
         console.log("✅ Image URL:", fullImageUrl);
         setGeneratedImageUrl(fullImageUrl);
         toast.success("Image generated successfully!");
@@ -304,7 +305,7 @@ function ContentStudio() {
       formData.append("media", mediaFile); // Changed from "image" to "media"
       formData.append("caption", caption);
 
-      const response = await fetch("http://localhost:8000/instagram/upload-and-post", {
+      const response = await fetch(`${env.apiBaseUrl}/instagram/upload-and-post`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${localStorage.getItem("saadhyam_token")}`,
@@ -381,7 +382,7 @@ function ContentStudio() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50/40 via-white to-pink-50/30 p-4 md:p-6 lg:p-8">
+    <div className="min-h-screen bg-white p-4 md:p-6 lg:p-8">
       {/* Clean Header */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
@@ -408,7 +409,7 @@ function ContentStudio() {
               setIsAIGenerated(false);
               setGeneratedImageUrl("");
             }}
-            className="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-lg font-medium text-sm flex items-center gap-2 shadow-sm transition-all"
+            className="px-4 py-2 bg-gradient-to-r from-[#8B5CF6] to-[#A855F7] hover:from-[#7C3AED] hover:to-[#9333EA] text-white rounded-xl font-semibold text-sm flex items-center gap-2 shadow-lg shadow-[#8B5CF6]/25 hover:shadow-xl hover:shadow-[#8B5CF6]/30 transition-all"
           >
             <Wand2 size={14} /> New Generation
           </motion.button>
@@ -421,7 +422,7 @@ function ContentStudio() {
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.1 }}
-          className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 space-y-6"
+          className="bg-white rounded-2xl border border-gray-200/60 shadow-lg shadow-gray-100/50 p-6 space-y-6"
         >
           {/* Content Type Section */}
           <motion.div
@@ -444,8 +445,8 @@ function ContentStudio() {
                   onClick={() => setType(t.key)}
                   className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium border transition-all ${
                     type === t.key
-                      ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white border-transparent shadow-sm"
-                      : "border-gray-200 hover:border-purple-300 hover:bg-purple-50/50 text-gray-700"
+                      ? "bg-gradient-to-r from-[#8B5CF6] to-[#A855F7] text-white border-transparent shadow-lg shadow-[#8B5CF6]/25"
+                      : "border-gray-200 hover:border-[#8B5CF6]/40 hover:bg-[#F9F7FF] text-gray-700"
                   }`}
                 >
                   <t.icon size={16} /> {t.label}
@@ -554,7 +555,7 @@ function ContentStudio() {
             whileTap={{ scale: 0.98 }}
             onClick={handleGenerate}
             disabled={loading}
-            className="w-full h-12 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold rounded-lg transition-all flex items-center justify-center gap-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full h-12 bg-gradient-to-r from-[#8B5CF6] to-[#A855F7] hover:from-[#7C3AED] hover:to-[#9333EA] text-white font-semibold rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#8B5CF6]/25 hover:shadow-xl hover:shadow-[#8B5CF6]/30 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? (
               <>
@@ -699,7 +700,7 @@ function ContentStudio() {
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.2 }}
-          className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 flex flex-col min-h-[600px]"
+          className="bg-white rounded-2xl border border-gray-200/60 shadow-lg shadow-gray-100/50 p-6 flex flex-col min-h-[600px]"
         >
           <div className="flex items-center justify-between mb-4">
             <p className="text-sm font-semibold text-gray-900">
@@ -733,7 +734,7 @@ function ContentStudio() {
             </motion.div>
           )}
           
-          <div className="flex-1 rounded-lg bg-gradient-to-br from-purple-50/30 via-white to-pink-50/20 border border-gray-200 p-6 mb-4 min-h-[400px] overflow-auto">
+          <div className="flex-1 rounded-xl bg-gradient-to-br from-[#F8F7FC] to-[#F3F1F9] border border-gray-200/60 p-6 mb-4 min-h-[400px] overflow-auto">
             {/* Content */}
             {generatedImageUrl ? (
               <motion.div

@@ -41,7 +41,7 @@ class BusinessAnalysisResponse(BaseModel):
         200: {"description": "Analysis successful"},
         400: {"description": "Invalid request"},
         401: {"description": "Not authenticated"},
-        500: {"description": "Analysis failed"},
+        500: {"description": "Service temporarily unavailable"},
     },
 )
 async def analyze_business(
@@ -108,7 +108,7 @@ async def analyze_business(
             logger.error("❌ Analysis failed")
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Analysis failed"
+                detail="Service temporarily unavailable"
             )
         
         logger.info("✅ Analysis complete")

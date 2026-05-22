@@ -593,40 +593,6 @@ class ApiClient {
     return !!this.token;
   }
 
-  /**
-   * Generic GET request
-   */
-  async get<T>(endpoint: string): Promise<T> {
-    return this.fetchJson(endpoint, { method: "GET" });
-  }
-
-  /**
-   * Generic POST request
-   */
-  async post<T>(endpoint: string, body: any): Promise<T> {
-    return this.fetchJson(endpoint, {
-      method: "POST",
-      body: JSON.stringify(body),
-    });
-  }
-
-  /**
-   * Generic PUT request
-   */
-  async put<T>(endpoint: string, body: any): Promise<T> {
-    return this.fetchJson(endpoint, {
-      method: "PUT",
-      body: JSON.stringify(body),
-    });
-  }
-
-  /**
-   * Generic DELETE request
-   */
-  async delete<T>(endpoint: string): Promise<T> {
-    return this.fetchJson(endpoint, { method: "DELETE" });
-  }
-
   // AI Feature Methods
 
   /**
@@ -682,7 +648,7 @@ class ApiClient {
       businessType = "Business";
     }
 
-    const response = await this.post("/content/generate", {
+    const response: any = await this.post("/content/generate", {
       business_type: businessType,
       platform: platform,
       goal: goal,

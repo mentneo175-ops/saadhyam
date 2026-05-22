@@ -12,10 +12,15 @@ interface EnvConfig {
   isProduction: boolean;
 }
 
-// Get environment variables from Vite
+// Get environment variables from Vite or process.env (for SSR)
 const getEnvVar = (key: string, defaultValue: string = ''): string => {
-  if (typeof window === 'undefined') return defaultValue;
-  return import.meta.env[key] || defaultValue;
+  if (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env[key]) {
+    return import.meta.env[key];
+  }
+  if (typeof process !== 'undefined' && process.env && process.env[key]) {
+    return process.env[key];
+  }
+  return defaultValue;
 };
 
 // Create configuration object

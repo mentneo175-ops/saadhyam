@@ -1,0 +1,137 @@
+services:
+  # Main Web Service
+  - type: web
+    name: saadhyam-backend
+    env: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    region: oregon
+    branch: main
+    healthCheckPath: /health
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: DEBUG
+        value: "False"
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ALGORITHM
+        value: HS256
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        value: "10080"
+      - key: LOAD_TINYLLAMA_ON_STARTUP
+        value: "False"
+      - key: CELERY_WORKER_CONCURRENCY
+        value: "1"
+      - key: ALLOWED_ORIGINS
+        value: "http://localhost:5173,http://localhost:3000"
+      - key: GROQ_API_KEY
+        value: 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
+      - key: GEMINI_API_KEY
+        value: AIzaSyBFgHRqXygR8Md8DJwAVpIX5caecaEHbMQ
+      - key: GEMINI_API_KEY_2
+        value: AIzaSyD-2v-p-ZaF_qxjYxJZvPyTiZD7HQPAdoY
+      - key: GEMINI_CONTENT_MODEL
+        value: gemini-2.5-flash
+      - key: GEMINI_PRO_MODEL
+        value: gemini-2.5-flash
+      - key: GROQ_CONTENT_MODEL
+        value: llama-3.1-8b-instant
+      - key: GROQ_CONTENT_MODEL_FALLBACK
+        value: llama3-8b-8192
+      - key: HUGGINGFACE_TOKEN
+        value: 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
+      - key: HF_TOKEN
+        value: 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
+      - key: MISTRAL_CONTENT_MODE
+        value: api
+      - key: MISTRAL_TEXT_MODEL
+        value: mistralai/Mistral-7B-Instruct-v0.3
+      - key: INSTAGRAM_APP_ID
+        value: "795095706777348"
+      - key: INSTAGRAM_APP_SECRET
+        value: 3b0f2673ee470fec5fb08872e8e5800b
+      - key: FACEBOOK_APP_SECRET
+        value: 3b0f2673ee470fec5fb08872e8e5800b
+      - key: INSTAGRAM_GRAPH_API_VERSION
+        value: v19.0
+      - key: CLOUDINARY_CLOUD_NAME
+        value: di16qmtbf
+      - key: CLOUDINARY_API_KEY
+        value: "679832578499241"
+      - key: CLOUDINARY_API_SECRET
+        value: ZuKhUD-ZGuFhdiwIyF1xWbl8m54
+      - key: WHATSAPP_API_VERSION
+        value: v18.0
+      - key: WHATSAPP_VERIFY_TOKEN
+        value: saadhyam_whatsapp_verify_token_2024
+      - key: WHATSAPP_TOKEN
+        value: EAALTIqUqNwQBRT22ZCkjJshBNNcFVx7jzh8PiAtufaV6DuxM57w7zNU2MRmrNNEbwjBpstXZAv50pIAfvlRMD3WDyI79WygFDKROeKnhRZBHpYTcYhsmt5fsqm0BWx9YimLWXZB1uiXBX84WzDf60SVord4k42dS9c4dFiz534zD3YfM0NqtVvIeAxu1HczXvLSe5ijRESIeEmypPDVTSpU3nAtAkhqo9A9xikJ8qkiuZC74nl0IZBONkZABN0b4yXBlcQPdoaH9nBI5TsbJe3703PykAZDZD
+      - key: WHATSAPP_PHONE_ID
+        value: "1045916955280773"
+      - key: META_APP_ID
+        value: "795095706777348"
+      - key: META_APP_SECRET
+        value: 82ce131266cf67edf276b83b4fa352d8
+      - key: WHATSAPP_CONFIG_ID
+        value: "2175611099919987"
+      - key: TAVILY_API_KEY
+        value: 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
+      - key: SERPER_API_KEY
+        value: 01c6e2f8e03bd98151c95cf3c7b23b7b3efebe5e
+      - key: SERPAPI_KEY
+        value: abf101614c163e1685f2ec7b03e7ce58a95abe4e112b810d100df50b3be09d90
+      - key: RAPIDAPI_KEY
+        value: df0d4b7f8fmshea97f97239ba7e3p1f1276jsn27e63e432815
+      - key: APIFY_API_TOKEN
+        value: apify_api_wsOrpE7286AZzOdHTBO3wuVWLVdJI64zsq7c
+      - key: RESEND_API_KEY
+        value: re_7ithcMTX_NvZLsYeY9CcCAgxYKkANgCdq
+      - key: ENCRYPTION_KEY
+        value: jgtrt_Gy68WKOYhbSOveDjr7KyGKnfFQCaGz4Z8p2K0=
+      - key: WEBSITE_AI_USE_FAKE_LLM
+        value: "true"
+      - key: WEBSITE_AI_MODEL_ID
+        value: mistralai/Mistral-7B-Instruct-v0.2
+      - key: WEBSITE_AI_MAX_TOKENS
+        value: "900"
+      - key: WEBSITE_AI_TEMPERATURE
+        value: "0.7"
+      - key: WEBSITE_AI_STORAGE_TYPE
+        value: local
+      - key: WEBSITE_AI_DEFAULT_THEME
+        value: hero-split
+      - key: PINECONE_API_KEY
+        value: pcsk_5WFyDs_U7ZruXnqxiuWHEsNLxpbYMMgNmNpXuyRyTzjAaB5TZhNffshQAxxpG8DGsXytWv
+      - key: PINECONE_ENVIRONMENT
+        value: us-east-1
+      - key: PINECONE_INDEX_NAME
+        value: saadhyam-aeo-geo
+      - key: AEO_GEO_ENABLED
+        value: "true"
+      - key: AEO_GEO_USE_MOCK_DATA
+        value: "false"
+      - key: AEO_GEO_AUTO_OPTIMIZATION
+        value: "true"
+      - key: AEO_GEO_CONTENT_GENERATION_MODEL
+        value: gemini
+      - key: AEO_GEO_QUESTION_DISCOVERY_MODEL
+        value: gemini
+
+  # PostgreSQL Database
+  - type: pserv
+    name: saadhyam-postgres
+    env: docker
+    dockerfilePath: ./Dockerfile.postgres
+    plan: free
+    
+  # Redis Cache
+  - type: redis
+    name: saadhyam-redis
+    plan: free
+    maxmemoryPolicy: allkeys-lru
+
+databases:
+  - name: saadhyam-db
+    databaseName: saadhyam
+    user: saadhyam_user

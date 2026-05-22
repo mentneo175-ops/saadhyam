@@ -19,10 +19,29 @@ import {
 } from "lucide-react";
 import { useAuthContext } from "@/lib/AuthContext";
 import { GoogleIcon } from "@/components/icons/GoogleIcon";
-import { apiClient } from "@/lib/api";
+import { apiClient, ApiError } from "@/lib/api";
 import { useNotificationHelpers } from "@/components/notifications";
 import { PublicRoute } from "@/components/auth/PublicRoute";
 import LogoImage from "@/Icon/Saadhyam_Icon-removebg-preview.png";
+
+const ADMIN_API_URL = import.meta.env.VITE_ADMIN_API_URL || "http://127.0.0.1:8082";
+
+function getErrorMessage(err: unknown, fallback: string): string {
+  if (err instanceof ApiError) {
+    if (typeof err.data === "object" && err.data && "detail" in err.data) {
+      const detail = (err.data as { detail?: string }).detail;
+      if (detail) return detail;
+    }
+  }
+  if (err instanceof Error) return err.message;
+  return fallback;
+}
+
+function isSuspensionError(msg: string): boolean {
+  const lower = msg.toLowerCase();
+  return lower.includes("suspend") || lower.includes("banned") || lower.includes("deactivated");
+}
+
 
 export const Route = createFileRoute("/login")({
   head: () => ({ meta: [{ title: "Sign In — Saadhyam AI" }] }),
@@ -44,6 +63,11 @@ function LoginPage() {
   const [rememberMe, setRememberMe] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [isEmailLoading, setIsEmailLoading] = useState(false);
+  const [showContactAdmin, setShowContactAdmin] = useState(false);
+  const [contactReason, setContactReason] = useState("");
+  const [isContactingAdmin, setIsContactingAdmin] = useState(false);
+  const [contactSuccess, setContactSuccess] = useState("");
+  const [contactError, setContactError] = useState("");
   const [particles, setParticles] = useState<Array<{ id: number; left: string; top: string; duration: string; delay: string }>>([]);
 
   // Generate particles only on client side
@@ -84,7 +108,8 @@ function LoginPage() {
       }
     } catch (err) {
       console.error("Google sign-in error:", err);
-      notifyError("Sign in failed", "Unable to sign in with Google. Please try again.");
+      const errMsg = getErrorMessage(err, "Unable to sign in with Google. Please try again.");
+      notifyError("Sign in failed", errMsg);
     } finally {
       setIsGoogleLoading(false);
     }
@@ -117,13 +142,50 @@ function LoginPage() {
       }
     } catch (err) {
       console.error("Email login error:", err);
-      notifyError("Sign in failed", "Invalid email or password");
+      const errMsg = getErrorMessage(err, "Invalid email or password");
+      notifyError("Sign in failed", errMsg);
     } finally {
       setIsEmailLoading(false);
     }
   };
 
   const loading = isLoading || isGoogleLoading || isEmailLoading;
+
+  const submitContactAdmin = async () => {
+    if (!email.trim() || !contactReason.trim() || isContactingAdmin) {
+      return;
+    }
+
+    setIsContactingAdmin(true);
+    setContactError("");
+    setContactSuccess("");
+
+    try {
+      const response = await fetch(`${ADMIN_API_URL}/api/public/support-requests`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: email.trim(),
+          reason: contactReason.trim(),
+          source: "suspended_login",
+        }),
+      });
+
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(payload?.detail || "Failed to send request to admin");
+      }
+
+      setContactSuccess("Your request has been sent to the admin.");
+      setContactReason("");
+    } catch (err) {
+      setContactError(err instanceof Error ? err.message : "Failed to send request to admin");
+    } finally {
+      setIsContactingAdmin(false);
+    }
+  };
 
   return (
     <div
@@ -388,10 +450,77 @@ function LoginPage() {
 
           {/* Error Message */}
           {error && (
-            <div className="mb-6 flex items-start gap-3 p-4 rounded-xl bg-red-50 border border-red-200">
-              <AlertCircle size={18} className="text-red-600 shrink-0 mt-0.5" />
-              <p className="text-sm text-red-800">{error}</p>
-            </div>
+            isSuspensionError(error) ? (
+              /* ── Suspension Banner ── */
+              <div className="mb-6 rounded-2xl overflow-hidden shadow-lg">
+                <div className="bg-gradient-to-r from-red-700 to-red-600 p-5">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
+                      <Shield size={20} className="text-white" />
+                    </div>
+                    <div>
+                      <h3 className="text-white font-bold text-base">Account Suspended</h3>
+                      <p className="text-red-100 text-xs">Access has been restricted by an administrator</p>
+                    </div>
+                  </div>
+                  <p className="text-sm text-red-50 leading-relaxed mt-3 pl-1">
+                    {error}
+                  </p>
+                </div>
+                <div className="bg-red-50 border border-red-200 px-5 py-3 flex items-center gap-2">
+                  <AlertCircle size={14} className="text-red-500 flex-shrink-0" />
+                  <p className="text-xs text-red-700">
+                    If you believe this is a mistake, please contact your administrator to restore access.
+                  </p>
+                </div>
+                  <div className="bg-white border border-red-200 px-5 py-4 space-y-3">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full border-red-200 text-red-700 hover:bg-red-50"
+                      onClick={() => setShowContactAdmin((value) => !value)}
+                    >
+                      Contact Admin
+                    </Button>
+
+                    {showContactAdmin && (
+                      <div className="space-y-3">
+                        <div>
+                          <Label htmlFor="contact-reason" className="text-sm font-semibold text-gray-700 mb-2 block">
+                            Reason for contacting admin
+                          </Label>
+                          <textarea
+                            id="contact-reason"
+                            value={contactReason}
+                            onChange={(e) => setContactReason(e.target.value)}
+                            rows={4}
+                            className="w-full rounded-xl border-2 border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#8B5CF6] focus:ring-2 focus:ring-[#8B5CF6]/20"
+                            placeholder="Tell the admin why you should regain access..."
+                          />
+                        </div>
+
+                        {contactError && <p className="text-sm text-red-600">{contactError}</p>}
+                        {contactSuccess && <p className="text-sm text-green-600">{contactSuccess}</p>}
+
+                        <Button
+                          type="button"
+                          className="w-full h-11 bg-red-600 hover:bg-red-700 text-white"
+                          onClick={submitContactAdmin}
+                          disabled={isContactingAdmin || !contactReason.trim()}
+                        >
+                          {isContactingAdmin ? "Sending..." : "Send Request"}
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+              </div>
+            ) : (
+              /* ── Generic Error ── */
+              <div className="mb-6 flex items-start gap-3 p-4 rounded-xl bg-red-50 border border-red-200">
+                <AlertCircle size={18} className="text-red-600 shrink-0 mt-0.5" />
+                <p className="text-sm text-red-800">{error}</p>
+              </div>
+            )
           )}
 
           {/* Login Form */}

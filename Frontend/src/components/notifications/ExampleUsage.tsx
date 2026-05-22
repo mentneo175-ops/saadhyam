@@ -42,7 +42,7 @@ export const NotificationExamples: React.FC = () => {
     showToast({
       type: 'warning',
       title: 'Storage Almost Full',
-      message: 'You've used 90% of your storage quota.',
+      message: "You've used 90% of your storage quota.",
     });
   };
 

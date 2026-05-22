@@ -80,20 +80,20 @@ async def authenticate_user(db: AsyncSession, email: str, password: str) -> User
                 detail="This account was created with Google. Please use Google Sign-In or set a password.",
             )
 
+        # Reject suspended or inactive users before password verification completes.
+        if not getattr(user, 'is_active', True) or getattr(user, 'is_suspended', False):
+            logger.warning(f"Login attempt for suspended/inactive user: {email}")
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You have been suspended by the admin. Please contact admin.",
+            )
+
         if not verify_password(password, user.hashed_password):
             logger.warning(f"Failed login attempt for user: {email}")
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid email or password",
             )
-
-            # Reject suspended or inactive users
-            if not getattr(user, 'is_active', True) or getattr(user, 'is_suspended', False):
-                logger.warning(f"Login attempt for suspended/inactive user: {email}")
-                raise HTTPException(
-                    status_code=status.HTTP_403_FORBIDDEN,
-                    detail="Inactive or suspended user",
-                )
 
         logger.info(f"User authenticated successfully: {email}")
         return user

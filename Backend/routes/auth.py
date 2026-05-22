@@ -144,7 +144,10 @@ async def google_auth(
         # Reject suspended or inactive users
         if not getattr(user, 'is_active', True) or getattr(user, 'is_suspended', False):
             logger.warning(f"Attempt to authenticate suspended/inactive user via Google: {user.email}")
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You have been suspended. Contact admin.")
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You have been suspended by the admin. Please contact admin.",
+            )
         
         # Create backend JWT token
         access_token = create_access_token(user.id, user.email)

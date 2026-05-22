@@ -4,6 +4,7 @@ import { TopHeader } from "@/components/dashboard/TopHeader";
 import { DashboardProvider } from "@/contexts/DashboardContext";
 import AssistantWidget from "@/components/AssistantWidget";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { FeatureDisabledBanner } from "@/components/FeatureDisabledBanner";
 import { useRoutePreservation } from "@/hooks/useRoutePreservation";
 import { useAuthContext } from "@/lib/AuthContext";
 import { useState, useCallback } from "react";
@@ -49,6 +50,9 @@ function DashboardLayout() {
             <TopHeader />
             <main className="flex-1 min-w-0 pt-14 lg:pt-0 relative">
               <Outlet />
+              
+              {/* Feature-blocked full-page overlay */}
+              <FeatureDisabledBanner />
               
               {/* Subtle auth verification indicator - shows during page refresh */}
               {isAuthLoading && (

@@ -10,9 +10,33 @@ type FeatureDisabledStateProps = {
 
 export function FeatureDisabledState({
   title,
-  message = "This module is currently disabled by your admin.",
+  message,
   featureLabel,
 }: FeatureDisabledStateProps) {
+  const standardMessage = "This feature is temporarily disabled by administrators. It will be available in a few days.";
+  
+  let displayMessage = message || standardMessage;
+  
+  if (featureLabel && typeof window !== "undefined") {
+    try {
+      const stored = localStorage.getItem("saadhyam_feature_blocks");
+      if (stored) {
+        const entries = JSON.parse(stored);
+        const match = entries.find((e: any) => e.feature_key === featureLabel);
+        if (match && match.mode === "maintenance") {
+          displayMessage = "This feature is currently under maintenance. It will be available in a few days.";
+        }
+      }
+    } catch (e) {
+      // ignore
+    }
+  }
+
+  // Ensure compliance with user's required wording
+  if (!message || displayMessage.includes("disabled by your admin") || displayMessage.includes("currently disabled by your admin")) {
+    displayMessage = standardMessage;
+  }
+
   return (
     <div className="min-h-[60vh] flex items-center justify-center p-6">
       <Card className="max-w-2xl w-full border-amber-200 bg-amber-50/60 shadow-sm">
@@ -26,7 +50,7 @@ export function FeatureDisabledState({
               Feature unavailable
             </p>
             <h1 className="text-2xl font-bold text-gray-900">{title}</h1>
-            <p className="text-sm text-gray-600 max-w-xl mx-auto">{message}</p>
+            <p className="text-sm text-gray-600 max-w-xl mx-auto">{displayMessage}</p>
             {featureLabel && (
               <p className="text-xs text-gray-500">Feature key: {featureLabel}</p>
             )}

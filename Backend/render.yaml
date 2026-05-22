@@ -130,6 +130,9 @@ services:
     name: saadhyam-redis
     plan: free
     maxmemoryPolicy: allkeys-lru
+    ipAllowList:
+      - source: 0.0.0.0/0
+        description: Allow all internal connections
 
 databases:
   - name: saadhyam-db

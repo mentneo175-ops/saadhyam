@@ -478,7 +478,7 @@ class BlogGenerateRequest(BaseModel):
 async def generate_blog(
     request: BlogGenerateRequest,
     current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
+    db: Session = Depends(get_db_sync)
 ) -> Dict[str, Any]:
     """
     Generate SEO-optimized blog post
@@ -545,7 +545,7 @@ class BlogPublishRequest(BaseModel):
 async def publish_blog(
     request: BlogPublishRequest,
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db_sync)
 ) -> Dict[str, Any]:
     """
     Publish blog post to customer website

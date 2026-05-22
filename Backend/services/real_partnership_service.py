@@ -159,9 +159,9 @@ class RealPartnershipService:
             # Limit to top 10
             final_results = formatted_results[:10]
             
-            print("\n" + "=" * 80)
             print(f"✅ PIPELINE COMPLETE: {len(final_results)} real influencers discovered")
-            print(f"📍 Search levels used: {', '.join([f'Level {l['level']} ({l['type']})' for l in levels_used])}")
+            levels_str = ', '.join([f"Level {l['level']} ({l['type']})" for l in levels_used])
+            print(f"📍 Search levels used: {levels_str}")
             print("=" * 80)
             
             return {

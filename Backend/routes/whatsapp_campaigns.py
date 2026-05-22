@@ -12,7 +12,7 @@ from sqlalchemy import desc
 from pydantic import BaseModel
 from typing import Optional, List
 from datetime import datetime
-from config.database import get_db
+from config.database import get_db_sync
 from models.user import User
 from models.whatsapp_account import WhatsAppAccount
 from models.whatsapp_campaign import WhatsAppCampaign, CampaignStatus
@@ -48,7 +48,7 @@ class UpdateCampaignRequest(BaseModel):
 async def create_campaign(
     request: CreateCampaignRequest,
     current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
+    db: Session = Depends(get_db_sync)
 ):
     """
     Create a new WhatsApp campaign
@@ -106,7 +106,7 @@ async def create_campaign(
 @router.get("")
 async def get_campaigns(
     current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
+    db: Session = Depends(get_db_sync),
     status: Optional[str] = Query(None),
     limit: int = Query(50, ge=1, le=100),
     offset: int = Query(0, ge=0)
@@ -182,7 +182,7 @@ async def get_campaigns(
 async def get_campaign(
     campaign_id: int,
     current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
+    db: Session = Depends(get_db_sync)
 ):
     """
     Get a specific campaign by ID
@@ -230,7 +230,7 @@ async def update_campaign(
     campaign_id: int,
     request: UpdateCampaignRequest,
     current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
+    db: Session = Depends(get_db_sync)
 ):
     """
     Update a campaign (only if status is DRAFT or SCHEDULED)
@@ -268,8 +268,8 @@ async def update_campaign(
                 raise HTTPException(status_code=400, detail="Invalid scheduled_time format")
         
         campaign.updated_at = datetime.utcnow()
-        await db.commit()
-        await db.refresh(campaign)
+        db.commit()
+        db.refresh(campaign)
         
         return {
             "success": True,
@@ -285,7 +285,7 @@ async def update_campaign(
         raise
     except Exception as e:
         logger.error(f"❌ Error updating campaign: {e}", exc_info=True)
-        await db.rollback()
+        db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -293,7 +293,7 @@ async def update_campaign(
 async def execute_campaign(
     campaign_id: int,
     current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
+    db: Session = Depends(get_db_sync)
 ):
     """
     Execute a campaign immediately
@@ -337,7 +337,7 @@ async def execute_campaign(
 async def delete_campaign(
     campaign_id: int,
     current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
+    db: Session = Depends(get_db_sync)
 ):
     """
     Delete a campaign (only if status is DRAFT or FAILED)
@@ -357,8 +357,8 @@ async def delete_campaign(
                 detail=f"Cannot delete campaign with status {campaign.campaign_status.value}"
             )
         
-        await db.delete(campaign)
-        await db.commit()
+        db.delete(campaign)
+        db.commit()
         
         return {"success": True, "message": "Campaign deleted successfully"}
         
@@ -366,7 +366,7 @@ async def delete_campaign(
         raise
     except Exception as e:
         logger.error(f"❌ Error deleting campaign: {e}", exc_info=True)
-        await db.rollback()
+        db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -374,7 +374,7 @@ async def delete_campaign(
 async def get_campaign_analytics(
     campaign_id: int,
     current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
+    db: Session = Depends(get_db_sync)
 ):
     """
     Get detailed analytics for a campaign

@@ -147,6 +147,7 @@ desktop.ini
 # ============================================
 celerybeat-schedule
 celerybeat.pid
+celerybeat-schedule.*
 
 # ============================================
 # SageMath parsed files
@@ -232,6 +233,64 @@ dist/
 .coverage
 htmlcov/
 
-output/images/
+# ============================================
+# AI Models & Large Files (EXCLUDE FROM DEPLOYMENT)
+# ============================================
+# AI Model Files
+*.safetensors
+*.bin
+*.pt
+*.pth
+*.ckpt
+*.h5
+*.pkl
+*.pickle
+*.model
+*.onnx
+*.tflite
+*.pb
+
+# HuggingFace Cache
+.cache/
+cache/
+huggingface_cache/
+transformers_cache/
+
+# Model Checkpoints & Adapters
+ai_models/*/checkpoint-*/
+ai_models/*/adapter/
+ai_models/*/mistral_adapter/
+ai_models/content_creator/mistral_adapter/
+ai_models/review_reply_ai/adapter/
+
+# Output & Generated Files
+output/
+outputs/
+generated/
+uploads/
+recordings/
+audio_output/
+website_ai_output/
+websites/
+
+# Large Data Files
+*.csv
+*.json.gz
+*.parquet
+*.arrow
+*.feather
+
+# Node.js (if any)
+node_modules/
+package-lock.json
+yarn.lock
+
+# ============================================
+# Specific Large Directories
+# ============================================
 Backend/websites/
 Backend/Backend/ai_models/website_ai/websites/
+ai_models/website_ai/websites/
+offload/
+scratch/
+tests/

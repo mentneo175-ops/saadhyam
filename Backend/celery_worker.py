@@ -28,7 +28,10 @@ celery.conf.update(
 
 
 # Create synchronous database session for Celery tasks
-engine = create_engine(settings.DATABASE_URL.replace("sqlite+aiosqlite", "sqlite"))
+engine = create_engine(
+    settings.DATABASE_URL.replace("sqlite+aiosqlite", "sqlite")
+                         .replace("postgresql+asyncpg://", "postgresql://")
+)
 SessionLocal = sessionmaker(bind=engine)
 
 

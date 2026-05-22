@@ -21,7 +21,7 @@ class Settings(BaseSettings):
     REDIS_URL: str = "redis://localhost:6379"
 
     # JWT
-    SECRET_KEY: str = "your-super-secret-key-change-in-production"
+    SECRET_KEY: str = ""
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 10080  # 7 days
 
@@ -39,8 +39,8 @@ class Settings(BaseSettings):
     ]
 
     # Instagram API Configuration
-    INSTAGRAM_APP_ID: str = "your_instagram_app_id"
-    INSTAGRAM_APP_SECRET: str = "your_instagram_app_secret"
+    INSTAGRAM_APP_ID: str = ""
+    INSTAGRAM_APP_SECRET: str = ""
     FACEBOOK_APP_SECRET: str = ""  # Alias for INSTAGRAM_APP_SECRET
     INSTAGRAM_REDIRECT_URI: str = "http://localhost:8000/auth/instagram/callback"
     INSTAGRAM_GRAPH_API_VERSION: str = "v19.0"
@@ -54,7 +54,7 @@ class Settings(BaseSettings):
     META_APP_SECRET: str = ""
     WHATSAPP_CONFIG_ID: str = ""
     WHATSAPP_API_VERSION: str = "v21.0"
-    WHATSAPP_VERIFY_TOKEN: str = "saadhyam_whatsapp_verify_token_2024"
+    WHATSAPP_VERIFY_TOKEN: str = ""
     WHATSAPP_REDIRECT_URI: str = "http://localhost:8000/api/whatsapp/callback"
     
     # Legacy WhatsApp fields (for backward compatibility)
@@ -63,10 +63,10 @@ class Settings(BaseSettings):
     WHATSAPP_TOKEN: str = ""
     WHATSAPP_PHONE_ID: str = ""
 
-    # Cloudinary Configuration
-    CLOUDINARY_CLOUD_NAME: str = "di16qmtbf"
-    CLOUDINARY_API_KEY: str = "679832578499241"
-    CLOUDINARY_API_SECRET: str = "ZuKhUD-ZGuFhdiwIyF1xWbl8m54"
+    # Cloudinary Configuration (must be supplied via .env)
+    CLOUDINARY_CLOUD_NAME: str = ""
+    CLOUDINARY_API_KEY: str = ""
+    CLOUDINARY_API_SECRET: str = ""
 
     # DeepSeek API
     DEEPSEEK_API_KEY: str = ""
@@ -100,7 +100,7 @@ class Settings(BaseSettings):
     SERPAPI_KEY: str = ""
 
     # Token Encryption Key
-    ENCRYPTION_KEY: str = "your-32-char-encryption-key-here"
+    ENCRYPTION_KEY: str = ""
 
     # Security Configuration (Phase 1)
     RATE_LIMIT_ENABLED: bool = True
@@ -149,21 +149,21 @@ class Settings(BaseSettings):
     FIREBASE_PROJECT_ID: str = ""
 
     # AEO/GEO System Configuration
-    OPENAI_API_KEY: str = "your_openai_api_key_here"
-    PINECONE_API_KEY: str = "your_pinecone_api_key_here"
-    PINECONE_ENVIRONMENT: str = "your_pinecone_environment_here"
+    OPENAI_API_KEY: str = ""
+    PINECONE_API_KEY: str = ""
+    PINECONE_ENVIRONMENT: str = ""
     PINECONE_INDEX_NAME: str = "saadhyam-aeo-geo"
-    GOOGLE_SEARCH_API_KEY: str = "your_google_search_api_key_here"
-    GOOGLE_SEARCH_ENGINE_ID: str = "your_search_engine_id_here"
-    LINKEDIN_ACCESS_TOKEN: str = "your_linkedin_token_here"
-    FACEBOOK_ACCESS_TOKEN: str = "your_facebook_token_here"
-    MEDIUM_API_TOKEN: str = "your_medium_token_here"
-    WORDPRESS_API_URL: str = "your_wordpress_url_here"
-    WORDPRESS_USERNAME: str = "your_wordpress_username_here"
-    WORDPRESS_PASSWORD: str = "your_wordpress_password_here"
-    REDDIT_CLIENT_ID: str = "your_reddit_client_id_here"
-    REDDIT_CLIENT_SECRET: str = "your_reddit_client_secret_here"
-    REDDIT_USER_AGENT: str = "Saadhyam-AEO-Bot/1.0"
+    GOOGLE_SEARCH_API_KEY: str = ""
+    GOOGLE_SEARCH_ENGINE_ID: str = ""
+    LINKEDIN_ACCESS_TOKEN: str = ""
+    FACEBOOK_ACCESS_TOKEN: str = ""
+    MEDIUM_API_TOKEN: str = ""
+    WORDPRESS_API_URL: str = ""
+    WORDPRESS_USERNAME: str = ""
+    WORDPRESS_PASSWORD: str = ""
+    REDDIT_CLIENT_ID: str = ""
+    REDDIT_CLIENT_SECRET: str = ""
+    REDDIT_USER_AGENT: str = ""
     QUORA_SCRAPING_ENABLED: str = "false"
     AEO_GEO_ENABLED: str = "true"
     AEO_GEO_USE_MOCK_DATA: str = "false"

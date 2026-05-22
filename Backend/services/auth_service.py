@@ -1,216 +1,27 @@
 """
-Auth Service - Async version for database operations
+Asynchronous Auth Service
+Use with `AsyncSession` from SQLAlchemy async engine.
 """
-
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.ext.asyncio import AsyncSession
 from models.user import User
-from schemas.user_schema import UserRegister, TokenData
-from utils.security import hash_password, verify_password, create_access_token
+from schemas.user_schema import UserRegister
+from utils.security import hash_password, verify_password
 from fastapi import HTTPException, status
 import logging
 
 logger = logging.getLogger(__name__)
 
 
-class AuthService:
-    """Async authentication service for user management"""
-    
-    @staticmethod
-    async def create_user(db: AsyncSession, user_data: UserRegister) -> User:
-        """
-        Register a new user (async version).
-
-        Args:
-            db: Async database session
-            user_data: User registration data
-
-        Returns:
-            Created user object
-
-        Raises:
-            HTTPException: If email already exists or other error occurs
-        """
-        try:
-            # Check if user already exists
-            stmt = select(User).where(User.email == user_data.email)
-            result = await db.execute(stmt)
-            existing_user = result.scalar_one_or_none()
-
-            if existing_user:
-                logger.warning(f"Registration attempt with existing email: {user_data.email}")
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Email already registered",
-                )
-
-            # Create new user
-            hashed_password = hash_password(user_data.password)
-            new_user = User(
-                email=user_data.email,
-                hashed_password=hashed_password,
-            )
-
-            db.add(new_user)
-            await db.commit()
-            await db.refresh(new_user)
-
-            logger.info(f"User registered successfully: {user_data.email}")
-            return new_user
-
-        except IntegrityError as e:
-            await db.rollback()
-            logger.error(f"Database integrity error during registration: {e}")
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Registration failed",
-            )
-        except HTTPException:
-            raise
-        except Exception as e:
-            await db.rollback()
-            logger.error(f"Unexpected error during registration: {e}")
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Internal server error",
-            )
-
-    @staticmethod
-    async def authenticate_user(db: AsyncSession, email: str, password: str) -> User:
-        """
-        Authenticate user with email and password (async version).
-
-        Args:
-            db: Async database session
-            email: User email
-            password: User password
-
-        Returns:
-            User object if authentication successful
-
-        Raises:
-            HTTPException: If credentials are invalid
-        """
-        try:
-            # Find user by email
-            stmt = select(User).where(User.email == email)
-            result = await db.execute(stmt)
-            user = result.scalar_one_or_none()
-
-            if not user:
-                logger.warning(f"Login attempt with non-existent email: {email}")
-                raise HTTPException(
-                    status_code=status.HTTP_401_UNAUTHORIZED,
-                    detail="Invalid email or password",
-                )
-
-            # Verify password
-            if not verify_password(password, user.hashed_password):
-                logger.warning(f"Failed login attempt for user: {email}")
-                raise HTTPException(
-                    status_code=status.HTTP_401_UNAUTHORIZED,
-                    detail="Invalid email or password",
-                )
-
-            logger.info(f"User authenticated successfully: {email}")
-            return user
-
-        except HTTPException:
-            raise
-        except Exception as e:
-            logger.error(f"Unexpected error during authentication: {e}")
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Internal server error",
-            )
-
-    @staticmethod
-    async def get_user_by_email(db: AsyncSession, email: str) -> User:
-        """
-        Get user by email (async version).
-
-        Args:
-            db: Async database session
-            email: User email
-
-        Returns:
-            User object or None if not found
-        """
-        try:
-            stmt = select(User).where(User.email == email)
-            result = await db.execute(stmt)
-            return result.scalar_one_or_none()
-        except Exception as e:
-            logger.error(f"Error fetching user by email: {e}")
-            return None
-
-    @staticmethod
-    async def get_user_by_id(db: AsyncSession, user_id: int) -> User:
-        """
-        Get user by ID (async version).
-
-        Args:
-            db: Async database session
-            user_id: User ID
-
-        Returns:
-            User object
-
-        Raises:
-            HTTPException: If user not found
-        """
-        try:
-            stmt = select(User).where(User.id == user_id)
-            result = await db.execute(stmt)
-            user = result.scalar_one_or_none()
-
-            if not user:
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail="User not found",
-                )
-
-            return user
-
-        except HTTPException:
-            raise
-        except Exception as e:
-            logger.error(f"Error fetching user: {e}")
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Internal server error",
-            )
-
-
-# Legacy sync functions for backward compatibility
-from sqlalchemy.orm import Session
-from config.database import get_db
-from fastapi import Depends
-
-
-def register_user(db: Session, user_data: UserRegister) -> User:
-    """
-    Register a new user (sync version).
-
-    Args:
-        db: Database session
-        user_data: User registration data
-
-    Returns:
-        Created user object
-
-    Raises:
-        HTTPException: If email already exists or other error occurs
-    """
+async def register_user(db: AsyncSession, user_data: UserRegister) -> User:
     try:
         # Check if user already exists
-        existing_user = db.query(User).filter(User.email == user_data.email).first()
+        result = await db.execute(select(User).where(User.email == user_data.email))
+        existing_user = result.scalars().first()
 
         if existing_user:
-            logger.warning(
-                f"Registration attempt with existing email: {user_data.email}"
-            )
+            logger.warning(f"Registration attempt with existing email: {user_data.email}")
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Email already registered",
@@ -221,17 +32,19 @@ def register_user(db: Session, user_data: UserRegister) -> User:
         new_user = User(
             email=user_data.email,
             hashed_password=hashed_password,
+            name=user_data.name,
+            auth_provider="email",
         )
 
         db.add(new_user)
-        db.commit()
-        db.refresh(new_user)
+        await db.commit()
+        await db.refresh(new_user)
 
         logger.info(f"User registered successfully: {user_data.email}")
         return new_user
 
     except IntegrityError as e:
-        db.rollback()
+        await db.rollback()
         logger.error(f"Database integrity error during registration: {e}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -240,7 +53,7 @@ def register_user(db: Session, user_data: UserRegister) -> User:
     except HTTPException:
         raise
     except Exception as e:
-        db.rollback()
+        await db.rollback()
         logger.error(f"Unexpected error during registration: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -248,24 +61,10 @@ def register_user(db: Session, user_data: UserRegister) -> User:
         )
 
 
-def authenticate_user(db: Session, email: str, password: str) -> User:
-    """
-    Authenticate user with email and password (sync version).
-
-    Args:
-        db: Database session
-        email: User email
-        password: User password
-
-    Returns:
-        User object if authentication successful
-
-    Raises:
-        HTTPException: If credentials are invalid
-    """
+async def authenticate_user(db: AsyncSession, email: str, password: str) -> User:
     try:
-        # Find user by email
-        user = db.query(User).filter(User.email == email).first()
+        result = await db.execute(select(User).where(User.email == email))
+        user = result.scalars().first()
 
         if not user:
             logger.warning(f"Login attempt with non-existent email: {email}")
@@ -274,7 +73,21 @@ def authenticate_user(db: Session, email: str, password: str) -> User:
                 detail="Invalid email or password",
             )
 
-        # Verify password
+        if not user.hashed_password:
+            logger.warning(f"Login attempt with email for Google-only user: {email}")
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="This account was created with Google. Please use Google Sign-In or set a password.",
+            )
+
+        # Reject suspended or inactive users before password verification completes.
+        if not getattr(user, 'is_active', True) or getattr(user, 'is_suspended', False):
+            logger.warning(f"Login attempt for suspended/inactive user: {email}")
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You have been suspended by the admin. Please contact admin.",
+            )
+
         if not verify_password(password, user.hashed_password):
             logger.warning(f"Failed login attempt for user: {email}")
             raise HTTPException(
@@ -295,22 +108,10 @@ def authenticate_user(db: Session, email: str, password: str) -> User:
         )
 
 
-def get_user_by_id(db: Session, user_id: int) -> User:
-    """
-    Get user by ID (sync version).
-
-    Args:
-        db: Database session
-        user_id: User ID
-
-    Returns:
-        User object
-
-    Raises:
-        HTTPException: If user not found
-    """
+async def get_user_by_id(db: AsyncSession, user_id: int) -> User:
     try:
-        user = db.query(User).filter(User.id == user_id).first()
+        result = await db.execute(select(User).where(User.id == user_id))
+        user = result.scalars().first()
 
         if not user:
             raise HTTPException(
@@ -320,48 +121,6 @@ def get_user_by_id(db: Session, user_id: int) -> User:
 
         return user
 
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error fetching user: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Internal server error",
-        )
-
-
-def get_current_user(db: Session = Depends(get_db), user_id: int = None) -> User:
-    """
-    Get current authenticated user (sync version).
-    Used by voice agent and other services that need current user.
-    
-    Args:
-        db: Database session
-        user_id: User ID from JWT token
-    
-    Returns:
-        User object
-    
-    Raises:
-        HTTPException: If user not found or inactive
-    """
-    try:
-        user = db.query(User).filter(User.id == user_id).first()
-        
-        if not user:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="User not found"
-            )
-        
-        if not user.is_active:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="User account is inactive"
-            )
-        
-        return user
-        
     except HTTPException:
         raise
     except Exception as e:

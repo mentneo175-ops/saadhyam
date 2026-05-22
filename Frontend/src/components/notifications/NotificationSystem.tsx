@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { Toast } from './Toast';
 import { GlobalBanner } from './GlobalBanner';
 
@@ -34,6 +34,31 @@ export const useNotifications = () => {
 export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [toasts, setToasts] = useState<Notification[]>([]);
   const [banner, setBanner] = useState<Notification | null>(null);
+
+  useEffect(() => {
+    const handleFeatureBlocked = (event: Event) => {
+      const detail = (event as CustomEvent<any>).detail || {};
+      const featureKey = detail.feature_key || detail.feature || detail.module_key || detail.endpoint || 'unknown feature';
+      const mode = detail.mode;
+      const message = detail.detail || (mode === 'maintenance'
+        ? 'This feature is under maintenance and will be available again soon.'
+        : 'This feature has been temporarily disabled by the admin team.');
+
+      setBanner({
+        id: `banner-${Date.now()}`,
+        type: 'warning',
+        title: `Feature blocked: ${featureKey}`,
+        message,
+        action: {
+          label: 'Dismiss',
+          onClick: () => setBanner(null),
+        },
+      });
+    };
+
+    window.addEventListener('feature-blocked', handleFeatureBlocked as EventListener);
+    return () => window.removeEventListener('feature-blocked', handleFeatureBlocked as EventListener);
+  }, []);
 
   const showToast = useCallback((notification: Omit<Notification, 'id'>) => {
     const id = `toast-${Date.now()}-${Math.random()}`;

@@ -4,9 +4,10 @@ import { toast } from "sonner";
  * Includes authentication, error handling, and token management
  */
 
-const API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 const TOKEN_STORAGE_KEY = "saadhyam_token";
 const USER_STORAGE_KEY = "saadhyam_user";
+const FEATURE_BLOCKS_STORAGE_KEY = "saadhyam_feature_blocks";
 
 // Types
 export interface LoginRequest {
@@ -50,6 +51,59 @@ export class ApiError extends Error {
     this.name = "ApiError";
   }
 }
+
+const normalizeFeatureKey = (value: string) => value.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
+
+const resolveFeatureKeyFromEndpoint = (endpoint: string): string | null => {
+  const normalizedEndpoint = normalizeFeatureKey(endpoint);
+  const aliases: Array<[string, string[]]> = [
+    ["website_ai", ["website", "website_ai", "website-ai", "dashboard/website"]],
+    ["content_scheduler", ["content", "content_creator", "content_scheduler", "content-scheduler", "dashboard/content"]],
+    ["voice_agent", ["voice_agent", "voice-agent", "dashboard/voice-agent"]],
+    ["aeo_geo", ["aeo_geo", "aeo-geo", "dashboard/aeo-geo"]],
+  ];
+
+  for (const [featureKey, candidates] of aliases) {
+    if (normalizedEndpoint.includes(normalizeFeatureKey(featureKey))) {
+      return featureKey;
+    }
+
+    if (candidates.some((candidate) => normalizedEndpoint.includes(normalizeFeatureKey(candidate)))) {
+      return featureKey;
+    }
+  }
+
+  return null;
+};
+
+const persistBlockedFeature = (detail: Record<string, any>) => {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  try {
+    const existing = localStorage.getItem(FEATURE_BLOCKS_STORAGE_KEY);
+    const entries = existing ? (JSON.parse(existing) as Array<Record<string, any>>) : [];
+    const featureKey = detail.feature_key || resolveFeatureKeyFromEndpoint(String(detail.endpoint || ""));
+    const nextEntry = {
+      feature_key: featureKey || detail.feature || detail.module_key || null,
+      endpoint: detail.endpoint || null,
+      mode: detail.mode || null,
+      timestamp: Date.now(),
+    };
+
+    const filtered = entries.filter((entry) => {
+      const sameFeature = entry.feature_key && nextEntry.feature_key && normalizeFeatureKey(String(entry.feature_key)) === normalizeFeatureKey(String(nextEntry.feature_key));
+      const sameEndpoint = entry.endpoint && nextEntry.endpoint && normalizeFeatureKey(String(entry.endpoint)) === normalizeFeatureKey(String(nextEntry.endpoint));
+      return !sameFeature && !sameEndpoint;
+    });
+
+    filtered.unshift(nextEntry);
+    localStorage.setItem(FEATURE_BLOCKS_STORAGE_KEY, JSON.stringify(filtered.slice(0, 25)));
+  } catch {
+    // Ignore storage failures.
+  }
+};
 
 // API Client Class
 class ApiClient {
@@ -303,7 +357,7 @@ class ApiClient {
           // Clear token and redirect to login immediately
           this.setToken(null);
           if (typeof window !== 'undefined') {
-            toast.error('Your account has been logged in from another device or browser. Please login again.');
+            alert('Your account has been logged in from another device or browser. Please login again.');
             window.location.href = '/login';
           }
           throw new ApiError(401, errorData, 'Session invalidated');
@@ -359,6 +413,24 @@ class ApiClient {
       }
 
       if (!response.ok) {
+        if (response.status === 503 && typeof window !== "undefined") {
+          try {
+            const featureKey = resolveFeatureKeyFromEndpoint(endpoint);
+            const eventDetail = {
+              endpoint,
+              feature_key: featureKey,
+              status: response.status,
+              ...data,
+            };
+
+            persistBlockedFeature(eventDetail);
+            window.dispatchEvent(new CustomEvent("feature-blocked", {
+              detail: eventDetail,
+            }));
+          } catch (eventError) {
+            // Ignore event dispatch failures
+          }
+        }
         throw new ApiError(response.status, data);
       }
 
@@ -524,43 +596,35 @@ class ApiClient {
   /**
    * Generic GET request
    */
-  async get<T = any>(endpoint: string, requestKey?: string): Promise<T> {
-    return this.fetchJson(endpoint, { method: "GET" }, requestKey);
+  async get<T>(endpoint: string): Promise<T> {
+    return this.fetchJson(endpoint, { method: "GET" });
   }
 
   /**
    * Generic POST request
    */
-  async post<T = any>(endpoint: string, body?: any, requestKey?: string): Promise<T> {
-    return this.fetchJson(
-      endpoint,
-      {
-        method: "POST",
-        body: body ? JSON.stringify(body) : undefined,
-      },
-      requestKey
-    );
+  async post<T>(endpoint: string, body: any): Promise<T> {
+    return this.fetchJson(endpoint, {
+      method: "POST",
+      body: JSON.stringify(body),
+    });
   }
 
   /**
    * Generic PUT request
    */
-  async put<T = any>(endpoint: string, body?: any, requestKey?: string): Promise<T> {
-    return this.fetchJson(
-      endpoint,
-      {
-        method: "PUT",
-        body: body ? JSON.stringify(body) : undefined,
-      },
-      requestKey
-    );
+  async put<T>(endpoint: string, body: any): Promise<T> {
+    return this.fetchJson(endpoint, {
+      method: "PUT",
+      body: JSON.stringify(body),
+    });
   }
 
   /**
    * Generic DELETE request
    */
-  async delete<T = any>(endpoint: string, requestKey?: string): Promise<T> {
-    return this.fetchJson(endpoint, { method: "DELETE" }, requestKey);
+  async delete<T>(endpoint: string): Promise<T> {
+    return this.fetchJson(endpoint, { method: "DELETE" });
   }
 
   // AI Feature Methods
@@ -1009,7 +1073,49 @@ class ApiClient {
     return response.json();
   }
 
+  // ============= HTTP METHOD WRAPPERS =============
 
+  /**
+   * GET request with automatic cancellation support
+   */
+  async get(endpoint: string, requestKey?: string): Promise<any> {
+    return this.fetchJson(endpoint, { method: "GET" }, requestKey);
+  }
+
+  /**
+   * POST request with automatic cancellation support
+   */
+  async post(endpoint: string, data?: any, requestKey?: string): Promise<any> {
+    return this.fetchJson(
+      endpoint,
+      {
+        method: "POST",
+        body: data ? JSON.stringify(data) : undefined,
+      },
+      requestKey
+    );
+  }
+
+  /**
+   * PUT request with automatic cancellation support
+   */
+  async put(endpoint: string, data?: any, requestKey?: string): Promise<any> {
+    return this.fetchJson(
+      endpoint,
+      {
+        method: "PUT",
+        body: data ? JSON.stringify(data) : undefined,
+      },
+      requestKey
+    );
+  }
+
+  /**
+   * DELETE request with automatic cancellation support
+   */
+  async delete(endpoint: string, requestKey?: string): Promise<any> {
+    return this.fetchJson(endpoint, { method: "DELETE" }, requestKey);
+  }
 }
 
 // Export singleton instance

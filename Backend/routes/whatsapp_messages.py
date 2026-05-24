@@ -12,7 +12,7 @@ from sqlalchemy import or_, and_, desc
 from pydantic import BaseModel
 from typing import Optional, List
 from datetime import datetime
-from config.database import get_db
+from config.database import get_db_sync
 from models.user import User
 from models.whatsapp_account import WhatsAppAccount
 from models.whatsapp_message import WhatsAppMessage, MessageDirection, MessageType, MessageStatus
@@ -62,7 +62,7 @@ class ConversationResponse(BaseModel):
 async def send_message(
     request: SendMessageRequest,
     current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
+    db: Session = Depends(get_db_sync)
 ):
     """
     Send a WhatsApp message
@@ -134,8 +134,8 @@ async def send_message(
         )
         
         db.add(new_message)
-        await db.commit()
-        await db.refresh(new_message)
+        db.commit()
+        db.refresh(new_message)
         
         logger.info(f"✅ Message sent to {request.to}")
         
@@ -150,14 +150,14 @@ async def send_message(
         raise
     except Exception as e:
         logger.error(f"❌ Error sending message: {e}", exc_info=True)
-        await db.rollback()
+        db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.get("/conversations")
 async def get_conversations(
     current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
+    db: Session = Depends(get_db_sync),
     limit: int = Query(50, ge=1, le=100),
     offset: int = Query(0, ge=0)
 ):
@@ -244,7 +244,7 @@ async def get_conversations(
 async def get_conversation(
     customer_phone: str,
     current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
+    db: Session = Depends(get_db_sync),
     limit: int = Query(50, ge=1, le=200),
     offset: int = Query(0, ge=0)
 ):
@@ -287,7 +287,7 @@ async def get_conversation(
             msg.read_at = datetime.utcnow()
         
         if unread_messages:
-            await db.commit()
+            db.commit()
         
         # Format messages
         formatted_messages = [
@@ -325,7 +325,7 @@ async def get_conversation(
 async def get_ai_suggestion(
     customer_phone: str,
     current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
+    db: Session = Depends(get_db_sync)
 ):
     """
     Get AI-generated reply suggestion for a conversation
@@ -386,7 +386,7 @@ async def get_ai_suggestion(
 @router.get("/stats")
 async def get_message_stats(
     current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
+    db: Session = Depends(get_db_sync)
 ):
     """
     Get message statistics

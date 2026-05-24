@@ -14,7 +14,7 @@ from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from pydantic import BaseModel, HttpUrl
 from sqlalchemy.orm import Session
 
-from config.database import get_db
+from config.database import get_db, get_db_sync
 from models.business_profile import BusinessProfile
 from models.user import User
 from utils.dependencies import get_current_user
@@ -70,7 +70,7 @@ class ErrorResponse(BaseModel):
 @router.post("/upload-pdf", response_model=UploadResponse)
 async def upload_pdf(
     file: UploadFile = File(...),
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_db_sync),
     current_user: User = Depends(get_current_user)
 ):
     """
@@ -160,7 +160,7 @@ async def upload_pdf(
 @router.post("/import-website", response_model=UploadResponse)
 async def import_website(
     request: WebsiteImportRequest,
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_db_sync),
     current_user: User = Depends(get_current_user)
 ):
     """
@@ -242,7 +242,7 @@ async def import_website(
 
 @router.get("/profile", response_model=BusinessProfileResponse)
 async def get_business_profile(
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_db_sync),
     current_user: User = Depends(get_current_user)
 ):
     """
@@ -280,7 +280,7 @@ async def get_business_profile(
 @router.put("/profile")
 async def update_business_profile(
     business_description: str = Form(...),
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_db_sync),
     current_user: User = Depends(get_current_user)
 ):
     """
@@ -310,7 +310,7 @@ async def update_business_profile(
 @router.delete("/profile/file")
 async def delete_profile_file(
     file_type: str = Form(...),  # 'pdf' only
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_db_sync),
     current_user: User = Depends(get_current_user)
 ):
     """

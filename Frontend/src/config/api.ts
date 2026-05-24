@@ -3,8 +3,10 @@
  * Central configuration for API endpoints
  */
 
+import { env } from './env';
+
 // Backend API base URL
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8002";
+export const API_BASE_URL = env.apiBaseUrl;
 
 // API endpoints
 export const API_ENDPOINTS = {

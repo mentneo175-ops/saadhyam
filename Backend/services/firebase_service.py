@@ -7,6 +7,7 @@ FAILS PROPERLY IF NOT CONFIGURED
 
 import logging
 import os
+from pathlib import Path
 from typing import Dict, Any, Optional
 import firebase_admin
 from firebase_admin import credentials, auth
@@ -50,6 +51,12 @@ class FirebaseService:
                 logger.error(error_msg)
                 logger.error("❌ Set GOOGLE_APPLICATION_CREDENTIALS=./firebase-adminsdk.json in your .env file")
                 raise ValueError(error_msg)
+
+            credentials_path = Path(credentials_path)
+            if not credentials_path.is_absolute():
+                credentials_path = (Path(__file__).resolve().parents[1] / credentials_path).resolve()
+
+            credentials_path = str(credentials_path)
             
             if not project_id:
                 error_msg = "❌ CRITICAL: FIREBASE_PROJECT_ID environment variable is REQUIRED"

@@ -27,6 +27,7 @@ import {
   Network,
   Megaphone,
   Phone,
+  DollarSign,
   Menu,
   X,
   ChevronLeft,
@@ -57,6 +58,7 @@ const items: NavItem[] = [
   { to: "/dashboard/voice-agent", label: "AI Voice Agent", icon: Phone },
   { to: "/dashboard/website", label: "Website AI", icon: FileText },
   { to: "/dashboard/review-reply", label: "Review Reply", icon: MessageSquare },
+  { to: "/dashboard/pricing", label: "Pricing", icon: DollarSign },
   // { to: "/dashboard/automation", label: "Automation", icon: Workflow },
   { to: "/dashboard/settings", label: "Settings", icon: Settings },
 ];

@@ -27,6 +27,8 @@ import {
 import { useState, useEffect } from "react";
 import LogoImage from "@/Icon/Saadhyam_Icon-removebg-preview.png";
 
+const ADMIN_API_URL = import.meta.env.VITE_ADMIN_API_URL || "http://127.0.0.1:8082";
+
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
@@ -130,8 +132,19 @@ const testimonials = [
   },
 ];
 
-const tiers = [
+type LandingPlan = {
+  key: string;
+  name: string;
+  price: string;
+  desc: string;
+  features: string[];
+  cta: string;
+  highlighted?: boolean;
+};
+
+const defaultTiers: LandingPlan[] = [
   {
+    key: "starter",
     name: "Free",
     price: "$0",
     desc: "Test AI search optimization with no commitment.",
@@ -145,6 +158,7 @@ const tiers = [
     variant: "outline" as const,
   },
   {
+    key: "growth",
     name: "Pro",
     price: "$29",
     desc: "Full AI search visibility for growing businesses.",
@@ -161,6 +175,7 @@ const tiers = [
     highlighted: true,
   },
   {
+    key: "premium",
     name: "Business",
     price: "$99",
     desc: "Enterprise AI discoverability with dedicated support.",
@@ -177,7 +192,81 @@ const tiers = [
   },
 ];
 
+const defaultTierMap = Object.fromEntries(defaultTiers.map((tier) => [tier.key, tier]));
+
+function normalizeLandingPlans(payload: unknown): LandingPlan[] {
+  const list = Array.isArray(payload) ? payload : (payload as { plans?: unknown[] })?.plans || [];
+  const byKey = new Map<string, LandingPlan>();
+
+  list.forEach((item) => {
+    if (!item || typeof item !== "object") return;
+    const plan = item as Record<string, any>;
+    const key = String(plan.key || plan.id || plan.name || "").toLowerCase();
+    if (!key) return;
+
+    const fallback = defaultTierMap[key];
+    byKey.set(key, {
+      key,
+      name: String(plan.name || fallback?.name || "Plan"),
+      price: String(plan.price || fallback?.price || "$0"),
+      desc: String(plan.description || plan.desc || fallback?.desc || ""),
+      features: Array.isArray(plan.features)
+        ? plan.features.map((feature: any) => String(feature)).filter(Boolean)
+        : fallback?.features || [],
+      cta: String(plan.cta || fallback?.cta || "Get started"),
+      highlighted: Boolean(plan.highlighted || plan.featured || fallback?.highlighted),
+    });
+  });
+
+  return defaultTiers.map((tier) => byKey.get(tier.key) || tier);
+}
+
 function Landing() {
+  const [tiers, setTiers] = useState<LandingPlan[]>(defaultTiers);
+  const [pricingState, setPricingState] = useState<"loading" | "live" | "fallback">("loading");
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadPricing = async () => {
+      try {
+        const response = await fetch(`/admin-api/api/public/billing-plans`, { cache: "no-store" });
+        if (!response.ok) {
+          throw new Error("Failed to fetch live pricing");
+        }
+
+        const data = await response.json();
+        if (!cancelled) {
+          setTiers(normalizeLandingPlans(data));
+          setPricingState("live");
+        }
+      } catch {
+        if (!cancelled) {
+          setTiers(defaultTiers);
+          setPricingState("fallback");
+        }
+      }
+    };
+
+    loadPricing();
+    const handleVisibilityRefresh = () => {
+      if (!document.hidden) {
+        loadPricing();
+      }
+    };
+
+    window.addEventListener("focus", loadPricing);
+    document.addEventListener("visibilitychange", handleVisibilityRefresh);
+    const refreshTimer = window.setInterval(loadPricing, 30000);
+
+    return () => {
+      cancelled = true;
+      window.removeEventListener("focus", loadPricing);
+      document.removeEventListener("visibilitychange", handleVisibilityRefresh);
+      window.clearInterval(refreshTimer);
+    };
+  }, []);
+
   return (
     <div className="min-h-screen" style={{ background: 'linear-gradient(135deg, #F8F7FC 0%, #F3F1F9 50%, #EDE9F6 100%)' }}>
       <Navbar />
@@ -707,7 +796,7 @@ function Landing() {
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#F3EEFF] border border-[#E9D5FF] mb-4">
             <Zap size={14} className="text-[#8B5CF6]" />
             <span className="text-sm font-semibold text-[#8B5CF6] uppercase tracking-wider">
-              Pricing
+              {pricingState === "live" ? "Live Pricing" : "Pricing"}
             </span>
           </div>
           <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-gray-900 mb-4">

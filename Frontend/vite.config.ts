@@ -32,6 +32,13 @@ export default defineConfig({
     port: 8081,
     strictPort: true,
     host: true,
+    proxy: {
+      '/admin-api': {
+        target: 'http://127.0.0.1:8082',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/admin-api/, ''),
+      },
+    },
   },
   optimizeDeps: {
     include: ['react', 'react-dom', 'framer-motion'],

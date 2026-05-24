@@ -12,8 +12,8 @@ from fastapi.staticfiles import StaticFiles
 from dotenv import load_dotenv
 import socketio
 
-# Load environment variables first
-load_dotenv()
+# Load environment variables first from the backend workspace
+load_dotenv(Path(__file__).resolve().parent / ".env")
 
 # Configure logging early
 from config.logging_config import configure_logging
@@ -598,6 +598,19 @@ app = FastAPI(
     version="1.0.0",
     lifespan=lifespan
 )
+
+# Feature flags guard: polls admin public features and blocks disabled endpoints
+try:
+    # Support both package execution (from . import ...) and direct module execution.
+    try:
+        from . import feature_flags  # type: ignore
+    except Exception:
+        import feature_flags  # type: ignore
+    feature_flags.setup(app)
+except Exception:
+    # Import errors should not prevent app from starting; log and continue
+    import logging
+    logging.getLogger("feature_flags").exception("Failed to initialize feature flags middleware")
 
 # Add custom exception handler for h11 protocol errors and ExceptionGroup
 from starlette.exceptions import HTTPException as StarletteHTTPException

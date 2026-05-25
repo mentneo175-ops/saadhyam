@@ -156,7 +156,7 @@ function AmbientParticles() {
 function HealthScoreWidget({ score }: { score: number }) {
   const ringGrad = useId().replace(/:/g, "") + "-ring";
   const ringGlow = useId().replace(/:/g, "") + "-glow";
-  const circumference = 2 * Math.PI * 36;
+  const circumference = 2 * Math.PI * 44;
   const offset = circumference - (score / 100) * circumference;
   const scoreLabel =
     score >= 80 ? "Excellent" : score >= 65 ? "Good" : score >= 50 ? "Fair" : "Needs work";
@@ -173,13 +173,25 @@ function HealthScoreWidget({ score }: { score: number }) {
       {/* Outer pulse halo */}
       <motion.div
         aria-hidden
-        className="absolute -inset-3 rounded-[1.5rem]"
+        className="absolute -inset-4 rounded-[1.75rem]"
         style={{
           background:
             "radial-gradient(circle, oklch(0.75 0.12 320 / 0.35) 0%, transparent 70%)",
         }}
         animate={{ opacity: [0.35, 0.65, 0.35], scale: [0.98, 1.03, 0.98] }}
         transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
+      />
+
+      {/* Pulsing glow behind entire widget */}
+      <motion.div
+        aria-hidden
+        className="absolute -inset-5 rounded-[2rem]"
+        style={{
+          background:
+            "radial-gradient(circle, oklch(0.68 0.18 310 / 0.3) 0%, transparent 65%)",
+        }}
+        animate={{ opacity: [0.2, 0.45, 0.2], scale: [0.96, 1.05, 0.96] }}
+        transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
       />
 
       <div className="relative overflow-hidden rounded-xl border border-white/[0.22] bg-white/[0.08] p-4 shadow-[0_12px_40px_-12px_oklch(0.45_0.18_310/0.45)] backdrop-blur-2xl md:p-5">
@@ -216,10 +228,10 @@ function HealthScoreWidget({ score }: { score: number }) {
         />
 
         <div className="relative flex flex-col items-center">
-          <div className="relative flex h-[104px] w-[104px] items-center justify-center">
+          <div className="relative flex h-[120px] w-[120px] items-center justify-center">
             <svg
-              width="104"
-              height="104"
+              width="120"
+              height="120"
               className="-rotate-90"
               style={{ filter: "drop-shadow(0 0 14px oklch(0.72 0.14 320 / 0.4))" }}
             >
@@ -238,17 +250,17 @@ function HealthScoreWidget({ score }: { score: number }) {
                 </filter>
               </defs>
               <circle
-                cx="52"
-                cy="52"
-                r="36"
+                cx="60"
+                cy="60"
+                r="44"
                 fill="none"
                 stroke="rgba(255,255,255,0.12)"
                 strokeWidth="4.5"
               />
               <motion.circle
-                cx="52"
-                cy="52"
-                r="36"
+                cx="60"
+                cy="60"
+                r="44"
                 fill="none"
                 stroke={`url(#${ringGrad})`}
                 strokeWidth="4.5"
@@ -266,7 +278,7 @@ function HealthScoreWidget({ score }: { score: number }) {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.6, duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
             >
-              <span className="text-[1.85rem] font-semibold leading-none tabular-nums tracking-tight text-white">
+              <span className="text-[2.2rem] font-semibold leading-none tabular-nums tracking-tight text-white">
                 {score}
               </span>
               <span className="mt-0.5 text-[9px] font-semibold uppercase tracking-[0.22em] text-white/70">
@@ -328,7 +340,7 @@ export function BusinessHero({
         transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut" }}
       />
 
-      <div className="relative z-[1] p-5 md:p-6 lg:p-7">
+      <div className="relative z-[1] p-6 md:p-8 lg:p-10">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between lg:gap-6">
           <motion.div
             variants={revealFromLeft}
@@ -339,20 +351,20 @@ export function BusinessHero({
             <motion.div
               whileHover={{ scale: 1.04, y: -1 }}
               transition={{ type: "spring", stiffness: 400, damping: 24 }}
-              className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/[0.2] bg-white/[0.1] shadow-[0_8px_24px_-8px_rgba(0,0,0,0.2)] backdrop-blur-md md:h-14 md:w-14"
+              className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-white/[0.2] bg-white/[0.1] shadow-[0_8px_24px_-8px_rgba(0,0,0,0.2)] backdrop-blur-md md:h-16 md:w-16"
             >
               <Building2 className="h-6 w-6 text-white/95 md:h-7 md:w-7" strokeWidth={1.75} />
             </motion.div>
             <div className="min-w-0 flex-1 pt-0.5">
-              <h2 className="break-words text-xl font-semibold tracking-tight text-white md:text-2xl lg:text-[1.65rem]">
+              <h2 className="break-words text-2xl font-semibold tracking-tight text-white md:text-3xl lg:text-[2rem]">
                 {details.business_name}
               </h2>
               <div className="mt-2.5 flex flex-wrap items-center gap-2">
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-white/[0.18] bg-white/[0.08] px-2.5 py-1 text-xs font-medium text-white/95 backdrop-blur-md">
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-white/[0.18] bg-white/[0.08] px-3.5 py-1.5 text-sm font-medium text-white/95 backdrop-blur-md">
                   <Briefcase className="h-3.5 w-3.5 text-white/75" strokeWidth={2} />
                   {details.business_type}
                 </span>
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-white/[0.18] bg-white/[0.08] px-2.5 py-1 text-xs font-medium text-white/95 backdrop-blur-md">
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-white/[0.18] bg-white/[0.08] px-3.5 py-1.5 text-sm font-medium text-white/95 backdrop-blur-md">
                   <MapPin className="h-3.5 w-3.5 text-white/75" strokeWidth={2} />
                   {details.location}
                 </span>
@@ -373,7 +385,7 @@ export function BusinessHero({
             <p className="mb-2.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/55">
               Services offered
             </p>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2.5">
               {details.services.map((service, idx) => (
                 <motion.span
                   key={idx}
@@ -400,12 +412,12 @@ export function BusinessHero({
             <p className="mb-2.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/55">
               Business overview
             </p>
-            <div className="relative overflow-hidden rounded-xl border border-white/[0.12] bg-gradient-to-br from-white/[0.08] via-white/[0.04] to-transparent p-3.5 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.12)] backdrop-blur-md md:p-4">
+            <div className="relative overflow-hidden rounded-xl border border-white/[0.12] bg-gradient-to-br from-white/[0.08] via-white/[0.04] to-transparent p-5 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.12)] backdrop-blur-md md:p-5">
               <div
                 aria-hidden
                 className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent"
               />
-              <p className="relative text-sm leading-[1.7] text-white/[0.92]">{details.summary}</p>
+              <p className="relative text-[15px] leading-[1.7] text-white/[0.92]">{details.summary}</p>
             </div>
           </motion.div>
         )}

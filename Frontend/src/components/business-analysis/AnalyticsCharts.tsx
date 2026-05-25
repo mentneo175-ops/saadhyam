@@ -42,8 +42,8 @@ function ChartShell({
       initial="hidden"
       animate="show"
       transition={{ delay }}
-      whileHover={{ y: -3 }}
-      className="group relative overflow-hidden rounded-2xl border border-border/50 bg-gradient-to-b from-card via-card to-primary/[0.03] p-6 shadow-soft backdrop-blur-md transition-shadow duration-300 hover:border-primary/15 hover:shadow-[0_20px_50px_-24px_oklch(0.45_0.18_295/0.15)] md:p-7"
+      whileHover={{ y: -4 }}
+      className="group relative overflow-hidden rounded-3xl border border-border/50 bg-gradient-to-b from-card via-card to-primary/[0.03] p-7 shadow-soft backdrop-blur-md transition-shadow duration-300 hover:border-primary/15 hover:shadow-[0_24px_56px_-24px_oklch(0.45_0.18_295/0.18)] md:p-8"
     >
       <div
         aria-hidden
@@ -51,7 +51,11 @@ function ChartShell({
       />
       <motion.div
         aria-hidden
-        className="pointer-events-none absolute -right-16 top-1/2 h-40 w-40 -translate-y-1/2 rounded-full bg-secondary/10 blur-3xl opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+        className="pointer-events-none absolute -right-16 -top-8 h-48 w-48 rounded-full bg-secondary/8 blur-3xl opacity-0 transition-opacity duration-500 group-hover:opacity-60"
+      />
+      <motion.div
+        aria-hidden
+        className="pointer-events-none absolute -left-12 bottom-0 h-40 w-40 rounded-full bg-primary/6 blur-3xl opacity-0 transition-opacity duration-500 group-hover:opacity-50"
       />
       {children}
     </motion.div>
@@ -69,14 +73,14 @@ export function AnalyticsSection({
   const radarStrokeId = useId().replace(/:/g, "") + "-radarStroke";
 
   return (
-    <div className="grid gap-5 lg:grid-cols-2">
+    <div className="grid gap-6 lg:grid-cols-2">
       <ChartShell delay={0.08}>
         <SectionHeader title="Business Metrics" icon={BarChart3} badge="Radar" tone="premium" />
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.22, duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
-          className="h-[300px] w-full"
+          className="h-[340px] w-full"
         >
           <ResponsiveContainer width="100%" height="100%">
             <RadarChart data={businessMetricsData}>
@@ -126,7 +130,7 @@ export function AnalyticsSection({
           initial={{ opacity: 0, scale: 0.96, y: 10 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={{ delay: 0.26, duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
-          className="h-[300px] w-full"
+          className="h-[340px] w-full"
         >
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>

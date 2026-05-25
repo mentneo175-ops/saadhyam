@@ -1,0 +1,67 @@
+# FREE TIER Render Configuration - No Payment Required
+# This configuration uses only FREE services
+
+services:
+  # Main Web Service (FREE TIER)
+  - type: web
+    name: saadhyam-backend-free
+    env: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    region: oregon
+    branch: main
+    healthCheckPath: /health
+    buildCommand: ""
+    startCommand: "./entrypoint.sh"
+    envVars:
+      # Core Settings (FREE TIER)
+      - key: ENVIRONMENT
+        value: production
+      - key: DEBUG
+        value: "False"
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ALGORITHM
+        value: HS256
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        value: "10080"
+      - key: LOAD_TINYLLAMA_ON_STARTUP
+        value: "False"
+      - key: CELERY_WORKER_CONCURRENCY
+        value: "1"
+      
+      # Database - Your existing NeonDB (FREE)
+      - key: DATABASE_URL
+        value: postgresql+asyncpg://neondb_owner:npg_yMY4QBN0dInc@ep-calm-frost-anaytjtm-pooler.c-6.us-east-1.aws.neon.tech/neondb?sslmode=require
+      
+      # CORS (FREE TIER)
+      - key: ALLOWED_ORIGINS
+        value: "http://localhost:5173,http://localhost:3000,https://saadhyam-frontend.onrender.com"
+      
+      # Essential API Keys Only (FREE TIER)
+      - key: GROQ_API_KEY
+        value: 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
+      - key: GEMINI_API_KEY
+        value: AIzaSyBFgHRqXygR8Md8DJwAVpIX5caecaEHbMQ
+      - key: GEMINI_CONTENT_MODEL
+        value: gemini-2.5-flash
+      - key: HUGGINGFACE_TOKEN
+        value: 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
+      
+      # Instagram API (FREE TIER)
+      - key: INSTAGRAM_APP_ID
+        value: "795095706777348"
+      - key: INSTAGRAM_APP_SECRET
+        value: 3b0f2673ee470fec5fb08872e8e5800b
+      - key: INSTAGRAM_REDIRECT_URI
+        value: https://saadhyam-backend-free.onrender.com/auth/instagram/callback
+      
+      # Cloudinary (FREE TIER)
+      - key: CLOUDINARY_CLOUD_NAME
+        value: di16qmtbf
+      - key: CLOUDINARY_API_KEY
+        value: "679832578499241"
+      - key: CLOUDINARY_API_SECRET
+        value: ZuKhUD-ZGuFhdiwIyF1xWbl8m54
+
+# NO REDIS SERVICE - Using internal Redis to stay FREE

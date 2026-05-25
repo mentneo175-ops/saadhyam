@@ -117,7 +117,7 @@ function MetricCard({
       whileHover={{ y: -6 }}
       transition={{ type: "spring", stiffness: 380, damping: 28 }}
       className={cn(
-        "group relative overflow-hidden rounded-2xl border border-border/50 bg-card/95 p-5 shadow-soft backdrop-blur-sm transition-shadow duration-300 hover:shadow-[0_16px_48px_-20px_oklch(0.45_0.15_295/0.18)] md:p-6",
+        "group relative overflow-hidden rounded-3xl border border-border/50 bg-card/95 p-6 shadow-soft backdrop-blur-sm transition-shadow duration-300 hover:shadow-[0_16px_48px_-20px_oklch(0.45_0.15_295/0.18)] hover:ring-1 hover:ring-primary/10 md:p-7",
         ringHover,
       )}
     >
@@ -138,30 +138,30 @@ function MetricCard({
           whileHover={{ scale: 1.06 }}
           transition={{ type: "spring", stiffness: 400, damping: 20 }}
           className={cn(
-            "flex h-11 w-11 items-center justify-center rounded-xl border backdrop-blur-sm transition-shadow duration-300 group-hover:shadow-glow",
+            "flex h-12 w-12 items-center justify-center rounded-2xl border backdrop-blur-sm transition-shadow duration-300 group-hover:shadow-glow",
             iconWrap,
           )}
         >
-          <Icon className="h-5 w-5" />
+          <Icon className="h-[22px] w-[22px]" />
         </motion.div>
-        <p className={cn("text-3xl font-bold tabular-nums tracking-tight", valueClass)}>
+        <p className={cn("text-4xl font-bold tabular-nums tracking-tight", valueClass)}>
           <AnimatedCounter value={value} delay={delay} />
         </p>
       </div>
 
-      <div className="relative mt-4">
+      <div className="relative mt-5">
         <h3 className="text-sm font-semibold text-foreground">{label}</h3>
-        <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">{subtitle}</p>
+        <p className="mt-0.5 text-[13px] leading-relaxed text-muted-foreground">{subtitle}</p>
       </div>
 
-      <div className="relative mt-4">
+      <div className="relative mt-5">
         <div className="mb-1.5 flex justify-between text-[10px] font-medium text-muted-foreground">
           <span>Insight depth</span>
           <span className="font-semibold text-foreground/80">{Math.round(progress)}%</span>
         </div>
-        <div className="h-1.5 overflow-hidden rounded-full bg-muted/80 ring-1 ring-inset ring-border/30">
+        <div className="h-2 overflow-hidden rounded-lg bg-muted/80 ring-1 ring-inset ring-border/30">
           <motion.div
-            className={cn("h-full rounded-full bg-gradient-to-r", barGradient)}
+            className={cn("h-full rounded-lg bg-gradient-to-r", barGradient)}
             initial={{ width: 0 }}
             animate={{ width: `${progress}%` }}
             transition={{ duration: 1.05, delay: 0.18 + delay, ease: [0.16, 1, 0.3, 1] }}
@@ -196,7 +196,7 @@ export function MetricsGrid({
       initial="hidden"
       animate="show"
       variants={staggerContainer}
-      className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4"
+      className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4"
     >
       {METRICS.map((metric, idx) => (
         <MetricCard

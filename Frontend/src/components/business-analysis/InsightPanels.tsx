@@ -59,7 +59,7 @@ function InsightListPanel({
       animate="show"
       transition={{ delay }}
       whileHover={{ y: -3 }}
-      className="group relative overflow-hidden rounded-2xl border border-border/50 bg-gradient-to-b from-card via-card to-muted/20 p-6 shadow-soft backdrop-blur-sm transition-shadow duration-300 hover:border-primary/15 hover:shadow-[0_20px_48px_-24px_oklch(0.45_0.18_295/0.12)] md:p-7"
+      className="group relative overflow-hidden rounded-3xl border border-border/50 bg-gradient-to-b from-card via-card to-muted/20 p-7 shadow-soft backdrop-blur-sm transition-shadow duration-300 hover:border-primary/15 hover:shadow-[0_20px_48px_-24px_oklch(0.45_0.18_295/0.12)] md:p-8"
     >
       <div
         aria-hidden
@@ -67,7 +67,7 @@ function InsightListPanel({
       />
       <div className="relative">
         <SectionHeader title={title} icon={Icon} tone="premium" />
-        <div className="space-y-2">
+        <div className="space-y-3">
           {items.map((item, idx) => (
             <motion.div
               key={idx}
@@ -79,14 +79,14 @@ function InsightListPanel({
                 ease: [0.16, 1, 0.3, 1],
               }}
               whileHover={{ x: 2 }}
-              className={`group/item flex items-start gap-3 rounded-xl border border-border/40 border-l-[3px] bg-card/60 px-4 py-3.5 shadow-sm backdrop-blur-sm transition-all duration-200 hover:bg-card/90 hover:shadow-md ${accentStyles.border}`}
+              className={`group/item flex items-start gap-3 rounded-2xl border border-border/40 border-l-4 bg-card/60 px-5 py-4 shadow-sm backdrop-blur-sm transition-all duration-200 hover:bg-card/90 hover:shadow-md ${accentStyles.border}`}
             >
               <div
-                className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${accentStyles.iconBg}`}
+                className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${accentStyles.iconBg}`}
               >
-                <ItemIcon className={`h-3.5 w-3.5 ${accentStyles.icon}`} />
+                <ItemIcon className={`h-4 w-4 ${accentStyles.icon}`} />
               </div>
-              <span className="text-[13px] leading-[1.65] text-muted-foreground">
+              <span className="text-sm leading-[1.65] text-muted-foreground">
                 {renderMarkdown(item)}
               </span>
             </motion.div>
@@ -114,15 +114,15 @@ function MarketInsightBlock({
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, duration: 0.42 }}
       whileHover={{ y: -1 }}
-      className="rounded-xl border border-border/45 bg-gradient-to-br from-card/90 to-primary/[0.04] p-4 shadow-sm backdrop-blur-sm transition-shadow hover:border-primary/15 hover:shadow-soft"
+      className="rounded-2xl border border-border/45 bg-gradient-to-br from-card/90 to-primary/[0.04] p-5 shadow-sm backdrop-blur-sm transition-shadow hover:border-primary/15 hover:shadow-soft"
     >
       <h4 className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-foreground">
-        <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10 text-primary">
-          <Icon className="h-3.5 w-3.5" />
+        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+          <Icon className="h-4 w-4" />
         </span>
         {title}
       </h4>
-      <div className="text-[13px] leading-[1.65] text-muted-foreground">{children}</div>
+      <div className="text-sm leading-[1.65] text-muted-foreground">{children}</div>
     </motion.div>
   );
 }
@@ -144,7 +144,7 @@ export function InsightPanels({
   if (!hasLists) return null;
 
   return (
-    <div className="grid gap-5 lg:grid-cols-2">
+    <div className="grid gap-6 lg:grid-cols-2">
       {strengths.length > 0 && (
         <InsightListPanel
           title="Strengths"
@@ -179,14 +179,14 @@ export function InsightPanels({
           animate="show"
           transition={{ delay: 0.18 }}
           whileHover={{ y: -2 }}
-          className="group relative overflow-hidden rounded-2xl border border-border/50 bg-gradient-to-b from-card via-card to-secondary/[0.06] p-6 shadow-soft backdrop-blur-sm transition-shadow duration-300 hover:border-primary/15 hover:shadow-[0_20px_48px_-24px_oklch(0.45_0.18_295/0.12)] md:p-7 lg:col-span-2"
+          className="group relative overflow-hidden rounded-3xl border border-border/50 bg-gradient-to-b from-card via-card to-secondary/[0.06] p-7 shadow-soft backdrop-blur-sm transition-shadow duration-300 hover:border-primary/15 hover:shadow-[0_20px_48px_-24px_oklch(0.45_0.18_295/0.12)] md:p-8 lg:col-span-2"
         >
           <div
             aria-hidden
             className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/25 to-transparent"
           />
           <SectionHeader title="Local Market Insights" icon={Map} badge="Market" tone="premium" />
-          <div className="grid gap-3 md:grid-cols-2">
+          <div className="grid gap-4 md:grid-cols-2">
             {localMarket.local_demand && (
               <MarketInsightBlock title="Local Demand" icon={Users} delay={0.22}>
                 {renderMarkdown(localMarket.local_demand)}
@@ -212,7 +212,7 @@ export function InsightPanels({
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{ delay: 0.36 + idx * 0.04 }}
                       whileHover={{ scale: 1.03 }}
-                      className="rounded-md border border-primary/20 bg-gradient-to-r from-primary/10 to-secondary/10 px-2.5 py-1 text-xs font-medium text-primary"
+                      className="rounded-xl border border-primary/20 bg-gradient-to-r from-primary/10 to-secondary/10 px-3 py-1.5 text-xs font-medium text-primary"
                     >
                       {service}
                     </motion.span>

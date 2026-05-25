@@ -8,7 +8,10 @@ services:
     region: oregon
     branch: main
     healthCheckPath: /health
+    buildCommand: ""
+    startCommand: "./entrypoint.sh"
     envVars:
+      # Core Settings
       - key: ENVIRONMENT
         value: production
       - key: DEBUG
@@ -23,8 +26,16 @@ services:
         value: "False"
       - key: CELERY_WORKER_CONCURRENCY
         value: "1"
+      
+      # Database - Use your existing Neon DB
+      - key: DATABASE_URL
+        value: postgresql+asyncpg://neondb_owner:npg_yMY4QBN0dInc@ep-calm-frost-anaytjtm-pooler.c-6.us-east-1.aws.neon.tech/neondb?sslmode=require
+      
+      # CORS - Will update after frontend deployment
       - key: ALLOWED_ORIGINS
-        value: "http://localhost:5173,http://localhost:3000"
+        value: "http://localhost:5173,http://localhost:3000,https://saadhyam-frontend.onrender.com"
+      
+      # AI Services
       - key: GROQ_API_KEY
         value: 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
       - key: GEMINI_API_KEY
@@ -47,20 +58,28 @@ services:
         value: api
       - key: MISTRAL_TEXT_MODEL
         value: mistralai/Mistral-7B-Instruct-v0.3
+      
+      # Instagram API
       - key: INSTAGRAM_APP_ID
         value: "795095706777348"
       - key: INSTAGRAM_APP_SECRET
         value: 3b0f2673ee470fec5fb08872e8e5800b
       - key: FACEBOOK_APP_SECRET
         value: 3b0f2673ee470fec5fb08872e8e5800b
+      - key: INSTAGRAM_REDIRECT_URI
+        value: https://saadhyam-backend.onrender.com/auth/instagram/callback
       - key: INSTAGRAM_GRAPH_API_VERSION
         value: v19.0
+      
+      # Cloudinary
       - key: CLOUDINARY_CLOUD_NAME
         value: di16qmtbf
       - key: CLOUDINARY_API_KEY
         value: "679832578499241"
       - key: CLOUDINARY_API_SECRET
         value: ZuKhUD-ZGuFhdiwIyF1xWbl8m54
+      
+      # WhatsApp API
       - key: WHATSAPP_API_VERSION
         value: v18.0
       - key: WHATSAPP_VERIFY_TOKEN
@@ -69,26 +88,42 @@ services:
         value: EAALTIqUqNwQBRT22ZCkjJshBNNcFVx7jzh8PiAtufaV6DuxM57w7zNU2MRmrNNEbwjBpstXZAv50pIAfvlRMD3WDyI79WygFDKROeKnhRZBHpYTcYhsmt5fsqm0BWx9YimLWXZB1uiXBX84WzDf60SVord4k42dS9c4dFiz534zD3YfM0NqtVvIeAxu1HczXvLSe5ijRESIeEmypPDVTSpU3nAtAkhqo9A9xikJ8qkiuZC74nl0IZBONkZABN0b4yXBlcQPdoaH9nBI5TsbJe3703PykAZDZD
       - key: WHATSAPP_PHONE_ID
         value: "1045916955280773"
+      - key: WHATSAPP_REDIRECT_URI
+        value: https://saadhyam-backend.onrender.com/api/whatsapp/callback
+      
+      # Meta API
       - key: META_APP_ID
         value: "795095706777348"
       - key: META_APP_SECRET
         value: 82ce131266cf67edf276b83b4fa352d8
+      - key: META_REDIRECT_URI
+        value: https://saadhyam-backend.onrender.com/auth/meta/callback
       - key: WHATSAPP_CONFIG_ID
         value: "2175611099919987"
+      
+      # Search APIs
       - key: TAVILY_API_KEY
         value: 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
       - key: SERPER_API_KEY
         value: 01c6e2f8e03bd98151c95cf3c7b23b7b3efebe5e
       - key: SERPAPI_KEY
         value: abf101614c163e1685f2ec7b03e7ce58a95abe4e112b810d100df50b3be09d90
+      
+      # Partnership APIs
       - key: RAPIDAPI_KEY
         value: df0d4b7f8fmshea97f97239ba7e3p1f1276jsn27e63e432815
       - key: APIFY_API_TOKEN
         value: apify_api_wsOrpE7286AZzOdHTBO3wuVWLVdJI64zsq7c
+      
+      # Email Service
       - key: RESEND_API_KEY
         value: re_7ithcMTX_NvZLsYeY9CcCAgxYKkANgCdq
+      
+      # Encryption
       - key: ENCRYPTION_KEY
         value: jgtrt_Gy68WKOYhbSOveDjr7KyGKnfFQCaGz4Z8p2K0=
+      
+      # Website AI
       - key: WEBSITE_AI_USE_FAKE_LLM
         value: "true"
       - key: WEBSITE_AI_MODEL_ID
@@ -101,12 +136,16 @@ services:
         value: local
       - key: WEBSITE_AI_DEFAULT_THEME
         value: hero-split
+      
+      # Vector Database
       - key: PINECONE_API_KEY
         value: pcsk_5WFyDs_U7ZruXnqxiuWHEsNLxpbYMMgNmNpXuyRyTzjAaB5TZhNffshQAxxpG8DGsXytWv
       - key: PINECONE_ENVIRONMENT
         value: us-east-1
       - key: PINECONE_INDEX_NAME
         value: saadhyam-aeo-geo
+      
+      # AEO/GEO System
       - key: AEO_GEO_ENABLED
         value: "true"
       - key: AEO_GEO_USE_MOCK_DATA
@@ -118,20 +157,9 @@ services:
       - key: AEO_GEO_QUESTION_DISCOVERY_MODEL
         value: gemini
 
-  # PostgreSQL Database
-  - type: pserv
-    name: saadhyam-postgres
-    env: docker
-    dockerfilePath: ./Dockerfile.postgres
-    plan: free
-    
-  # Redis Cache
-  - type: redis
-    name: saadhyam-redis
-    plan: free
-    maxmemoryPolicy: allkeys-lru
-
-databases:
-  - name: saadhyam-db
-    databaseName: saadhyam
-    user: saadhyam_user
+  # Redis Key-Value Store (This is Redis in Render)
+  # REMOVED: Using internal Redis to stay within free tier
+  # - type: redis
+  #   name: saadhyam-redis
+  #   plan: free
+  #   maxmemoryPolicy: allkeys-lru

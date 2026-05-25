@@ -39,6 +39,7 @@ import { Route as DashboardCustomersRouteImport } from './routes/dashboard.custo
 import { Route as DashboardContentRouteImport } from './routes/dashboard.content'
 import { Route as DashboardCompetitorsRouteImport } from './routes/dashboard.competitors'
 import { Route as DashboardCompetitorAnalysisRouteImport } from './routes/dashboard.competitor-analysis'
+import { Route as DashboardCheckoutRouteImport } from './routes/dashboard.checkout'
 import { Route as DashboardChatRouteImport } from './routes/dashboard.chat'
 import { Route as DashboardBusinessDetailsRouteImport } from './routes/dashboard.business-details'
 import { Route as DashboardBusinessAnalysisRouteImport } from './routes/dashboard.business-analysis'
@@ -216,6 +217,11 @@ const DashboardCompetitorAnalysisRoute =
     path: '/competitor-analysis',
     getParentRoute: () => DashboardRoute,
   } as any)
+const DashboardCheckoutRoute = DashboardCheckoutRouteImport.update({
+  id: '/checkout',
+  path: '/checkout',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardChatRoute = DashboardChatRouteImport.update({
   id: '/chat',
   path: '/chat',
@@ -371,6 +377,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/business-analysis': typeof DashboardBusinessAnalysisRoute
   '/dashboard/business-details': typeof DashboardBusinessDetailsRoute
   '/dashboard/chat': typeof DashboardChatRoute
+  '/dashboard/checkout': typeof DashboardCheckoutRoute
   '/dashboard/competitor-analysis': typeof DashboardCompetitorAnalysisRoute
   '/dashboard/competitors': typeof DashboardCompetitorsRoute
   '/dashboard/content': typeof DashboardContentRoute
@@ -425,6 +432,7 @@ export interface FileRoutesByTo {
   '/dashboard/business-analysis': typeof DashboardBusinessAnalysisRoute
   '/dashboard/business-details': typeof DashboardBusinessDetailsRoute
   '/dashboard/chat': typeof DashboardChatRoute
+  '/dashboard/checkout': typeof DashboardCheckoutRoute
   '/dashboard/competitor-analysis': typeof DashboardCompetitorAnalysisRoute
   '/dashboard/competitors': typeof DashboardCompetitorsRoute
   '/dashboard/content': typeof DashboardContentRoute
@@ -482,6 +490,7 @@ export interface FileRoutesById {
   '/dashboard/business-analysis': typeof DashboardBusinessAnalysisRoute
   '/dashboard/business-details': typeof DashboardBusinessDetailsRoute
   '/dashboard/chat': typeof DashboardChatRoute
+  '/dashboard/checkout': typeof DashboardCheckoutRoute
   '/dashboard/competitor-analysis': typeof DashboardCompetitorAnalysisRoute
   '/dashboard/competitors': typeof DashboardCompetitorsRoute
   '/dashboard/content': typeof DashboardContentRoute
@@ -540,6 +549,7 @@ export interface FileRouteTypes {
     | '/dashboard/business-analysis'
     | '/dashboard/business-details'
     | '/dashboard/chat'
+    | '/dashboard/checkout'
     | '/dashboard/competitor-analysis'
     | '/dashboard/competitors'
     | '/dashboard/content'
@@ -594,6 +604,7 @@ export interface FileRouteTypes {
     | '/dashboard/business-analysis'
     | '/dashboard/business-details'
     | '/dashboard/chat'
+    | '/dashboard/checkout'
     | '/dashboard/competitor-analysis'
     | '/dashboard/competitors'
     | '/dashboard/content'
@@ -650,6 +661,7 @@ export interface FileRouteTypes {
     | '/dashboard/business-analysis'
     | '/dashboard/business-details'
     | '/dashboard/chat'
+    | '/dashboard/checkout'
     | '/dashboard/competitor-analysis'
     | '/dashboard/competitors'
     | '/dashboard/content'
@@ -912,6 +924,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardCompetitorAnalysisRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/checkout': {
+      id: '/dashboard/checkout'
+      path: '/checkout'
+      fullPath: '/dashboard/checkout'
+      preLoaderRoute: typeof DashboardCheckoutRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/chat': {
       id: '/dashboard/chat'
       path: '/chat'
@@ -1155,6 +1174,7 @@ interface DashboardRouteChildren {
   DashboardBusinessAnalysisRoute: typeof DashboardBusinessAnalysisRoute
   DashboardBusinessDetailsRoute: typeof DashboardBusinessDetailsRoute
   DashboardChatRoute: typeof DashboardChatRoute
+  DashboardCheckoutRoute: typeof DashboardCheckoutRoute
   DashboardCompetitorAnalysisRoute: typeof DashboardCompetitorAnalysisRoute
   DashboardCompetitorsRoute: typeof DashboardCompetitorsRoute
   DashboardContentRoute: typeof DashboardContentRoute
@@ -1197,6 +1217,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardBusinessAnalysisRoute: DashboardBusinessAnalysisRoute,
   DashboardBusinessDetailsRoute: DashboardBusinessDetailsRoute,
   DashboardChatRoute: DashboardChatRoute,
+  DashboardCheckoutRoute: DashboardCheckoutRoute,
   DashboardCompetitorAnalysisRoute: DashboardCompetitorAnalysisRoute,
   DashboardCompetitorsRoute: DashboardCompetitorsRoute,
   DashboardContentRoute: DashboardContentRoute,

@@ -1,7 +1,7 @@
 import os
 import json
+from pathlib import Path
 from pydantic_settings import BaseSettings
-from pydantic import field_validator
 from typing import List
 
 
@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     
     model_config = {
         "extra": "ignore",
-        "env_file": ".env",
+        "env_file": Path(__file__).resolve().parents[1] / ".env",
         "case_sensitive": True
     }
 
@@ -30,8 +30,9 @@ class Settings(BaseSettings):
     ENVIRONMENT: str = "development"
     BACKEND_URL: str = "http://localhost:8000"
 
-    # CORS - Parse from JSON string in .env or use defaults
-    CORS_ORIGINS: List[str] = [
+    # CORS origins can be supplied as a comma-separated string in .env
+    CORS_ORIGINS: str = ""
+    DEFAULT_CORS_ORIGINS: List[str] = [
         "http://localhost:3000",
         "http://localhost:5173",
         "http://localhost:8080",
@@ -229,15 +230,21 @@ class Settings(BaseSettings):
     ALERT_ON_FAILED_LOGIN: bool = True
     ALERT_ON_API_KEY_EXPOSURE: bool = True
 
-    @field_validator("CORS_ORIGINS", mode="before")
-    @classmethod
-    def parse_cors_origins(cls, v):
-        if isinstance(v, str):
-            try:
-                return json.loads(v)
-            except json.JSONDecodeError:
-                return [v]
-        return v
+    def get_cors_origins(self) -> List[str]:
+        raw_value = (self.CORS_ORIGINS or os.getenv("ALLOWED_ORIGINS", "")).strip()
+
+        if not raw_value:
+            return self.DEFAULT_CORS_ORIGINS
+
+        try:
+            parsed = json.loads(raw_value)
+            if isinstance(parsed, list):
+                return [str(origin).strip() for origin in parsed if str(origin).strip()]
+        except json.JSONDecodeError:
+            pass
+
+        origins = [origin.strip() for origin in raw_value.split(",") if origin.strip()]
+        return origins or self.DEFAULT_CORS_ORIGINS
 
 
 settings = Settings()

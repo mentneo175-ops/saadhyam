@@ -163,3 +163,23 @@ services:
   #   name: saadhyam-redis
   #   plan: free
   #   maxmemoryPolicy: allkeys-lru
+  # PostgreSQL Database
+  - type: pserv
+    name: saadhyam-postgres
+    env: docker
+    dockerfilePath: ./Dockerfile.postgres
+    plan: free
+    
+  # Redis Cache
+  - type: redis
+    name: saadhyam-redis
+    plan: free
+    maxmemoryPolicy: allkeys-lru
+    ipAllowList:
+      - source: 0.0.0.0/0
+        description: Allow all internal connections
+
+databases:
+  - name: saadhyam-db
+    databaseName: saadhyam
+    user: saadhyam_user

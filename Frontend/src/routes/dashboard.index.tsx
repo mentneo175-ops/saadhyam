@@ -4,10 +4,9 @@ import { GrowthChart } from "@/components/dashboard/GrowthChart";
 import { InsightsPanel } from "@/components/dashboard/InsightsPanel";
 import { ContentTabs } from "@/components/dashboard/ContentTabs";
 import { ActionCard } from "@/components/dashboard/ActionCard";
-import { InstagramAnalyticsCard } from "@/components/dashboard/InstagramAnalyticsCard";
+import { SocialMediaCenterCard } from "@/components/dashboard/SocialMediaCenterCard";
 import { DailyTasksWidget } from "@/components/dashboard/DailyTasksWidget";
 import { Button } from "@/components/ui/button";
-import { BusinessOnboarding } from "@/components/dashboard/BusinessOnboarding";
 import { DashboardLoader } from "@/components/dashboard/DashboardLoader";
 import { apiClient } from "@/lib/api";
 import { useRealtimeBusiness } from "@/hooks/useRealtimeBusiness";
@@ -69,7 +68,6 @@ function Overview() {
   const {
     profile,
     profileLoading,
-    profileError,
     analysis,
     analysisLoading,
     insights,
@@ -80,9 +78,7 @@ function Overview() {
     lastUpdated,
   } = useRealtimeBusiness();
 
-  // Onboarding state
-  const [showOnboarding, setShowOnboarding] = useState(false);
-  const [checkingProfile, setCheckingProfile] = useState(true);
+  const checkingProfile = profileLoading;
 
   // Dashboard loading state (for first-time users after onboarding)
   const [isDashboardLoading, setIsDashboardLoading] = useState(false);
@@ -101,45 +97,6 @@ function Overview() {
       refreshAll();
     }
   }, [refreshTrigger, refreshAll]);
-
-  // Check if business profile is complete
-  useEffect(() => {
-    const checkProfile = async () => {
-      // Set a timeout to prevent infinite loading
-      const timeout = setTimeout(() => {
-        console.warn("Profile check timeout - showing dashboard anyway");
-        setCheckingProfile(false);
-      }, 3000);
-
-      if (apiClient.isAuthenticated()) {
-        try {
-          const status = await apiClient.getBusinessSetupStatus();
-          clearTimeout(timeout);
-          if (!status.setup_completed) {
-            setShowOnboarding(true);
-          } else {
-            // Check if this is first load after onboarding
-            const isFirstLoad = sessionStorage.getItem("dashboard_first_load");
-            if (isFirstLoad === "true") {
-              setIsDashboardLoading(true);
-              sessionStorage.removeItem("dashboard_first_load");
-            }
-          }
-          setCheckingProfile(false);
-        } catch (error) {
-          console.error("Error checking profile status:", error);
-          clearTimeout(timeout);
-          // Continue without showing onboarding if there's an error
-          setCheckingProfile(false);
-        }
-      } else {
-        clearTimeout(timeout);
-        setCheckingProfile(false);
-      }
-    };
-
-    checkProfile();
-  }, []);
 
   // Generate dynamic action cards from Gemini insights
   useEffect(() => {
@@ -253,17 +210,6 @@ function Overview() {
       }
       return <span key={idx}>{part}</span>;
     });
-  };
-
-  // Handle onboarding completion
-  const handleOnboardingComplete = () => {
-    setShowOnboarding(false);
-    // Set flag for first load
-    sessionStorage.setItem("dashboard_first_load", "true");
-    // Show loading screen
-    setIsDashboardLoading(true);
-    // Reload page to fetch new data
-    window.location.reload();
   };
 
   // Monitor when dashboard data is fully loaded
@@ -482,12 +428,8 @@ function Overview() {
       {/* Dashboard Loading Screen - Shows after onboarding */}
       <DashboardLoader isLoading={isDashboardLoading} message="Analyzing your business" />
 
-      {/* Business Onboarding Modal */}
-      <BusinessOnboarding isOpen={showOnboarding} onComplete={handleOnboardingComplete} />
-
       <div className="flex flex-1 bg-white">
         <div className="flex-1 min-w-0 p-4 md:p-6 lg:p-8 space-y-6">
-
           {/* Loading state */}
           {checkingProfile && (
             <div className="text-center py-16">
@@ -505,28 +447,13 @@ function Overview() {
             </div>
           )}
 
-          {/* Error state */}
-          {profileError && !checkingProfile && (
-            <div className="bg-amber-50 border border-amber-300 rounded-2xl p-6 text-center shadow-md">
-              <h3 className="text-amber-900 text-lg font-bold mb-2">Business Profile Not Found</h3>
-              <p className="text-amber-800 text-sm mb-4">{profileError}</p>
-              <Button
-                variant="hero"
-                size="sm"
-                onClick={() => setShowOnboarding(true)}
-                className="bg-linear-to-r from-[#8B5CF6] to-[#A855F7] hover:from-[#7C3AED] hover:to-[#9333EA] shadow-lg shadow-[#8B5CF6]/30"
-              >
-                Complete Business Setup Here
-              </Button>
-            </div>
-          )}
-
           {/* Analysis Error State */}
           {analysis?.status === "error" && !analysisLoading && (
             <div className="bg-slate-50 border border-slate-200 rounded-2xl p-6 text-center shadow-xs">
               <h3 className="text-slate-900 text-lg font-semibold mb-2">System Optimizing</h3>
               <p className="text-slate-600 text-sm mb-4">
-                Our intelligence engine is currently optimizing. Insights are being computed, please check back shortly.
+                Our intelligence engine is currently optimizing. Insights are being computed, please
+                check back shortly.
               </p>
               <div className="flex gap-3 justify-center">
                 <Button
@@ -545,7 +472,6 @@ function Overview() {
           {/* Main content - show even without profile */}
           {!checkingProfile && (
             <>
-
               {/* Snapshot cards - Mobile: 2x2 Grid, Desktop: Single Row */}
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
                 {updatedSnapshots.map((s) => (
@@ -556,7 +482,7 @@ function Overview() {
               {/* Instagram Analytics Preview Card */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
                 <div className="lg:col-span-1">
-                  <InstagramAnalyticsCard />
+                  <SocialMediaCenterCard />
                 </div>
 
                 {/* Growth journey with integrated daily task */}

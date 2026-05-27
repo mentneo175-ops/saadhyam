@@ -5,6 +5,7 @@ AI-powered budget recommendations using Gemini
 
 import os
 import logging
+import inspect
 import google.generativeai as genai
 from typing import Dict, Any, Optional
 from sqlalchemy.orm import Session
@@ -16,6 +17,8 @@ logger = logging.getLogger(__name__)
 
 class AIBudgetService:
     """AI-powered budget recommendation service"""
+
+    UNSUPPORTED_MODELS = {"gemini-1.5-pro", "gemini-1.5-flash"}
     
     def __init__(self):
         api_key = os.getenv("GEMINI_API_KEY")
@@ -23,22 +26,34 @@ class AIBudgetService:
             raise ValueError("GEMINI_API_KEY not found in environment")
         
         genai.configure(api_key=api_key)
-        # Use gemini-1.5-pro or gemini-pro as fallback
-        # Note: If this fails, fallback recommendations will be used
-        try:
-            # Try gemini-1.5-pro first
-            self.model = genai.GenerativeModel('gemini-1.5-pro')
-            logger.info("✅ Gemini model initialized: gemini-1.5-pro")
-        except Exception as e:
-            logger.warning(f"⚠️ Failed to initialize gemini-1.5-pro: {e}")
+        # Prefer a currently supported model, with fallbacks for older environments.
+        model_candidates = [
+            os.getenv("GEMINI_PRO_MODEL", "gemini-2.5-flash"),
+            os.getenv("GEMINI_CONTENT_MODEL", "gemini-2.5-flash"),
+            "gemini-2.0-flash",
+            "gemini-pro",
+        ]
+
+        model_candidates = [
+            model_name
+            for model_name in model_candidates
+            if model_name and model_name not in self.UNSUPPORTED_MODELS
+        ]
+
+        if not model_candidates:
+            model_candidates = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-pro"]
+
+        self.model = None
+        for model_name in model_candidates:
             try:
-                # Fallback to gemini-pro
-                self.model = genai.GenerativeModel('gemini-pro')
-                logger.info("✅ Gemini model initialized: gemini-pro (fallback)")
-            except Exception as e2:
-                logger.warning(f"⚠️ Failed to initialize gemini-pro: {e2}")
-                logger.info("ℹ️ Will use fallback recommendations")
-                self.model = None
+                self.model = genai.GenerativeModel(model_name)
+                logger.info(f"✅ Gemini model initialized: {model_name}")
+                break
+            except Exception as e:
+                logger.warning(f"⚠️ Failed to initialize {model_name}: {e}")
+
+        if not self.model:
+            logger.info("ℹ️ Will use fallback recommendations")
     
     async def generate_budget_recommendations(
         self,
@@ -140,35 +155,49 @@ IMPORTANT:
             import json
             recommendations = json.loads(result_text)
             
-            # Save to database
-            budget_rec = BudgetRecommendation(
-                user_id=user.id,
-                objective=campaign_objective,
-                target_audience_size=target_audience_size,
-                recommended_daily_budget=recommendations.get("recommended_daily_budget"),
-                recommended_duration_days=recommendations.get("recommended_duration_days"),
-                recommended_total_budget=recommendations.get("recommended_total_budget"),
-                estimated_impressions_min=recommendations.get("estimated_impressions_min"),
-                estimated_impressions_max=recommendations.get("estimated_impressions_max"),
-                estimated_clicks_min=recommendations.get("estimated_clicks_min"),
-                estimated_clicks_max=recommendations.get("estimated_clicks_max"),
-                estimated_reach_min=recommendations.get("estimated_reach_min"),
-                estimated_reach_max=recommendations.get("estimated_reach_max"),
-                estimated_cpc=recommendations.get("estimated_cpc"),
-                estimated_cpm=recommendations.get("estimated_cpm"),
-                reasoning=recommendations.get("reasoning"),
-            )
-            
-            db.add(budget_rec)
-            db.commit()
-            db.refresh(budget_rec)
+            # Save to database when possible, but don't fail the recommendation flow if persistence breaks.
+            recommendation_id = None
+            try:
+                budget_rec = BudgetRecommendation(
+                    user_id=user.id,
+                    objective=campaign_objective,
+                    target_audience_size=target_audience_size,
+                    recommended_daily_budget=recommendations.get("recommended_daily_budget"),
+                    recommended_duration_days=recommendations.get("recommended_duration_days"),
+                    recommended_total_budget=recommendations.get("recommended_total_budget"),
+                    estimated_impressions_min=recommendations.get("estimated_impressions_min"),
+                    estimated_impressions_max=recommendations.get("estimated_impressions_max"),
+                    estimated_clicks_min=recommendations.get("estimated_clicks_min"),
+                    estimated_clicks_max=recommendations.get("estimated_clicks_max"),
+                    estimated_reach_min=recommendations.get("estimated_reach_min"),
+                    estimated_reach_max=recommendations.get("estimated_reach_max"),
+                    estimated_cpc=recommendations.get("estimated_cpc"),
+                    estimated_cpm=recommendations.get("estimated_cpm"),
+                    reasoning=recommendations.get("reasoning"),
+                )
+
+                db.add(budget_rec)
+                commit_result = db.commit()
+                if inspect.isawaitable(commit_result):
+                    await commit_result
+
+                refresh_result = db.refresh(budget_rec)
+                if inspect.isawaitable(refresh_result):
+                    await refresh_result
+
+                recommendation_id = budget_rec.id
+            except Exception as save_error:
+                logger.warning(f"⚠️ Could not save budget recommendation, returning recommendations anyway: {save_error}")
+                rollback_result = db.rollback()
+                if inspect.isawaitable(rollback_result):
+                    await rollback_result
             
             logger.info(f"✅ AI budget recommendations generated for user {user.id}")
             
             return {
                 "success": True,
                 "recommendations": recommendations,
-                "recommendation_id": budget_rec.id,
+                "recommendation_id": recommendation_id,
                 "currency": currency,
             }
             

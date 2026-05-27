@@ -232,7 +232,7 @@ class ApiClient {
         this.setToken(null);
         // Redirect to login
         if (typeof window !== 'undefined') {
-          window.location.href = '/auth/login';
+          window.location.href = '/login';
         }
         throw error;
       } finally {

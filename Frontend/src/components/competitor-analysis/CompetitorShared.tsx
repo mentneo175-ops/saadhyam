@@ -13,6 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { fadeSlideUp } from "./CompetitorLayout";
+import { Loader } from "@/components/ui/loader";
 
 function AnimatedCounter({ value, delay = 0 }: { value: number; delay?: number }) {
   const [count, setCount] = useState(0);
@@ -219,28 +220,16 @@ export function SummaryMetric({
 
 export function LoadingState({ message }: { message?: string }) {
   return (
-    <div className="flex flex-col items-center justify-center rounded-xl border border-border/50 bg-card/60 py-28">
-      <Loader2 className="mb-4 h-9 w-9 animate-spin text-primary/80" />
-      <p className="text-sm font-medium text-foreground">
-        {message ?? "Loading competitive insights…"}
-      </p>
+    <div className="flex items-center justify-center py-28">
+      <Loader text={message ?? "Loading competitive insights"} />
     </div>
   );
 }
 
 export function AnalyzingState({ message }: { message?: string }) {
   return (
-    <div className="flex flex-col items-center justify-center rounded-xl border border-border/50 bg-card/60 py-28">
-      <motion.div
-        animate={{ scale: [1, 1.04, 1] }}
-        transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
-        className="mb-5 flex h-14 w-14 items-center justify-center rounded-xl border border-primary/15 bg-primary/5"
-      >
-        <Sparkles className="h-6 w-6 text-primary" />
-      </motion.div>
-      <p className="text-sm font-medium text-foreground">
-        {message ?? "Analyzing competitors…"}
-      </p>
+    <div className="flex flex-col items-center justify-center py-28">
+      <Loader text={message ?? "Analyzing competitors"} />
       <p className="mt-1.5 text-xs text-muted-foreground">This may take 2–3 minutes</p>
     </div>
   );

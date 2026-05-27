@@ -1,5 +1,6 @@
-import { Star, Activity, Tag, Sparkles } from "lucide-react";
+import { Star, Activity, Tag, Sparkles, AlertTriangle, Zap, Lightbulb } from "lucide-react";
 import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { apiClient } from "@/lib/api";
 
 interface InsightsPanelProps {
@@ -23,6 +24,27 @@ export function InsightsPanel({ businessAnalysis }: InsightsPanelProps) {
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<string>("Loading...");
+  const [activeAnalysisTab, setActiveAnalysisTab] = useState<
+    "strengths" | "weaknesses" | "opportunities" | "recommendations"
+  >("strengths");
+  const [isHovered, setIsHovered] = useState(false);
+
+  const analysisTabs = ["strengths", "weaknesses", "opportunities", "recommendations"] as const;
+
+  // Auto-rotate tabs with hover pause and manual click-reset
+  useEffect(() => {
+    if (isHovered || !businessAnalysis) return;
+
+    const interval = setInterval(() => {
+      setActiveAnalysisTab((prev) => {
+        const currentIndex = analysisTabs.indexOf(prev);
+        const nextIndex = (currentIndex + 1) % analysisTabs.length;
+        return analysisTabs[nextIndex];
+      });
+    }, 5000); // 5 seconds interval
+
+    return () => clearInterval(interval);
+  }, [activeAnalysisTab, isHovered, businessAnalysis]);
 
   // Helper function to render markdown text with bold
   const renderMarkdown = (text: string) => {
@@ -108,7 +130,7 @@ export function InsightsPanel({ businessAnalysis }: InsightsPanelProps) {
   ] : [];
 
   return (
-    <aside className="hidden xl:flex flex-col gap-5 w-80 shrink-0 border-l border-gray-200 bg-gray-50 p-5 sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto">
+    <aside className="hidden xl:flex flex-col gap-5 w-80 shrink-0 border-l border-gray-200 bg-gray-50 p-5 sticky top-16 self-start max-h-[calc(100vh-5rem)] overflow-y-auto">
       <div>
         <div className="flex items-center justify-between mb-3">
           <div>
@@ -167,73 +189,159 @@ export function InsightsPanel({ businessAnalysis }: InsightsPanelProps) {
 
       {/* Business Analysis Section */}
       {businessAnalysis ? (
-        <div className="rounded-lg bg-white border border-gray-200 p-4 shadow-sm">
+        <div 
+          className="rounded-lg bg-white border border-gray-200 p-4 shadow-sm transition-all duration-300"
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+        >
           <div className="flex items-center gap-2 mb-3">
-            <Sparkles size={16} className="text-blue-900" />
+            <Sparkles size={16} className="text-blue-900 animate-pulse" />
             <p className="text-sm font-semibold text-gray-900">AI Business Analysis</p>
           </div>
           <p className="text-xs text-gray-600 mb-4">Personalized insights for your business</p>
           
+          {/* Responsive 2x2 tab selector */}
+          <div className="grid grid-cols-2 gap-1 mb-4 bg-slate-100 p-1 rounded-xl border border-slate-200/50">
+            <button
+              onClick={() => setActiveAnalysisTab("strengths")}
+              className={`py-2 px-1 text-[10px] sm:text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1 ${
+                activeAnalysisTab === "strengths"
+                  ? "bg-white text-emerald-700 shadow-xs border border-slate-200/50"
+                  : "text-slate-500 hover:text-slate-800"
+              }`}
+            >
+              <Sparkles size={10} className="text-emerald-500" />
+              <span>Strengths</span>
+            </button>
+            <button
+              onClick={() => setActiveAnalysisTab("weaknesses")}
+              className={`py-2 px-1 text-[10px] sm:text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1 ${
+                activeAnalysisTab === "weaknesses"
+                  ? "bg-white text-orange-700 shadow-xs border border-slate-200/50"
+                  : "text-slate-500 hover:text-slate-800"
+              }`}
+            >
+              <AlertTriangle size={10} className="text-orange-500" />
+              <span>Weakness</span>
+            </button>
+            <button
+              onClick={() => setActiveAnalysisTab("opportunities")}
+              className={`py-2 px-1 text-[10px] sm:text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1 ${
+                activeAnalysisTab === "opportunities"
+                  ? "bg-white text-purple-700 shadow-xs border border-slate-200/50"
+                  : "text-slate-500 hover:text-slate-800"
+              }`}
+            >
+              <Zap size={10} className="text-purple-500" />
+              <span>Opps</span>
+            </button>
+            <button
+              onClick={() => setActiveAnalysisTab("recommendations")}
+              className={`py-2 px-1 text-[10px] sm:text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1 ${
+                activeAnalysisTab === "recommendations"
+                  ? "bg-white text-blue-700 shadow-xs border border-slate-200/50"
+                  : "text-slate-500 hover:text-slate-800"
+              }`}
+            >
+              <Lightbulb size={10} className="text-blue-500" />
+              <span>Recs</span>
+            </button>
+          </div>
+
           <div className="space-y-3">
-            {/* Strengths */}
-            {businessAnalysis.strengths && businessAnalysis.strengths.length > 0 && (
-              <div className="bg-emerald-50 rounded-lg p-3 border border-emerald-200">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-sm">💪</span>
-                  <h4 className="text-xs font-semibold text-emerald-900">Strengths</h4>
-                </div>
-                <ul className="space-y-1.5">
-                  {businessAnalysis.strengths.slice(0, 3).map((strength: string, idx: number) => (
-                    <li key={idx} className="text-xs text-emerald-800 leading-relaxed">• {renderMarkdown(strength)}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
+            <AnimatePresence mode="wait">
+              {activeAnalysisTab === "strengths" && businessAnalysis.strengths && (
+                <motion.div
+                  key="strengths"
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -6 }}
+                  transition={{ duration: 0.15 }}
+                  className="bg-emerald-50/50 rounded-xl p-3 border border-emerald-100"
+                >
+                  <div className="flex items-center gap-1.5 mb-2">
+                    <Sparkles size={13} className="text-emerald-600 animate-pulse" />
+                    <h4 className="text-[11px] font-bold text-emerald-950">Strengths</h4>
+                  </div>
+                  <ul className="space-y-2">
+                    {businessAnalysis.strengths.slice(0, 3).map((strength: string, idx: number) => (
+                      <li key={idx} className="text-[11px] text-emerald-800 leading-relaxed list-none pl-2 border-l-2 border-emerald-300">
+                        {renderMarkdown(strength)}
+                      </li>
+                    ))}
+                  </ul>
+                </motion.div>
+              )}
 
-            {/* Weaknesses */}
-            {businessAnalysis.weaknesses && businessAnalysis.weaknesses.length > 0 && (
-              <div className="bg-orange-50 rounded-lg p-3 border border-orange-200">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-sm">⚠️</span>
-                  <h4 className="text-xs font-semibold text-orange-900">Weaknesses</h4>
-                </div>
-                <ul className="space-y-1.5">
-                  {businessAnalysis.weaknesses.slice(0, 3).map((weakness: string, idx: number) => (
-                    <li key={idx} className="text-xs text-orange-800 leading-relaxed">• {renderMarkdown(weakness)}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
+              {activeAnalysisTab === "weaknesses" && businessAnalysis.weaknesses && (
+                <motion.div
+                  key="weaknesses"
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -6 }}
+                  transition={{ duration: 0.15 }}
+                  className="bg-orange-50/50 rounded-xl p-3 border border-orange-100"
+                >
+                  <div className="flex items-center gap-1.5 mb-2">
+                    <AlertTriangle size={13} className="text-orange-600" />
+                    <h4 className="text-[11px] font-bold text-orange-955">Weaknesses</h4>
+                  </div>
+                  <ul className="space-y-2">
+                    {businessAnalysis.weaknesses.slice(0, 3).map((weakness: string, idx: number) => (
+                      <li key={idx} className="text-[11px] text-orange-800 leading-relaxed list-none pl-2 border-l-2 border-orange-300">
+                        {renderMarkdown(weakness)}
+                      </li>
+                    ))}
+                  </ul>
+                </motion.div>
+              )}
 
-            {/* Growth Opportunities */}
-            {businessAnalysis.growth_opportunities && businessAnalysis.growth_opportunities.length > 0 && (
-              <div className="bg-purple-50 rounded-lg p-3 border border-purple-200">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-sm">🚀</span>
-                  <h4 className="text-xs font-semibold text-purple-900">Growth Opportunities</h4>
-                </div>
-                <ul className="space-y-1.5">
-                  {businessAnalysis.growth_opportunities.slice(0, 3).map((opportunity: string, idx: number) => (
-                    <li key={idx} className="text-xs text-purple-800 leading-relaxed">• {renderMarkdown(opportunity)}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
+              {activeAnalysisTab === "opportunities" && businessAnalysis.growth_opportunities && (
+                <motion.div
+                  key="opportunities"
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -6 }}
+                  transition={{ duration: 0.15 }}
+                  className="bg-purple-50/50 rounded-xl p-3 border border-purple-100"
+                >
+                  <div className="flex items-center gap-1.5 mb-2">
+                    <Zap size={13} className="text-purple-600" />
+                    <h4 className="text-[11px] font-bold text-purple-950">Opportunities</h4>
+                  </div>
+                  <ul className="space-y-2">
+                    {businessAnalysis.growth_opportunities.slice(0, 3).map((opportunity: string, idx: number) => (
+                      <li key={idx} className="text-[11px] text-purple-800 leading-relaxed list-none pl-2 border-l-2 border-purple-300">
+                        {renderMarkdown(opportunity)}
+                      </li>
+                    ))}
+                  </ul>
+                </motion.div>
+              )}
 
-            {/* Recommendations */}
-            {businessAnalysis.recommendations && businessAnalysis.recommendations.length > 0 && (
-              <div className="bg-blue-50 rounded-lg p-3 border border-blue-200">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-sm">💡</span>
-                  <h4 className="text-xs font-semibold text-blue-900">Recommendations</h4>
-                </div>
-                <ul className="space-y-1.5">
-                  {businessAnalysis.recommendations.slice(0, 3).map((rec: string, idx: number) => (
-                    <li key={idx} className="text-xs text-blue-800 leading-relaxed">• {renderMarkdown(rec)}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
+              {activeAnalysisTab === "recommendations" && businessAnalysis.recommendations && (
+                <motion.div
+                  key="recommendations"
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -6 }}
+                  transition={{ duration: 0.15 }}
+                  className="bg-blue-50/50 rounded-xl p-3 border border-blue-100"
+                >
+                  <div className="flex items-center gap-1.5 mb-2">
+                    <Lightbulb size={13} className="text-blue-600" />
+                    <h4 className="text-[11px] font-bold text-blue-950">Recommendations</h4>
+                  </div>
+                  <ul className="space-y-2">
+                    {businessAnalysis.recommendations.slice(0, 3).map((rec: string, idx: number) => (
+                      <li key={idx} className="text-[11px] text-blue-800 leading-relaxed list-none pl-2 border-l-2 border-blue-300">
+                        {renderMarkdown(rec)}
+                      </li>
+                    ))}
+                  </ul>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
       ) : null}

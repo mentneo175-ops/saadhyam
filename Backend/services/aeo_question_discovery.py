@@ -7,18 +7,67 @@ Enhanced with Pinecone vector search for semantic matching
 
 import logging
 import os
-from typing import Dict, Any, List
-from sqlalchemy.orm import Session
+from typing import Dict, Any, List, Optional
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 from db.aeo_geo_models import AEOQuestion
 from models.user import User
 from db.models import BusinessAnalysis
 import json
 import google.generativeai as genai
+from sqlalchemy import or_
 from services.rate_limiter import gemini_rate_limiter
 from services.vector_storage_service import vector_storage
+from services.embedding_service import compute_similarity
 from config.pinecone_config import NAMESPACE_AEO_QUESTIONS
 
 logger = logging.getLogger(__name__)
+
+
+def normalize_search_volume(value: Any) -> Optional[int]:
+    """Convert Gemini search volume output into an integer for database storage."""
+
+    if value is None:
+        return None
+
+    if isinstance(value, int):
+        return value
+
+    if isinstance(value, float):
+        return int(value)
+
+    text = str(value).strip().lower()
+    if not text:
+        return None
+
+    label_map = {
+        "low": 300,
+        "medium": 1000,
+        "high": 2000,
+        "very low": 100,
+        "very high": 5000,
+    }
+
+    if text in label_map:
+        return label_map[text]
+
+    digits = "".join(ch for ch in text if ch.isdigit())
+    if digits:
+        try:
+            return int(digits)
+        except ValueError:
+            return None
+
+    return None
+
+
+def normalize_text_field(value: Any, max_length: int) -> str:
+    """Normalize arbitrary Gemini text into a bounded database-safe string."""
+
+    text = "" if value is None else str(value).strip()
+    if len(text) <= max_length:
+        return text
+    return text[:max_length].rstrip()
 
 # Configure Gemini API
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
@@ -28,7 +77,7 @@ if GEMINI_API_KEY:
 
 async def discover_questions(
     user: User,
-    db: Session,
+    db: AsyncSession,
     limit: int = 20
 ) -> Dict[str, Any]:
     """
@@ -45,12 +94,24 @@ async def discover_questions(
     
     try:
         logger.info(f"[AEOQuestionDiscovery] Discovering questions for user {user.id}")
+
+        rate_limit_snapshot = {
+            "remaining_requests": gemini_rate_limiter.get_remaining_requests(),
+            "reset_in_seconds": round(gemini_rate_limiter.get_reset_time() or 0, 1),
+        }
         
         # Get business analysis
-        analysis = db.query(BusinessAnalysis).filter(
-            BusinessAnalysis.user_id == user.id,
-            BusinessAnalysis.analysis_status == 'completed'
-        ).order_by(BusinessAnalysis.last_analyzed_at.desc()).first()
+        analysis_stmt = (
+            select(BusinessAnalysis)
+            .where(
+                BusinessAnalysis.user_id == user.id,
+                BusinessAnalysis.analysis_status == 'completed'
+            )
+            .order_by(BusinessAnalysis.last_analyzed_at.desc())
+            .limit(1)
+        )
+        analysis_result = await db.execute(analysis_stmt)
+        analysis = analysis_result.scalars().first()
         
         if not analysis:
             return {
@@ -78,24 +139,34 @@ async def discover_questions(
         
         for q in questions:
             # Check if question already exists
-            existing = db.query(AEOQuestion).filter(
-                AEOQuestion.user_id == user.id,
-                AEOQuestion.question == q['question']
-            ).first()
+            category = normalize_text_field(q.get("category"), 100)
+            intent = normalize_text_field(q.get("intent"), 100)
+            source = normalize_text_field(q.get("source"), 100)
+
+            existing_stmt = (
+                select(AEOQuestion)
+                .where(
+                    AEOQuestion.user_id == user.id,
+                    AEOQuestion.question == q['question']
+                )
+                .limit(1)
+            )
+            existing_result = await db.execute(existing_stmt)
+            existing = existing_result.scalars().first()
             
             if not existing:
                 new_question = AEOQuestion(
                     user_id=user.id,
                     question=q['question'],
-                    category=q['category'],
-                    intent=q['intent'],
-                    source=q['source'],
-                    search_volume=q.get('search_volume'),
+                    category=category,
+                    intent=intent,
+                    source=source,
+                    search_volume=normalize_search_volume(q.get('search_volume')),
                     difficulty=q.get('difficulty'),
                     priority=q.get('priority', 0)
                 )
                 db.add(new_question)
-                db.flush()  # Get the ID
+                await db.flush()  # Get the ID
                 
                 stored_questions.append(q)
                 
@@ -106,14 +177,14 @@ async def discover_questions(
                     'metadata': {
                         'user_id': user.id,
                         'question_id': new_question.id,
-                        'category': q['category'],
-                        'intent': q['intent'],
+                        'category': category,
+                        'intent': intent,
                         'priority': q.get('priority', 0),
-                        'source': q['source']
+                        'source': source
                     }
                 })
         
-        db.commit()
+        await db.commit()
         
         # Store in Pinecone for semantic search
         if vectors_to_store and vector_storage.enabled:
@@ -128,14 +199,19 @@ async def discover_questions(
             "new_questions_count": len(stored_questions),
             "total_questions_count": len(questions),
             "source": "gemini_search_grounding" if use_gemini else "mock",
-            "pinecone_enabled": vector_storage.enabled
+            "pinecone_enabled": vector_storage.enabled,
+            "rate_limit": rate_limit_snapshot,
         }
         
     except Exception as e:
         logger.error(f"[AEOQuestionDiscovery] ❌ Error: {e}", exc_info=True)
         return {
             "status": "error",
-            "message": f"Failed to discover questions: {str(e)}"
+            "message": f"Failed to discover questions: {str(e)}",
+            "rate_limit": {
+                "remaining_requests": gemini_rate_limiter.get_remaining_requests(),
+                "reset_in_seconds": round(gemini_rate_limiter.get_reset_time() or 0, 1),
+            },
         }
 
 
@@ -218,33 +294,15 @@ Focus on questions that:
             # Enable Google Search grounding
             response = model.generate_content(
                 prompt,
-                tools='google_search_retrieval'  # This enables Google Search grounding
+                tools='google_search'  # This enables Google Search grounding
             )
             
             content_text = response.text
             
         except Exception as e:
-            logger.warning(f"[AEOQuestionDiscovery] Primary model failed, trying fallback: {e}")
-            
-            # Apply rate limiting for fallback request too
-            await gemini_rate_limiter.acquire()
-            
-            # Fallback to Gemini 1.5 Flash
-            model = genai.GenerativeModel(
-                'models/gemini-1.5-flash',
-                generation_config={
-                    "temperature": 0.7,
-                    "top_p": 0.95,
-                    "top_k": 40,
-                    "max_output_tokens": 8192,
-                }
-            )
-            
-            response = model.generate_content(
-                prompt,
-                tools='google_search_retrieval'
-            )
-            
+            logger.warning(f"[AEOQuestionDiscovery] google_search grounding failed, retrying without grounding: {e}")
+
+            response = model.generate_content(prompt)
             content_text = response.text
         
         # Parse JSON response
@@ -485,8 +543,8 @@ def generate_mock_questions(business_type: str, location: str, limit: int) -> Li
 
 async def get_discovered_questions(
     user: User,
-    db: Session,
-    category: str = None,
+    db: AsyncSession,
+    category: Optional[str] = None,
     limit: int = 50
 ) -> List[Dict[str, Any]]:
     """
@@ -503,12 +561,14 @@ async def get_discovered_questions(
     """
     
     try:
-        query = db.query(AEOQuestion).filter(AEOQuestion.user_id == user.id)
-        
+        stmt = select(AEOQuestion).where(AEOQuestion.user_id == user.id)
+
         if category:
-            query = query.filter(AEOQuestion.category == category)
-        
-        questions = query.order_by(AEOQuestion.priority.desc()).limit(limit).all()
+            stmt = stmt.where(AEOQuestion.category == category)
+
+        stmt = stmt.order_by(AEOQuestion.priority.desc()).limit(limit)
+        result = await db.execute(stmt)
+        questions = result.scalars().all()
         
         return [
             {
@@ -562,10 +622,50 @@ async def search_similar_questions(
             top_k=top_k,
             filter_dict={'user_id': user.id}
         )
-        
-        logger.info(f"[AEOQuestionDiscovery] ✅ Found {len(results)} similar questions")
-        
-        return results
+
+        if results:
+            logger.info(f"[AEOQuestionDiscovery] ✅ Found {len(results)} similar questions in Pinecone")
+            return results
+
+        logger.info("[AEOQuestionDiscovery] Pinecone returned no matches, falling back to database search")
+
+        fallback_stmt = select(AEOQuestion).where(AEOQuestion.user_id == user.id)
+        fallback_result = await db.execute(fallback_stmt)
+        db_questions = fallback_result.scalars().all()
+
+        scored_results = []
+        query_lower = query_text.lower().strip()
+
+        for question in db_questions:
+            candidate_text = " ".join(
+                part for part in [question.question, question.intent or "", question.category or ""] if part
+            )
+            similarity = compute_similarity(query_text, candidate_text)
+
+            # If embeddings are unavailable or weak, give a small boost for keyword overlap.
+            overlap_tokens = set(query_lower.split()) & set(candidate_text.lower().split())
+            overlap_boost = min(0.25, len(overlap_tokens) * 0.05)
+            final_score = max(similarity, overlap_boost)
+
+            if final_score > 0:
+                scored_results.append({
+                    "id": f"db_question_{question.id}",
+                    "score": final_score,
+                    "text": question.question,
+                    "metadata": {
+                        "category": question.category,
+                        "intent": question.intent,
+                        "priority": question.priority,
+                        "source": question.source,
+                        "fallback": "database",
+                    },
+                })
+
+        scored_results.sort(key=lambda item: item["score"], reverse=True)
+        fallback_results = scored_results[:top_k]
+
+        logger.info(f"[AEOQuestionDiscovery] ✅ Found {len(fallback_results)} similar questions from database fallback")
+        return fallback_results
         
     except Exception as e:
         logger.error(f"[AEOQuestionDiscovery] ❌ Error searching similar questions: {e}", exc_info=True)

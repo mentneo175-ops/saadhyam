@@ -9,7 +9,7 @@ import requests
 from datetime import datetime, timedelta
 from typing import Optional, Dict, Any
 from cryptography.fernet import Fernet
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 from models.meta_ads import MetaAccount
 
 logger = logging.getLogger(__name__)
@@ -204,7 +204,7 @@ class MetaOAuthService:
         """Decrypt access token"""
         return self.cipher.decrypt(encrypted_token.encode()).decode()
     
-    async def refresh_token(self, db: Session, meta_account: MetaAccount) -> bool:
+    async def refresh_token(self, db: AsyncSession, meta_account: MetaAccount) -> bool:
         """Refresh access token if expired"""
         try:
             # Check if token is expired or about to expire (within 7 days)
@@ -227,9 +227,10 @@ class MetaOAuthService:
             meta_account.access_token = encrypted_token
             meta_account.token_expires_at = datetime.utcnow() + timedelta(seconds=expires_in)
             meta_account.last_synced_at = datetime.utcnow()
-            
-            db.commit()
-            
+
+            # AsyncSession commit is a coroutine
+            await db.commit()
+
             logger.info(f"✅ Token refreshed for Meta account {meta_account.id}")
             return True
             
@@ -237,7 +238,10 @@ class MetaOAuthService:
             logger.error(f"Failed to refresh token: {e}")
             meta_account.connection_error = str(e)
             meta_account.is_active = False
-            db.commit()
+            try:
+                await db.commit()
+            except Exception:
+                pass
             return False
     
     async def validate_token(self, access_token: str) -> bool:

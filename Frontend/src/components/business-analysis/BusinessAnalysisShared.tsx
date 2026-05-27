@@ -12,6 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { fadeSlideUp } from "./BusinessAnalysisLayout";
+import { Loader } from "@/components/ui/loader";
 
 export function BusinessPageHeader({
   title,
@@ -166,40 +167,23 @@ export function SectionDivider() {
 
 export function LoadingState({ message }: { message?: string }) {
   return (
-    <div className="flex flex-col items-center justify-center rounded-2xl border border-border/50 bg-card/60 py-32 backdrop-blur-sm">
-      <Loader2 className="mb-5 h-10 w-10 animate-spin text-primary/70" />
-      <p className="text-[15px] font-medium text-foreground">
-        {message ?? "Loading business insights…"}
-      </p>
+    <div className="flex items-center justify-center py-32">
+      <Loader text={message ?? "Loading business insights"} />
     </div>
   );
 }
 
 export function AnalyzingState({ message }: { message?: string }) {
   return (
-    <div className="flex flex-col items-center justify-center rounded-2xl border border-border/50 bg-card/60 py-32 backdrop-blur-sm">
-      <motion.div
-        animate={{ scale: [1, 1.05, 1], opacity: [0.7, 1, 0.7] }}
-        transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
-        className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl border border-primary/15 bg-primary/5"
-      >
-        <Sparkles className="h-7 w-7 text-primary" />
-      </motion.div>
-      <p className="text-[15px] font-medium text-foreground">
-        {message ?? "Analyzing your business…"}
-      </p>
-      <p className="mt-2 text-sm text-muted-foreground">This may take 2–3 minutes</p>
-      <motion.div
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-        className="mt-7 max-w-md rounded-xl border border-border/60 bg-muted/20 px-6 py-5 text-center"
-      >
-        <p className="text-[13px] leading-relaxed text-muted-foreground">
+    <div className="flex flex-col items-center justify-center py-32">
+      <Loader text={message ?? "Analyzing your business"} />
+      <p className="mt-2 text-xs text-muted-foreground">This may take 2–3 minutes</p>
+      <div className="mt-6 max-w-md bg-slate-50 border border-slate-100 rounded-xl px-5 py-4 text-center">
+        <p className="text-xs leading-relaxed text-muted-foreground">
           We&apos;re making one comprehensive API call to gather all your business insights. After
           this, all pages load instantly.
         </p>
-      </motion.div>
+      </div>
     </div>
   );
 }

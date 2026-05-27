@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Sparkles, AlertCircle, ArrowRight, ChevronLeft, CheckCircle2 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { apiClient } from "@/lib/api";
 import { triggerComprehensiveAnalysis, pollAnalysisStatus } from "@/lib/comprehensiveAnalysisApi";
 import { toast } from "sonner";
@@ -45,6 +46,18 @@ function OnboardingPage() {
   });
   const [baseDescription, setBaseDescription] = useState(""); // Store base text before live recording
   const [activeInputMethod, setActiveInputMethod] = useState<"none" | "website" | "pdf" | "voice" | "text">("none");
+  const [analysisStep, setAnalysisStep] = useState(0);
+
+  useEffect(() => {
+    if (!isAnalyzing) {
+      setAnalysisStep(0);
+      return;
+    }
+    const interval = setInterval(() => {
+      setAnalysisStep((prev) => (prev + 1) % 5);
+    }, 4200);
+    return () => clearInterval(interval);
+  }, [isAnalyzing]);
 
   const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement>(null);
 
@@ -297,6 +310,14 @@ function OnboardingPage() {
 
   // Enhanced Analyzing state
   if (isAnalyzing) {
+    const analysisSentences = [
+      "Analyzing business strengths & weaknesses",
+      "Researching competitor landscape",
+      "Generating growth recommendations",
+      "Creating SEO & Google Maps tips",
+      "Finalizing your custom marketing blueprints"
+    ];
+
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 flex items-center justify-center p-4 relative overflow-hidden">
         {/* Animated background */}
@@ -307,42 +328,42 @@ function OnboardingPage() {
         </div>
 
         <div className="text-center max-w-md relative z-10 animate-scale-in">
-          <div className="relative mb-10">
-            {/* Outer spinning ring */}
-            <div className="absolute inset-0 w-24 h-24 mx-auto rounded-full border-4 border-purple-200 animate-spin border-t-purple-500 border-r-pink-500"></div>
-            
-            {/* Middle pulsing ring */}
-            <div className="absolute inset-0 w-24 h-24 mx-auto rounded-full border-4 border-pink-200 animate-ping opacity-20"></div>
-            
-            {/* Inner icon */}
-            <div className="relative w-24 h-24 mx-auto rounded-full bg-gradient-to-br from-purple-500 via-purple-600 to-pink-500 flex items-center justify-center shadow-2xl animate-pulse">
-              <Sparkles size={40} className="text-white animate-pulse" />
-            </div>
+          {/* Simple loading animation with three dots (unified design) */}
+          <div className="flex items-center justify-center gap-1.5 text-purple-600 font-bold text-lg mb-3">
+            <span>Analyzing Your Business</span>
+            <span className="inline-flex gap-0.5 items-center">
+              <span className="w-1.5 h-1.5 bg-purple-600 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
+              <span className="w-1.5 h-1.5 bg-purple-600 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
+              <span className="w-1.5 h-1.5 bg-purple-600 rounded-full animate-bounce"></span>
+            </span>
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-3">Analyzing Your Business</h2>
-          <p className="text-gray-600 mb-6">
+
+          <p className="text-xs text-slate-500 mb-10 max-w-xs mx-auto leading-relaxed">
             Our AI is analyzing your business with Google Search grounding...
           </p>
-          <div className="space-y-2 text-sm text-gray-600">
-            <div className="flex items-center justify-center gap-2">
-              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-              <span>Analyzing business strengths & weaknesses</span>
-            </div>
-            <div className="flex items-center justify-center gap-2">
-              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-              <span>Researching competitor landscape</span>
-            </div>
-            <div className="flex items-center justify-center gap-2">
-              <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></div>
-              <span>Generating growth recommendations</span>
-            </div>
-            <div className="flex items-center justify-center gap-2">
-              <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></div>
-              <span>Creating SEO & Google Maps tips</span>
-            </div>
+
+          {/* Smoothly transitioning overlay points */}
+          <div className="h-16 flex items-center justify-center overflow-hidden mb-6 relative">
+            <AnimatePresence>
+              <motion.div
+                key={analysisStep}
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -16 }}
+                transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                className="absolute flex items-center justify-center gap-2 text-sm font-semibold text-slate-700 bg-white border border-purple-100/80 px-5 py-3 rounded-full shadow-md shadow-purple-50/50 whitespace-nowrap"
+              >
+                <span className="relative flex h-2 w-2 shrink-0">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-purple-500"></span>
+                </span>
+                <span>{analysisSentences[analysisStep]}</span>
+              </motion.div>
+            </AnimatePresence>
           </div>
-          <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <p className="text-xs text-blue-900">
+
+          <div className="mt-8 bg-blue-50/70 border border-blue-150 rounded-xl p-4 max-w-sm mx-auto shadow-xs">
+            <p className="text-xs text-blue-800 leading-relaxed">
               💡 This comprehensive analysis takes 2-3 minutes but will populate all your dashboard features instantly!
             </p>
           </div>

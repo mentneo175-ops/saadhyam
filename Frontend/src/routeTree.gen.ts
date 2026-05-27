@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as YoutubeOauthCallbackRouteImport } from './routes/youtube-oauth-callback'
 import { Route as VerifyRouteImport } from './routes/verify'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
@@ -19,6 +20,7 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
 import { Route as WebsiteWebsiteIdRouteImport } from './routes/website.$websiteId'
+import { Route as DashboardYoutubeRouteImport } from './routes/dashboard.youtube'
 import { Route as DashboardWhatsappSalesRouteImport } from './routes/dashboard.whatsapp-sales'
 import { Route as DashboardWhatsappRouteImport } from './routes/dashboard.whatsapp'
 import { Route as DashboardWebsiteRouteImport } from './routes/dashboard.website'
@@ -65,6 +67,11 @@ import { Route as DashboardAgentsCustomerRetentionRouteImport } from './routes/d
 import { Route as DashboardVoiceAgentCampaignsCampaignIdRouteImport } from './routes/dashboard.voice-agent.campaigns.$campaignId'
 import { Route as DashboardVoiceAgentCampaignsCampaignIdCallingRouteImport } from './routes/dashboard.voice-agent.campaigns.$campaignId.calling'
 
+const YoutubeOauthCallbackRoute = YoutubeOauthCallbackRouteImport.update({
+  id: '/youtube-oauth-callback',
+  path: '/youtube-oauth-callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const VerifyRoute = VerifyRouteImport.update({
   id: '/verify',
   path: '/verify',
@@ -114,6 +121,11 @@ const WebsiteWebsiteIdRoute = WebsiteWebsiteIdRouteImport.update({
   id: '/website/$websiteId',
   path: '/website/$websiteId',
   getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardYoutubeRoute = DashboardYoutubeRouteImport.update({
+  id: '/youtube',
+  path: '/youtube',
+  getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardWhatsappSalesRoute = DashboardWhatsappSalesRouteImport.update({
   id: '/whatsapp-sales',
@@ -367,6 +379,7 @@ export interface FileRoutesByFullPath {
   '/onboarding': typeof OnboardingRoute
   '/signup': typeof SignupRoute
   '/verify': typeof VerifyRoute
+  '/youtube-oauth-callback': typeof YoutubeOauthCallbackRoute
   '/dashboard/actions': typeof DashboardActionsRoute
   '/dashboard/aeo-geo': typeof DashboardAeoGeoRoute
   '/dashboard/agents': typeof DashboardAgentsRouteWithChildren
@@ -398,6 +411,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/website': typeof DashboardWebsiteRoute
   '/dashboard/whatsapp': typeof DashboardWhatsappRoute
   '/dashboard/whatsapp-sales': typeof DashboardWhatsappSalesRoute
+  '/dashboard/youtube': typeof DashboardYoutubeRoute
   '/website/$websiteId': typeof WebsiteWebsiteIdRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/dashboard/agents/customer-retention': typeof DashboardAgentsCustomerRetentionRoute
@@ -423,6 +437,7 @@ export interface FileRoutesByTo {
   '/onboarding': typeof OnboardingRoute
   '/signup': typeof SignupRoute
   '/verify': typeof VerifyRoute
+  '/youtube-oauth-callback': typeof YoutubeOauthCallbackRoute
   '/dashboard/actions': typeof DashboardActionsRoute
   '/dashboard/aeo-geo': typeof DashboardAeoGeoRoute
   '/dashboard/automation': typeof DashboardAutomationRoute
@@ -453,6 +468,7 @@ export interface FileRoutesByTo {
   '/dashboard/website': typeof DashboardWebsiteRoute
   '/dashboard/whatsapp': typeof DashboardWhatsappRoute
   '/dashboard/whatsapp-sales': typeof DashboardWhatsappSalesRoute
+  '/dashboard/youtube': typeof DashboardYoutubeRoute
   '/website/$websiteId': typeof WebsiteWebsiteIdRoute
   '/dashboard': typeof DashboardIndexRoute
   '/dashboard/agents/customer-retention': typeof DashboardAgentsCustomerRetentionRoute
@@ -480,6 +496,7 @@ export interface FileRoutesById {
   '/onboarding': typeof OnboardingRoute
   '/signup': typeof SignupRoute
   '/verify': typeof VerifyRoute
+  '/youtube-oauth-callback': typeof YoutubeOauthCallbackRoute
   '/dashboard/actions': typeof DashboardActionsRoute
   '/dashboard/aeo-geo': typeof DashboardAeoGeoRoute
   '/dashboard/agents': typeof DashboardAgentsRouteWithChildren
@@ -511,6 +528,7 @@ export interface FileRoutesById {
   '/dashboard/website': typeof DashboardWebsiteRoute
   '/dashboard/whatsapp': typeof DashboardWhatsappRoute
   '/dashboard/whatsapp-sales': typeof DashboardWhatsappSalesRoute
+  '/dashboard/youtube': typeof DashboardYoutubeRoute
   '/website/$websiteId': typeof WebsiteWebsiteIdRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/dashboard/agents/customer-retention': typeof DashboardAgentsCustomerRetentionRoute
@@ -539,6 +557,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/signup'
     | '/verify'
+    | '/youtube-oauth-callback'
     | '/dashboard/actions'
     | '/dashboard/aeo-geo'
     | '/dashboard/agents'
@@ -570,6 +589,7 @@ export interface FileRouteTypes {
     | '/dashboard/website'
     | '/dashboard/whatsapp'
     | '/dashboard/whatsapp-sales'
+    | '/dashboard/youtube'
     | '/website/$websiteId'
     | '/dashboard/'
     | '/dashboard/agents/customer-retention'
@@ -595,6 +615,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/signup'
     | '/verify'
+    | '/youtube-oauth-callback'
     | '/dashboard/actions'
     | '/dashboard/aeo-geo'
     | '/dashboard/automation'
@@ -625,6 +646,7 @@ export interface FileRouteTypes {
     | '/dashboard/website'
     | '/dashboard/whatsapp'
     | '/dashboard/whatsapp-sales'
+    | '/dashboard/youtube'
     | '/website/$websiteId'
     | '/dashboard'
     | '/dashboard/agents/customer-retention'
@@ -651,6 +673,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/signup'
     | '/verify'
+    | '/youtube-oauth-callback'
     | '/dashboard/actions'
     | '/dashboard/aeo-geo'
     | '/dashboard/agents'
@@ -682,6 +705,7 @@ export interface FileRouteTypes {
     | '/dashboard/website'
     | '/dashboard/whatsapp'
     | '/dashboard/whatsapp-sales'
+    | '/dashboard/youtube'
     | '/website/$websiteId'
     | '/dashboard/'
     | '/dashboard/agents/customer-retention'
@@ -709,11 +733,19 @@ export interface RootRouteChildren {
   OnboardingRoute: typeof OnboardingRoute
   SignupRoute: typeof SignupRoute
   VerifyRoute: typeof VerifyRoute
+  YoutubeOauthCallbackRoute: typeof YoutubeOauthCallbackRoute
   WebsiteWebsiteIdRoute: typeof WebsiteWebsiteIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/youtube-oauth-callback': {
+      id: '/youtube-oauth-callback'
+      path: '/youtube-oauth-callback'
+      fullPath: '/youtube-oauth-callback'
+      preLoaderRoute: typeof YoutubeOauthCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/verify': {
       id: '/verify'
       path: '/verify'
@@ -783,6 +815,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/website/$websiteId'
       preLoaderRoute: typeof WebsiteWebsiteIdRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/dashboard/youtube': {
+      id: '/dashboard/youtube'
+      path: '/youtube'
+      fullPath: '/dashboard/youtube'
+      preLoaderRoute: typeof DashboardYoutubeRouteImport
+      parentRoute: typeof DashboardRoute
     }
     '/dashboard/whatsapp-sales': {
       id: '/dashboard/whatsapp-sales'
@@ -1195,6 +1234,7 @@ interface DashboardRouteChildren {
   DashboardWebsiteRoute: typeof DashboardWebsiteRoute
   DashboardWhatsappRoute: typeof DashboardWhatsappRoute
   DashboardWhatsappSalesRoute: typeof DashboardWhatsappSalesRoute
+  DashboardYoutubeRoute: typeof DashboardYoutubeRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
   DashboardVoiceAgentAnalyticsRoute: typeof DashboardVoiceAgentAnalyticsRoute
   DashboardVoiceAgentCampaignsRoute: typeof DashboardVoiceAgentCampaignsRouteWithChildren
@@ -1239,6 +1279,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardWebsiteRoute: DashboardWebsiteRoute,
   DashboardWhatsappRoute: DashboardWhatsappRoute,
   DashboardWhatsappSalesRoute: DashboardWhatsappSalesRoute,
+  DashboardYoutubeRoute: DashboardYoutubeRoute,
   DashboardIndexRoute: DashboardIndexRoute,
   DashboardVoiceAgentAnalyticsRoute: DashboardVoiceAgentAnalyticsRoute,
   DashboardVoiceAgentCampaignsRoute:
@@ -1266,6 +1307,7 @@ const rootRouteChildren: RootRouteChildren = {
   OnboardingRoute: OnboardingRoute,
   SignupRoute: SignupRoute,
   VerifyRoute: VerifyRoute,
+  YoutubeOauthCallbackRoute: YoutubeOauthCallbackRoute,
   WebsiteWebsiteIdRoute: WebsiteWebsiteIdRoute,
 }
 export const routeTree = rootRouteImport

@@ -111,6 +111,11 @@ class Settings(BaseSettings):
     # Meta Ads Configuration (Facebook/Instagram Ads)
     META_REDIRECT_URI: str = "http://localhost:8000/auth/meta/callback"
 
+    # YouTube API Configuration (Google OAuth)
+    YOUTUBE_CLIENT_ID: str = ""
+    YOUTUBE_CLIENT_SECRET: str = ""
+    YOUTUBE_REDIRECT_URI: str = "http://localhost:8081/youtube-oauth-callback"
+
     # Celery Configuration
     CELERY_BROKER_URL: str = "redis://localhost:6379/0"
     CELERY_RESULT_BACKEND: str = "redis://localhost:6379/1"

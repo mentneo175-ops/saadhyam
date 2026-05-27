@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import { Loader } from "@/components/ui/loader";
 
 const fadeSlide = {
   initial: { opacity: 0, y: 14 },
@@ -347,9 +348,8 @@ export function EmptyInsightsState({ message }: { message?: string }) {
 
 export function LoadingState({ message }: { message?: string }) {
   return (
-    <div className="flex flex-col items-center justify-center py-20">
-      <Loader2 className="mb-4 h-10 w-10 animate-spin text-primary" />
-      <p className="font-medium text-foreground">{message ?? "Loading insights…"}</p>
+    <div className="flex items-center justify-center py-20">
+      <Loader text={message ?? "Loading insights"} />
     </div>
   );
 }
@@ -357,16 +357,9 @@ export function LoadingState({ message }: { message?: string }) {
 export function AnalyzingState({ message }: { message?: string }) {
   return (
     <div className="flex flex-col items-center justify-center py-20">
-      <motion.div
-        animate={{ rotate: 360 }}
-        transition={{ duration: 2.5, repeat: Infinity, ease: "linear" }}
-        className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-primary shadow-glow"
-      >
-        <Sparkles className="h-7 w-7 text-primary-foreground" />
-      </motion.div>
-      <p className="font-medium text-foreground">{message ?? "Analyzing SEO opportunities…"}</p>
-      <p className="mt-1 text-sm text-muted-foreground">This may take 2–3 minutes</p>
-      <span className="mt-5 inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-medium text-primary">
+      <Loader text={message ?? "Analyzing SEO opportunities"} />
+      <p className="mt-1 text-xs text-muted-foreground">This may take 2–3 minutes</p>
+      <span className="mt-4 inline-flex items-center gap-1 text-[10px] rounded-full border border-primary/20 bg-primary/5 px-2.5 py-0.5 font-medium text-primary">
         <Sparkles className="h-3 w-3" />
         AI-Powered Analysis
       </span>

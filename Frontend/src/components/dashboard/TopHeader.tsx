@@ -9,7 +9,7 @@ import {
   Menu,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuthContext } from "@/lib/AuthContext";
 import { apiClient } from "@/lib/api";
 import { useNavigate, useRouter, useLocation } from "@tanstack/react-router";
 import { useDashboardContext } from "@/contexts/DashboardContext";
@@ -24,7 +24,7 @@ interface BusinessProfile {
 }
 
 export function TopHeader() {
-  const { user, logout } = useAuth();
+  const { user, logout } = useAuthContext();
   const navigate = useNavigate();
   const router = useRouter();
   const location = useLocation();

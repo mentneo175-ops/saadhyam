@@ -5,9 +5,10 @@ AI-powered audience targeting recommendations using Gemini
 
 import os
 import logging
+import inspect
 import google.generativeai as genai
 from typing import Dict, Any, Optional, List
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 from models.user import User
 from models.meta_ads import AudienceInsight
 
@@ -16,6 +17,8 @@ logger = logging.getLogger(__name__)
 
 class AIAudienceService:
     """AI-powered audience recommendation service"""
+
+    UNSUPPORTED_MODELS = {"gemini-1.5-pro", "gemini-1.5-flash"}
     
     def __init__(self):
         api_key = os.getenv("GEMINI_API_KEY")
@@ -23,26 +26,38 @@ class AIAudienceService:
             raise ValueError("GEMINI_API_KEY not found in environment")
         
         genai.configure(api_key=api_key)
-        # Use gemini-1.5-pro or gemini-pro as fallback
-        # Note: If this fails, fallback recommendations will be used
-        try:
-            # Try gemini-1.5-pro first
-            self.model = genai.GenerativeModel('gemini-1.5-pro')
-            logger.info("✅ Gemini model initialized: gemini-1.5-pro")
-        except Exception as e:
-            logger.warning(f"⚠️ Failed to initialize gemini-1.5-pro: {e}")
+        # Prefer a currently supported model, with fallbacks for older environments.
+        model_candidates = [
+            os.getenv("GEMINI_PRO_MODEL", "gemini-2.5-flash"),
+            os.getenv("GEMINI_CONTENT_MODEL", "gemini-2.5-flash"),
+            "gemini-2.0-flash",
+            "gemini-pro",
+        ]
+
+        model_candidates = [
+            model_name
+            for model_name in model_candidates
+            if model_name and model_name not in self.UNSUPPORTED_MODELS
+        ]
+
+        if not model_candidates:
+            model_candidates = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-pro"]
+
+        self.model = None
+        for model_name in model_candidates:
             try:
-                # Fallback to gemini-pro
-                self.model = genai.GenerativeModel('gemini-pro')
-                logger.info("✅ Gemini model initialized: gemini-pro (fallback)")
-            except Exception as e2:
-                logger.warning(f"⚠️ Failed to initialize gemini-pro: {e2}")
-                logger.info("ℹ️ Will use fallback recommendations")
-                self.model = None
+                self.model = genai.GenerativeModel(model_name)
+                logger.info(f"✅ Gemini model initialized: {model_name}")
+                break
+            except Exception as e:
+                logger.warning(f"⚠️ Failed to initialize {model_name}: {e}")
+
+        if not self.model:
+            logger.info("ℹ️ Will use fallback recommendations")
     
     async def generate_audience_recommendations(
         self,
-        db: Session,
+        db: AsyncSession,
         user: User,
         post_caption: Optional[str] = None,
         post_hashtags: Optional[List[str]] = None,
@@ -146,37 +161,52 @@ IMPORTANT:
             # Parse JSON
             import json
             recommendations = json.loads(result_text)
-            
-            # Save to database
-            insight = AudienceInsight(
-                user_id=user.id,
-                business_category=user.business_type,
-                business_location=user.business_location,
-                post_caption=post_caption,
-                post_hashtags=post_hashtags,
-                recommended_age_min=recommendations.get("recommended_age_min"),
-                recommended_age_max=recommendations.get("recommended_age_max"),
-                recommended_genders=recommendations.get("recommended_genders"),
-                recommended_locations=recommendations.get("recommended_locations"),
-                recommended_interests=recommendations.get("recommended_interests"),
-                recommended_radius_km=recommendations.get("recommended_locations", [{}])[0].get("radius_km") if recommendations.get("recommended_locations") else None,
-                estimated_reach_min=recommendations.get("estimated_reach_min"),
-                estimated_reach_max=recommendations.get("estimated_reach_max"),
-                estimated_engagement_rate=recommendations.get("estimated_engagement_rate"),
-                confidence_score=recommendations.get("confidence_score"),
-                reasoning=recommendations.get("reasoning"),
+            recommendations["recommended_genders"] = self._normalize_recommended_genders(
+                recommendations.get("recommended_genders")
             )
             
-            db.add(insight)
-            db.commit()
-            db.refresh(insight)
+            # Save to database when the backing schema matches.
+            insight_id = None
+            try:
+                insight = AudienceInsight(
+                    user_id=user.id,
+                    business_category=user.business_type,
+                    business_location=user.business_location,
+                    post_caption=post_caption,
+                    post_hashtags=post_hashtags,
+                    recommended_age_min=recommendations.get("recommended_age_min"),
+                    recommended_age_max=recommendations.get("recommended_age_max"),
+                    recommended_genders=recommendations.get("recommended_genders"),
+                    recommended_locations=recommendations.get("recommended_locations"),
+                    recommended_interests=recommendations.get("recommended_interests"),
+                    recommended_radius_km=recommendations.get("recommended_locations", [{}])[0].get("radius_km") if recommendations.get("recommended_locations") else None,
+                    estimated_reach_min=recommendations.get("estimated_reach_min"),
+                    estimated_reach_max=recommendations.get("estimated_reach_max"),
+                    estimated_engagement_rate=recommendations.get("estimated_engagement_rate"),
+                    confidence_score=recommendations.get("confidence_score"),
+                    reasoning=recommendations.get("reasoning"),
+                )
+
+                db.add(insight)
+                # AsyncSession commit/refresh are coroutines - await them directly
+                await db.commit()
+                await db.refresh(insight)
+
+                insight_id = insight.id
+            except Exception as save_error:
+                logger.warning(f"⚠️ Could not save audience insight, returning recommendations anyway: {save_error}")
+                try:
+                    await db.rollback()
+                except Exception:
+                    # Best-effort rollback; ignore rollback failures
+                    pass
             
             logger.info(f"✅ AI audience recommendations generated for user {user.id}")
             
             return {
                 "success": True,
                 "recommendations": recommendations,
-                "insight_id": insight.id,
+                "insight_id": insight_id,
             }
             
         except Exception as e:
@@ -191,6 +221,28 @@ IMPORTANT:
                 "is_fallback": True,
                 "error_message": "Using default recommendations",
             }
+
+    def _normalize_recommended_genders(self, genders: Any) -> List[str]:
+        """Normalize Gemini gender output to a list of strings."""
+        if genders is None:
+            return ["all"]
+
+        if isinstance(genders, list):
+            normalized = [str(gender).strip().lower() for gender in genders if str(gender).strip()]
+            return normalized or ["all"]
+
+        if isinstance(genders, str):
+            cleaned = genders.strip().lower()
+            if not cleaned:
+                return ["all"]
+
+            if cleaned in {"all", "all genders", "any"}:
+                return ["all"]
+
+            parts = [part.strip() for part in cleaned.replace("/", ",").split(",") if part.strip()]
+            return parts or [cleaned]
+
+        return ["all"]
     
     def _build_context(
         self,
@@ -264,6 +316,9 @@ IMPORTANT:
             "publisher_platforms": ["facebook", "instagram"],
             "facebook_positions": ["feed", "story"],
             "instagram_positions": ["stream", "story", "explore"],
+            "targeting_automation": {
+                "advantage_audience": 0
+            }
         }
         
         # Gender

@@ -1,3 +1,60 @@
+import asyncio
+import logging
+from typing import Optional
+
+from cloudinary import config as cloudinary_config
+from cloudinary import uploader
+
+from config.settings import settings
+
+logger = logging.getLogger(__name__)
+
+
+_configured = False
+
+
+def _ensure_configured() -> bool:
+    global _configured
+
+    if _configured:
+        return True
+
+    if not settings.CLOUDINARY_CLOUD_NAME or not settings.CLOUDINARY_API_KEY or not settings.CLOUDINARY_API_SECRET:
+        logger.warning("Cloudinary is not configured; media cleanup will be skipped")
+        return False
+
+    cloudinary_config(
+        cloud_name=settings.CLOUDINARY_CLOUD_NAME,
+        api_key=settings.CLOUDINARY_API_KEY,
+        api_secret=settings.CLOUDINARY_API_SECRET,
+        secure=True,
+    )
+    _configured = True
+    return True
+
+
+def delete_cloudinary_asset_sync(public_id: Optional[str], resource_type: str) -> bool:
+    if not public_id:
+        return False
+
+    if not _ensure_configured():
+        return False
+
+    try:
+        result = uploader.destroy(public_id, resource_type=resource_type, invalidate=True)
+        return result.get("result") in {"ok", "not found"}
+    except Exception as exc:
+        logger.warning(
+            "Failed to delete Cloudinary %s asset %s: %s",
+            resource_type,
+            public_id,
+            exc,
+        )
+        return False
+
+
+async def delete_cloudinary_asset(public_id: Optional[str], resource_type: str) -> bool:
+    return await asyncio.to_thread(delete_cloudinary_asset_sync, public_id, resource_type)
 """
 Cloudinary service for image uploads and management.
 """

@@ -125,6 +125,14 @@ class MetaAdsService:
             
             url = f"{self.graph_api_base}/{meta_account.ad_account_id}/adsets"
             
+            # Ensure advantage_audience flag is set within targeting_automation (required in Meta API v21+)
+            if isinstance(targeting, dict):
+                targeting = dict(targeting)
+                if "targeting_automation" not in targeting:
+                    targeting["targeting_automation"] = {
+                        "advantage_audience": 0
+                    }
+            
             payload = {
                 "name": adset_name,
                 "campaign_id": campaign_id,
@@ -316,14 +324,20 @@ class MetaAdsService:
         creative_name: str,
         instagram_media_id: Optional[str] = None,
         facebook_post_id: Optional[str] = None,
+        image_url: Optional[str] = None,
+        video_url: Optional[str] = None,
+        caption: Optional[str] = None,
+        website_url: Optional[str] = None,
+        call_to_action: Optional[str] = None,
+        instagram_actor_id: Optional[str] = None,
+        media_type: Optional[str] = None,
     ) -> Dict[str, Any]:
         """
-        Create Ad Creative from existing Instagram/Facebook post
-        
-        This is the recommended approach for MVP as it:
-        - Doesn't require /adimages API permission
-        - Uses existing published content
-        - More stable and production-friendly
+        Create Ad Creative from existing Instagram/Facebook post or media asset.
+
+        This method now prefers object_story_spec because it is more reliable for
+        Instagram promotion workflows and avoids the object_story_id rejection
+        that some Instagram media posts/reels trigger in Meta.
         
         Args:
             creative_name: Name of the creative
@@ -338,58 +352,133 @@ class MetaAdsService:
             access_token = meta_oauth_service.decrypt_token(meta_account.access_token)
             
             url = f"{self.graph_api_base}/{meta_account.ad_account_id}/adcreatives"
+            instagram_actor_id = instagram_actor_id or meta_account.instagram_business_id
+            page_id = meta_account.page_id
             
             logger.info(f"📤 Creating ad creative from existing post")
             logger.info(f"   Instagram Media ID: {instagram_media_id}")
             logger.info(f"   Facebook Post ID: {facebook_post_id}")
+            logger.info(f"   Page ID: {page_id}")
+            logger.info(f"   Instagram Actor ID: {instagram_actor_id}")
+            logger.info(f"   Media Type: {media_type}")
             
-            # Build payload using existing post
+            if not page_id:
+                raise ValueError("No Facebook Page ID found. Instagram ads require a connected Facebook Page.")
+
+            # Normalize inputs so object_story_spec can be built from post or asset data.
+            resolved_caption = caption or ""
+            resolved_link = website_url
+            if not resolved_link:
+                if meta_account.instagram_username:
+                    resolved_link = f"https://www.instagram.com/{meta_account.instagram_username}"
+                elif meta_account.page_id:
+                    resolved_link = f"https://www.facebook.com/{meta_account.page_id}"
+                else:
+                    resolved_link = "https://www.instagram.com"
+            resolved_cta = (call_to_action or "LEARN_MORE").upper()
+            resolved_media_type = (media_type or ("video" if video_url else "image")).lower()
+            resolved_video_id = video_url
+
+            if resolved_media_type == "video" and video_url:
+                if str(video_url).startswith("http"):
+                    uploaded_video = await self.upload_video(meta_account, video_url)
+                    resolved_video_id = uploaded_video.get("id") or video_url
+                else:
+                    resolved_video_id = video_url
+
             payload = {
                 "name": creative_name,
                 "access_token": access_token,
             }
-            
-            # Use Instagram media if available
-            if instagram_media_id:
-                # For Instagram posts, we need to use the Facebook Page ID (not Instagram Business ID)
-                # The correct format is: page_id_instagram_media_id
-                try:
-                    # Get the Facebook Page ID from the meta account
-                    page_id = meta_account.page_id
-                    if not page_id:
-                        raise Exception("No Facebook Page ID found. Instagram ads require a connected Facebook Page.")
-                    
-                    # Use page_id_media_id format for object_story_id
-                    payload["object_story_id"] = f"{page_id}_{instagram_media_id}"
-                    logger.info(f"   Using Instagram media creative with object_story_id")
-                    logger.info(f"   Page ID: {page_id}, Media ID: {instagram_media_id}")
-                except Exception as e:
-                    logger.warning(f"   Failed to create with object_story_id: {e}")
-                    # Fallback: use simple image-based creative
-                    payload["object_story_spec"] = {
-                        "page_id": meta_account.page_id,
+
+            def build_object_story_spec(include_instagram_actor: bool = True) -> Dict[str, Any]:
+                story_spec: Dict[str, Any] = {
+                    "page_id": page_id,
+                }
+
+                if include_instagram_actor and instagram_actor_id:
+                    story_spec["instagram_actor_id"] = instagram_actor_id
+
+                # Prefer explicit media asset payloads. If none are provided, fall back
+                # to the existing post URL so we can still create a valid creative.
+                selected_image_url = image_url
+                selected_video_url = resolved_video_id
+
+                if resolved_media_type == "video" and selected_video_url:
+                    story_spec["video_data"] = {
+                        "video_id": selected_video_url,
+                        "message": resolved_caption,
                     }
-                    logger.info(f"   Using fallback page-based creative")
-                
-            elif facebook_post_id:
-                # For Facebook posts, use object_story_id directly
-                payload["object_story_id"] = facebook_post_id
-                logger.info(f"   Using Facebook post creative: {facebook_post_id}")
-            
-            else:
-                raise ValueError("Either instagram_media_id or facebook_post_id must be provided")
-            
-            logger.info(f"   Creative payload: {payload}")
-            
-            response = requests.post(url, json=payload)
+                else:
+                    image_block: Dict[str, Any] = {
+                        "picture": selected_image_url or image_url,
+                        "message": resolved_caption,
+                    }
+
+                    if resolved_link:
+                        image_block["link"] = resolved_link
+
+                    cta_value = resolved_cta if resolved_cta in {
+                        "SHOP_NOW", "LEARN_MORE", "SIGN_UP", "CONTACT_US", "BOOK_NOW"
+                    } else "LEARN_MORE"
+
+                    if resolved_link:
+                        image_block["call_to_action"] = {
+                            "type": cta_value,
+                            "value": {
+                                "link": resolved_link,
+                            },
+                        }
+
+                    story_spec["link_data"] = image_block
+
+                return story_spec
+
+            def post_payload_with_spec(include_instagram_actor: bool = True) -> Dict[str, Any]:
+                spec_payload = dict(payload)
+                spec_payload["object_story_spec"] = build_object_story_spec(include_instagram_actor=include_instagram_actor)
+                return spec_payload
+
+            # Try the spec-based payload first; only fall back to object_story_id for legacy compatibility
+            # if Meta returns the specific Instagram rejection error.
+            response = requests.post(url, json=post_payload_with_spec(include_instagram_actor=True))
+            if response.status_code >= 400:
+                try:
+                    error_json = response.json()
+                except Exception:
+                    error_json = {}
+
+                error_code = None
+                error_message = ""
+                if isinstance(error_json, dict):
+                    error_payload = error_json.get("error", {})
+                    error_code = (
+                        error_payload.get("code")
+                        or error_payload.get("error_subcode")
+                    )
+                    error_message = str(error_payload.get("message", ""))
+
+                if str(error_code) == "100" and "instagram_actor_id" in error_message.lower():
+                    logger.warning("   Meta rejected instagram_actor_id; retrying object_story_spec without it")
+                    response = requests.post(url, json=post_payload_with_spec(include_instagram_actor=False))
+
+                if str(error_code) == "2446187" and instagram_media_id:
+                    logger.warning("   Meta rejected spec creative with 2446187; retrying legacy object_story_id flow")
+                    legacy_payload = {
+                        "name": creative_name,
+                        "access_token": access_token,
+                        "object_story_id": f"{page_id}_{instagram_media_id}",
+                    }
+                    response = requests.post(url, json=legacy_payload)
+
             response.raise_for_status()
-            
+
             data = response.json()
-            
+
             logger.info(f"✅ Ad Creative created successfully!")
             logger.info(f"   Creative ID: {data.get('id')}")
             logger.info(f"   Response: {data}")
-            
+
             return data
             
         except requests.exceptions.HTTPError as e:
@@ -401,6 +490,39 @@ class MetaAdsService:
                 error_detail = e.response.text
                 logger.error(f"Meta API Error (Creative - raw): {error_detail}")
             
+            # Automatically retry with object_story_spec when Meta rejects legacy object_story_id.
+            try:
+                error_code = None
+                if isinstance(error_detail, dict):
+                    error_code = error_detail.get("error", {}).get("code") or error_detail.get("error", {}).get("error_subcode")
+                if str(error_code) == "2446187" and instagram_media_id:
+                    logger.warning("Meta returned 2446187 for object_story_id; retrying with object_story_spec")
+                    from services.meta_oauth_service import meta_oauth_service
+                    access_token = meta_oauth_service.decrypt_token(meta_account.access_token)
+                    retry_payload = {
+                        "name": creative_name,
+                        "access_token": access_token,
+                        "object_story_spec": {
+                            "page_id": meta_account.page_id,
+                            "link_data": {
+                                "picture": image_url,
+                                "message": caption or "",
+                                "link": resolved_link,
+                                "call_to_action": {
+                                    "type": (call_to_action or "LEARN_MORE").upper(),
+                                    "value": {
+                                        "link": resolved_link
+                                    }
+                                }
+                            },
+                        },
+                    }
+                    retry_response = requests.post(url, json=retry_payload)
+                    retry_response.raise_for_status()
+                    return retry_response.json()
+            except Exception:
+                pass
+
             logger.error(f"Failed to create ad creative: {e}")
             raise Exception(f"Meta API error: {error_detail}")
             
@@ -439,6 +561,16 @@ class MetaAdsService:
             logger.info(f"✅ Ad created: {data.get('id')}")
             return data
             
+        except requests.exceptions.HTTPError as e:
+            error_detail = "Unknown error"
+            try:
+                error_detail = e.response.json()
+                logger.error(f"Meta API Error (Ad): {error_detail}")
+            except:
+                error_detail = e.response.text
+                logger.error(f"Meta API Error (Ad - raw): {error_detail}")
+            logger.error(f"Failed to create ad: {e}")
+            raise Exception(f"Meta API error: {error_detail}")
         except Exception as e:
             logger.error(f"Failed to create ad: {e}")
             raise

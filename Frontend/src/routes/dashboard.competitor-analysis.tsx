@@ -226,7 +226,6 @@ function CompetitorAnalysisPage() {
     );
   }
 
-
   const data = analysis?.competitor_analysis;
 
   const summary = getAnalysisSummary(data);

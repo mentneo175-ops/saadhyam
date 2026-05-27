@@ -164,6 +164,7 @@ async def limit_request_size(request: Request, call_next: Callable):
         max_size = MAX_REQUEST_SIZE_MB * 1024 * 1024  # Convert MB to bytes
         
         if content_length > max_size:
+            received_mb = round(content_length / (1024 * 1024), 2)
             logger.warning(
                 f"⚠️ Request body too large: {content_length} bytes "
                 f"(max: {max_size} bytes) from {request.client.host}"
@@ -171,9 +172,18 @@ async def limit_request_size(request: Request, call_next: Callable):
             return JSONResponse(
                 status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
                 content={
-                    "detail": f"Request body too large. Maximum size is {MAX_REQUEST_SIZE_MB}MB",
+                    # Friendly, actionable message for end users including received size
+                    "message": (
+                        f"Upload failed — the file you selected is {received_mb} MB which exceeds the maximum allowed size of {MAX_REQUEST_SIZE_MB} MB. Please choose a file smaller than {MAX_REQUEST_SIZE_MB} MB."
+                    ),
+                    "detail": (
+                        f"The uploaded file or request exceeds the maximum allowed size of {MAX_REQUEST_SIZE_MB}MB."
+                    ),
                     "max_size_mb": MAX_REQUEST_SIZE_MB,
-                    "received_size_mb": round(content_length / (1024 * 1024), 2)
+                    "received_size_mb": received_mb,
+                    "suggestion": (
+                        f"Try a smaller file (under {MAX_REQUEST_SIZE_MB}MB), compress the file, or upload in smaller parts."
+                    ),
                 }
             )
     
@@ -217,3 +227,4 @@ __all__ = [
     "limit_request_size",
     "RateLimitDecorators"
 ]
+

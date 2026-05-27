@@ -83,6 +83,15 @@ function SEOPage() {
     local_visibility_ideas: postIdeas.map((p) => `${p.title}: ${p.desc}`),
   };
 
+  const handleQuickAction = (title: string) => {
+    if (title === "Google Business Profile") {
+      setActiveTab("maps");
+      return;
+    }
+
+    setActiveTab("seo");
+  };
+
   return (
     <div className="relative -m-4 min-h-[calc(100vh-4rem)] bg-background p-6 md:p-8">
       <div className="pointer-events-none absolute inset-0 bg-mesh opacity-60" aria-hidden />
@@ -116,7 +125,7 @@ function SEOPage() {
           </>
         )}
 
-        <QuickActionsGrid delay={hasResults ? 0.35 : 0.2} />
+        <QuickActionsGrid delay={hasResults ? 0.35 : 0.2} onAction={handleQuickAction} />
         <ProTipsBanner delay={hasResults ? 0.42 : 0.28} />
       </SEOLayout>
     </div>

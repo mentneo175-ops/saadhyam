@@ -41,62 +41,75 @@ class FirebaseService:
                 self._firebase_available = True
                 return
             
-            # Get credentials from environment - REQUIRED
+            # Get credentials from environment - support JSON in env or file path
+            # Priority: FIREBASE_SERVICE_ACCOUNT / FIREBASE_SERVICE_ACCOUNT_JSON (JSON string) ->
+            # GOOGLE_APPLICATION_CREDENTIALS (file path)
+            sa_json = os.getenv("FIREBASE_SERVICE_ACCOUNT") or os.getenv("FIREBASE_SERVICE_ACCOUNT_JSON")
             credentials_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
             project_id = os.getenv("FIREBASE_PROJECT_ID")
-            
-            # STRICT VALIDATION - NO FALLBACKS
-            if not credentials_path:
-                error_msg = "❌ CRITICAL: GOOGLE_APPLICATION_CREDENTIALS environment variable is REQUIRED"
+
+            if not sa_json and not credentials_path:
+                error_msg = "❌ CRITICAL: Firebase credentials not provided. Set FIREBASE_SERVICE_ACCOUNT (JSON string) or GOOGLE_APPLICATION_CREDENTIALS (file path)"
                 logger.error(error_msg)
-                logger.error("❌ Set GOOGLE_APPLICATION_CREDENTIALS=./firebase-adminsdk.json in your .env file")
+                logger.error("❌ Recommended: set FIREBASE_SERVICE_ACCOUNT with the service account JSON as an environment variable in production")
                 raise ValueError(error_msg)
 
-            credentials_path = Path(credentials_path)
-            if not credentials_path.is_absolute():
-                credentials_path = (Path(__file__).resolve().parents[1] / credentials_path).resolve()
-
-            credentials_path = str(credentials_path)
-            
             if not project_id:
                 error_msg = "❌ CRITICAL: FIREBASE_PROJECT_ID environment variable is REQUIRED"
                 logger.error(error_msg)
-                logger.error("❌ Set FIREBASE_PROJECT_ID=your-project-id in your .env file")
+                logger.error("❌ Set FIREBASE_PROJECT_ID=your-project-id in your environment")
                 raise ValueError(error_msg)
-            
-            # Check if credentials file exists
-            if not os.path.exists(credentials_path):
-                error_msg = f"❌ CRITICAL: Firebase credentials file not found: {credentials_path}"
-                logger.error(error_msg)
-                logger.error("❌ Please download your Firebase service account key and place it at the specified path")
-                raise FileNotFoundError(error_msg)
-            
-            # Validate credentials file is not placeholder
-            try:
-                with open(credentials_path, 'r') as f:
+
+            cred = None
+            # If JSON is provided directly in environment, parse and use it
+            if sa_json:
+                try:
                     import json
-                    cred_data = json.load(f)
-                    
-                    # Check for placeholder values
-                    if (cred_data.get('private_key', '').startswith('PLACEHOLDER') or 
-                        cred_data.get('private_key_id', '').startswith('PLACEHOLDER') or
-                        cred_data.get('client_id', '').startswith('PLACEHOLDER')):
-                        error_msg = f"❌ CRITICAL: Firebase credentials file contains placeholder values: {credentials_path}"
-                        logger.error(error_msg)
-                        logger.error("❌ Please download the REAL Firebase service account key from Firebase Console")
-                        logger.error("❌ Go to: Firebase Console > Project Settings > Service Accounts > Generate New Private Key")
-                        raise ValueError(error_msg)
-                        
-            except json.JSONDecodeError as e:
-                error_msg = f"❌ CRITICAL: Invalid JSON in Firebase credentials file: {e}"
-                logger.error(error_msg)
-                raise ValueError(error_msg)
-            
-            # Initialize Firebase Admin SDK with REAL credentials
-            logger.info(f"🔍 Initializing Firebase with credentials: {credentials_path}")
-            logger.info(f"🔍 Project ID: {project_id}")
-            
-            cred = credentials.Certificate(credentials_path)
+                    cred_data = json.loads(sa_json)
+                    # Basic validation of service account fields
+                    if not cred_data.get("private_key") or not cred_data.get("client_email"):
+                        raise ValueError("Missing private_key or client_email in provided service account JSON")
+                    logger.info("🔍 Initializing Firebase with service account provided via environment variable")
+                    cred = credentials.Certificate(cred_data)
+                except Exception as e:
+                    error_msg = f"❌ CRITICAL: Invalid JSON in FIREBASE_SERVICE_ACCOUNT: {e}"
+                    logger.error(error_msg)
+                    raise ValueError(error_msg)
+            else:
+                # Use file path
+                credentials_path = Path(credentials_path)
+                if not credentials_path.is_absolute():
+                    credentials_path = (Path(__file__).resolve().parents[1] / credentials_path).resolve()
+                credentials_path = str(credentials_path)
+
+                # Check if credentials file exists
+                if not os.path.exists(credentials_path):
+                    error_msg = f"❌ CRITICAL: Firebase credentials file not found: {credentials_path}"
+                    logger.error(error_msg)
+                    logger.error("❌ Please download your Firebase service account key and place it at the specified path")
+                    raise FileNotFoundError(error_msg)
+
+                # Validate credentials file is not placeholder
+                try:
+                    import json
+                    with open(credentials_path, 'r') as f:
+                        cred_data = json.load(f)
+                        if (cred_data.get('private_key', '').startswith('PLACEHOLDER') or 
+                            cred_data.get('private_key_id', '').startswith('PLACEHOLDER') or
+                            cred_data.get('client_id', '').startswith('PLACEHOLDER')):
+                            error_msg = f"❌ CRITICAL: Firebase credentials file contains placeholder values: {credentials_path}"
+                            logger.error(error_msg)
+                            logger.error("❌ Please download the REAL Firebase service account key from Firebase Console")
+                            logger.error("❌ Go to: Firebase Console > Project Settings > Service Accounts > Generate New Private Key")
+                            raise ValueError(error_msg)
+                except json.JSONDecodeError as e:
+                    error_msg = f"❌ CRITICAL: Invalid JSON in Firebase credentials file: {e}"
+                    logger.error(error_msg)
+                    raise ValueError(error_msg)
+
+                logger.info(f"🔍 Initializing Firebase with credentials file: {credentials_path}")
+                logger.info(f"🔍 Project ID: {project_id}")
+                cred = credentials.Certificate(credentials_path)
             firebase_admin.initialize_app(cred, {
                 'projectId': project_id,
             })

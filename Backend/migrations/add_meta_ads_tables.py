@@ -200,9 +200,9 @@ def migrate_add_meta_ads_tables():
                 CREATE INDEX IF NOT EXISTS idx_ad_analytics_date ON ad_analytics(date);
             """))
             
-            # Create audience_insights table
+            # Create ai_audience_insights table
             conn.execute(text("""
-                CREATE TABLE IF NOT EXISTS audience_insights (
+                CREATE TABLE IF NOT EXISTS ai_audience_insights (
                     id SERIAL PRIMARY KEY,
                     user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
                     business_category VARCHAR(255),
@@ -225,7 +225,7 @@ def migrate_add_meta_ads_tables():
                 );
             """))
             conn.execute(text("""
-                CREATE INDEX IF NOT EXISTS idx_audience_insights_user_id ON audience_insights(user_id);
+                CREATE INDEX IF NOT EXISTS idx_ai_audience_insights_user_id ON ai_audience_insights(user_id);
             """))
             
             # Create budget_recommendations table

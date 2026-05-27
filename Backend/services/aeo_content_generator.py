@@ -7,7 +7,8 @@ import logging
 import os
 import json
 from typing import Dict, Any, List
-from sqlalchemy.orm import Session
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 from db.aeo_geo_models import AEOContent, AEOQuestion
 from models.user import User
 from db.models import BusinessAnalysis
@@ -27,7 +28,7 @@ if GEMINI_API_KEY:
 async def generate_aeo_content(
     user: User,
     question_id: int,
-    db: Session
+    db: AsyncSession
 ) -> Dict[str, Any]:
     """
     Generate AEO-optimized content for a question
@@ -45,10 +46,16 @@ async def generate_aeo_content(
         logger.info(f"[AEOContentGenerator] Generating content for question {question_id}")
         
         # Get question
-        question = db.query(AEOQuestion).filter(
-            AEOQuestion.id == question_id,
-            AEOQuestion.user_id == user.id
-        ).first()
+        question_stmt = (
+            select(AEOQuestion)
+            .where(
+                AEOQuestion.id == question_id,
+                AEOQuestion.user_id == user.id
+            )
+            .limit(1)
+        )
+        question_result = await db.execute(question_stmt)
+        question = question_result.scalars().first()
         
         if not question:
             return {
@@ -57,10 +64,17 @@ async def generate_aeo_content(
             }
         
         # Get business analysis for context
-        analysis = db.query(BusinessAnalysis).filter(
-            BusinessAnalysis.user_id == user.id,
-            BusinessAnalysis.analysis_status == 'completed'
-        ).order_by(BusinessAnalysis.last_analyzed_at.desc()).first()
+        analysis_stmt = (
+            select(BusinessAnalysis)
+            .where(
+                BusinessAnalysis.user_id == user.id,
+                BusinessAnalysis.analysis_status == 'completed'
+            )
+            .order_by(BusinessAnalysis.last_analyzed_at.desc())
+            .limit(1)
+        )
+        analysis_result = await db.execute(analysis_stmt)
+        analysis = analysis_result.scalars().first()
         
         if not analysis:
             return {
@@ -102,8 +116,8 @@ async def generate_aeo_content(
         # Update question status
         question.status = 'content_generated'
         
-        db.commit()
-        db.refresh(new_content)
+        await db.commit()
+        await db.refresh(new_content)
         
         # Store content in Pinecone for semantic search
         content_text = f"{new_content.title}. {new_content.direct_answer}. {new_content.detailed_explanation}"
@@ -217,26 +231,16 @@ Make the content:
             response = model.generate_content(
                 prompt,
                 generation_config=generation_config,
-                tools='google_search_retrieval'  # Enable Google Search grounding
+                tools='google_search'  # Enable Google Search grounding
             )
             content_text = response.text
         except Exception as e:
-            logger.warning(f"[AEOContentGenerator] Primary model failed, trying fallback: {e}")
-            
-            # Apply rate limiting for fallback request too
-            await gemini_rate_limiter.acquire()
-            
-            # Fallback to Gemini 1.5 Flash
-            model = genai.GenerativeModel('models/gemini-1.5-flash')
+            logger.warning(f"[AEOContentGenerator] google_search grounding failed, retrying without grounding: {e}")
+
+            # Retry the current model without grounding instead of falling back to an unsupported model.
             response = model.generate_content(
                 prompt,
-                generation_config={
-                    "temperature": 0.7,
-                    "top_p": 0.95,
-                    "top_k": 40,
-                    "max_output_tokens": 8192,
-                },
-                tools='google_search_retrieval'
+                generation_config=generation_config,
             )
             content_text = response.text
         
@@ -409,15 +413,20 @@ def calculate_geo_score(content_data: Dict[str, Any]) -> float:
 
 async def get_generated_content(
     user: User,
-    db: Session,
+    db: AsyncSession,
     limit: int = 20
 ) -> List[Dict[str, Any]]:
     """Get generated AEO content from database"""
     
     try:
-        content_list = db.query(AEOContent).filter(
-            AEOContent.user_id == user.id
-        ).order_by(AEOContent.created_at.desc()).limit(limit).all()
+        content_stmt = (
+            select(AEOContent)
+            .where(AEOContent.user_id == user.id)
+            .order_by(AEOContent.created_at.desc())
+            .limit(limit)
+        )
+        content_result = await db.execute(content_stmt)
+        content_list = content_result.scalars().all()
         
         return [
             {

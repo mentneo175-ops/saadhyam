@@ -69,8 +69,17 @@ export const Route = createRootRoute({
       },
       {
         rel: "icon",
-        href: "/favicon.svg",
-        type: "image/svg+xml",
+        href: "/saadhyam-icon.png",
+        type: "image/png",
+      },
+      {
+        rel: "shortcut icon",
+        href: "/saadhyam-icon.png",
+        type: "image/png",
+      },
+      {
+        rel: "apple-touch-icon",
+        href: "/saadhyam-icon.png",
       },
     ],
   }),

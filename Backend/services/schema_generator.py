@@ -6,7 +6,8 @@ Generates JSON-LD schema markup for AEO content
 import logging
 import json
 from typing import Dict, Any, List
-from sqlalchemy.orm import Session
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 from db.aeo_geo_models import SchemaMarkup, AEOContent
 from models.user import User
 from db.models import BusinessAnalysis
@@ -18,7 +19,7 @@ logger = logging.getLogger(__name__)
 async def generate_faq_schema(
     user: User,
     content_id: int,
-    db: Session
+    db: AsyncSession
 ) -> Dict[str, Any]:
     """
     Generate FAQ schema for AEO content
@@ -34,10 +35,16 @@ async def generate_faq_schema(
     
     try:
         # Get content
-        content = db.query(AEOContent).filter(
-            AEOContent.id == content_id,
-            AEOContent.user_id == user.id
-        ).first()
+        content_stmt = (
+            select(AEOContent)
+            .where(
+                AEOContent.id == content_id,
+                AEOContent.user_id == user.id
+            )
+            .limit(1)
+        )
+        content_result = await db.execute(content_stmt)
+        content = content_result.scalars().first()
         
         if not content:
             return {
@@ -71,8 +78,8 @@ async def generate_faq_schema(
         )
         
         db.add(new_schema)
-        db.commit()
-        db.refresh(new_schema)
+        await db.commit()
+        await db.refresh(new_schema)
         
         logger.info(f"[SchemaGenerator] ✅ FAQ schema generated (ID: {new_schema.id})")
         
@@ -92,7 +99,7 @@ async def generate_faq_schema(
 
 async def generate_local_business_schema(
     user: User,
-    db: Session
+    db: AsyncSession
 ) -> Dict[str, Any]:
     """
     Generate LocalBusiness schema
@@ -107,10 +114,17 @@ async def generate_local_business_schema(
     
     try:
         # Get business analysis
-        analysis = db.query(BusinessAnalysis).filter(
-            BusinessAnalysis.user_id == user.id,
-            BusinessAnalysis.analysis_status == 'completed'
-        ).order_by(BusinessAnalysis.last_analyzed_at.desc()).first()
+        analysis_stmt = (
+            select(BusinessAnalysis)
+            .where(
+                BusinessAnalysis.user_id == user.id,
+                BusinessAnalysis.analysis_status == 'completed'
+            )
+            .order_by(BusinessAnalysis.last_analyzed_at.desc())
+            .limit(1)
+        )
+        analysis_result = await db.execute(analysis_stmt)
+        analysis = analysis_result.scalars().first()
         
         if not analysis:
             return {
@@ -144,8 +158,8 @@ async def generate_local_business_schema(
         )
         
         db.add(new_schema)
-        db.commit()
-        db.refresh(new_schema)
+        await db.commit()
+        await db.refresh(new_schema)
         
         logger.info(f"[SchemaGenerator] ✅ LocalBusiness schema generated (ID: {new_schema.id})")
         
@@ -165,15 +179,21 @@ async def generate_local_business_schema(
 
 async def get_all_schemas(
     user: User,
-    db: Session
+    db: AsyncSession
 ) -> List[Dict[str, Any]]:
     """Get all schema markups for user"""
     
     try:
-        schemas = db.query(SchemaMarkup).filter(
-            SchemaMarkup.user_id == user.id,
-            SchemaMarkup.is_active == True
-        ).order_by(SchemaMarkup.created_at.desc()).all()
+        schemas_stmt = (
+            select(SchemaMarkup)
+            .where(
+                SchemaMarkup.user_id == user.id,
+                SchemaMarkup.is_active == True
+            )
+            .order_by(SchemaMarkup.created_at.desc())
+        )
+        schemas_result = await db.execute(schemas_stmt)
+        schemas = schemas_result.scalars().all()
         
         return [
             {

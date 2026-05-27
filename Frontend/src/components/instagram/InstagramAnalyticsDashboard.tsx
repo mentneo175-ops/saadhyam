@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { PromotePostModal } from "@/components/meta-ads/PromotePostModal";
+import { Loader } from "@/components/ui/loader";
 import { env } from "@/config/env";
 
 interface AnalyticsAccount {
@@ -208,14 +209,7 @@ export function InstagramAnalyticsDashboard() {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <div className="text-center">
-          <Loader2 className="w-12 h-12 animate-spin text-purple-600 mx-auto mb-4" />
-          <p className="text-muted-foreground">Loading analytics...</p>
-        </div>
-      </div>
-    );
+    return <Loader text="Loading analytics" className="py-12" />;
   }
 
   if (!account) {

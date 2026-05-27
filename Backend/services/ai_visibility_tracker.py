@@ -7,7 +7,8 @@ Uses mock data initially, ready for real tracking later
 import logging
 import random
 from typing import Dict, Any, List
-from sqlalchemy.orm import Session
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 from db.aeo_geo_models import AIVisibility, AEOContent
 from models.user import User
 from datetime import datetime, timedelta
@@ -17,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 async def track_ai_visibility(
     user: User,
-    db: Session
+    db: AsyncSession
 ) -> Dict[str, Any]:
     """
     Track AI visibility across engines
@@ -34,9 +35,9 @@ async def track_ai_visibility(
         logger.info(f"[AIVisibilityTracker] Tracking visibility for user {user.id}")
         
         # Get user's content
-        content_list = db.query(AEOContent).filter(
-            AEOContent.user_id == user.id
-        ).all()
+        content_stmt = select(AEOContent).where(AEOContent.user_id == user.id)
+        content_result = await db.execute(content_stmt)
+        content_list = content_result.scalars().all()
         
         if not content_list:
             return {
@@ -78,7 +79,7 @@ async def track_ai_visibility(
                         "visibility_score": visibility.visibility_score
                     })
         
-        db.commit()
+        await db.commit()
         
         logger.info(f"[AIVisibilityTracker] ✅ Tracked {len(visibility_data)} mentions")
         
@@ -98,7 +99,7 @@ async def track_ai_visibility(
 
 async def get_visibility_dashboard(
     user: User,
-    db: Session
+    db: AsyncSession
 ) -> Dict[str, Any]:
     """
     Get AI visibility dashboard data
@@ -115,10 +116,12 @@ async def get_visibility_dashboard(
         # Get recent visibility data (last 30 days)
         thirty_days_ago = datetime.utcnow() - timedelta(days=30)
         
-        visibility_records = db.query(AIVisibility).filter(
+        visibility_stmt = select(AIVisibility).where(
             AIVisibility.user_id == user.id,
             AIVisibility.checked_at >= thirty_days_ago
-        ).all()
+        )
+        visibility_result = await db.execute(visibility_stmt)
+        visibility_records = visibility_result.scalars().all()
         
         # Calculate metrics
         total_checks = len(visibility_records)
@@ -149,18 +152,27 @@ async def get_visibility_dashboard(
                 engine_stats[record.ai_engine]["citations"] += 1
         
         # Get top performing content
+        content_ids = {record.content_id for record in visibility_records if record.content_id}
+        content_title_by_id: Dict[int, str] = {}
+        if content_ids:
+            content_titles_stmt = select(AEOContent.id, AEOContent.title).where(
+                AEOContent.id.in_(content_ids)
+            )
+            content_titles_result = await db.execute(content_titles_stmt)
+            content_title_by_id = {content_id: title for content_id, title in content_titles_result.all()}
+
         content_performance = {}
         for record in visibility_records:
             if record.content_id not in content_performance:
-                content = db.query(AEOContent).filter(AEOContent.id == record.content_id).first()
-                if content:
+                title = content_title_by_id.get(record.content_id)
+                if title:
                     content_performance[record.content_id] = {
-                        "title": content.title,
+                        "title": title,
                         "mentions": 0,
                         "avg_position": []
                     }
             
-            if record.is_mentioned:
+            if record.is_mentioned and record.content_id in content_performance:
                 content_performance[record.content_id]["mentions"] += 1
                 if record.position:
                     content_performance[record.content_id]["avg_position"].append(record.position)

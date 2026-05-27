@@ -361,6 +361,27 @@ class RealtimeService:
             
         except Exception as e:
             logger.error(f"[ERROR] Notify user error: {e}")
+
+    async def broadcast_youtube_analytics(self, user_id: int, channel_id: int, metrics: Dict[str, Any]):
+        """
+        Send YouTube analytics update to a specific user.
+
+        Args:
+            user_id: target user id
+            channel_id: youtube channel db id
+            metrics: dictionary of analytics metrics
+        """
+        try:
+            notification = {
+                "type": "youtube_analytics",
+                "channel_id": channel_id,
+                "metrics": metrics,
+                "timestamp": datetime.now().isoformat(),
+            }
+            await self.notify_user(user_id, notification)
+            logger.info(f"[SUCCESS] Sent youtube analytics update to user {user_id}")
+        except Exception as e:
+            logger.error(f"[ERROR] Failed to broadcast youtube analytics: {e}")
     
     def is_user_online(self, user_id: int) -> bool:
         """

@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/dashboard/PageHeader";
 import {
   Sparkles,
   CheckCircle2,
@@ -17,6 +18,7 @@ import {
 import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { motion, AnimatePresence } from "framer-motion";
+import { Loader } from "@/components/ui/loader";
 import { env } from "@/config/env";
 
 export const Route = createFileRoute("/dashboard/daily-ask")({
@@ -177,19 +179,8 @@ function DailyAskPage() {
   // Loading state
   if (isLoading) {
     return (
-      <div className="min-h-full bg-gradient-to-br from-violet-50/50 via-white to-purple-50/40 p-6">
-        <div className="flex flex-col items-center justify-center py-32">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="relative"
-          >
-            <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-fuchsia-600 blur-3xl opacity-20 rounded-full" />
-            <Loader2 size={56} className="animate-spin text-purple-600 relative" />
-          </motion.div>
-          <h3 className="text-xl font-bold text-gray-900 mt-8">Loading Your Daily Plan</h3>
-          <p className="text-sm text-gray-600 mt-2">Preparing personalized suggestions...</p>
-        </div>
+      <div className="min-h-full p-6">
+        <Loader text="Loading Your Daily Plan" className="py-32" />
       </div>
     );
   }

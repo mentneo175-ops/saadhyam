@@ -45,7 +45,9 @@ function SignupPage() {
   const [agreeToTerms, setAgreeToTerms] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [isEmailLoading, setIsEmailLoading] = useState(false);
-  const [particles, setParticles] = useState<Array<{ id: number; left: string; top: string; duration: string; delay: string }>>([]);
+  const [particles, setParticles] = useState<
+    Array<{ id: number; left: string; top: string; duration: string; delay: string }>
+  >([]);
 
   // Generate particles only on client side
   useEffect(() => {
@@ -66,12 +68,12 @@ function SignupPage() {
 
     try {
       await loginWithGoogle();
-      
+
       // Wait a moment for auth state to update
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
       notifySuccess("Welcome back!", "Successfully signed in with Google");
-      
+
       try {
         const setupStatus = await apiClient.getBusinessSetupStatus();
         if (setupStatus.setup_completed) {
@@ -99,12 +101,12 @@ function SignupPage() {
 
     try {
       await registerWithEmail(email, password, name);
-      
+
       // Wait a moment for auth state to update
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
       notifySuccess("Welcome to Saadhyam AI!", "Account created successfully");
-      
+
       try {
         const setupStatus = await apiClient.getBusinessSetupStatus();
         if (setupStatus.setup_completed) {
@@ -131,45 +133,50 @@ function SignupPage() {
       data-auth-page
       className="h-screen flex overflow-hidden"
       style={{
-        background: 'linear-gradient(135deg, #F8F7FC 0%, #F3F1F9 50%, #EDE9F6 100%)',
+        background: "linear-gradient(135deg, #F8F7FC 0%, #F3F1F9 50%, #EDE9F6 100%)",
       }}
     >
       {/* LEFT PANEL - Exact Reference Layout */}
       <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden h-full">
-        
         {/* Large Flowing Logo Background */}
         <div className="absolute inset-0 overflow-hidden">
           {/* Big flowing gradient shape with logo */}
-          <div className="absolute top-0 right-0 w-[800px] h-[600px] opacity-40"
-               style={{
-                 background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(168, 85, 247, 0.25) 50%, rgba(139, 92, 246, 0.1) 100%)',
-                 borderRadius: '40% 60% 70% 30% / 40% 50% 60% 50%',
-                 transform: 'rotate(-15deg) translate(20%, -10%)',
-                 filter: 'blur(60px)',
-               }}>
-          </div>
-          
+          <div
+            className="absolute top-0 right-0 w-[800px] h-[600px] opacity-40"
+            style={{
+              background:
+                "linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(168, 85, 247, 0.25) 50%, rgba(139, 92, 246, 0.1) 100%)",
+              borderRadius: "40% 60% 70% 30% / 40% 50% 60% 50%",
+              transform: "rotate(-15deg) translate(20%, -10%)",
+              filter: "blur(60px)",
+            }}
+          ></div>
+
           {/* Large logo that merges with background */}
           <div className="absolute top-1/4 right-1/4 transform translate-x-1/4 -translate-y-1/4">
             <div className="relative">
               {/* Glow layers behind logo */}
               <div className="absolute inset-0 w-96 h-96 bg-gradient-to-br from-[#8B5CF6]/20 to-[#A855F7]/30 rounded-full blur-3xl"></div>
               <div className="absolute inset-0 w-96 h-96 bg-gradient-to-tl from-[#A855F7]/15 to-transparent rounded-full blur-2xl"></div>
-              
+
               {/* Large logo with original colors */}
-              <img 
-                src={LogoImage} 
-                alt="" 
+              <img
+                src={LogoImage}
+                alt=""
                 className="relative w-80 h-80 object-contain opacity-100"
                 style={{
-                  filter: 'drop-shadow(0 30px 60px rgba(139, 92, 246, 0.4))',
+                  filter: "drop-shadow(0 30px 60px rgba(139, 92, 246, 0.4))",
                 }}
               />
             </div>
           </div>
 
           {/* Flowing curved shape */}
-          <svg className="absolute top-0 right-0 w-full h-full opacity-30" viewBox="0 0 800 800" preserveAspectRatio="none">
+          <svg
+            className="absolute top-0 right-0 w-full h-full opacity-30"
+            viewBox="0 0 800 800"
+            preserveAspectRatio="none"
+          >
             <defs>
               <linearGradient id="flowGradient" x1="0%" y1="0%" x2="100%" y2="100%">
                 <stop offset="0%" stopColor="#8B5CF6" stopOpacity="0.2" />
@@ -177,11 +184,11 @@ function SignupPage() {
                 <stop offset="100%" stopColor="#8B5CF6" stopOpacity="0.1" />
               </linearGradient>
             </defs>
-            <path 
-              d="M 400,0 Q 600,200 800,300 L 800,0 Z" 
+            <path
+              d="M 400,0 Q 600,200 800,300 L 800,0 Z"
               fill="url(#flowGradient)"
               style={{
-                animation: 'flowMove 20s ease-in-out infinite',
+                animation: "flowMove 20s ease-in-out infinite",
               }}
             />
           </svg>
@@ -189,7 +196,7 @@ function SignupPage() {
           {/* Additional soft orbs */}
           <div className="absolute top-20 left-20 w-64 h-64 bg-[#8B5CF6]/8 rounded-full blur-3xl"></div>
           <div className="absolute bottom-32 right-32 w-48 h-48 bg-[#A855F7]/10 rounded-full blur-2xl"></div>
-          
+
           {/* Subtle particles */}
           {particles.map((particle) => (
             <div
@@ -207,22 +214,17 @@ function SignupPage() {
 
         {/* Main Content - Exact Layout */}
         <div className="relative z-10 w-full p-12 flex flex-col">
-          
           {/* Top Section - Logo + Tagline */}
           <div className="mb-12">
             <div className="flex items-center gap-3 mb-8">
-              <img 
-                src={LogoImage} 
-                alt="Saadhyam AI" 
-                className="w-12 h-12 object-contain"
-              />
+              <img src={LogoImage} alt="Saadhyam AI" className="w-12 h-12 object-contain" />
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">
                   Saadhyam <span className="text-[#8B5CF6]">AI</span>
                 </h1>
               </div>
             </div>
-            
+
             <div className="inline-block px-4 py-2 rounded-full bg-[#F3EEFF] border border-[#E9D5FF] mb-6">
               <p className="text-sm text-[#8B5CF6] font-medium flex items-center gap-2">
                 <span className="w-2 h-2 bg-[#8B5CF6] rounded-full"></span>
@@ -234,25 +236,34 @@ function SignupPage() {
           {/* Hero Text */}
           <div className="mb-8">
             <h2 className="text-5xl font-bold text-gray-900 leading-tight mb-4">
-              AI that powers<br />
+              AI that powers
+              <br />
               your <span className="text-[#8B5CF6]">business growth</span>
             </h2>
             <p className="text-lg text-gray-600 leading-relaxed max-w-md">
-              Smarter insights, automation and strategies<br />
+              Smarter insights, automation and strategies
+              <br />
               to scale your business faster.
             </p>
           </div>
 
           {/* Feature List + 3D Card - SIDE BY SIDE */}
           <div className="flex gap-8 mb-8 flex-1">
-            
             {/* LEFT: Feature List */}
             <div className="space-y-4 flex-shrink-0">
               {[
                 { icon: TrendingUp, title: "AI Insights", desc: "Get data-driven recommendations" },
                 { icon: Zap, title: "Smart Automation", desc: "Automate tasks and save hours" },
-                { icon: PieChart, title: "Growth Analytics", desc: "Track performance in real-time" },
-                { icon: Target, title: "Competitor Intelligence", desc: "Stay ahead with smart insights" },
+                {
+                  icon: PieChart,
+                  title: "Growth Analytics",
+                  desc: "Track performance in real-time",
+                },
+                {
+                  icon: Target,
+                  title: "Competitor Intelligence",
+                  desc: "Stay ahead with smart insights",
+                },
               ].map((feature, idx) => (
                 <div
                   key={idx}
@@ -273,13 +284,17 @@ function SignupPage() {
             </div>
 
             {/* RIGHT: 3D Dashboard Card */}
-            <div className="flex-1 flex items-center justify-center" style={{ perspective: '1500px' }}>
-              <div 
+            <div
+              className="flex-1 flex items-center justify-center"
+              style={{ perspective: "1500px" }}
+            >
+              <div
                 className="w-full max-w-sm glass-card rounded-3xl p-6 animate-float3d relative"
-                style={{ 
-                  transform: 'rotateY(-50deg) rotateX(-8deg) rotateZ(3deg)',
-                  transformStyle: 'preserve-3d',
-                  boxShadow: '0 25px 50px -12px rgba(139, 92, 246, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.1), -35px 30px 60px -15px rgba(139, 92, 246, 0.25)',
+                style={{
+                  transform: "rotateY(-50deg) rotateX(-8deg) rotateZ(3deg)",
+                  transformStyle: "preserve-3d",
+                  boxShadow:
+                    "0 25px 50px -12px rgba(139, 92, 246, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.1), -35px 30px 60px -15px rgba(139, 92, 246, 0.25)",
                 }}
               >
                 {/* Business Overview Header */}
@@ -289,7 +304,7 @@ function SignupPage() {
                     <PieChart className="w-4 h-4 text-white" />
                   </div>
                 </div>
-                
+
                 {/* Metrics Grid - 3 columns */}
                 <div className="grid grid-cols-3 gap-4 mb-5">
                   <div>
@@ -311,10 +326,10 @@ function SignupPage() {
 
                 {/* Mini Chart */}
                 <svg className="w-full h-16 mb-5" viewBox="0 0 300 60">
-                  <path 
-                    d="M0,50 Q75,25 150,30 T300,15" 
-                    fill="none" 
-                    stroke="url(#chartGradient)" 
+                  <path
+                    d="M0,50 Q75,25 150,30 T300,15"
+                    fill="none"
+                    stroke="url(#chartGradient)"
                     strokeWidth="2.5"
                     strokeLinecap="round"
                   />
@@ -332,7 +347,9 @@ function SignupPage() {
                   <div>
                     <p className="text-xs text-gray-500 mb-2">AI Score</p>
                     <div className="flex items-baseline gap-1 mb-2">
-                      <span className="text-3xl font-bold bg-gradient-to-r from-[#8B5CF6] to-[#A855F7] bg-clip-text text-transparent">85</span>
+                      <span className="text-3xl font-bold bg-gradient-to-r from-[#8B5CF6] to-[#A855F7] bg-clip-text text-transparent">
+                        85
+                      </span>
                       <span className="text-sm text-gray-400">/100</span>
                     </div>
                     <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
@@ -349,15 +366,17 @@ function SignupPage() {
                 </div>
               </div>
             </div>
-
           </div>
 
           {/* Bottom - Social Proof */}
           <div className="mt-auto">
             <div className="flex items-center gap-3">
               <div className="flex -space-x-2">
-                {[1,2,3,4].map((i) => (
-                  <div key={i} className="w-8 h-8 rounded-full bg-gradient-to-br from-[#8B5CF6] to-[#A855F7] border-2 border-white"></div>
+                {[1, 2, 3, 4].map((i) => (
+                  <div
+                    key={i}
+                    className="w-8 h-8 rounded-full bg-gradient-to-br from-[#8B5CF6] to-[#A855F7] border-2 border-white"
+                  ></div>
                 ))}
               </div>
               <div>
@@ -366,24 +385,20 @@ function SignupPage() {
               </div>
             </div>
           </div>
-
         </div>
       </div>
 
       {/* RIGHT PANEL - Auth Form (Exact Reference) */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8 h-full overflow-y-auto bg-white">
         <div className="w-full max-w-md">
-          
           {/* Logo at Top (Mobile + Desktop) */}
           <div className="text-center mb-12">
-            <img 
-              src={LogoImage} 
-              alt="Saadhyam AI" 
+            <img
+              src={LogoImage}
+              alt="Saadhyam AI"
               className="w-16 h-16 object-contain mx-auto mb-4"
             />
-            <h2 className="text-4xl font-bold text-gray-900 mb-2">
-              Start your journey! 🚀
-            </h2>
+            <h2 className="text-4xl font-bold text-gray-900 mb-2">Start your journey! 🚀</h2>
             <p className="text-gray-600">Create your account and unlock AI-powered growth</p>
           </div>
 
@@ -397,7 +412,6 @@ function SignupPage() {
 
           {/* Login Form */}
           <div className="space-y-5">
-            
             {/* Google Sign In */}
             <Button
               variant="outline"
@@ -463,14 +477,22 @@ function SignupPage() {
                   />
                   <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                      />
                     </svg>
                   </div>
                 </div>
               </div>
 
               <div>
-                <Label htmlFor="password" className="text-sm font-semibold text-gray-700 mb-2 block">
+                <Label
+                  htmlFor="password"
+                  className="text-sm font-semibold text-gray-700 mb-2 block"
+                >
                   Password
                 </Label>
                 <div className="relative">
@@ -487,7 +509,12 @@ function SignupPage() {
                   />
                   <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                      />
                     </svg>
                   </div>
                   <button
@@ -512,9 +539,13 @@ function SignupPage() {
                 />
                 <label htmlFor="terms" className="ml-2 text-sm text-gray-700">
                   I agree to the{" "}
-                  <a href="/terms" className="text-[#8B5CF6] hover:underline">Terms of Service</a>
-                  {" "}and{" "}
-                  <a href="/privacy" className="text-[#8B5CF6] hover:underline">Privacy Policy</a>
+                  <a href="/terms" className="text-[#8B5CF6] hover:underline">
+                    Terms of Service
+                  </a>{" "}
+                  and{" "}
+                  <a href="/privacy" className="text-[#8B5CF6] hover:underline">
+                    Privacy Policy
+                  </a>
                 </label>
               </div>
 
@@ -572,11 +603,15 @@ function SignupPage() {
             {/* Terms */}
             <p className="text-xs text-gray-500 text-center pt-4">
               By creating an account, you agree to our{" "}
-              <a href="/terms" className="text-[#8B5CF6] hover:underline">Terms of Service</a>
-              {" "}and{" "}
-              <a href="/privacy" className="text-[#8B5CF6] hover:underline">Privacy Policy</a>.
+              <a href="/terms" className="text-[#8B5CF6] hover:underline">
+                Terms of Service
+              </a>{" "}
+              and{" "}
+              <a href="/privacy" className="text-[#8B5CF6] hover:underline">
+                Privacy Policy
+              </a>
+              .
             </p>
-
           </div>
         </div>
       </div>

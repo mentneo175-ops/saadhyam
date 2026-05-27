@@ -4,6 +4,7 @@
  */
 
 import { apiClient } from "./api";
+import { ApiError } from "./api";
 
 // Cache duration: 3 hours (in milliseconds)
 const CACHE_DURATION = 3 * 60 * 60 * 1000;
@@ -77,6 +78,28 @@ export interface BusinessInsightsResult {
   message?: string;
 }
 
+function normalizeBusinessProfile(profile: Record<string, any> | null | undefined): BusinessProfile | null {
+  if (!profile) return null;
+
+  const businessName = String(profile.business_name || profile.name || "").trim();
+  const businessType = String(profile.business_type || profile.type || "").trim();
+  const location = String(profile.location || profile.business_location || "").trim();
+
+  if (!businessName || !businessType || !location) {
+    return null;
+  }
+
+  return {
+    business_name: businessName,
+    business_type: businessType,
+    location,
+    services: Array.isArray(profile.services) ? profile.services : undefined,
+    target_audience: profile.target_audience ? String(profile.target_audience) : undefined,
+    goals: profile.goals ? String(profile.goals) : undefined,
+    language: profile.language ? String(profile.language) : "english",
+  };
+}
+
 /**
  * Check if cached data is still valid
  */
@@ -137,27 +160,43 @@ export async function getBusinessProfile(): Promise<BusinessProfile | null> {
   try {
     // Try to get from API first
     const profile = await apiClient.getBusinessProfile();
-    
-    if (profile.business_name && profile.business_type && profile.business_location) {
-      return {
-        business_name: profile.business_name,
-        business_type: profile.business_type,
-        location: profile.business_location,
-        language: "english",
-      };
+    const normalizedProfile = normalizeBusinessProfile(profile);
+
+    if (normalizedProfile) {
+      return normalizedProfile;
     }
-    
+
     return null;
   } catch (error) {
+    if (error instanceof ApiError && (error.status === 401 || error.status === 403)) {
+      throw error;
+    }
+
     console.error("Error fetching business profile:", error);
+
+    // Try the full profile endpoint before falling back to localStorage.
+    try {
+      const fullProfile = await apiClient.getProfile();
+      const normalizedProfile = normalizeBusinessProfile(fullProfile?.business_profile || fullProfile);
+
+      if (normalizedProfile) {
+        return normalizedProfile;
+      }
+    } catch (profileError) {
+      if (profileError instanceof ApiError && (profileError.status === 401 || profileError.status === 403)) {
+        throw profileError;
+      }
+      console.error("Error fetching full profile fallback:", profileError);
+    }
     
     // Fallback to localStorage
     try {
       const localProfile = localStorage.getItem("businessProfile");
       if (localProfile) {
         const parsed = JSON.parse(localProfile);
-        if (parsed.business_name && parsed.business_type && parsed.location) {
-          return parsed;
+        const normalizedProfile = normalizeBusinessProfile(parsed);
+        if (normalizedProfile) {
+          return normalizedProfile;
         }
       }
     } catch (e) {

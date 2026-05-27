@@ -10,9 +10,14 @@ from apscheduler.triggers.interval import IntervalTrigger
 from sqlalchemy import create_engine, select, and_
 from sqlalchemy.orm import sessionmaker
 from config.settings import settings
-from models.instagram import ScheduledPost
+import asyncio
+import requests
+from models.instagram import ScheduledPost, SocialAccount
+from models.youtube import YouTubeVideo, YouTubeChannel
 from services.instagram_service import InstagramGraphAPIService
 from services.instagram_crud import InstagramCRUD
+from services.youtube_service import youtube_service
+from services.cloudinary_service import delete_cloudinary_asset_sync
 
 logger = logging.getLogger(__name__)
 
@@ -157,6 +162,125 @@ def process_scheduled_posts():
         db.close()
 
 
+def process_scheduled_youtube_videos():
+    """
+    Process scheduled YouTube video uploads.
+    Runs every 1 minute.
+    """
+    db = SessionLocal()
+    try:
+        utc_now = datetime.utcnow()
+        
+        # Query for videos that are scheduled and ready to publish
+        stmt = select(YouTubeVideo).where(
+            and_(
+                YouTubeVideo.status == "scheduled",
+                YouTubeVideo.scheduled_time <= utc_now,
+            )
+        )
+        result = db.execute(stmt)
+        videos = result.scalars().all()
+        
+        if not videos:
+            return
+            
+        logger.info(f"🎥 YouTube Scheduler: Processing {len(videos)} scheduled uploads")
+        
+        for video in videos:
+            try:
+                logger.info(f"🎥 YouTube Scheduler: Uploading Video ID {video.id} - '{video.title}'")
+                
+                # Fetch YouTubeChannel
+                channel_stmt = select(YouTubeChannel).where(YouTubeChannel.id == video.channel_id)
+                channel = db.execute(channel_stmt).scalar_one_or_none()
+                if not channel:
+                    logger.error(f"❌ YouTube Scheduler: Channel for video {video.id} not found")
+                    video.status = "failed"
+                    video.error_message = "YouTube Channel not found"
+                    db.commit()
+                    continue
+                    
+                # Fetch SocialAccount
+                account_stmt = select(SocialAccount).where(SocialAccount.id == channel.social_account_id)
+                account = db.execute(account_stmt).scalar_one_or_none()
+                if not account or not account.is_active:
+                    logger.error(f"❌ YouTube Scheduler: SocialAccount for channel {channel.id} is missing or inactive")
+                    video.status = "failed"
+                    video.error_message = "Connected social account is missing or disconnected"
+                    db.commit()
+                    continue
+
+                # Ensure active token (refresh if older than 50 minutes)
+                access_token = account.access_token
+                time_elapsed = datetime.utcnow() - account.updated_at
+                if time_elapsed.total_seconds() > 3000 and account.refresh_token:
+                    logger.info(f"🔄 YouTube Scheduler: Refreshing token for SocialAccount {account.id}...")
+                    
+                    # Call refresh token synchronously
+                    loop = asyncio.new_event_loop()
+                    try:
+                        refresh_res = loop.run_until_complete(youtube_service.refresh_token(account.refresh_token))
+                        if refresh_res.get("success"):
+                            account.access_token = refresh_res["access_token"]
+                            account.updated_at = datetime.utcnow()
+                            db.commit()
+                            access_token = refresh_res["access_token"]
+                            logger.info("✅ YouTube Scheduler: Token refreshed successfully")
+                        else:
+                            logger.error(f"❌ YouTube Scheduler: Token refresh failed: {refresh_res.get('error')}")
+                    finally:
+                        loop.close()
+
+                # Set status to publishing
+                video.status = "publishing"
+                db.commit()
+
+                # Call upload_video synchronously via asyncio loop
+                loop = asyncio.new_event_loop()
+                try:
+                    upload_res = loop.run_until_complete(youtube_service.upload_video(
+                        access_token=access_token,
+                        video_path=video.video_url,
+                        title=video.title,
+                        description=video.description or "",
+                        tags=video.tags,
+                        category_id=video.category_id or "22",
+                        privacy_status=video.privacy_status or "public"
+                    ))
+                    
+                    if upload_res.get("success"):
+                        video.status = "posted"
+                        video.video_id = upload_res["video_id"]
+                        video.posted_time = datetime.utcnow()
+                        if video.video_public_id:
+                            delete_cloudinary_asset_sync(video.video_public_id, "video")
+                        if video.thumbnail_public_id:
+                            delete_cloudinary_asset_sync(video.thumbnail_public_id, "image")
+                        logger.info(f"✅ YouTube Scheduler: Video {video.id} posted successfully to YouTube (ID: {upload_res['video_id']})")
+                    else:
+                        video.status = "failed"
+                        video.error_message = upload_res.get("error", "Failed to upload video")
+                        logger.error(f"❌ YouTube Scheduler: Upload failed for video {video.id}: {video.error_message}")
+                finally:
+                    loop.close()
+
+                db.commit()
+
+            except Exception as item_ex:
+                logger.error(f"❌ YouTube Scheduler: Error processing video {video.id}: {item_ex}")
+                try:
+                    video.status = "failed"
+                    video.error_message = str(item_ex)
+                    db.commit()
+                except Exception as db_ex:
+                    logger.error(f"❌ YouTube Scheduler: Failed to save error status to DB: {db_ex}")
+                    
+    except Exception as e:
+        logger.error(f"❌ YouTube Scheduler: CRITICAL ERROR: {e}", exc_info=True)
+    finally:
+        db.close()
+
+
 def start_scheduler():
     """
     Start the APScheduler background scheduler.
@@ -177,10 +301,20 @@ def start_scheduler():
             replace_existing=True,
             max_instances=1,  # Prevent concurrent execution
         )
+
+        # Add job to process scheduled YouTube videos every 1 minute
+        scheduler.add_job(
+            func=process_scheduled_youtube_videos,
+            trigger=IntervalTrigger(minutes=1),
+            id="process_scheduled_youtube_videos",
+            name="Process Scheduled YouTube Videos",
+            replace_existing=True,
+            max_instances=1,
+        )
         
         # Start scheduler
         scheduler.start()
-        logger.info("✅ Instagram post scheduler started (checks every 1 minute)")
+        logger.info("✅ Instagram and YouTube post scheduler started (checks every 1 minute)")
         
     except Exception as e:
         logger.error(f"❌ Failed to start scheduler: {e}", exc_info=True)

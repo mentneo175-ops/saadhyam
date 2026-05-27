@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useState, useEffect } from "react";
+import { Loader } from "@/components/ui/loader";
 import { Loader2, Plus, TrendingUp, DollarSign, Target, Zap, Settings } from "lucide-react";
 import { toast } from "sonner";
 import { MetaConnectionWizard } from "@/components/meta-ads/MetaConnectionWizard";
@@ -104,11 +105,7 @@ function MetaAdsPage() {
   if (!mounted) return null;
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-full py-20">
-        <Loader2 className="w-8 h-8 animate-spin text-purple-600" />
-      </div>
-    );
+    return <Loader text="Loading Meta Ads" className="min-h-full py-20" />;
   }
 
   // Show connection wizard if not connected

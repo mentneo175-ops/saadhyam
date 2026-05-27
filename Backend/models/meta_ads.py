@@ -296,7 +296,7 @@ class AdAnalytics(Base):
 
 class AudienceInsight(Base):
     """AI-generated audience insights"""
-    __tablename__ = "audience_insights"
+    __tablename__ = "ai_audience_insights"
     __table_args__ = {'extend_existing': True}
 
     id = Column(Integer, primary_key=True, index=True)

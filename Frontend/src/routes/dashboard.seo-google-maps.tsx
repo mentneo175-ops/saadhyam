@@ -110,6 +110,15 @@ function SEOGoogleMapsPage() {
 
   const tipsData = analysis?.seo_google_maps_tips;
 
+  const handleQuickAction = (title: string) => {
+    if (title === "Google Business Profile") {
+      setActiveTab("maps");
+      return;
+    }
+
+    setActiveTab("seo");
+  };
+
   const header = (
     <SEOPageHeader
       title="SEO & Google Maps"
@@ -198,7 +207,7 @@ function SEOGoogleMapsPage() {
           <EmptyInsightsState />
         )}
 
-        <QuickActionsGrid delay={0.35} />
+        <QuickActionsGrid delay={0.35} onAction={handleQuickAction} />
         <ProTipsBanner delay={0.42} />
       </SEOLayout>
     </div>

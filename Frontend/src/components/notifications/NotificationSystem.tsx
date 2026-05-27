@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { Toast } from './Toast';
 import { GlobalBanner } from './GlobalBanner';
+import { toast as sonnerToast } from 'sonner';
 
 interface Notification {
   id: string;
@@ -32,7 +33,6 @@ export const useNotifications = () => {
 };
 
 export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [toasts, setToasts] = useState<Notification[]>([]);
   const [banner, setBanner] = useState<Notification | null>(null);
 
   useEffect(() => {
@@ -62,18 +62,39 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
   const showToast = useCallback((notification: Omit<Notification, 'id'>) => {
     const id = `toast-${Date.now()}-${Math.random()}`;
-    const newToast: Notification = {
-      ...notification,
+    const duration = notification.duration === 0 ? Infinity : (notification.duration ?? 5000);
+    
+    const options = {
+      description: notification.message,
+      duration,
       id,
-      duration: notification.duration ?? 5000,
+      action: notification.action ? {
+        label: notification.action.label,
+        onClick: notification.action.onClick,
+      } : undefined,
     };
 
-    setToasts((prev) => [...prev, newToast]);
-
-    if (newToast.duration && newToast.duration > 0) {
-      setTimeout(() => {
-        dismissToast(id);
-      }, newToast.duration);
+    switch (notification.type) {
+      case 'success':
+        sonnerToast.success(notification.title, options);
+        break;
+      case 'error':
+        sonnerToast.error(notification.title, options);
+        break;
+      case 'warning':
+        sonnerToast.warning(notification.title, options);
+        break;
+      case 'info':
+        sonnerToast.info(notification.title, options);
+        break;
+      case 'ai':
+        sonnerToast(notification.title, {
+          ...options,
+          icon: '✨',
+        });
+        break;
+      default:
+        sonnerToast(notification.title, options);
     }
   }, []);
 
@@ -83,7 +104,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
   }, []);
 
   const dismissToast = useCallback((id: string) => {
-    setToasts((prev) => prev.filter((toast) => toast.id !== id));
+    sonnerToast.dismiss(id);
   }, []);
 
   const dismissBanner = useCallback(() => {
@@ -104,20 +125,6 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
           onDismiss={dismissBanner}
         />
       )}
-
-      {/* Toast Container */}
-      <div className="fixed top-4 right-4 z-50 flex flex-col gap-3 pointer-events-none max-w-md">
-        {toasts.map((toast) => (
-          <Toast
-            key={toast.id}
-            type={toast.type}
-            title={toast.title}
-            message={toast.message}
-            action={toast.action}
-            onDismiss={() => dismissToast(toast.id)}
-          />
-        ))}
-      </div>
     </NotificationContext.Provider>
   );
 };

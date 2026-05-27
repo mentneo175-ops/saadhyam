@@ -32,13 +32,22 @@ import {
   X,
   ChevronLeft,
   ArrowLeft,
+  Youtube,
+  Share2,
 } from "lucide-react";
 
-type NavItem = {
+type SubNavItem = {
   to: string;
   label: string;
   icon: typeof LayoutDashboard;
+};
+
+type NavItem = {
+  to?: string;
+  label: string;
+  icon: typeof LayoutDashboard;
   exact?: boolean;
+  children?: SubNavItem[];
 };
 
 const items: NavItem[] = [
@@ -52,7 +61,14 @@ const items: NavItem[] = [
   { to: "/dashboard/b2b-network", label: "B2B Network", icon: Network },
   { to: "/dashboard/b2b-chat", label: "B2B Chat", icon: MessageSquare },
   { to: "/dashboard/content", label: "Content Creator", icon: Wand2 },
-  { to: "/dashboard/instagram", label: "Instagram", icon: Instagram },
+  {
+    label: "Social Media",
+    icon: Share2,
+    children: [
+      { to: "/dashboard/instagram", label: "Instagram", icon: Instagram },
+      { to: "/dashboard/youtube", label: "YouTube", icon: Youtube },
+    ],
+  },
   { to: "/dashboard/meta-ads", label: "Meta Ads", icon: Megaphone },
   { to: "/dashboard/whatsapp", label: "WhatsApp Sales", icon: MessageSquare },
   { to: "/dashboard/voice-agent", label: "AI Voice Agent", icon: Phone },
@@ -66,14 +82,80 @@ const items: NavItem[] = [
 export function Sidebar() {
   const { pathname } = useLocation();
   const { isMinimized, toggleMinimized, isMobileMenuOpen, setIsMobileMenuOpen, toggleMobileMenu } = useSidebar();
+  const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({ "Social Media": true });
 
   const closeMobileMenu = () => setIsMobileMenuOpen(false);
 
-  const NavItem = ({ item, isMinimized = false }: { item: NavItem; isMinimized?: boolean }) => {
+  const toggleMenu = (label: string) => {
+    setOpenMenus((prev) => ({ ...prev, [label]: !prev[label] }));
+  };
+
+  const NavItemComponent = ({ item, isMinimized = false }: { item: NavItem; isMinimized?: boolean }) => {
+    const Icon = item.icon;
+
+    if (item.children) {
+      const isOpen = openMenus[item.label];
+      const isAnyChildActive = item.children.some((child) => 
+        pathname === child.to || pathname.startsWith(child.to + "/")
+      );
+
+      return (
+        <div className="space-y-1">
+          <button
+            type="button"
+            onClick={() => toggleMenu(item.label)}
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all group relative cursor-pointer ${
+              isAnyChildActive
+                ? "text-purple-700 bg-purple-500/5 font-semibold"
+                : "text-gray-700 hover:bg-[#F9F7FF] hover:text-purple-700"
+            } ${isMinimized ? 'justify-center' : ''}`}
+            title={isMinimized ? item.label : undefined}
+          >
+            <Icon
+              size={18}
+              className={isAnyChildActive ? "text-purple-600" : "text-gray-400 group-hover:text-purple-600"}
+            />
+            {!isMinimized && (
+              <>
+                <span className="flex-1 text-left">{item.label}</span>
+                <ChevronRight 
+                  size={14} 
+                  className={`text-gray-400 transition-transform duration-200 ${isOpen ? 'rotate-90 text-purple-600' : ''}`} 
+                />
+              </>
+            )}
+          </button>
+          
+          {isOpen && !isMinimized && (
+            <div className="pl-6 space-y-1 transition-all duration-200 animate-slide-down">
+              {item.children.map((child) => {
+                const childActive = pathname === child.to || pathname.startsWith(child.to + "/");
+                const ChildIcon = child.icon;
+                return (
+                  <Link
+                    key={child.to}
+                    to={child.to as "/dashboard"}
+                    onClick={closeMobileMenu}
+                    className={`flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+                      childActive
+                        ? "bg-gradient-to-r from-[#8B5CF6] to-[#A855F7] text-white shadow-md shadow-purple-500/10 font-semibold"
+                        : "text-gray-600 hover:bg-purple-50/50 hover:text-purple-700"
+                    }`}
+                  >
+                    <ChildIcon size={14} className={childActive ? "text-white" : "text-gray-400"} />
+                    <span>{child.label}</span>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      );
+    }
+
     const active = item.exact
       ? pathname === item.to
-      : pathname === item.to || pathname.startsWith(item.to + "/");
-    const Icon = item.icon;
+      : pathname === item.to || (item.to && pathname.startsWith(item.to + "/"));
     
     return (
       <Link
@@ -93,7 +175,7 @@ export function Sidebar() {
         />
         {!isMinimized && (
           <>
-            <span className="flex-1">{item.label}</span>
+            <span className="flex-1 text-left">{item.label}</span>
             {active && <ChevronRight size={14} className="text-white" />}
           </>
         )}
@@ -129,7 +211,7 @@ export function Sidebar() {
         {/* Navigation */}
         <nav className="flex-1 overflow-y-auto p-3 space-y-1 scrollbar-invisible">
           {items.map((item) => (
-            <NavItem key={item.to} item={item} isMinimized={isMinimized} />
+            <NavItemComponent key={item.label} item={item} isMinimized={isMinimized} />
           ))}
         </nav>
       </aside>
@@ -165,7 +247,7 @@ export function Sidebar() {
           {/* Navigation */}
           <nav className="flex-1 overflow-y-auto p-3 space-y-1 scrollbar-invisible">
             {items.map((item) => (
-              <NavItem key={item.to} item={item} />
+              <NavItemComponent key={item.label} item={item} />
             ))}
           </nav>
         </aside>

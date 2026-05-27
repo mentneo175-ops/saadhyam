@@ -7,7 +7,8 @@ Uses existing business analysis data + Gemini API
 import logging
 import json
 from typing import Dict, Any, List
-from sqlalchemy.orm import Session
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 from db.models import BusinessAnalysis
 from models.user import User
 
@@ -16,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 async def analyze_business_for_aeo(
     user: User,
-    db: Session
+    db: AsyncSession
 ) -> Dict[str, Any]:
     """
     Analyze business for AEO/GEO opportunities
@@ -34,10 +35,17 @@ async def analyze_business_for_aeo(
         logger.info(f"[AEOBusinessAnalyzer] Analyzing business for user {user.id}")
         
         # Get existing business analysis
-        analysis = db.query(BusinessAnalysis).filter(
-            BusinessAnalysis.user_id == user.id,
-            BusinessAnalysis.analysis_status == 'completed'
-        ).order_by(BusinessAnalysis.last_analyzed_at.desc()).first()
+        analysis_stmt = (
+            select(BusinessAnalysis)
+            .where(
+                BusinessAnalysis.user_id == user.id,
+                BusinessAnalysis.analysis_status == 'completed'
+            )
+            .order_by(BusinessAnalysis.last_analyzed_at.desc())
+            .limit(1)
+        )
+        analysis_result = await db.execute(analysis_stmt)
+        analysis = analysis_result.scalars().first()
         
         if not analysis:
             return {

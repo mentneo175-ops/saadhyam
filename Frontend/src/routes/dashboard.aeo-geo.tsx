@@ -24,8 +24,7 @@ import {
   Tag,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useCooldown, formatCooldownTime } from "@/hooks/useCooldown";
-import { useNotificationHelpers } from "@/components/notifications";
+import { Loader } from "@/components/ui/loader";
 import {
   getAEOGEOOverview,
   runFullOptimization,
@@ -59,19 +58,12 @@ function AEOGEOPage() {
   const [isSearching, setIsSearching] = useState(false);
   const [isGeneratingBlog, setIsGeneratingBlog] = useState(false);
   const [blogTopic, setBlogTopic] = useState("");
-  const { notifyWarning } = useNotificationHelpers();
 
   // Blog management state
   const [blogs, setBlogs] = useState<Blog[]>([]);
   const [blogFilter, setBlogFilter] = useState<"all" | "draft" | "published">("all");
   const [selectedBlog, setSelectedBlog] = useState<Blog | null>(null);
   const [publishingBlogIds, setPublishingBlogIds] = useState<Set<number>>(new Set());
-
-  // Cooldown for optimization button (2 hours)
-  const optimizeCooldown = useCooldown({
-    cooldownMinutes: 120,
-    storageKey: "aeo-geo-optimize-cooldown",
-  });
 
   // Get token from localStorage
   const getToken = () => {
@@ -131,15 +123,6 @@ function AEOGEOPage() {
   };
 
   const handleOptimize = async () => {
-    // Check cooldown
-    if (!optimizeCooldown.canExecute) {
-      notifyWarning(
-        "Optimization on Cooldown",
-        `Please wait ${formatCooldownTime(optimizeCooldown.remainingTime)} before running optimization again.`,
-      );
-      return;
-    }
-
     setIsOptimizing(true);
     setError(null);
 
@@ -147,13 +130,9 @@ function AEOGEOPage() {
       const token = getToken();
       await runFullOptimization(token);
       await loadData();
-
-      // Start cooldown ONLY after successfully getting complete data
-      optimizeCooldown.execute();
     } catch (err: any) {
       console.error("Error optimizing:", err);
       setError(err.message || "Failed to run optimization");
-      // Don't start cooldown if optimization failed - user can retry
     } finally {
       setIsOptimizing(false);
     }
@@ -299,7 +278,6 @@ function AEOGEOPage() {
     }
   };
 
-  // Loading state
   if (isLoading) {
     return (
       <div className="p-4 md:p-6 space-y-5">
@@ -307,10 +285,7 @@ function AEOGEOPage() {
           title="AEO & GEO"
           subtitle="Answer Engine Optimization + Generative Engine Optimization"
         />
-        <div className="flex flex-col items-center justify-center py-20">
-          <Loader2 size={48} className="animate-spin text-purple-600 mb-4" />
-          <p className="text-lg font-semibold text-gray-900">Loading...</p>
-        </div>
+        <Loader text="Loading AEO & GEO data" className="py-20" />
       </div>
     );
   }
@@ -379,19 +354,11 @@ function AEOGEOPage() {
           variant="hero"
           size="sm"
           onClick={handleOptimize}
-          disabled={isOptimizing || !optimizeCooldown.canExecute}
-          title={
-            !optimizeCooldown.canExecute
-              ? `Cooldown: ${formatCooldownTime(optimizeCooldown.remainingTime)}`
-              : "Run full optimization"
-          }
+          disabled={isOptimizing}
+          title="Run full optimization"
         >
           <Zap size={14} className={isOptimizing ? "animate-spin" : ""} />
-          {!optimizeCooldown.canExecute
-            ? formatCooldownTime(optimizeCooldown.remainingTime).split(" ")[0]
-            : isOptimizing
-              ? "Optimizing..."
-              : "Run Full Optimization"}
+          {isOptimizing ? "Optimizing..." : "Run Full Optimization"}
         </Button>
       </div>
 

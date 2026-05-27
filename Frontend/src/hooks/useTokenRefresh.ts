@@ -55,7 +55,7 @@ export function useTokenRefresh() {
           // If refresh fails, clear token and redirect to login
           apiClient.setToken(null);
           if (typeof window !== 'undefined') {
-            window.location.href = '/auth/login';
+            window.location.href = '/login';
           }
         }
       } catch (error) {
@@ -63,7 +63,7 @@ export function useTokenRefresh() {
         // Clear token on error
         apiClient.setToken(null);
         if (typeof window !== 'undefined') {
-          window.location.href = '/auth/login';
+          window.location.href = '/login';
         }
       }
     }

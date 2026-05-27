@@ -85,6 +85,14 @@ except Exception as e:
     instagram_post_available = False
 
 try:
+    from routes.youtube_oauth import router as youtube_oauth_router
+    from routes.youtube import router as youtube_router
+    youtube_available = True
+except Exception as e:
+    logging.warning(f"YouTube router not available: {e}")
+    youtube_available = False
+
+try:
     from routes.settings import router as settings_router
     settings_available = True
 except Exception as e:
@@ -474,6 +482,8 @@ async def lifespan(app: FastAPI):
         logger.info("[OK] Migrations completed")
         from migrations.add_meta_ads_tables import migrate_add_meta_ads_tables
         migrate_add_meta_ads_tables()
+        from migrations.add_ai_audience_insights_table import migrate_add_ai_audience_insights_table
+        migrate_add_ai_audience_insights_table()
         from migrations.fix_campaign_status_enum import migrate_fix_campaign_status_enum
         migrate_fix_campaign_status_enum()
         from migrations.update_campaign_status_enum import migrate_update_campaign_status_enum
@@ -482,6 +492,10 @@ async def lifespan(app: FastAPI):
         migrate_add_session_tracking()
         from migrations.add_chat_tables import migrate_add_chat_tables
         migrate_add_chat_tables()
+        from migrations.add_youtube_tables import migrate_add_youtube_tables
+        migrate_add_youtube_tables()
+        from migrations.add_youtube_cloudinary_fields import migrate_add_youtube_cloudinary_fields
+        migrate_add_youtube_cloudinary_fields()
         logger.info("✅ Migrations completed")
         
         # Start scheduler for processing scheduled Instagram posts
@@ -787,6 +801,9 @@ if instagram_oauth_available:
     app.include_router(instagram_oauth_router)
 if instagram_post_available:
     app.include_router(instagram_post_router)
+if youtube_available:
+    app.include_router(youtube_oauth_router)
+    app.include_router(youtube_router)
 if settings_available:
     app.include_router(settings_router)
 if crud_available:

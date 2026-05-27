@@ -5,7 +5,7 @@ Orchestrates complete campaign creation from post to live ad
 
 import logging
 from typing import Dict, Any, Optional
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import datetime, timedelta
 
 from models.user import User
@@ -27,7 +27,7 @@ class CampaignAutomationService:
     
     async def promote_post(
         self,
-        db: Session,
+        db: AsyncSession,
         user: User,
         post: ScheduledPost,
         meta_account: MetaAccount,
@@ -120,11 +120,11 @@ class CampaignAutomationService:
                 ai_budget_recommendation=budget_recommendations,
             )
             db.add(campaign)
-            db.commit()
-            db.refresh(campaign)
+            await db.commit()
+            await db.refresh(campaign)
             
             # Log campaign creation
-            self._log_action(db, campaign.id, "campaign_created", "success", f"Campaign created: {meta_campaign['id']}")
+            await self._log_action(db, campaign.id, "campaign_created", "success", f"Campaign created: {meta_campaign['id']}")
             
             # Step 4: Create Ad Set with AI targeting
             logger.info("🎯 Creating ad set with AI targeting...")
@@ -166,10 +166,10 @@ class CampaignAutomationService:
                 bid_strategy="LOWEST_COST_WITHOUT_CAP",
             )
             db.add(ad_set)
-            db.commit()
-            db.refresh(ad_set)
+            await db.commit()
+            await db.refresh(ad_set)
             
-            self._log_action(db, campaign.id, "adset_created", "success", f"Ad Set created: {meta_adset['id']}")
+            await self._log_action(db, campaign.id, "adset_created", "success", f"Ad Set created: {meta_adset['id']}")
             
             # Step 5: Create Ad Creative from existing post
             logger.info("🎨 Creating ad creative from existing post...")
@@ -186,83 +186,28 @@ class CampaignAutomationService:
             
             if instagram_media_id:
                 logger.info(f"✅ Found Instagram media ID: {instagram_media_id}")
-                try:
-                    # Create creative using existing Instagram media
-                    meta_creative = await meta_ads_service.create_ad_creative_from_post(
-                        meta_account=meta_account,
-                        creative_name=creative_name,
-                        instagram_media_id=instagram_media_id,
-                        facebook_post_id=None,
-                    )
-                    logger.info(f"✅ Creative created from Instagram media")
-                    
-                except Exception as e:
-                    logger.warning(f"⚠️ Could not create creative from Instagram media: {e}")
-                    logger.info("ℹ️ Falling back to simple creative")
-                    # For MVP: Skip creative and ad creation, just create campaign + ad set
-                    logger.info(f"✅ Campaign and Ad Set created successfully (Creative step skipped for MVP)")
-                    
-                    return {
-                        "success": True,
-                        "campaign": {
-                            "id": campaign.id,
-                            "campaign_id": campaign.campaign_id,
-                            "name": campaign.campaign_name,
-                            "status": campaign.status.value,
-                            "objective": campaign.objective.value,
-                            "daily_budget": final_daily_budget,
-                            "duration_days": final_duration,
-                        },
-                        "ad_set": {
-                            "id": ad_set.id,
-                            "adset_id": ad_set.adset_id,
-                            "name": ad_set.adset_name,
-                        },
-                        "ai_recommendations": {
-                            "audience": audience_recommendations,
-                            "budget": budget_recommendations,
-                        },
-                        "message": "Campaign and Ad Set created successfully! Creative and Ad creation skipped (requires published Instagram post). You can complete this in Meta Ads Manager.",
-                        "mvp_mode": True,
-                    }
             else:
                 logger.warning("⚠️ No Instagram media ID found for this post")
-                logger.info("ℹ️ This post may not have been published to Instagram yet")
-                logger.info("ℹ️ For MVP, we'll create Campaign + Ad Set only")
-                
-                # For MVP: Just create campaign + ad set, skip creative/ad
-                logger.info(f"✅ Campaign and Ad Set created successfully (Creative requires published post)")
-                
-                return {
-                    "success": True,
-                    "campaign": {
-                        "id": campaign.id,
-                        "campaign_id": campaign.campaign_id,
-                        "name": campaign.campaign_name,
-                        "status": campaign.status.value,
-                        "objective": campaign.objective.value,
-                        "daily_budget": final_daily_budget,
-                        "duration_days": final_duration,
-                    },
-                    "ad_set": {
-                        "id": ad_set.id,
-                        "adset_id": ad_set.adset_id,
-                        "name": ad_set.adset_name,
-                    },
-                    "ai_recommendations": {
-                        "audience": audience_recommendations,
-                        "budget": budget_recommendations,
-                    },
-                    "message": "Campaign and Ad Set created successfully! To complete: Publish post to Instagram first, then create creative and ad in Meta Ads Manager.",
-                    "mvp_mode": True,
-                    "next_steps": [
-                        "1. Publish this post to Instagram",
-                        "2. Go to Meta Ads Manager",
-                        "3. Add creative and ad to this campaign",
-                        "4. Activate campaign"
-                    ],
-                }
-            
+                logger.info("ℹ️ Falling back to asset-based creative generation using post media and caption")
+
+            # Create creative using the best available inputs (Instagram media ID when present,
+            # otherwise the post asset itself).
+            meta_creative = await meta_ads_service.create_ad_creative_from_post(
+                meta_account=meta_account,
+                creative_name=creative_name,
+                instagram_media_id=instagram_media_id,
+                facebook_post_id=None,
+                image_url=getattr(post, "image_url", None),
+                video_url=getattr(post, "video_url", None),
+                caption=getattr(post, "caption", None),
+                website_url=getattr(user, "website_url", None),
+                call_to_action=call_to_action,
+                instagram_actor_id=meta_account.instagram_business_id,
+                media_type="video" if getattr(post, "video_url", None) else "image",
+            )
+
+            logger.info("✅ Creative created successfully")
+
             # Save creative to database
             creative = AdCreative(
                 user_id=user.id,
@@ -277,10 +222,10 @@ class CampaignAutomationService:
                 ai_generated=post.ai_generated,
             )
             db.add(creative)
-            db.commit()
-            db.refresh(creative)
+            await db.commit()
+            await db.refresh(creative)
             
-            self._log_action(db, campaign.id, "creative_created", "success", f"Creative created: {meta_creative['id']}")
+            await self._log_action(db, campaign.id, "creative_created", "success", f"Creative created: {meta_creative['id']}")
             
             # Step 6: Create Ad
             logger.info("📢 Creating ad...")
@@ -304,12 +249,13 @@ class CampaignAutomationService:
                 status=AdStatus.PAUSED,
             )
             db.add(ad)
-            db.commit()
-            db.refresh(ad)
+            await db.commit()
+            await db.refresh(ad)
             
-            self._log_action(db, campaign.id, "ad_created", "success", f"Ad created: {meta_ad['id']}")
+            await self._log_action(db, campaign.id, "ad_created", "success", f"Ad created: {meta_ad['id']}")
             
             logger.info(f"✅ Campaign automation completed successfully!")
+            logger.info(f"ℹ️ Campaign remains paused until you activate it manually or add an activation step.")
             
             return {
                 "success": True,
@@ -349,7 +295,7 @@ class CampaignAutomationService:
             
             # Log error if campaign was created
             if 'campaign' in locals():
-                self._log_action(db, campaign.id, "automation_failed", "error", str(e), {"error": str(e)})
+                await self._log_action(db, campaign.id, "automation_failed", "error", str(e), {"error": str(e)})
             
             return {
                 "success": False,
@@ -366,9 +312,9 @@ class CampaignAutomationService:
         hashtags = re.findall(r'#(\w+)', caption)
         return hashtags
     
-    def _log_action(
+    async def _log_action(
         self,
-        db: Session,
+        db: AsyncSession,
         campaign_id: int,
         action: str,
         status: str,
@@ -385,7 +331,7 @@ class CampaignAutomationService:
                 error_details=error_details,
             )
             db.add(log)
-            db.commit()
+            await db.commit()
         except Exception as e:
             logger.error(f"Failed to log action: {e}")
 

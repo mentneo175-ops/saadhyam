@@ -128,14 +128,14 @@ export function PromotePostModal({ isOpen, onClose, post, onSuccess }: PromotePo
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+          <DialogTitle className="text-2xl font-bold bg-linear-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
             Promote Post with AI
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6">
           {/* Post Preview */}
-          <div className="flex gap-4 p-4 rounded-xl bg-gradient-to-br from-purple-50 to-pink-50 border border-purple-200">
+          <div className="flex gap-4 p-4 rounded-xl bg-linear-to-br from-purple-50 to-pink-50 border border-purple-200">
             <img
               src={post.image_url}
               alt="Post"
@@ -148,7 +148,7 @@ export function PromotePostModal({ isOpen, onClose, post, onSuccess }: PromotePo
 
           {/* AI Recommendations Loading */}
           {loadingAI && (
-            <div className="p-6 rounded-xl bg-gradient-to-br from-purple-100 to-pink-100 border-2 border-purple-300 text-center">
+            <div className="p-6 rounded-xl bg-linear-to-br from-purple-100 to-pink-100 border-2 border-purple-300 text-center">
               <Loader2 className="w-8 h-8 animate-spin mx-auto mb-3 text-purple-600" />
               <p className="text-purple-900 font-semibold">AI is analyzing your post...</p>
               <p className="text-sm text-purple-700">Generating audience and budget recommendations</p>
@@ -157,7 +157,7 @@ export function PromotePostModal({ isOpen, onClose, post, onSuccess }: PromotePo
 
           {/* AI Audience Recommendations */}
           {audienceRec && !loadingAI && (
-            <div className="p-4 rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 space-y-3">
+            <div className="p-4 rounded-xl bg-linear-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 space-y-3">
               <div className="flex items-center gap-2">
                 <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center">
                   <Users className="w-5 h-5 text-white" />
@@ -183,7 +183,9 @@ export function PromotePostModal({ isOpen, onClose, post, onSuccess }: PromotePo
                 <div className="p-3 rounded-lg bg-white/80 backdrop-blur-sm">
                   <p className="text-xs text-gray-600">Gender</p>
                   <p className="font-semibold text-gray-900 capitalize">
-                    {audienceRec.recommended_genders.join(", ")}
+                    {Array.isArray(audienceRec.recommended_genders)
+                      ? audienceRec.recommended_genders.join(", ")
+                      : String(audienceRec.recommended_genders || "all")}
                   </p>
                 </div>
                 <div className="p-3 rounded-lg bg-white/80 backdrop-blur-sm">
@@ -221,7 +223,7 @@ export function PromotePostModal({ isOpen, onClose, post, onSuccess }: PromotePo
 
           {/* AI Budget Recommendations */}
           {budgetRec && !loadingAI && (
-            <div className="p-4 rounded-xl bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 space-y-3">
+            <div className="p-4 rounded-xl bg-linear-to-br from-green-50 to-emerald-50 border-2 border-green-200 space-y-3">
               <div className="flex items-center gap-2">
                 <div className="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center">
                   <DollarSign className="w-5 h-5 text-white" />
@@ -354,7 +356,7 @@ export function PromotePostModal({ isOpen, onClose, post, onSuccess }: PromotePo
 
           {/* Total Budget Display */}
           {dailyBudget && duration && (
-            <div className="p-4 rounded-xl bg-gradient-to-r from-purple-100 to-pink-100 border-2 border-purple-300">
+            <div className="p-4 rounded-xl bg-linear-to-r from-purple-100 to-pink-100 border-2 border-purple-300">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600">Total Campaign Budget</p>
@@ -387,7 +389,7 @@ export function PromotePostModal({ isOpen, onClose, post, onSuccess }: PromotePo
             <Button
               onClick={handlePromote}
               disabled={loading || loadingAI || !dailyBudget || !duration}
-              className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+              className="flex-1 bg-linear-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
             >
               {loading ? (
                 <>

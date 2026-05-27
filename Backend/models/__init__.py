@@ -27,6 +27,13 @@ from models.task_tracking import (
 )
 from models.influencer import Influencer
 
+# YouTube Models
+from models.youtube import (
+    YouTubeChannel,
+    YouTubeVideo,
+    YouTubeAnalytics,
+)
+
 # Voice Agent Models
 from models.voice_agent import (
     VoiceCampaign,
@@ -69,6 +76,9 @@ __all__ = [
     "GrowthMetric",
     "TaskTemplate",
     "Influencer",
+    "YouTubeChannel",
+    "YouTubeVideo",
+    "YouTubeAnalytics",
     "VoiceCampaign",
     "VoiceContact",
     "VoiceCall",

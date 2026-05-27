@@ -571,13 +571,19 @@ function AEOGEOPage() {
             )}
           </div>
 
-          <div className="flex items-center justify-between">
-            <p className="text-sm text-gray-600">Discovered questions from AI search engines</p>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-800">Discovered questions from AI search engines</p>
+              <p className="text-xs text-gray-500 mt-1">
+                Tap a card to scan the intent, priority, and response opportunity.
+              </p>
+            </div>
             <Button
               variant="outline"
               size="sm"
               onClick={handleDiscoverQuestions}
               disabled={isDiscovering}
+              className="self-start sm:self-auto shrink-0"
             >
               <Search size={14} className={isDiscovering ? "animate-spin" : ""} />
               {isDiscovering ? "Discovering..." : "Discover More"}
@@ -598,42 +604,53 @@ function AEOGEOPage() {
               {questions.map((question) => (
                 <div
                   key={question.id}
-                  className="bg-card rounded-xl border border-border/60 shadow-sm p-4"
+                  className="overflow-hidden rounded-2xl border border-border/60 bg-gradient-to-br from-white via-white to-purple-50/40 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md"
                 >
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1">
-                      <h4 className="text-sm font-semibold text-gray-900 mb-1">
+                  <div className="h-1 w-full bg-gradient-to-r from-purple-500 via-fuchsia-500 to-indigo-500" />
+                  <div className="p-4 md:p-5">
+                    <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="inline-flex items-center rounded-full bg-purple-100 px-2.5 py-1 text-[11px] font-semibold text-purple-700">
+                            Question #{question.id}
+                          </span>
+                          <span
+                            className={`inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold ${
+                              question.status === "answered"
+                                ? "bg-green-100 text-green-700"
+                                : "bg-gray-100 text-gray-700"
+                            }`}
+                          >
+                            {question.status}
+                          </span>
+                        </div>
+                        <h4 className="text-base font-semibold leading-snug text-gray-900">
                         {question.question}
                       </h4>
-                      <div className="flex items-center gap-3 text-xs text-gray-600">
-                        <span className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded">
-                          {question.category}
-                        </span>
-                        <span className="px-2 py-0.5 bg-purple-100 text-purple-700 rounded">
-                          {question.intent}
-                        </span>
-                        <span>Priority: {question.priority}</span>
-                        <span
-                          className={`px-2 py-0.5 rounded ${
-                            question.status === "answered"
-                              ? "bg-green-100 text-green-700"
-                              : "bg-gray-100 text-gray-700"
-                          }`}
-                        >
-                          {question.status}
-                        </span>
+                        <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-gray-600">
+                          <span className="rounded-full bg-blue-100 px-2.5 py-1 font-medium text-blue-700">
+                            {question.category}
+                          </span>
+                          <span className="rounded-full bg-purple-100 px-2.5 py-1 font-medium text-purple-700">
+                            {question.intent}
+                          </span>
+                          <span className="rounded-full bg-amber-100 px-2.5 py-1 font-medium text-amber-700">
+                            Priority {question.priority}
+                          </span>
+                        </div>
                       </div>
+                      {question.status === "pending" && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleGenerateContent(question.id)}
+                          className="w-full md:w-auto shrink-0 border-purple-200 bg-white/90 text-purple-700 hover:border-purple-300 hover:bg-purple-50"
+                        >
+                          <Sparkles size={14} />
+                          Generate Answer
+                        </Button>
+                      )}
                     </div>
-                    {question.status === "pending" && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleGenerateContent(question.id)}
-                      >
-                        <Sparkles size={14} />
-                        Generate Answer
-                      </Button>
-                    )}
                   </div>
                 </div>
               ))}

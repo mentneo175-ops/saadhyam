@@ -86,6 +86,7 @@ function SettingsPage() {
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
   const [logoutLoading, setLogoutLoading] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
   const [expandedIntegration, setExpandedIntegration] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<SettingsTab>("profile");
   const { logout } = useAuthContext();
@@ -510,6 +511,49 @@ function SettingsPage() {
       console.error("Logout error:", error);
       toast.error("Failed to logout");
       setLogoutLoading(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    const confirmation = window.prompt(
+      "This will permanently delete your account and all associated data. Type DELETE to confirm.",
+    );
+
+    if (confirmation !== "DELETE") {
+      if (confirmation !== null) {
+        toast.error("Delete account cancelled. Confirmation did not match.");
+      }
+      return;
+    }
+
+    try {
+      setDeleteLoading(true);
+      const token = localStorage.getItem("saadhyam_token");
+
+      const response = await fetch(`${env.apiBaseUrl}/api/profile/account`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        let message = "Failed to delete account";
+        try {
+          const data = await response.json();
+          if (data?.detail) message = data.detail;
+        } catch (error) {}
+        throw new Error(message);
+      }
+
+      await logout();
+      toast.success("Your account was deleted.");
+      window.location.href = "/signup";
+    } catch (error) {
+      console.error("Delete account error:", error);
+      toast.error(error instanceof Error ? error.message : "Failed to delete account");
+      setDeleteLoading(false);
     }
   };
 
@@ -1125,11 +1169,14 @@ function SettingsPage() {
               <p className="text-xs text-gray-500">Permanently delete your account and all data</p>
             </div>
             <Button
+              onClick={handleDeleteAccount}
+              disabled={deleteLoading}
               variant="outline"
               size="sm"
               className="rounded-xl border-red-200 text-red-600 hover:bg-red-50"
             >
-              Delete
+              {deleteLoading ? <Loader2 size={14} className="mr-2 animate-spin" /> : null}
+              {deleteLoading ? "Deleting..." : "Delete"}
             </Button>
           </div>
         </div>

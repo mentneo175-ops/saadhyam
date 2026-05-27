@@ -659,16 +659,21 @@ class ApiClient {
     // Transform response to match expected format
     if (response.status === "success" && response.content) {
       const { caption, hashtags, script } = response.content;
+      const _hashtags: string[] = Array.isArray(hashtags)
+        ? hashtags
+        : typeof hashtags === "string"
+        ? hashtags.split(/\s+/).filter(Boolean)
+        : [];
       
       // Format output based on content type
       let formattedContent = "";
       
       if (payload.content_type === "instagram") {
-        formattedContent = `${caption}\n\n${hashtags.join(" ")}\n\n${script}`;
+        formattedContent = `${caption}\n\n${_hashtags.join(" ")}\n\n${script}`;
       } else if (payload.content_type === "email") {
-        formattedContent = `Subject: ${caption}\n\n${script}\n\n${hashtags.join(" ")}`;
+        formattedContent = `Subject: ${caption}\n\n${script}\n\n${_hashtags.join(" ")}`;
       } else if (payload.content_type === "ad") {
-        formattedContent = `${caption}\n\n${script}\n\n${hashtags.slice(0, 5).join(" ")}`;
+        formattedContent = `${caption}\n\n${script}\n\n${_hashtags.slice(0, 5).join(" ")}`;
       } else if (payload.content_type === "whatsapp") {
         formattedContent = `${caption}\n\n${script}`;
       }

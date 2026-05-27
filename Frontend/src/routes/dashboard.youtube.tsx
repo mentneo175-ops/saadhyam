@@ -407,33 +407,55 @@ function YouTubeDashboard() {
 
   /* ── main connected view ── */
   return (
-    <div className="p-4 md:p-6 lg:p-8 space-y-6 w-full max-w-7xl mx-auto">
+    <div className="p-4 md:p-6 lg:p-8 space-y-6 w-full max-w-full mx-auto">
       {/* Page Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <PageHeader
-          title="YouTube Studio"
-          subtitle={`Connected as ${activeChannel.channel_title}`}
-        />
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-green-50 border border-green-200 rounded-full">
-            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-            <span className="text-xs font-semibold text-green-700">Connected</span>
+      <div className="flex items-start md:items-center justify-between gap-4">
+        <div className="flex-1 min-w-0">
+          <PageHeader
+            title="YouTube Studio"
+            subtitle={`Connected as ${activeChannel.channel_title}`}
+          />
+        </div>
+
+        {/* Right column on small screens: compact profile on top, controls below */}
+        <div className="flex flex-col items-end gap-2">
+          <div className="flex items-center gap-3 lg:hidden">
+            <img
+              src={activeChannel.thumbnail_url || "/placeholder-avatar.png"}
+              alt={activeChannel.channel_title}
+              className="w-10 h-10 rounded-full border-2 border-white shadow-sm"
+            />
+            <div className="text-sm">
+              <div className="font-semibold text-slate-800 leading-tight">
+                {activeChannel.channel_title}
+              </div>
+              <div className="text-xs text-slate-500">
+                {formatBig(activeChannel.subscriber_count)} subs
+              </div>
+            </div>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setRefreshTrigger((p) => p + 1)}
-            className="border-purple-200 hover:bg-purple-50 text-purple-700"
-            title="Sync all data"
-          >
-            <RefreshCw className="w-4 h-4 mr-2" />
-            Sync
-          </Button>
+
+          <div className="flex items-center gap-2">
+            <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-green-50 border border-green-200 rounded-full">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+              <span className="text-xs font-semibold text-green-700">Connected</span>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setRefreshTrigger((p) => p + 1)}
+              className="border-purple-200 hover:bg-purple-50 text-purple-700"
+              title="Sync all data"
+            >
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Sync
+            </Button>
+          </div>
         </div>
       </div>
 
       {/* KPI Stats Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
         <Card className="border border-purple-100/80 shadow-xs bg-white">
           <CardContent className="p-5 flex items-center gap-4">
             <div className="w-12 h-12 rounded-xl bg-purple-50 flex items-center justify-center text-purple-600 shrink-0">
@@ -708,8 +730,8 @@ function YouTubeDashboard() {
           </Tabs>
         </div>
 
-        {/* Right Sidebar (Channel Card) */}
-        <div className="lg:col-span-4 xl:col-span-3">
+        {/* Right Sidebar (Channel Card) - desktop only */}
+        <div className="hidden lg:block lg:col-span-4 xl:col-span-3">
           <YouTubeChannelCard
             channel={activeChannel}
             onDisconnect={handleDisconnectChannel}

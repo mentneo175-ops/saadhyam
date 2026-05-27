@@ -5,13 +5,34 @@ WITH REDIS CACHING to reduce database load
 """
 
 import logging
-from fastapi import APIRouter, HTTPException, status, Depends
+from fastapi import APIRouter, HTTPException, status, Depends, Header
 from pydantic import BaseModel, Field
 from typing import Optional
 from sqlalchemy.orm import Session
 from config.database import get_db_sync
 from models.user import User
+from models.business_profile import BusinessProfile
+from models.settings import UserSettings
+from models.instagram_analytics import (
+    InstagramBusinessAccount,
+    InstagramPost,
+    InstagramStory,
+    InstagramReel,
+    InstagramInsight,
+)
+from models.task_tracking import DailyTask, GrowthMetric
+from models.whatsapp_account import WhatsAppAccount
+from models.whatsapp_message import WhatsAppMessage
+from models.whatsapp_campaign import WhatsAppCampaign
+from models.whatsapp_automation import WhatsAppAutomation
+from models.voice_agent import VoiceCampaign, VoiceContact, VoiceCall, VoiceLead, VoiceFollowUp
+from models.youtube import YouTubeChannel, YouTubeVideo, YouTubeAnalytics
+from models.influencer import Influencer
+from models.retention_campaign import RetentionCampaign, RetentionEmail
+from db.models import BusinessAnalysis, ReviewHistory
+from db.aeo_geo_models import AEOQuestion, AEOContent, AIVisibilityTracking
 from utils.dependencies import get_current_user
+from services.token_blacklist_service import token_blacklist_service
 from services.comprehensive_cache_service import (
     generate_cache_key,
     get_cached,
@@ -391,4 +412,98 @@ def confirm_website(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to confirm website: {str(e)}"
+        )
+
+
+@router.delete(
+    "/account",
+    summary="Delete user account and all associated data",
+    responses={
+        200: {"description": "Account deleted successfully"},
+        401: {"description": "Not authenticated"},
+    },
+)
+def delete_account(
+    authorization: str = Header(...),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db_sync),
+) -> dict:
+    """Delete the signed-in user and all user-owned data."""
+
+    try:
+        user_id = current_user.id
+
+        voice_campaign_ids = [row[0] for row in db.query(VoiceCampaign.id).filter(VoiceCampaign.user_id == user_id).all()]
+        youtube_channel_ids = [row[0] for row in db.query(YouTubeChannel.id).filter(YouTubeChannel.user_id == user_id).all()]
+        youtube_video_ids = [row[0] for row in db.query(YouTubeVideo.id).filter(YouTubeVideo.user_id == user_id).all()]
+        instagram_account_ids = [row[0] for row in db.query(InstagramBusinessAccount.id).filter(InstagramBusinessAccount.user_id == user_id).all()]
+        whatsapp_account_ids = [row[0] for row in db.query(WhatsAppAccount.id).filter(WhatsAppAccount.user_id == user_id).all()]
+
+        if voice_campaign_ids:
+            db.query(VoiceFollowUp).filter(VoiceFollowUp.user_id == user_id).delete(synchronize_session=False)
+            db.query(VoiceLead).filter(VoiceLead.user_id == user_id).delete(synchronize_session=False)
+            db.query(VoiceCall).filter(VoiceCall.campaign_id.in_(voice_campaign_ids)).delete(synchronize_session=False)
+            db.query(VoiceContact).filter(VoiceContact.campaign_id.in_(voice_campaign_ids)).delete(synchronize_session=False)
+            db.query(VoiceCampaign).filter(VoiceCampaign.id.in_(voice_campaign_ids)).delete(synchronize_session=False)
+
+        if youtube_channel_ids:
+            db.query(YouTubeAnalytics).filter(YouTubeAnalytics.channel_id.in_(youtube_channel_ids)).delete(synchronize_session=False)
+            if youtube_video_ids:
+                db.query(YouTubeAnalytics).filter(YouTubeAnalytics.video_id.in_(youtube_video_ids)).delete(synchronize_session=False)
+            db.query(YouTubeVideo).filter(YouTubeVideo.user_id == user_id).delete(synchronize_session=False)
+            db.query(YouTubeChannel).filter(YouTubeChannel.id.in_(youtube_channel_ids)).delete(synchronize_session=False)
+
+        if instagram_account_ids:
+            db.query(InstagramPost).filter(InstagramPost.account_id.in_(instagram_account_ids)).delete(synchronize_session=False)
+            db.query(InstagramStory).filter(InstagramStory.account_id.in_(instagram_account_ids)).delete(synchronize_session=False)
+            db.query(InstagramReel).filter(InstagramReel.account_id.in_(instagram_account_ids)).delete(synchronize_session=False)
+            db.query(InstagramInsight).filter(InstagramInsight.account_id.in_(instagram_account_ids)).delete(synchronize_session=False)
+            db.query(InstagramBusinessAccount).filter(InstagramBusinessAccount.id.in_(instagram_account_ids)).delete(synchronize_session=False)
+
+        if whatsapp_account_ids:
+            db.query(WhatsAppMessage).filter(WhatsAppMessage.account_id.in_(whatsapp_account_ids)).delete(synchronize_session=False)
+            db.query(WhatsAppCampaign).filter(WhatsAppCampaign.account_id.in_(whatsapp_account_ids)).delete(synchronize_session=False)
+            db.query(WhatsAppAutomation).filter(WhatsAppAutomation.account_id.in_(whatsapp_account_ids)).delete(synchronize_session=False)
+            db.query(WhatsAppAccount).filter(WhatsAppAccount.id.in_(whatsapp_account_ids)).delete(synchronize_session=False)
+
+        db.query(BusinessAnalysis).filter(BusinessAnalysis.user_id == user_id).delete(synchronize_session=False)
+        db.query(ReviewHistory).filter(ReviewHistory.user_id == user_id).delete(synchronize_session=False)
+        db.query(AEOQuestion).filter(AEOQuestion.user_id == user_id).delete(synchronize_session=False)
+        db.query(AEOContent).filter(AEOContent.user_id == user_id).delete(synchronize_session=False)
+        db.query(AIVisibilityTracking).filter(AIVisibilityTracking.user_id == user_id).delete(synchronize_session=False)
+        db.query(BusinessProfile).filter(BusinessProfile.user_id == user_id).delete(synchronize_session=False)
+        db.query(UserSettings).filter(UserSettings.user_id == user_id).delete(synchronize_session=False)
+        db.query(DailyTask).filter(DailyTask.user_id == user_id).delete(synchronize_session=False)
+        db.query(GrowthMetric).filter(GrowthMetric.user_id == user_id).delete(synchronize_session=False)
+        db.query(Influencer).filter(Influencer.user_id == user_id).delete(synchronize_session=False)
+        db.query(RetentionCampaign).filter(RetentionCampaign.user_id == user_id).delete(synchronize_session=False)
+        db.query(RetentionEmail).filter(RetentionEmail.user_id == user_id).delete(synchronize_session=False)
+
+        # These models are linked to the user through ORM relationships and will be removed on user delete.
+        current_user.active_session_token = None
+        current_user.session_created_at = None
+        current_user.session_ip_address = None
+        current_user.session_user_agent = None
+
+        token = authorization.split()[1] if len(authorization.split()) == 2 else None
+        if token:
+            token_blacklist_service.blacklist_token(token)
+        token_blacklist_service.blacklist_user_tokens(user_id)
+
+        db.delete(current_user)
+        db.commit()
+
+        return {
+            "status": "success",
+            "message": "Account deleted successfully",
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error deleting account for {current_user.email}: {e}", exc_info=True)
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to delete account",
         )

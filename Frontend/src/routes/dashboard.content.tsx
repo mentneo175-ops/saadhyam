@@ -394,8 +394,7 @@ function ContentStudio() {
             <h1 className="text-3xl font-bold text-gray-900 mb-1">
               Content Creator
             </h1>
-            <p className="text-sm text-gray-600 flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-purple-500" />
+            <p className="text-sm text-gray-600">
               AI-powered creative studio for instant content generation
             </p>
           </div>
@@ -409,7 +408,7 @@ function ContentStudio() {
               setIsAIGenerated(false);
               setGeneratedImageUrl("");
             }}
-            className="px-4 py-2 bg-gradient-to-r from-[#8B5CF6] to-[#A855F7] hover:from-[#7C3AED] hover:to-[#9333EA] text-white rounded-xl font-semibold text-sm flex items-center gap-2 shadow-lg shadow-[#8B5CF6]/25 hover:shadow-xl hover:shadow-[#8B5CF6]/30 transition-all"
+            className="hidden sm:flex px-4 py-2 bg-gradient-to-r from-[#8B5CF6] to-[#A855F7] hover:from-[#7C3AED] hover:to-[#9333EA] text-white rounded-xl font-semibold text-sm flex items-center gap-2 shadow-lg shadow-[#8B5CF6]/25 hover:shadow-xl hover:shadow-[#8B5CF6]/30 transition-all"
           >
             <Wand2 size={14} /> New Generation
           </motion.button>

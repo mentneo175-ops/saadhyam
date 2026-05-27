@@ -1,6 +1,7 @@
 import { toast } from "sonner";
 import { createFileRoute } from "@tanstack/react-router";
 import { PageHeader } from "@/components/dashboard/PageHeader";
+import ResponsiveDesktopNotice from "@/components/ResponsiveDesktopNotice";
 import { Button } from "@/components/ui/button";
 import { Sparkles, Globe, Download, Loader2, Code, ExternalLink, Share2, Brain, Zap, Target, Check, RefreshCw } from "lucide-react";
 import { useState, useEffect } from "react";
@@ -612,6 +613,8 @@ function WebsiteAIPage() {
         title="Website AI"
         subtitle="Generate instant website content or complete websites for your business"
       />
+
+      <ResponsiveDesktopNotice storageKey="saadhyam_website_desktop_notice" />
 
       
         <div className={showForm ? "grid lg:grid-cols-[400px_1fr] gap-4 min-h-[600px] lg:h-[calc(100vh-16rem)]" : "w-full min-h-[600px] lg:h-[calc(100vh-16rem)]"}>

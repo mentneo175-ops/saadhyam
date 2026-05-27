@@ -322,7 +322,7 @@ function InstagramAnalytics() {
               </div>
             </div>
             
-            <div className="grid grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div>
                 <p className="text-purple-100 text-sm">Followers</p>
                 <p className="text-3xl font-bold">{formatNumber(dashboardData.overview.followers_count)}</p>

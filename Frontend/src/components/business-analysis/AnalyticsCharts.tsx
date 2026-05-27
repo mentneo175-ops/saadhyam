@@ -73,14 +73,16 @@ export function AnalyticsSection({
   const radarStrokeId = useId().replace(/:/g, "") + "-radarStroke";
 
   return (
-    <div className="grid gap-6 lg:grid-cols-2">
+    // Ensure explicit 1x2 layout on small screens (one column, two rows)
+    // and side-by-side (2 columns) on large screens
+    <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
       <ChartShell delay={0.08}>
         <SectionHeader title="Business Metrics" icon={BarChart3} badge="Radar" tone="premium" />
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.22, duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
-          className="h-[340px] w-full"
+          className="h-[240px] md:h-[340px] w-full"
         >
           <ResponsiveContainer width="100%" height="100%">
             <RadarChart data={businessMetricsData}>
@@ -130,7 +132,7 @@ export function AnalyticsSection({
           initial={{ opacity: 0, scale: 0.96, y: 10 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={{ delay: 0.26, duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
-          className="h-[340px] w-full"
+          className="h-[240px] md:h-[340px] w-full"
         >
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>

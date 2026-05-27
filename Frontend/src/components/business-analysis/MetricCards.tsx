@@ -196,7 +196,9 @@ export function MetricsGrid({
       initial="hidden"
       animate="show"
       variants={staggerContainer}
-      className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4"
+      // Default to two columns on small/mobile screens to display a 2x2 layout
+      // and expand to four columns on extra-large screens
+      className="grid grid-cols-2 gap-5 sm:grid-cols-2 xl:grid-cols-4"
     >
       {METRICS.map((metric, idx) => (
         <MetricCard

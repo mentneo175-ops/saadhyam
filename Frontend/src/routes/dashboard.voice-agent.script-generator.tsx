@@ -8,6 +8,7 @@ import {
   RefreshCw,
   Loader2,
   FileText,
+  // eslint-disable-next-line prettier/prettier
   MessageSquare,
   AlertCircle,
   CheckCircle,
@@ -42,7 +43,7 @@ function ScriptGeneratorPage() {
     offer_details: "",
     target_audience: "",
     call_purpose: "",
-    language: "english"
+    language: "english",
   });
 
   const [generatedScript, setGeneratedScript] = useState<ScriptData | null>(null);
@@ -96,7 +97,7 @@ ${generatedScript.opening_line}
 =====================================
 QUALIFICATION QUESTIONS
 =====================================
-${generatedScript.qualification_questions.map((q, i) => `${i + 1}. ${q}`).join('\n')}
+${generatedScript.qualification_questions.map((q, i) => `${i + 1}. ${q}`).join("\n")}
 
 =====================================
 VALUE PROPOSITION
@@ -106,9 +107,9 @@ ${generatedScript.value_proposition}
 =====================================
 OBJECTION HANDLING
 =====================================
-${Object.entries(generatedScript.objection_handling).map(([obj, resp]) => 
-  `Objection: ${obj}\nResponse: ${resp}\n`
-).join('\n')}
+${Object.entries(generatedScript.objection_handling)
+  .map(([obj, resp]) => `Objection: ${obj}\nResponse: ${resp}\n`)
+  .join("\n")}
 
 =====================================
 CLOSING LINE
@@ -130,7 +131,7 @@ ${generatedScript.full_script}
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `script_${formData.campaign_name.replace(/\s+/g, '_')}.txt`;
+    a.download = `script_${formData.campaign_name.replace(/\s+/g, "_")}.txt`;
     a.click();
   };
 
@@ -142,14 +143,9 @@ ${generatedScript.full_script}
           <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
             AI Script Generator
           </h1>
-          <p className="text-gray-600 mt-1">
-            Generate professional sales scripts powered by AI
-          </p>
+          <p className="text-gray-600 mt-1">Generate professional sales scripts powered by AI</p>
         </div>
-        <Button
-          variant="outline"
-          onClick={() => window.location.href = "/dashboard/voice-agent"}
-        >
+        <Button variant="outline" onClick={() => (window.location.href = "/dashboard/voice-agent")}>
           Back to Dashboard
         </Button>
       </div>
@@ -173,7 +169,7 @@ ${generatedScript.full_script}
                 <Input
                   id="campaign_name"
                   value={formData.campaign_name}
-                  onChange={(e) => setFormData({...formData, campaign_name: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, campaign_name: e.target.value })}
                   placeholder="e.g., Diwali Offer Campaign"
                 />
               </div>
@@ -183,7 +179,7 @@ ${generatedScript.full_script}
                 <Input
                   id="campaign_goal"
                   value={formData.campaign_goal}
-                  onChange={(e) => setFormData({...formData, campaign_goal: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, campaign_goal: e.target.value })}
                   placeholder="e.g., Generate 100 qualified leads"
                 />
               </div>
@@ -193,7 +189,7 @@ ${generatedScript.full_script}
                 <Textarea
                   id="business_context"
                   value={formData.business_context}
-                  onChange={(e) => setFormData({...formData, business_context: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, business_context: e.target.value })}
                   placeholder="Describe your business, products, or services..."
                   rows={3}
                 />
@@ -204,7 +200,7 @@ ${generatedScript.full_script}
                 <Textarea
                   id="offer_details"
                   value={formData.offer_details}
-                  onChange={(e) => setFormData({...formData, offer_details: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, offer_details: e.target.value })}
                   placeholder="What special offer or promotion are you running?"
                   rows={3}
                 />
@@ -215,7 +211,7 @@ ${generatedScript.full_script}
                 <Input
                   id="target_audience"
                   value={formData.target_audience}
-                  onChange={(e) => setFormData({...formData, target_audience: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, target_audience: e.target.value })}
                   placeholder="e.g., Small business owners, Gym members"
                 />
               </div>
@@ -225,7 +221,7 @@ ${generatedScript.full_script}
                 <Input
                   id="call_purpose"
                   value={formData.call_purpose}
-                  onChange={(e) => setFormData({...formData, call_purpose: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, call_purpose: e.target.value })}
                   placeholder="e.g., Schedule demo, Close sale, Gather interest"
                 />
               </div>
@@ -235,7 +231,7 @@ ${generatedScript.full_script}
                 <select
                   id="language"
                   value={formData.language}
-                  onChange={(e) => setFormData({...formData, language: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, language: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md"
                 >
                   <option value="english">English</option>
@@ -276,11 +272,10 @@ ${generatedScript.full_script}
                 <div className="w-20 h-20 bg-gradient-to-br from-purple-100 to-pink-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Sparkles size={32} className="text-purple-600" />
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  Ready to Generate
-                </h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Ready to Generate</h3>
                 <p className="text-gray-600 max-w-sm mx-auto">
-                  Fill in the campaign details and click "Generate AI Script" to create a professional sales script
+                  Fill in the campaign details and click "Generate AI Script" to create a
+                  professional sales script
                 </p>
               </CardContent>
             </Card>
@@ -310,18 +305,11 @@ ${generatedScript.full_script}
             >
               {/* Actions */}
               <div className="flex gap-2">
-                <Button
-                  onClick={downloadScript}
-                  variant="outline"
-                  className="flex-1"
-                >
+                <Button onClick={downloadScript} variant="outline" className="flex-1">
                   <Download size={16} className="mr-2" />
                   Download Script
                 </Button>
-                <Button
-                  onClick={generateScript}
-                  variant="outline"
-                >
+                <Button onClick={generateScript} variant="outline">
                   <RefreshCw size={16} className="mr-2" />
                   Regenerate
                 </Button>
@@ -346,9 +334,7 @@ ${generatedScript.full_script}
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-gray-700 leading-relaxed">
-                    {generatedScript.opening_line}
-                  </p>
+                  <p className="text-gray-700 leading-relaxed">{generatedScript.opening_line}</p>
                 </CardContent>
               </Card>
 
@@ -360,10 +346,12 @@ ${generatedScript.full_script}
                     <Button
                       size="sm"
                       variant="ghost"
-                      onClick={() => copyToClipboard(
-                        generatedScript.qualification_questions.join('\n'),
-                        "questions"
-                      )}
+                      onClick={() =>
+                        copyToClipboard(
+                          generatedScript.qualification_questions.join("\n"),
+                          "questions",
+                        )
+                      }
                     >
                       {copiedSection === "questions" ? (
                         <CheckCircle size={16} className="text-green-600" />
@@ -377,7 +365,9 @@ ${generatedScript.full_script}
                   <ul className="space-y-2">
                     {generatedScript.qualification_questions.map((q, i) => (
                       <li key={i} className="flex items-start gap-2">
-                        <Badge variant="outline" className="mt-0.5">{i + 1}</Badge>
+                        <Badge variant="outline" className="mt-0.5">
+                          {i + 1}
+                        </Badge>
                         <span className="text-gray-700">{q}</span>
                       </li>
                     ))}
@@ -416,28 +406,30 @@ ${generatedScript.full_script}
                   <CardTitle className="text-lg">Objection Handling</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {Object.entries(generatedScript.objection_handling).map(([objection, response], i) => (
-                    <div key={i} className="border-l-4 border-purple-600 pl-4">
-                      <div className="flex items-start justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          <AlertCircle size={16} className="text-red-600" />
-                          <span className="font-semibold text-gray-900">{objection}</span>
+                  {Object.entries(generatedScript.objection_handling).map(
+                    ([objection, response], i) => (
+                      <div key={i} className="border-l-4 border-purple-600 pl-4">
+                        <div className="flex items-start justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <AlertCircle size={16} className="text-red-600" />
+                            <span className="font-semibold text-gray-900">{objection}</span>
+                          </div>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => copyToClipboard(response, `objection-${i}`)}
+                          >
+                            {copiedSection === `objection-${i}` ? (
+                              <CheckCircle size={14} className="text-green-600" />
+                            ) : (
+                              <Copy size={14} />
+                            )}
+                          </Button>
                         </div>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => copyToClipboard(response, `objection-${i}`)}
-                        >
-                          {copiedSection === `objection-${i}` ? (
-                            <CheckCircle size={14} className="text-green-600" />
-                          ) : (
-                            <Copy size={14} />
-                          )}
-                        </Button>
+                        <p className="text-gray-700 text-sm leading-relaxed">{response}</p>
                       </div>
-                      <p className="text-gray-700 text-sm leading-relaxed">{response}</p>
-                    </div>
-                  ))}
+                    ),
+                  )}
                 </CardContent>
               </Card>
 
@@ -460,9 +452,7 @@ ${generatedScript.full_script}
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-gray-700 leading-relaxed">
-                    {generatedScript.closing_line}
-                  </p>
+                  <p className="text-gray-700 leading-relaxed">{generatedScript.closing_line}</p>
                 </CardContent>
               </Card>
 
@@ -485,9 +475,7 @@ ${generatedScript.full_script}
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-gray-700 leading-relaxed">
-                    {generatedScript.follow_up_line}
-                  </p>
+                  <p className="text-gray-700 leading-relaxed">{generatedScript.follow_up_line}</p>
                 </CardContent>
               </Card>
             </motion.div>

@@ -39,8 +39,8 @@ export function SEOPageHeader({
   actions?: ReactNode;
 }) {
   return (
-    <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-      <motion.div {...fadeSlide}>
+    <div className="flex items-start justify-between gap-3 sm:gap-4">
+      <motion.div {...fadeSlide} className="min-w-0 flex-1">
         <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/15 bg-primary/5 px-3 py-1 text-xs font-medium text-primary">
           <Sparkles className="h-3 w-3" />
           AI-Powered Growth
@@ -61,7 +61,7 @@ export function SEOPageHeader({
           initial={{ opacity: 0, x: 12 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.08 }}
-          className="flex shrink-0 gap-2"
+          className="mt-1 flex shrink-0 justify-end gap-2"
         >
           {actions}
         </motion.div>

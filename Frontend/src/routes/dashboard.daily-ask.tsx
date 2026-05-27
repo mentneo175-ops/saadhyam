@@ -273,21 +273,22 @@ function DailyAskPage() {
       </div>
 
       {/* Premium Header */}
-      <div className="sticky top-14 lg:top-0 z-20 backdrop-blur-xl bg-white/70 border-b border-purple-100/50 shadow-sm relative overflow-hidden">
-        {/* Animated gradient line */}
-        <motion.div
-          className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-purple-500 to-transparent"
-          animate={{
-            x: ["-100%", "100%"],
-          }}
-          transition={{
-            duration: 3,
-            repeat: Infinity,
-            ease: "linear",
-          }}
-        />
-        <div className="px-8 py-5">
-          <div className="flex items-center justify-between">
+      <div className="relative z-20 px-4 md:px-8 pt-4 md:sticky md:top-0">
+        <div className="relative overflow-hidden rounded-2xl border border-purple-100/60 bg-white/80 shadow-lg shadow-purple-500/5 backdrop-blur-xl">
+          {/* Animated gradient line */}
+          <motion.div
+            className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-purple-500 to-transparent"
+            animate={{
+              x: ["-100%", "100%"],
+            }}
+            transition={{
+              duration: 3,
+              repeat: Infinity,
+              ease: "linear",
+            }}
+          />
+          <div className="px-4 py-4 md:px-8 md:py-5">
+            <div className="flex items-start justify-between gap-4">
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -319,36 +320,37 @@ function DailyAskPage() {
                 <span>Your personalized action plan for today</span>
               </div>
             </motion.div>
-            <motion.button
-              onClick={generateTasks}
-              disabled={isGenerating}
-              whileHover={{ scale: 1.1, rotate: 15 }}
-              whileTap={{ scale: 0.9, rotate: -15 }}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5 }}
-              className="p-3 rounded-xl bg-white hover:bg-purple-50 border-2 border-purple-200/60 hover:border-purple-400 shadow-sm hover:shadow-lg transition-all duration-300 disabled:opacity-50 relative overflow-hidden group"
-              title="Refresh tasks"
-            >
-              {/* Button glow effect */}
-              <motion.div
-                className="absolute inset-0 bg-gradient-to-r from-purple-400/0 via-purple-400/30 to-purple-400/0"
-                animate={{
-                  x: ["-100%", "100%"],
-                }}
-                transition={{
-                  duration: 2,
-                  repeat: Infinity,
-                  repeatDelay: 1,
-                }}
-              />
-              <RefreshCw size={20} className={`text-purple-600 relative z-10 ${isGenerating ? "animate-spin" : ""}`} />
-            </motion.button>
+              <motion.button
+                onClick={generateTasks}
+                disabled={isGenerating}
+                whileHover={{ scale: 1.08, rotate: 10 }}
+                whileTap={{ scale: 0.94, rotate: -10 }}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5 }}
+                className="shrink-0 p-3 rounded-xl bg-white hover:bg-purple-50 border-2 border-purple-200/60 hover:border-purple-400 shadow-sm hover:shadow-lg transition-all duration-300 disabled:opacity-50 relative overflow-hidden group"
+                title="Refresh tasks"
+              >
+                {/* Button glow effect */}
+                <motion.div
+                  className="absolute inset-0 bg-gradient-to-r from-purple-400/0 via-purple-400/30 to-purple-400/0"
+                  animate={{
+                    x: ["-100%", "100%"],
+                  }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    repeatDelay: 1,
+                  }}
+                />
+                <RefreshCw size={20} className={`text-purple-600 relative z-10 ${isGenerating ? "animate-spin" : ""}`} />
+              </motion.button>
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="px-8 py-6 space-y-5">
+      <div className="px-4 md:px-8 py-6 space-y-5 mt-4 md:mt-6">
         {/* Progress Card */}
         {totalTasks > 0 && (
           <motion.div
@@ -424,7 +426,7 @@ function DailyAskPage() {
                   initial={{ width: 0 }}
                   animate={{ width: `${progressPercentage}%` }}
                   transition={{ duration: 1.2, ease: "easeOut", delay: 0.2 }}
-                  className="absolute inset-y-0 left-0 bg-gradient-to-r from-purple-500 via-fuchsia-500 to-purple-600 rounded-full shadow-lg shadow-purple-500/50 relative overflow-hidden"
+                  className="absolute inset-y-0 left-0 bg-gradient-to-r from-purple-500 via-fuchsia-500 to-purple-600 rounded-full shadow-lg shadow-purple-500/50 overflow-hidden"
                 >
                   {/* Shimmer effect */}
                   <motion.div

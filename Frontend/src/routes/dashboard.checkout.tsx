@@ -1,13 +1,18 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
+import { useAuthContext } from "@/lib/AuthContext";
 import { ArrowLeft, BadgePercent, CheckCircle2, CreditCard, Loader2, ShieldCheck, Ticket } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/dashboard/PageHeader";
+import { apiClient } from "@/lib/api";
+import { getAdminApiBaseUrl } from "@/lib/runtimeUrls";
+import { PACK_CATALOG, PACK_ORDER } from "@/config/subscriptions";
 
-const ADMIN_API_URL = import.meta.env.VITE_ADMIN_API_URL || "http://127.0.0.1:8082";
+const ADMIN_API_URL = getAdminApiBaseUrl();
+const RAZORPAY_KEY_ID = import.meta.env.VITE_RAZORPAY_KEY_ID || "";
 
 type Plan = {
-  key: string;
+  key: (typeof PACK_ORDER)[number];
   name: string;
   price: string;
   tag: string;
@@ -25,17 +30,45 @@ type Coupon = {
   is_active: boolean;
 };
 
-const defaultPlans: Plan[] = [
-  { key: "starter", name: "Starter Pack", price: "₹499", tag: "For solo founders", description: "Lightweight essentials for getting started with Saadhyam AI.", highlight: "Best for testing the platform", cta: "Start Starter" },
-  { key: "growth", name: "Growth Pack", price: "₹2,999", tag: "Most popular", description: "Balanced automation for teams that want stronger growth features.", highlight: "Best value for growing businesses", cta: "Choose Growth" },
-  { key: "premium", name: "Premium Pack", price: "₹4,999", tag: "All features", description: "Full access for businesses that want the complete platform.", highlight: "Everything unlocked", cta: "Go Premium" },
-];
+type RazorpayResponse = {
+  razorpay_payment_id?: string;
+  razorpay_order_id?: string;
+  razorpay_signature?: string;
+};
 
-const defaultPlanMap = Object.fromEntries(defaultPlans.map((plan) => [plan.key, plan]));
+type RazorpayOptions = {
+  key: string;
+  amount: number;
+  currency: string;
+  name: string;
+  description: string;
+  prefill?: {
+    name?: string;
+    email?: string;
+    contact?: string;
+  };
+  notes?: Record<string, string>;
+  theme?: {
+    color?: string;
+  };
+  handler?: (response: RazorpayResponse) => void;
+  modal?: {
+    ondismiss?: () => void;
+  };
+};
+
+type RazorpayWindow = Window & {
+  Razorpay?: new (options: RazorpayOptions) => { open: () => void };
+};
+
+const defaultPlans: Plan[] = PACK_CATALOG;
+
+const defaultPlanMap = Object.fromEntries(defaultPlans.map((plan) => [plan.key, plan])) as Record<string, Plan>;
 
 export const Route = createFileRoute("/dashboard/checkout")({
   validateSearch: (search: Record<string, unknown>) => ({
     plan: typeof search.plan === "string" && search.plan ? search.plan : "starter",
+    upgrade_from: typeof search.upgrade_from === "string" && search.upgrade_from ? search.upgrade_from : undefined,
   }),
   head: () => ({ meta: [{ title: "Checkout — Saadhyam AI" }] }),
   component: CheckoutPage,
@@ -75,7 +108,6 @@ function normalizePlans(payload: unknown): Plan[] {
 
 function CheckoutPage() {
   const navigate = useNavigate();
-  const { plan: planKey } = Route.useSearch();
   const [plans, setPlans] = useState<Plan[]>(defaultPlans);
   const [loading, setLoading] = useState(true);
   const [couponCode, setCouponCode] = useState("");
@@ -83,6 +115,9 @@ function CheckoutPage() {
   const [couponLoading, setCouponLoading] = useState(false);
   const [couponError, setCouponError] = useState("");
   const [paymentStep, setPaymentStep] = useState(false);
+  const [paymentLoading, setPaymentLoading] = useState(false);
+  const [paymentError, setPaymentError] = useState("");
+  const [paymentSuccess, setPaymentSuccess] = useState("");
 
   useEffect(() => {
     let cancelled = false;
@@ -115,22 +150,173 @@ function CheckoutPage() {
     };
   }, []);
 
+  const { plan: planKey, upgrade_from: upgradeFrom } = Route.useSearch();
+
+  const { user } = useAuthContext();
+  const redirectToPricing = () => {
+    navigate({ to: "/dashboard/pricing", replace: true });
+  };
+
   const selectedPlan = useMemo(() => {
     return plans.find((item) => item.key === planKey) || defaultPlanMap[planKey] || defaultPlans[0];
   }, [plans, planKey]);
 
   const subtotal = useMemo(() => parsePrice(selectedPlan.price), [selectedPlan.price]);
+
+  const currentPaid = useMemo(() => {
+    if (!upgradeFrom) return 0;
+    // Prefer the authoritative stored paid amount on user, fallback to stored plan price
+    if (user && user.selected_plan_key === upgradeFrom && Number(user.selected_plan_amount_paid || 0) > 0) {
+      return Number(user.selected_plan_amount_paid || 0);
+    }
+    return parsePrice(defaultPlanMap[upgradeFrom]?.price || "0");
+  }, [upgradeFrom, user]);
+
+  // When upgrading, base amount is the remaining difference
+  const baseAmount = useMemo(() => {
+    if (!upgradeFrom) return subtotal;
+    return Math.max(0, subtotal - currentPaid);
+  }, [upgradeFrom, subtotal, currentPaid]);
+
   const percentageDiscount = useMemo(() => {
     if (!coupon) return 0;
-    return Math.floor((subtotal * Number(coupon.discount_percentage || 0)) / 100);
-  }, [coupon, subtotal]);
+    return Math.floor((baseAmount * Number(coupon.discount_percentage || 0)) / 100);
+  }, [coupon, baseAmount]);
   const flatDiscount = coupon ? Number(coupon.discount_amount || 0) : 0;
-  const discountAmount = useMemo(() => Math.min(subtotal, percentageDiscount + flatDiscount), [subtotal, percentageDiscount, flatDiscount]);
+  const discountAmount = useMemo(() => Math.min(baseAmount, percentageDiscount + flatDiscount), [baseAmount, percentageDiscount, flatDiscount]);
   const couponPlanMatch = useMemo(() => {
     if (!coupon?.allowed_plan_keys?.length) return true;
     return coupon.allowed_plan_keys.includes(planKey);
   }, [coupon, planKey]);
-  const amountDue = Math.max(0, subtotal - discountAmount);
+  const amountDue = Math.max(0, baseAmount - discountAmount);
+
+  const persistSelectedPlan = async (paymentId: string, paidAmount: number) => {
+    await apiClient.confirmSelectedPlan({
+      plan_key: selectedPlan.key,
+      plan_name: selectedPlan.name,
+      plan_price: selectedPlan.price,
+      payment_id: paymentId,
+      coupon_code: coupon?.code || "",
+      amount_paid: paidAmount,
+      currency: "INR",
+      status: "active",
+      upgrade_from: upgradeFrom as string | undefined,
+    });
+  };
+
+  const loadRazorpayScript = async () => {
+    if ((window as RazorpayWindow).Razorpay) return true;
+
+    return await new Promise<boolean>((resolve) => {
+      const existing = document.querySelector<HTMLScriptElement>('script[src="https://checkout.razorpay.com/v1/checkout.js"]');
+      if (existing) {
+        existing.addEventListener("load", () => resolve(true), { once: true });
+        existing.addEventListener("error", () => resolve(false), { once: true });
+        return;
+      }
+
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.async = true;
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
+
+  const startPayment = async () => {
+    setPaymentError("");
+    setPaymentSuccess("");
+
+    if (!RAZORPAY_KEY_ID) {
+      setPaymentError("Razorpay key is missing from the frontend env.");
+      return;
+    }
+
+    if (amountDue <= 0) {
+      setPaymentSuccess("This order is fully covered by the applied coupon.");
+      return;
+    }
+
+    setPaymentLoading(true);
+    try {
+      if (amountDue <= 0) {
+        await persistSelectedPlan(`coupon-covered-${Date.now()}`, 0);
+        setPaymentSuccess(`Your ${selectedPlan.name} has been saved to your account.`);
+        setTimeout(redirectToPricing, 800);
+        setPaymentLoading(false);
+        return;
+      }
+
+      const scriptLoaded = await loadRazorpayScript();
+
+      if (!scriptLoaded) {
+        setPaymentError("Unable to load Razorpay checkout.");
+        setPaymentLoading(false);
+        return;
+      }
+
+      const RazorpayCtor = (window as RazorpayWindow).Razorpay;
+      if (!RazorpayCtor) {
+        setPaymentError("Razorpay checkout is not available.");
+        setPaymentLoading(false);
+        return;
+      }
+
+      const razorpay = new RazorpayCtor({
+        key: RAZORPAY_KEY_ID,
+        amount: amountDue * 100,
+        currency: "INR",
+        name: "Saadhyam AI",
+        description: `${selectedPlan.name} subscription`,
+        prefill: {
+          name: "Saadhyam Customer",
+          email: "customer@example.com",
+        },
+        notes: {
+          plan_key: selectedPlan.key,
+          coupon_code: coupon?.code || "",
+          original_amount: String(subtotal),
+          discount_amount: String(discountAmount),
+          upgrade_from: upgradeFrom || "",
+          current_paid: String(currentPaid || 0),
+        },
+        theme: {
+          color: "#7c3aed",
+        },
+        handler: (response) => {
+          void (async () => {
+            try {
+              await persistSelectedPlan(
+                response.razorpay_payment_id || response.razorpay_order_id || `razorpay-${Date.now()}`,
+                amountDue,
+              );
+              setPaymentSuccess(
+                response.razorpay_payment_id
+                  ? `Payment completed successfully. Ref: ${response.razorpay_payment_id}. Pack saved in your account.`
+                  : "Payment completed successfully. Pack saved in your account.",
+              );
+              setTimeout(redirectToPricing, 800);
+            } catch (error) {
+              setPaymentError(error instanceof Error ? error.message : "Payment succeeded but saving the pack failed.");
+            } finally {
+              setPaymentLoading(false);
+            }
+          })();
+        },
+        modal: {
+          ondismiss: () => {
+            setPaymentLoading(false);
+          },
+        },
+      });
+
+      razorpay.open();
+    } catch (error) {
+      setPaymentError(error instanceof Error ? error.message : "Unable to start payment.");
+      setPaymentLoading(false);
+    }
+  };
 
   const applyCoupon = async () => {
     const code = couponCode.trim().toUpperCase();
@@ -265,6 +451,16 @@ function CheckoutPage() {
                 <p className="text-sm text-muted-foreground">
                   After applying a coupon, continue to payment with the remaining amount. This keeps the flow predictable and lets the user review the final payable value.
                 </p>
+                {paymentError ? (
+                  <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                    {paymentError}
+                  </div>
+                ) : null}
+                {paymentSuccess ? (
+                  <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+                    {paymentSuccess}
+                  </div>
+                ) : null}
                 <Button
                   variant="hero"
                   onClick={() => setPaymentStep(true)}
@@ -287,12 +483,28 @@ function CheckoutPage() {
                     Your coupon covers the full plan price. No payment is required for this order.
                   </div>
                 ) : null}
+                {paymentError ? (
+                  <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                    {paymentError}
+                  </div>
+                ) : null}
+                {paymentSuccess ? (
+                  <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+                    {paymentSuccess}
+                  </div>
+                ) : null}
                 <div className="rounded-xl border border-dashed border-border p-4 text-sm text-muted-foreground">
-                  Payment gateway integration can be attached here. The current flow is ready for a live gateway or a payment link.
+                  Razorpay test checkout is wired for this step using the frontend env key only. After a successful payment, you will be taken back to Pricing and the chosen pack will be refreshed.
                 </div>
-                <Button variant="outline" onClick={() => setPaymentStep(false)}>
-                  Go back to coupon step
-                </Button>
+                <div className="flex flex-wrap gap-3">
+                  <Button variant="hero" onClick={startPayment} disabled={paymentLoading}>
+                    {paymentLoading ? <Loader2 size={14} className="animate-spin" /> : <CreditCard size={14} />}
+                    {amountDue === 0 ? "Mark as paid" : "Pay with Razorpay"}
+                  </Button>
+                  <Button variant="outline" onClick={() => setPaymentStep(false)}>
+                    Go back to coupon step
+                  </Button>
+                </div>
               </div>
             )}
           </div>

@@ -3,19 +3,20 @@ import { PageHeader } from "@/components/dashboard/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Check, X, Sparkles, Star } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useAuthContext } from "@/lib/AuthContext";
+import { getAdminApiBaseUrl } from "@/lib/runtimeUrls";
+import { FEATURE_ROWS, PACK_CATALOG, PACK_ORDER, type FeatureStatus } from "@/config/subscriptions";
 
-const ADMIN_API_URL = import.meta.env.VITE_ADMIN_API_URL || "http://127.0.0.1:8082";
+const ADMIN_API_URL = getAdminApiBaseUrl();
 
 export const Route = createFileRoute("/dashboard/pricing")({
   head: () => ({ meta: [{ title: "Pricing Plans — Saadhyam AI" }] }),
   component: PricingPlansPage,
 });
 
-type FeatureStatus = "included" | "partial" | "excluded";
-
 type Plan = {
-  key: string;
+  key: (typeof PACK_ORDER)[number];
   name: string;
   price: string;
   tag: string;
@@ -25,87 +26,107 @@ type Plan = {
   features: Record<string, FeatureStatus>;
 };
 
-const featureRows = [
-  "Business analysis",
-  "Competitor analysis",
-  "Content creator",
-  "Instagram tools",
-  "Website AI",
-  "SEO & Google Maps",
-  "Meta ads",
-  "AI Voice Agent",
-  "WhatsApp Sales",
-  "B2B Network",
-  "Daily suggestions",
-  "Reports & insights",
-];
+const defaultPlans: Plan[] = PACK_CATALOG;
 
-const defaultPlans: Plan[] = [
-  {
-    key: "starter",
-    name: "Starter Pack",
-    price: "₹499",
-    tag: "For solo founders",
-    description: "Lightweight essentials for getting started with Saadhyam AI.",
-    highlight: "Best for testing the platform",
-    cta: "Start Starter",
-    features: {
-      "Business analysis": "included",
-      "Competitor analysis": "included",
-      "Content creator": "partial",
-      "Instagram tools": "partial",
-      "Website AI": "excluded",
-      "SEO & Google Maps": "excluded",
-      "Meta ads": "excluded",
-      "AI Voice Agent": "excluded",
-      "WhatsApp Sales": "excluded",
-      "B2B Network": "excluded",
-      "Daily suggestions": "included",
-      "Reports & insights": "partial",
-    },
-  },
-  {
-    key: "growth",
-    name: "Growth Pack",
-    price: "₹2,999",
-    tag: "Most popular",
-    description: "Balanced automation for teams that want stronger growth features.",
-    highlight: "Best value for growing businesses",
-    cta: "Choose Growth",
-    features: {
-      "Business analysis": "included",
-      "Competitor analysis": "included",
-      "Content creator": "included",
-      "Instagram tools": "included",
-      "Website AI": "partial",
-      "SEO & Google Maps": "partial",
-      "Meta ads": "partial",
-      "AI Voice Agent": "excluded",
-      "WhatsApp Sales": "partial",
-      "B2B Network": "partial",
-      "Daily suggestions": "included",
-      "Reports & insights": "included",
-    },
-  },
-  {
-    key: "premium",
-    name: "Premium Pack",
-    price: "₹4,999",
-    tag: "All features",
-    description: "Full access for businesses that want the complete platform.",
-    highlight: "Everything unlocked",
-    cta: "Go Premium",
-    features: Object.fromEntries(featureRows.map((feature) => [feature, "included"])) as Record<string, FeatureStatus>,
-  },
-];
-
-const defaultPlanMap = Object.fromEntries(defaultPlans.map((plan) => [plan.key, plan]));
+const defaultPlanMap = Object.fromEntries(defaultPlans.map((plan) => [plan.key, plan])) as Record<string, Plan>;
 
 const FEATURE_STATUS_LABELS = {
   included: "Included",
-  partial: "Partial",
+  partial: "Partial / limited",
   excluded: "Excluded",
 };
+
+function parsePrice(price: string) {
+  const n = Number(String(price).replace(/[^\d]/g, ""));
+  return Number.isFinite(n) ? n : 0;
+}
+
+function formatRupees(v: number) {
+  return `₹${Math.max(0, Math.round(v)).toLocaleString("en-IN")}`;
+}
+
+function planRank(key?: string) {
+  if (!key) return 0;
+  const normalizedKey = key.toLowerCase() as Plan["key"];
+  const rank = PACK_ORDER.indexOf(normalizedKey);
+  return rank >= 0 ? rank : 0;
+}
+
+function CurrentPlanSummary({ plans }: { plans: Plan[] }) {
+  const { user } = useAuthContext();
+  const navigate = useNavigate();
+
+  if (!user || !user.selected_plan_key) return null;
+
+  const currentKey = user.selected_plan_key;
+  const currentPaid = Number(user.selected_plan_amount_paid || 0) || parsePrice(user.selected_plan_price || defaultPlanMap[currentKey]?.price || "0");
+  const currentPlan = plans.find((p) => p.key === currentKey) || defaultPlanMap[currentKey];
+  const nextPlan = plans.find((p) => planRank(p.key) === planRank(currentKey) + 1) || null;
+  const purchasedAt = user.selected_plan_purchased_at ? new Date(user.selected_plan_purchased_at) : null;
+  const daysActive = purchasedAt ? Math.max(1, Math.floor((Date.now() - purchasedAt.getTime()) / (1000 * 60 * 60 * 24)) + 1) : null;
+  const estimatedValidityDays = 30;
+  const daysLeft = daysActive === null ? null : Math.max(0, estimatedValidityDays - daysActive);
+
+  return (
+    <div className="rounded-3xl border border-purple-200 bg-gradient-to-br from-purple-600 via-fuchsia-600 to-pink-600 p-6 text-white shadow-2xl shadow-purple-200/60">
+      <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
+        <div>
+          <div className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white/90">
+            Chosen pack
+          </div>
+          <div className="mt-3 text-3xl font-black tracking-tight">{currentPlan?.name}</div>
+          <div className="mt-2 max-w-2xl text-sm text-white/80">{currentPlan?.description}</div>
+          <div className="mt-4 flex flex-wrap items-center gap-2 text-xs">
+            <span className="rounded-full bg-white/15 px-3 py-1 font-semibold">{currentPlan?.tag}</span>
+            {user.selected_plan_status ? <span className="rounded-full bg-emerald-400/20 px-3 py-1 font-semibold text-emerald-50">{user.selected_plan_status}</span> : null}
+            {purchasedAt ? <span className="rounded-full bg-white/15 px-3 py-1">Purchased {purchasedAt.toLocaleDateString()}</span> : null}
+            {daysActive !== null ? <span className="rounded-full bg-white/15 px-3 py-1">Active for {daysActive} days</span> : null}
+            {daysLeft !== null ? <span className="rounded-full bg-white/15 px-3 py-1">Approx. {daysLeft} days left</span> : null}
+          </div>
+        </div>
+        <div className="rounded-2xl border border-white/15 bg-white/10 p-4 text-left backdrop-blur-sm md:min-w-[220px] md:text-right">
+          <div className="text-xs uppercase tracking-wide text-white/70">Amount paid</div>
+          <div className="mt-1 text-3xl font-black">{formatRupees(currentPaid)}</div>
+          <div className="mt-1 text-xs text-white/70">{currentPlan?.highlight || "Your selected subscription"}</div>
+        </div>
+      </div>
+
+      <div className="mt-5 flex flex-col gap-3 border-t border-white/15 pt-5 sm:flex-row sm:items-center sm:justify-between">
+        <div className="text-sm text-white/80">
+          {nextPlan ? (
+            <>
+              Recommended next upgrade: <span className="font-semibold text-white">{nextPlan.name}</span>
+            </>
+          ) : (
+            <>
+              You are on the top pack and have access to the full platform.
+            </>
+          )}
+        </div>
+        <div className="flex flex-wrap gap-3">
+          {nextPlan ? (
+            <Button
+              variant="outline"
+              size="sm"
+              className="border-white/20 bg-white text-purple-700 hover:bg-white/90"
+              onClick={() => navigate({ to: "/dashboard/checkout", search: { plan: nextPlan.key, upgrade_from: currentKey } })}
+            >
+              Upgrade to {nextPlan.name}
+            </Button>
+          ) : null}
+          <Button
+            variant="outline"
+            size="sm"
+            className="border-white/20 text-white hover:bg-white/10"
+            onClick={() => navigate({ to: "/dashboard/pricing" })}
+          >
+            Compare all packs
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function normalizePlans(payload: unknown): Plan[] {
   const list = Array.isArray(payload) ? payload : (payload as { plans?: unknown[] })?.plans || [];
@@ -150,13 +171,15 @@ function PricingPlansPage() {
   const navigate = useNavigate();
   const [plans, setPlans] = useState<Plan[]>(defaultPlans);
   const [sourceState, setSourceState] = useState<"loading" | "live" | "fallback">("loading");
+  const { user } = useAuthContext();
+  const currentKey = (user?.selected_plan_key || "").toLowerCase();
 
   useEffect(() => {
     let cancelled = false;
 
     const loadPlans = async () => {
       try {
-        const response = await fetch(`/admin-api/api/public/billing-plans`, { cache: "no-store" });
+        const response = await fetch(`${ADMIN_API_URL}/api/public/billing-plans`, { cache: "no-store" });
         if (!response.ok) {
           throw new Error("Failed to fetch pricing plans");
         }
@@ -211,19 +234,26 @@ function PricingPlansPage() {
       />
 
       <div className="space-y-4">
+        {/* Current user plan summary and quick upgrade action */}
+        <CurrentPlanSummary plans={plans} />
         <div className="grid gap-4 md:grid-cols-3">
           {plans.map((plan) => (
             <div
               key={plan.name}
-              className={`rounded-2xl border bg-card p-5 shadow-sm ${
-                plan.name === "Growth Pack"
-                  ? "border-purple-300 ring-2 ring-purple-100"
-                  : "border-border/60"
+              className={`rounded-3xl border p-5 shadow-sm transition-all ${
+                currentKey === plan.key
+                  ? "border-purple-300 bg-gradient-to-br from-purple-50 via-white to-fuchsia-50 ring-2 ring-purple-200 shadow-lg"
+                  : plan.key === "growth"
+                    ? "border-purple-200 bg-white ring-1 ring-purple-100"
+                    : "border-border/60 bg-card"
               }`}
             >
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <Badge variant={plan.name === "Growth Pack" ? "default" : "outline"}>{plan.tag}</Badge>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Badge variant={plan.key === "growth" || currentKey === plan.key ? "default" : "outline"}>{plan.tag}</Badge>
+                    {currentKey === plan.key ? <Badge variant="secondary">Chosen pack</Badge> : null}
+                  </div>
                   <h2 className="mt-3 text-xl font-bold tracking-tight">{plan.name}</h2>
                   <p className="mt-1 text-sm text-muted-foreground">{plan.description}</p>
                 </div>
@@ -238,7 +268,7 @@ function PricingPlansPage() {
               </div>
 
               <div className="mt-5 space-y-2">
-                {featureRows.slice(0, 6).map((feature) => (
+                {FEATURE_ROWS.slice(0, 6).map((feature) => (
                   <div key={feature} className="flex items-center justify-between gap-3 text-sm">
                     <span className="text-muted-foreground">{feature}</span>
                     <FeatureIcon status={plan.features[feature]} />
@@ -248,10 +278,10 @@ function PricingPlansPage() {
 
               <Button
                 className="mt-5 w-full"
-                variant={plan.name === "Growth Pack" ? "hero" : "outline"}
+                variant={currentKey === plan.key || plan.key === "growth" ? "hero" : "outline"}
                 onClick={() => navigate({ to: "/dashboard/checkout", search: { plan: plan.key } })}
               >
-                {plan.cta}
+                {currentKey === plan.key ? "Your chosen pack" : plan.cta}
               </Button>
             </div>
           ))}
@@ -281,7 +311,7 @@ function PricingPlansPage() {
               </div>
 
               <div className="mt-3 space-y-2">
-                {featureRows.map((feature) => (
+                {FEATURE_ROWS.map((feature) => (
                   <div
                     key={feature}
                     className="grid grid-cols-[minmax(220px,1.4fr)_repeat(3,minmax(120px,1fr))] items-center gap-3 rounded-xl border border-border/50 px-4 py-3 text-sm"

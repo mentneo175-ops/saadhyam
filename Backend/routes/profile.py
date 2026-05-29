@@ -5,6 +5,7 @@ WITH REDIS CACHING to reduce database load
 """
 
 import logging
+from datetime import datetime, timezone
 from fastapi import APIRouter, HTTPException, status, Depends, Header
 from pydantic import BaseModel, Field
 from typing import Optional
@@ -15,10 +16,10 @@ from models.business_profile import BusinessProfile
 from models.settings import UserSettings
 from models.instagram_analytics import (
     InstagramBusinessAccount,
-    InstagramPost,
-    InstagramStory,
-    InstagramReel,
-    InstagramInsight,
+    PostAnalytics,
+    StoryAnalytics,
+    ReelAnalytics,
+    AudienceInsights,
 )
 from models.task_tracking import DailyTask, GrowthMetric
 from models.whatsapp_account import WhatsAppAccount
@@ -28,9 +29,9 @@ from models.whatsapp_automation import WhatsAppAutomation
 from models.voice_agent import VoiceCampaign, VoiceContact, VoiceCall, VoiceLead, VoiceFollowUp
 from models.youtube import YouTubeChannel, YouTubeVideo, YouTubeAnalytics
 from models.influencer import Influencer
-from models.retention_campaign import RetentionCampaign, RetentionEmail
+from models.retention_campaign import RetentionCampaign
 from db.models import BusinessAnalysis, ReviewHistory
-from db.aeo_geo_models import AEOQuestion, AEOContent, AIVisibilityTracking
+from db.aeo_geo_models import AEOQuestion, AEOContent, AIVisibility
 from utils.dependencies import get_current_user
 from services.token_blacklist_service import token_blacklist_service
 from services.comprehensive_cache_service import (
@@ -84,11 +85,34 @@ class BusinessProfileResponse(BaseModel):
         from_attributes = True
 
 
+class PlanSelectionRequest(BaseModel):
+    """Request model for saving the user's selected plan."""
+
+    plan_key: str = Field(..., min_length=1, max_length=50)
+    plan_name: str = Field(..., min_length=1, max_length=255)
+    plan_price: str = Field(..., min_length=1, max_length=50)
+    payment_id: str = Field(..., min_length=1, max_length=255)
+    coupon_code: Optional[str] = Field(None, max_length=50)
+    amount_paid: Optional[float] = Field(None, ge=0)
+    currency: str = Field(default="INR", max_length=10)
+    status: str = Field(default="active", max_length=50)
+    upgrade_from: Optional[str] = Field(None, max_length=50)
+
+
 class UserProfileResponse(BaseModel):
     """Response model for complete user profile"""
     id: int
     email: str
     name: Optional[str] = None
+    selected_plan_key: Optional[str] = None
+    selected_plan_name: Optional[str] = None
+    selected_plan_price: Optional[str] = None
+    selected_plan_payment_id: Optional[str] = None
+    selected_plan_coupon_code: Optional[str] = None
+    selected_plan_amount_paid: Optional[float] = None
+    selected_plan_currency: Optional[str] = None
+    selected_plan_status: Optional[str] = None
+    selected_plan_purchased_at: Optional[datetime] = None
     business_profile: BusinessProfileResponse
     last_generated_website_id: Optional[str] = None  # UUID of confirmed website
     
@@ -144,6 +168,15 @@ async def get_profile(
             id=current_user.id,
             email=current_user.email,
             name=current_user.name,
+            selected_plan_key=current_user.selected_plan_key,
+            selected_plan_name=current_user.selected_plan_name,
+            selected_plan_price=current_user.selected_plan_price,
+            selected_plan_payment_id=current_user.selected_plan_payment_id,
+            selected_plan_coupon_code=current_user.selected_plan_coupon_code,
+            selected_plan_amount_paid=current_user.selected_plan_amount_paid,
+            selected_plan_currency=current_user.selected_plan_currency,
+            selected_plan_status=current_user.selected_plan_status,
+            selected_plan_purchased_at=current_user.selected_plan_purchased_at,
             business_profile=business_profile,
             last_generated_website_id=current_user.last_generated_website_id
         )
@@ -358,6 +391,92 @@ def get_business_setup_status(
 
 
 @router.post(
+    "/selected-plan",
+    summary="Confirm and save selected plan",
+    responses={
+        200: {"description": "Selected plan saved successfully"},
+        400: {"description": "Invalid request"},
+        401: {"description": "Not authenticated"}
+    }
+)
+async def confirm_selected_plan(
+    request: PlanSelectionRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db_sync)
+) -> dict:
+    """Persist the user's selected plan after checkout."""
+
+    try:
+        logger.info(f"📝 User {current_user.email} confirming plan {request.plan_key}")
+
+        # Enforce no-downgrades policy on the server-side
+        PLAN_RANKS = {
+            "starter": 1,
+            "growth": 2,
+            "education": 3,
+            "business": 4
+        }
+
+        def get_plan_rank(key: str) -> int:
+            if not key:
+                return 0
+            k = key.lower()
+            if k in ["premium", "pro"]:
+                k = "business"
+            return PLAN_RANKS.get(k, 0)
+
+        if current_user.selected_plan_key:
+            current_rank = get_plan_rank(current_user.selected_plan_key)
+            target_rank = get_plan_rank(request.plan_key)
+            if target_rank < current_rank:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Plan downgrade is not permitted. You can only upgrade your active plan."
+                )
+
+        current_user.selected_plan_key = request.plan_key
+        current_user.selected_plan_name = request.plan_name
+        current_user.selected_plan_price = request.plan_price
+        current_user.selected_plan_payment_id = request.payment_id
+        current_user.selected_plan_coupon_code = request.coupon_code
+        current_user.selected_plan_amount_paid = request.amount_paid
+        current_user.selected_plan_currency = request.currency
+        current_user.selected_plan_status = request.status
+
+        current_user.selected_plan_purchased_at = datetime.now(timezone.utc)
+
+        db.commit()
+        db.refresh(current_user)
+
+        await delete_pattern(f"{CACHE_PREFIX['profile']}{current_user.id}*")
+        await delete_pattern(f"{CACHE_PREFIX['dashboard']}user_{current_user.id}")
+
+        logger.info(f"✅ Selected plan {request.plan_key} saved for user {current_user.id}")
+
+        return {
+            "status": "success",
+            "message": "Selected plan saved successfully",
+            "selected_plan_key": current_user.selected_plan_key,
+            "selected_plan_name": current_user.selected_plan_name,
+            "selected_plan_price": current_user.selected_plan_price,
+            "selected_plan_payment_id": current_user.selected_plan_payment_id,
+            "selected_plan_coupon_code": current_user.selected_plan_coupon_code,
+            "selected_plan_amount_paid": current_user.selected_plan_amount_paid,
+            "selected_plan_currency": current_user.selected_plan_currency,
+            "selected_plan_status": current_user.selected_plan_status,
+            "selected_plan_purchased_at": current_user.selected_plan_purchased_at,
+        }
+
+    except Exception as e:
+        logger.error(f"❌ Error confirming selected plan: {e}", exc_info=True)
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to confirm selected plan: {str(e)}"
+        )
+
+
+@router.post(
     "/confirm-website",
     summary="Confirm and save generated website",
     responses={
@@ -470,14 +589,13 @@ def delete_account(
         db.query(ReviewHistory).filter(ReviewHistory.user_id == user_id).delete(synchronize_session=False)
         db.query(AEOQuestion).filter(AEOQuestion.user_id == user_id).delete(synchronize_session=False)
         db.query(AEOContent).filter(AEOContent.user_id == user_id).delete(synchronize_session=False)
-        db.query(AIVisibilityTracking).filter(AIVisibilityTracking.user_id == user_id).delete(synchronize_session=False)
+        db.query(AIVisibility).filter(AIVisibility.user_id == user_id).delete(synchronize_session=False)
         db.query(BusinessProfile).filter(BusinessProfile.user_id == user_id).delete(synchronize_session=False)
         db.query(UserSettings).filter(UserSettings.user_id == user_id).delete(synchronize_session=False)
         db.query(DailyTask).filter(DailyTask.user_id == user_id).delete(synchronize_session=False)
         db.query(GrowthMetric).filter(GrowthMetric.user_id == user_id).delete(synchronize_session=False)
         db.query(Influencer).filter(Influencer.user_id == user_id).delete(synchronize_session=False)
-        db.query(RetentionCampaign).filter(RetentionCampaign.user_id == user_id).delete(synchronize_session=False)
-        db.query(RetentionEmail).filter(RetentionEmail.user_id == user_id).delete(synchronize_session=False)
+        db.query(RetentionCampaign).filter(RetentionCampaign.customer_email == current_user.email).delete(synchronize_session=False)
 
         # These models are linked to the user through ORM relationships and will be removed on user delete.
         current_user.active_session_token = None

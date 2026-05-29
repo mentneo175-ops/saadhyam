@@ -32,6 +32,15 @@ export interface User {
   business_location?: string;
   business_description?: string;
   business_setup_completed?: boolean;
+  selected_plan_key?: string;
+  selected_plan_name?: string;
+  selected_plan_price?: string;
+  selected_plan_payment_id?: string;
+  selected_plan_coupon_code?: string;
+  selected_plan_amount_paid?: number;
+  selected_plan_currency?: string;
+  selected_plan_status?: string;
+  selected_plan_purchased_at?: string;
   created_at: string;
 }
 
@@ -549,6 +558,15 @@ class ApiClient {
       business_location: data.business_location,
       business_description: data.business_description,
       business_setup_completed: data.business_setup_completed,
+      selected_plan_key: data.selected_plan_key,
+      selected_plan_name: data.selected_plan_name,
+      selected_plan_price: data.selected_plan_price,
+      selected_plan_payment_id: data.selected_plan_payment_id,
+      selected_plan_coupon_code: data.selected_plan_coupon_code,
+      selected_plan_amount_paid: data.selected_plan_amount_paid,
+      selected_plan_currency: data.selected_plan_currency,
+      selected_plan_status: data.selected_plan_status,
+      selected_plan_purchased_at: data.selected_plan_purchased_at,
       created_at: data.created_at,
     };
 
@@ -949,6 +967,33 @@ class ApiClient {
    */
   async getBusinessSetupStatus(): Promise<any> {
     return this.get("/api/profile/business/setup-status");
+  }
+
+  /**
+   * Confirm and save the selected subscription plan
+   */
+  async confirmSelectedPlan(payload: {
+    plan_key: string;
+    plan_name: string;
+    plan_price: string;
+    payment_id: string;
+    coupon_code?: string;
+    amount_paid?: number;
+    currency?: string;
+    status?: string;
+    upgrade_from?: string;
+  }): Promise<any> {
+    return this.post("/api/profile/selected-plan", {
+      plan_key: payload.plan_key,
+      plan_name: payload.plan_name,
+      plan_price: payload.plan_price,
+      payment_id: payload.payment_id,
+      coupon_code: payload.coupon_code ?? "",
+      amount_paid: payload.amount_paid,
+      currency: payload.currency ?? "INR",
+      status: payload.status ?? "active",
+      upgrade_from: payload.upgrade_from,
+    });
   }
 
   // ============= Business Input Engine =============

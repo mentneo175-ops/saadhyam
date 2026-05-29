@@ -85,6 +85,21 @@ def get_current_user_info(
         response = UserResponse(
             id=user.id,
             email=user.email,
+            name=user.name,
+            business_name=user.business_name,
+            business_type=user.business_type,
+            business_location=user.business_location,
+            business_description=user.business_description,
+            business_setup_completed=user.business_setup_completed,
+            selected_plan_key=user.selected_plan_key,
+            selected_plan_name=user.selected_plan_name,
+            selected_plan_price=user.selected_plan_price,
+            selected_plan_payment_id=user.selected_plan_payment_id,
+            selected_plan_coupon_code=user.selected_plan_coupon_code,
+            selected_plan_amount_paid=user.selected_plan_amount_paid,
+            selected_plan_currency=user.selected_plan_currency,
+            selected_plan_status=user.selected_plan_status,
+            selected_plan_purchased_at=user.selected_plan_purchased_at,
             created_at=user.created_at,
         )
         logger.info(f"✅ Returning user response")

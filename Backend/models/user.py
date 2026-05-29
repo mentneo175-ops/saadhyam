@@ -49,6 +49,17 @@ class User(Base):
     pdf_file_url = Column(Text, nullable=True)  # Path to uploaded PDF
     website_url = Column(Text, nullable=True)  # Imported website URL
     
+    # Selected plan / subscription fields
+    selected_plan_key = Column(String(50), nullable=True)
+    selected_plan_name = Column(String(255), nullable=True)
+    selected_plan_price = Column(String(50), nullable=True)
+    selected_plan_payment_id = Column(String(255), nullable=True)
+    selected_plan_coupon_code = Column(String(50), nullable=True)
+    selected_plan_amount_paid = Column(Float, nullable=True)
+    selected_plan_currency = Column(String(10), nullable=True)
+    selected_plan_status = Column(String(50), nullable=True)
+    selected_plan_purchased_at = Column(DateTime, nullable=True)
+
     # Generated Website
     last_generated_website_id = Column(String(36), nullable=True)  # UUID of last generated website
     

@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import LogoImage from "@/Icon/Saadhyam_Icon-removebg-preview.png";
+import { normalizePackKey } from "@/config/subscriptions";
 
 const ADMIN_API_URL = import.meta.env.VITE_ADMIN_API_URL || "http://127.0.0.1:8082";
 
@@ -140,55 +141,75 @@ type LandingPlan = {
   features: string[];
   cta: string;
   highlighted?: boolean;
+  variant?: "outline" | "hero";
 };
 
 const defaultTiers: LandingPlan[] = [
   {
     key: "starter",
-    name: "Free",
-    price: "$0",
-    desc: "Test AI search optimization with no commitment.",
+    name: "Starter",
+    price: "₹2,999",
+    desc: "Best for low-business users who want the essentials.",
     features: [
-      "5 AI generations / day",
-      "Basic SEO + AEO analysis",
-      "AI visibility score",
-      "Community support",
+      "Business analysis",
+      "Competitor analysis",
+      "Limited content creation",
+      "Partial reporting",
     ],
-    cta: "Start free",
+    cta: "Choose Starter",
     variant: "outline" as const,
   },
   {
     key: "growth",
-    name: "Pro",
-    price: "$29",
-    desc: "Full AI search visibility for growing businesses.",
+    name: "Growth",
+    price: "₹9,999",
+    desc: "For small businesses that need stronger automation.",
     features: [
-      "Unlimited AI generations",
-      "Advanced AEO + GEO optimization",
-      "Voice search optimization",
-      "AI search monitoring",
-      "ChatGPT visibility tracking",
-      "Priority support",
+      "Included content creator",
+      "Instagram tools",
+      "Partial website AI",
+      "Partial SEO & maps",
+      "Partial WhatsApp sales",
+      "Included insights",
     ],
-    cta: "Optimize My AI Visibility",
+    cta: "Choose Growth",
+    variant: "hero" as const,
+    highlighted: false,
+  },
+  {
+    key: "education",
+    name: "Education",
+    price: "₹14,999",
+    desc: "Recommended for colleges, institutes, and education groups.",
+    features: [
+      "Bulk reporting",
+      "Education-focused workflows",
+      "Included SEO & maps",
+      "Included content tools",
+      "Partial meta ads",
+      "Team access",
+    ],
+    cta: "Choose Education",
     variant: "hero" as const,
     highlighted: true,
   },
   {
-    key: "premium",
+    key: "business",
     name: "Business",
-    price: "$99",
-    desc: "Enterprise AI discoverability with dedicated support.",
+    price: "₹24,999",
+    desc: "Business pack with enterprise combined. Everything unlocked.",
     features: [
-      "Everything in Pro",
-      "Multi-platform AI tracking",
-      "Custom AI search strategy",
-      "Dedicated AI specialist",
-      "White-label reports",
-      "API access",
+      "Everything unlocked",
+      "Included website AI",
+      "Included SEO & maps",
+      "Included meta ads",
+      "Included AI voice agent",
+      "Included WhatsApp sales",
+      "Included reports & B2B network",
     ],
-    cta: "Get AI Search Ready",
-    variant: "outline" as const,
+    cta: "Choose Business",
+    variant: "hero" as const,
+    highlighted: true,
   },
 ];
 
@@ -201,7 +222,7 @@ function normalizeLandingPlans(payload: unknown): LandingPlan[] {
   list.forEach((item) => {
     if (!item || typeof item !== "object") return;
     const plan = item as Record<string, any>;
-    const key = String(plan.key || plan.id || plan.name || "").toLowerCase();
+    const key = normalizePackKey(String(plan.key || plan.id || plan.name || ""));
     if (!key) return;
 
     const fallback = defaultTierMap[key];
@@ -803,7 +824,7 @@ function Landing() {
             Simple plans that grow with you
           </h2>
         </div>
-        <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+        <div className="grid gap-6 max-w-5xl mx-auto md:grid-cols-2 xl:grid-cols-4">
           {tiers.map((t) => (
             <div
               key={t.name}
@@ -815,13 +836,13 @@ function Landing() {
             >
               {t.highlighted && (
                 <span className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full bg-gradient-to-r from-[#8B5CF6] to-[#A855F7] text-white text-xs font-bold shadow-lg">
-                  MOST POPULAR
+                    RECOMMENDED
                 </span>
               )}
               <h3 className="font-bold text-xl text-gray-900">{t.name}</h3>
               <div className="mt-4 mb-2">
                 <span className="text-5xl font-bold text-gray-900">{t.price}</span>
-                <span className="text-base text-gray-600">/mo</span>
+                  {t.price !== "Custom" ? <span className="text-base text-gray-600">/mo</span> : null}
               </div>
               <p className="text-sm mb-7 text-gray-600">{t.desc}</p>
               <Button 

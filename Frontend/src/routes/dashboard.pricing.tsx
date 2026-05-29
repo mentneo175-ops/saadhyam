@@ -6,7 +6,7 @@ import { Check, X, Sparkles, Star } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useAuthContext } from "@/lib/AuthContext";
 import { getAdminApiBaseUrl } from "@/lib/runtimeUrls";
-import { FEATURE_ROWS, PACK_CATALOG, PACK_ORDER, type FeatureStatus } from "@/config/subscriptions";
+import { FEATURE_ROWS, PACK_CATALOG, PACK_ORDER, getNextPackKey, normalizePackKey, getPackRank, type FeatureStatus, type PackKey } from "@/config/subscriptions";
 
 const ADMIN_API_URL = getAdminApiBaseUrl();
 
@@ -16,7 +16,7 @@ export const Route = createFileRoute("/dashboard/pricing")({
 });
 
 type Plan = {
-  key: (typeof PACK_ORDER)[number];
+  key: PackKey;
   name: string;
   price: string;
   tag: string;
@@ -45,23 +45,17 @@ function formatRupees(v: number) {
   return `₹${Math.max(0, Math.round(v)).toLocaleString("en-IN")}`;
 }
 
-function planRank(key?: string) {
-  if (!key) return 0;
-  const normalizedKey = key.toLowerCase() as Plan["key"];
-  const rank = PACK_ORDER.indexOf(normalizedKey);
-  return rank >= 0 ? rank : 0;
-}
-
 function CurrentPlanSummary({ plans }: { plans: Plan[] }) {
   const { user } = useAuthContext();
   const navigate = useNavigate();
 
   if (!user || !user.selected_plan_key) return null;
 
-  const currentKey = user.selected_plan_key;
+  const currentKey = normalizePackKey(user.selected_plan_key);
   const currentPaid = Number(user.selected_plan_amount_paid || 0) || parsePrice(user.selected_plan_price || defaultPlanMap[currentKey]?.price || "0");
   const currentPlan = plans.find((p) => p.key === currentKey) || defaultPlanMap[currentKey];
-  const nextPlan = plans.find((p) => planRank(p.key) === planRank(currentKey) + 1) || null;
+  const nextPlanKey = getNextPackKey(currentKey);
+  const nextPlan = nextPlanKey ? (plans.find((p) => p.key === nextPlanKey) || defaultPlanMap[nextPlanKey] || null) : null;
   const purchasedAt = user.selected_plan_purchased_at ? new Date(user.selected_plan_purchased_at) : null;
   const daysActive = purchasedAt ? Math.max(1, Math.floor((Date.now() - purchasedAt.getTime()) / (1000 * 60 * 60 * 24)) + 1) : null;
   const estimatedValidityDays = 30;
@@ -135,7 +129,7 @@ function normalizePlans(payload: unknown): Plan[] {
   list.forEach((item) => {
     if (!item || typeof item !== "object") return;
     const plan = item as Record<string, any>;
-    const key = String(plan.key || plan.id || plan.name || "").toLowerCase();
+    const key = normalizePackKey(String(plan.key || plan.id || plan.name || ""));
     if (!key) return;
     byKey.set(key, {
       key,
@@ -172,7 +166,7 @@ function PricingPlansPage() {
   const [plans, setPlans] = useState<Plan[]>(defaultPlans);
   const [sourceState, setSourceState] = useState<"loading" | "live" | "fallback">("loading");
   const { user } = useAuthContext();
-  const currentKey = (user?.selected_plan_key || "").toLowerCase();
+  const currentKey = normalizePackKey(user?.selected_plan_key);
 
   useEffect(() => {
     let cancelled = false;
@@ -220,7 +214,7 @@ function PricingPlansPage() {
     <div className="p-4 md:p-6 space-y-5">
       <PageHeader
         title="Pricing"
-        subtitle="Choose the package that fits your business stage. Starter for basics, Growth for a balanced stack, Premium for the full platform."
+        subtitle="Choose the package that fits your business stage. Starter and Growth fit small businesses, Education is for colleges and institutes, and Business is for medium-level teams."
         actions={
           <div className="flex items-center gap-2 flex-wrap justify-end">
             <Badge variant={sourceState === "live" ? "default" : sourceState === "fallback" ? "outline" : "secondary"}>
@@ -236,55 +230,62 @@ function PricingPlansPage() {
       <div className="space-y-4">
         {/* Current user plan summary and quick upgrade action */}
         <CurrentPlanSummary plans={plans} />
-        <div className="grid gap-4 md:grid-cols-3">
-          {plans.map((plan) => (
-            <div
-              key={plan.name}
-              className={`rounded-3xl border p-5 shadow-sm transition-all ${
-                currentKey === plan.key
-                  ? "border-purple-300 bg-gradient-to-br from-purple-50 via-white to-fuchsia-50 ring-2 ring-purple-200 shadow-lg"
-                  : plan.key === "growth"
-                    ? "border-purple-200 bg-white ring-1 ring-purple-100"
-                    : "border-border/60 bg-card"
-              }`}
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <Badge variant={plan.key === "growth" || currentKey === plan.key ? "default" : "outline"}>{plan.tag}</Badge>
-                    {currentKey === plan.key ? <Badge variant="secondary">Chosen pack</Badge> : null}
-                  </div>
-                  <h2 className="mt-3 text-xl font-bold tracking-tight">{plan.name}</h2>
-                  <p className="mt-1 text-sm text-muted-foreground">{plan.description}</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-3xl font-black text-foreground">{plan.price}</p>
-                  <p className="text-xs text-muted-foreground">One-time / plan pricing</p>
-                </div>
-              </div>
+        <div className="grid gap-4 lg:grid-cols-4 md:grid-cols-2">
+          {plans.map((plan) => {
+            const hasActivePlan = !!user?.selected_plan_key;
+            const isCurrentPlan = hasActivePlan && currentKey === plan.key;
+            const isDowngrade = hasActivePlan && getPackRank(plan.key) < getPackRank(user?.selected_plan_key);
 
-              <div className="mt-4 rounded-xl bg-muted/40 p-3 text-sm font-medium text-foreground">
-                {plan.highlight}
-              </div>
-
-              <div className="mt-5 space-y-2">
-                {FEATURE_ROWS.slice(0, 6).map((feature) => (
-                  <div key={feature} className="flex items-center justify-between gap-3 text-sm">
-                    <span className="text-muted-foreground">{feature}</span>
-                    <FeatureIcon status={plan.features[feature]} />
-                  </div>
-                ))}
-              </div>
-
-              <Button
-                className="mt-5 w-full"
-                variant={currentKey === plan.key || plan.key === "growth" ? "hero" : "outline"}
-                onClick={() => navigate({ to: "/dashboard/checkout", search: { plan: plan.key } })}
+            return (
+              <div
+                key={plan.name}
+                className={`rounded-3xl border p-5 shadow-sm transition-all ${
+                  isCurrentPlan
+                    ? "border-purple-300 bg-gradient-to-br from-purple-50 via-white to-fuchsia-50 ring-2 ring-purple-200 shadow-lg"
+                    : plan.key === "education" || plan.key === "business"
+                      ? "border-purple-200 bg-white ring-1 ring-purple-100"
+                      : "border-border/60 bg-card"
+                }`}
               >
-                {currentKey === plan.key ? "Your chosen pack" : plan.cta}
-              </Button>
-            </div>
-          ))}
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <Badge variant={plan.key === "education" || plan.key === "business" || isCurrentPlan ? "default" : "outline"}>{plan.tag}</Badge>
+                      {isCurrentPlan ? <Badge variant="secondary">Chosen pack</Badge> : null}
+                    </div>
+                    <h2 className="mt-3 text-xl font-bold tracking-tight">{plan.name}</h2>
+                    <p className="mt-1 text-sm text-muted-foreground">{plan.description}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-3xl font-black text-foreground">{plan.price}</p>
+                    <p className="text-xs text-muted-foreground">One-time / plan pricing</p>
+                  </div>
+                </div>
+
+                <div className="mt-4 rounded-xl bg-muted/40 p-3 text-sm font-medium text-foreground">
+                  {plan.highlight}
+                </div>
+
+                <div className="mt-5 space-y-2">
+                  {FEATURE_ROWS.slice(0, 6).map((feature) => (
+                    <div key={feature} className="flex items-center justify-between gap-3 text-sm">
+                      <span className="text-muted-foreground">{feature}</span>
+                      <FeatureIcon status={plan.features[feature]} />
+                    </div>
+                  ))}
+                </div>
+
+                <Button
+                  className="mt-5 w-full"
+                  variant={isCurrentPlan ? "hero" : isDowngrade ? "outline" : plan.key === "education" || plan.key === "business" ? "hero" : "outline"}
+                  disabled={isCurrentPlan || isDowngrade}
+                  onClick={() => navigate({ to: "/dashboard/checkout", search: { plan: plan.key } })}
+                >
+                  {isCurrentPlan ? "Your chosen pack" : isDowngrade ? "Downgrade unavailable" : plan.cta}
+                </Button>
+              </div>
+            );
+          })}
         </div>
 
         <div className="rounded-2xl border border-border/60 bg-card p-5 shadow-sm">
@@ -293,7 +294,7 @@ function PricingPlansPage() {
               <Badge variant="outline">Feature comparison</Badge>
               <h3 className="mt-3 text-lg font-bold">What each pack includes</h3>
               <p className="mt-1 text-sm text-muted-foreground">
-                Starter keeps the essentials small, Growth unlocks the core tools, and Premium gives full access.
+                Starter and Growth are built for small businesses, Education is recommended for colleges, and Business fits medium businesses with all features unlocked.
               </p>
             </div>
             <div className="rounded-xl bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
@@ -303,23 +304,31 @@ function PricingPlansPage() {
 
           <div className="overflow-x-auto">
             <div className="min-w-[780px]">
-              <div className="grid grid-cols-[minmax(220px,1.4fr)_repeat(3,minmax(120px,1fr))] items-center gap-3 rounded-xl bg-muted/50 px-4 py-3 text-sm font-semibold text-foreground">
+              <div
+                className="grid items-center gap-3 rounded-xl bg-muted/50 px-4 py-3 text-sm font-semibold text-foreground"
+                style={{ gridTemplateColumns: `minmax(220px,1.4fr) repeat(${plans.length}, minmax(120px,1fr))` }}
+              >
                 <div>Feature</div>
-                <div className="text-center">Starter</div>
-                <div className="text-center">Growth</div>
-                <div className="text-center">Premium</div>
+                {plans.map((plan) => (
+                  <div key={plan.key} className="text-center">
+                    {plan.name}
+                  </div>
+                ))}
               </div>
 
               <div className="mt-3 space-y-2">
                 {FEATURE_ROWS.map((feature) => (
                   <div
                     key={feature}
-                    className="grid grid-cols-[minmax(220px,1.4fr)_repeat(3,minmax(120px,1fr))] items-center gap-3 rounded-xl border border-border/50 px-4 py-3 text-sm"
+                    className="grid items-center gap-3 rounded-xl border border-border/50 px-4 py-3 text-sm"
+                    style={{ gridTemplateColumns: `minmax(220px,1.4fr) repeat(${plans.length}, minmax(120px,1fr))` }}
                   >
                     <span className="font-medium text-foreground">{feature}</span>
-                    <div className="flex justify-center"><FeatureIcon status={plans[0].features[feature]} /></div>
-                    <div className="flex justify-center"><FeatureIcon status={plans[1].features[feature]} /></div>
-                    <div className="flex justify-center"><FeatureIcon status={plans[2].features[feature]} /></div>
+                    {plans.map((plan) => (
+                      <div key={`${plan.key}-${feature}`} className="flex justify-center">
+                        <FeatureIcon status={plan.features[feature]} />
+                      </div>
+                    ))}
                   </div>
                 ))}
               </div>
@@ -329,8 +338,8 @@ function PricingPlansPage() {
           <div className="mt-4 rounded-xl bg-gradient-to-r from-purple-50 via-fuchsia-50 to-pink-50 p-4 text-sm text-gray-700">
             <p className="font-semibold text-gray-900">Recommended mapping</p>
             <p className="mt-1">
-              <span className="font-medium">₹499</span> for basic planning tools, <span className="font-medium">₹2,999</span> for a balanced growth stack,
-              and <span className="font-medium">₹4,999</span> for the full premium suite.
+              <span className="font-medium">₹2,999</span> for starter access, <span className="font-medium">₹9,999</span> for small businesses,
+              <span className="font-medium">₹14,999</span> for colleges and education, and <span className="font-medium">₹24,999</span> for medium businesses.
             </p>
           </div>
         </div>

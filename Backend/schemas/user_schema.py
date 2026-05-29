@@ -26,6 +26,20 @@ class UserResponse(BaseModel):
     id: int
     email: str
     name: Optional[str] = None
+    business_name: Optional[str] = None
+    business_type: Optional[str] = None
+    business_location: Optional[str] = None
+    business_description: Optional[str] = None
+    business_setup_completed: Optional[bool] = None
+    selected_plan_key: Optional[str] = None
+    selected_plan_name: Optional[str] = None
+    selected_plan_price: Optional[str] = None
+    selected_plan_payment_id: Optional[str] = None
+    selected_plan_coupon_code: Optional[str] = None
+    selected_plan_amount_paid: Optional[float] = None
+    selected_plan_currency: Optional[str] = None
+    selected_plan_status: Optional[str] = None
+    selected_plan_purchased_at: Optional[datetime] = None
     created_at: datetime
 
     class Config:

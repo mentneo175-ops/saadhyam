@@ -42,12 +42,12 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       const mode = detail.mode;
       const message = detail.detail || (mode === 'maintenance'
         ? 'This feature is under maintenance and will be available again soon.'
-        : 'This feature has been temporarily disabled by the admin team.');
+        : 'Subscription needed. You can open the feature page, but this action is locked until you upgrade or your limit resets.');
 
       setBanner({
         id: `banner-${Date.now()}`,
         type: 'warning',
-        title: `Feature blocked: ${featureKey}`,
+        title: mode === 'maintenance' ? `Maintenance: ${featureKey}` : `Subscription needed: ${featureKey}`,
         message,
         action: {
           label: 'Dismiss',

@@ -7,6 +7,7 @@ import { SidebarProvider, useSidebar } from "@/contexts/SidebarContext";
 import AssistantWidget from "@/components/AssistantWidget";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { FeatureDisabledBanner } from "@/components/FeatureDisabledBanner";
+import { FeatureUpgradeGuard } from "@/components/FeatureUpgradeGuard";
 import { useRoutePreservation } from "@/hooks/useRoutePreservation";
 import { useAuthContext } from "@/lib/AuthContext";
 import { useState, useCallback } from "react";
@@ -56,7 +57,9 @@ function DashboardLayoutContent() {
           <TopHeader />
           <ResponsiveFeatureHeader />
           <main className="flex-1 min-w-0 pt-14 lg:pt-0 relative flex flex-col">
-            <Outlet />
+            <FeatureUpgradeGuard>
+              <Outlet />
+            </FeatureUpgradeGuard>
 
             {/* Feature-blocked full-page overlay */}
             <FeatureDisabledBanner />

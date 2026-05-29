@@ -6,13 +6,13 @@ import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { apiClient } from "@/lib/api";
 import { getAdminApiBaseUrl } from "@/lib/runtimeUrls";
-import { PACK_CATALOG, PACK_ORDER } from "@/config/subscriptions";
+import { PACK_CATALOG, PACK_ORDER, normalizePackKey, getPackRank, type PackKey } from "@/config/subscriptions";
 
 const ADMIN_API_URL = getAdminApiBaseUrl();
 const RAZORPAY_KEY_ID = import.meta.env.VITE_RAZORPAY_KEY_ID || "";
 
 type Plan = {
-  key: (typeof PACK_ORDER)[number];
+  key: PackKey;
   name: string;
   price: string;
   tag: string;
@@ -67,7 +67,7 @@ const defaultPlanMap = Object.fromEntries(defaultPlans.map((plan) => [plan.key, 
 
 export const Route = createFileRoute("/dashboard/checkout")({
   validateSearch: (search: Record<string, unknown>) => ({
-    plan: typeof search.plan === "string" && search.plan ? search.plan : "starter",
+    plan: normalizePackKey(typeof search.plan === "string" && search.plan ? search.plan : "starter"),
     upgrade_from: typeof search.upgrade_from === "string" && search.upgrade_from ? search.upgrade_from : undefined,
   }),
   head: () => ({ meta: [{ title: "Checkout — Saadhyam AI" }] }),
@@ -90,7 +90,7 @@ function normalizePlans(payload: unknown): Plan[] {
   list.forEach((item) => {
     if (!item || typeof item !== "object") return;
     const plan = item as Record<string, any>;
-    const key = String(plan.key || plan.id || plan.name || "").toLowerCase();
+    const key = normalizePackKey(String(plan.key || plan.id || plan.name || ""));
     if (!key) return;
     byKey.set(key, {
       key,
@@ -152,13 +152,24 @@ function CheckoutPage() {
 
   const { plan: planKey, upgrade_from: upgradeFrom } = Route.useSearch();
 
-  const { user } = useAuthContext();
+  const { user, refreshCurrentUser } = useAuthContext();
   const redirectToPricing = () => {
     navigate({ to: "/dashboard/pricing", replace: true });
   };
 
+  useEffect(() => {
+    if (user && planKey) {
+      const currentRank = getPackRank(user.selected_plan_key);
+      const targetRank = getPackRank(planKey);
+      if (user.selected_plan_key && targetRank < currentRank) {
+        redirectToPricing();
+      }
+    }
+  }, [user, planKey]);
+
   const selectedPlan = useMemo(() => {
-    return plans.find((item) => item.key === planKey) || defaultPlanMap[planKey] || defaultPlans[0];
+    const normalizedPlanKey = normalizePackKey(planKey);
+    return plans.find((item) => item.key === normalizedPlanKey) || defaultPlanMap[normalizedPlanKey] || defaultPlans[0];
   }, [plans, planKey]);
 
   const subtotal = useMemo(() => parsePrice(selectedPlan.price), [selectedPlan.price]);
@@ -202,6 +213,7 @@ function CheckoutPage() {
       status: "active",
       upgrade_from: upgradeFrom as string | undefined,
     });
+    await refreshCurrentUser();
   };
 
   const loadRazorpayScript = async () => {

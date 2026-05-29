@@ -15,6 +15,7 @@ interface UseAuthReturn {
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
+  refreshCurrentUser: () => Promise<User | null>;
   loginWithGoogle: () => Promise<void>;
   loginWithEmail: (email: string, password: string) => Promise<void>;
   registerWithEmail: (email: string, password: string, name?: string) => Promise<void>;
@@ -44,6 +45,21 @@ export function useAuth(): UseAuthReturn {
   const [error, setError] = useState<string | null>(null);
 
   const clearError = useCallback(() => setError(null), []);
+
+  const refreshCurrentUser = useCallback(async () => {
+    if (!apiClient.isAuthenticated()) {
+      return null;
+    }
+
+    try {
+      const freshUser = await apiClient.getCurrentUser();
+      setUser(freshUser);
+      return freshUser;
+    } catch (error) {
+      console.error("Failed to refresh current user:", error);
+      return null;
+    }
+  }, []);
 
   // Sync auth state on mount and fetch user data
   useEffect(() => {
@@ -229,6 +245,7 @@ export function useAuth(): UseAuthReturn {
     isAuthenticated: !!token && !!user,
     isLoading,
     error,
+    refreshCurrentUser,
     loginWithGoogle,
     loginWithEmail,
     registerWithEmail,

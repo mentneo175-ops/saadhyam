@@ -11,6 +11,8 @@
 import { useEffect, useState, useCallback } from "react";
 import { Shield, WrenchIcon, ArrowLeft, RefreshCw, Clock } from "lucide-react";
 import { Link } from "@tanstack/react-router";
+import { useAuthContext } from "@/lib/AuthContext";
+import { getUpgradePlansForFeature, normalizePackKey } from "@/config/subscriptions";
 
 interface FeatureBlockedDetail {
   detail?: string;
@@ -22,6 +24,7 @@ interface FeatureBlockedDetail {
 
 export function FeatureDisabledBanner() {
   const [blocked, setBlocked] = useState<FeatureBlockedDetail | null>(null);
+  const { user } = useAuthContext();
 
   useEffect(() => {
     const handler = (e: Event) => {
@@ -38,12 +41,22 @@ export function FeatureDisabledBanner() {
 
   const isMaintenance = blocked.mode === "maintenance";
   const requiresSubscription = !isMaintenance;
+  const currentPlanKey = normalizePackKey(user?.selected_plan_key);
   const featureName = blocked.feature_key
     ? blocked.feature_key
         .split("_")
         .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
         .join(" ")
     : "This feature";
+
+  const featureRowName = {
+    website_ai: "Website AI",
+    content_scheduler: "Content creator",
+    voice_agent: "AI Voice Agent",
+    aeo_geo: "SEO & Google Maps",
+  }[String(blocked.feature_key || "").toLowerCase()] || featureName;
+
+  const upgradePlans = isMaintenance ? [] : getUpgradePlansForFeature(featureRowName, currentPlanKey);
 
   const message =
     blocked.detail ||
@@ -104,6 +117,23 @@ export function FeatureDisabledBanner() {
           </button>
         </div>
       </div>
+
+      {!isMaintenance && upgradePlans.length > 0 ? (
+        <div className="mt-3 flex flex-wrap gap-2">
+          {upgradePlans.map((plan) => (
+            <Link
+              key={plan.key}
+              to="/dashboard/checkout"
+              search={{ plan: plan.key, upgrade_from: currentPlanKey }}
+              onClick={dismiss}
+              className="inline-flex items-center gap-2 rounded-full border border-purple-200 bg-purple-50 px-3 py-1.5 text-xs font-semibold text-purple-700 transition hover:bg-purple-100"
+            >
+              {plan.name}
+              <span className="text-purple-500">{plan.price}</span>
+            </Link>
+          ))}
+        </div>
+      ) : null}
     </div>
   );
 }

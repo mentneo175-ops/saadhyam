@@ -50,7 +50,7 @@ function DashboardLayoutContent() {
       <div className="flex min-h-screen w-full relative">
         <Sidebar />
         <div
-          className={`flex-1 flex flex-col min-w-0 bg-white content-transition ${
+          className={`flex-1 flex flex-col min-w-0 bg-background content-transition ${
             isMinimized ? "lg:pl-16" : "lg:pl-64"
           }`}
         >
@@ -66,9 +66,9 @@ function DashboardLayoutContent() {
 
             {/* Subtle auth verification indicator - shows during page refresh */}
             {isAuthLoading && (
-              <div className="fixed top-4 right-4 flex items-center gap-2 bg-white/80 backdrop-blur-sm px-3 py-2 rounded-lg shadow-sm border border-gray-200/50 z-40">
+              <div className="fixed top-4 right-4 flex items-center gap-2 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm px-3 py-2 rounded-lg shadow-sm border border-gray-200/50 dark:border-gray-700/50 z-40">
                 <Loader2 className="w-4 h-4 animate-spin text-purple-600" />
-                <span className="text-xs text-gray-600 font-medium">Verifying...</span>
+                <span className="text-xs text-gray-600 dark:text-gray-400 font-medium">Verifying...</span>
               </div>
             )}
           </main>

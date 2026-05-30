@@ -256,9 +256,46 @@
   --accent-foreground: oklch(0.14 0.02 280);
   --muted: oklch(0.24 0.02 280);
   --muted-foreground: oklch(0.7 0.02 280);
-  --border: oklch(1 0 0 / 0.08);
-  --input: oklch(1 0 0 / 0.1);
+  --destructive: oklch(0.65 0.22 27);
+  --destructive-foreground: oklch(0.97 0.01 280);
+  --success: oklch(0.72 0.18 155);
+  --success-foreground: oklch(0.14 0.02 280);
+  --warning: oklch(0.80 0.16 65);
+  --warning-foreground: oklch(0.14 0.02 280);
+  --border: oklch(1 0 0 / 0.10);
+  --input: oklch(1 0 0 / 0.10);
   --ring: oklch(0.70 0.24 285);
+  --chart-1: oklch(0.72 0.22 285);
+  --chart-2: oklch(0.75 0.20 295);
+  --chart-3: oklch(0.78 0.18 290);
+  --chart-4: oklch(0.70 0.20 280);
+  --chart-5: oklch(0.74 0.18 300);
+  --gradient-brand: linear-gradient(
+    135deg,
+    oklch(0.70 0.24 285) 0%,
+    oklch(0.75 0.20 295) 50%,
+    oklch(0.78 0.18 290) 100%
+  );
+  --gradient-primary: linear-gradient(135deg, oklch(0.70 0.24 285), oklch(0.75 0.20 295));
+  --gradient-secondary: linear-gradient(135deg, oklch(0.75 0.20 295), oklch(0.78 0.18 290));
+  --gradient-soft: linear-gradient(
+    135deg,
+    oklch(0.20 0.03 285) 0%,
+    oklch(0.20 0.03 290) 50%,
+    oklch(0.22 0.03 295) 100%
+  );
+  --gradient-mesh:
+    radial-gradient(at 0% 0%, oklch(0.35 0.15 285 / 0.3) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, oklch(0.35 0.15 295 / 0.25) 0px, transparent 50%),
+    radial-gradient(at 50% 100%, oklch(0.38 0.12 290 / 0.25) 0px, transparent 50%);
+  --shadow-sm: 0 1px 2px 0 oklch(0 0 0 / 0.2);
+  --shadow-md:
+    0 4px 16px -4px oklch(0 0 0 / 0.3), 0 2px 6px -2px oklch(0 0 0 / 0.2);
+  --shadow-lg:
+    0 12px 40px -12px oklch(0 0 0 / 0.4), 0 4px 12px -4px oklch(0 0 0 / 0.2);
+  --shadow-xl: 0 24px 60px -16px oklch(0 0 0 / 0.5);
+  --shadow-glow: 0 12px 40px -8px oklch(0.70 0.24 285 / 0.35);
+  --shadow-glow-pink: 0 12px 40px -8px oklch(0.72 0.20 295 / 0.3);
   --sidebar: oklch(0.16 0.025 280);
   --sidebar-foreground: oklch(0.9 0.01 280);
   --sidebar-primary: oklch(0.70 0.24 285);
@@ -331,6 +368,10 @@
     backdrop-filter: blur(16px) saturate(180%);
     -webkit-backdrop-filter: blur(16px) saturate(180%);
     border: 1px solid color-mix(in oklab, white 50%, transparent);
+  }
+  .dark .glass {
+    background: color-mix(in oklab, var(--card) 70%, transparent);
+    border: 1px solid var(--border);
   }
   .glass-dark {
     background: color-mix(in oklab, var(--card) 70%, transparent);
@@ -920,4 +961,708 @@ body:has([data-b2b-chat-container]) {
   50% {
     d: path("M 400,0 Q 550,250 800,350 L 800,0 Z");
   }
+}
+
+/* ============================================ */
+/* COMPREHENSIVE DARK MODE OVERRIDES           */
+/* Catches ALL hardcoded bg-white, text-gray,  */
+/* borders, cards, inputs across every page     */
+/* ============================================ */
+
+/* Smooth theme transition */
+html {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+html.dark body {
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
+/* --- Backgrounds --- */
+/* All bg-white elements become dark in dark mode */
+.dark .bg-white {
+  background-color: oklch(0.18 0.025 280) !important;
+}
+
+.dark .bg-white\/80 {
+  background-color: oklch(0.18 0.025 280 / 0.8) !important;
+}
+
+.dark .bg-white\/95 {
+  background-color: oklch(0.18 0.025 280 / 0.95) !important;
+}
+
+.dark .bg-white\/50 {
+  background-color: oklch(0.18 0.025 280 / 0.5) !important;
+}
+
+/* Gray backgrounds */
+.dark .bg-gray-50 {
+  background-color: oklch(0.20 0.02 280) !important;
+}
+
+.dark .bg-gray-50\/80 {
+  background-color: oklch(0.20 0.02 280 / 0.8) !important;
+}
+
+.dark .bg-gray-50\/50 {
+  background-color: oklch(0.20 0.02 280 / 0.5) !important;
+}
+
+.dark .bg-gray-100 {
+  background-color: oklch(0.22 0.02 280) !important;
+}
+
+/* Slate backgrounds */
+.dark .bg-slate-50 {
+  background-color: oklch(0.20 0.02 280) !important;
+}
+
+/* Specific colored light backgrounds */
+.dark .bg-purple-50 {
+  background-color: oklch(0.22 0.04 285) !important;
+}
+
+.dark .bg-purple-100 {
+  background-color: oklch(0.25 0.05 285) !important;
+}
+
+.dark .bg-blue-50 {
+  background-color: oklch(0.22 0.04 265) !important;
+}
+
+.dark .bg-blue-100 {
+  background-color: oklch(0.25 0.05 265) !important;
+}
+
+.dark .bg-emerald-50 {
+  background-color: oklch(0.22 0.04 165) !important;
+}
+
+.dark .bg-emerald-100 {
+  background-color: oklch(0.25 0.05 165) !important;
+}
+
+.dark .bg-pink-50 {
+  background-color: oklch(0.22 0.04 350) !important;
+}
+
+.dark .bg-amber-50 {
+  background-color: oklch(0.22 0.04 75) !important;
+}
+
+.dark .bg-amber-100 {
+  background-color: oklch(0.25 0.05 75) !important;
+}
+
+.dark .bg-red-50 {
+  background-color: oklch(0.22 0.04 27) !important;
+}
+
+.dark .bg-red-50\/50 {
+  background-color: oklch(0.22 0.04 27 / 0.5) !important;
+}
+
+.dark .bg-fuchsia-100 {
+  background-color: oklch(0.25 0.05 320) !important;
+}
+
+/* --- Text Colors --- */
+.dark .text-gray-900 {
+  color: oklch(0.95 0.01 280) !important;
+}
+
+.dark .text-gray-800 {
+  color: oklch(0.90 0.01 280) !important;
+}
+
+.dark .text-gray-700 {
+  color: oklch(0.82 0.01 280) !important;
+}
+
+.dark .text-gray-600 {
+  color: oklch(0.72 0.01 280) !important;
+}
+
+.dark .text-gray-500 {
+  color: oklch(0.62 0.01 280) !important;
+}
+
+.dark .text-gray-400 {
+  color: oklch(0.55 0.01 280) !important;
+}
+
+/* Slate text */
+.dark .text-slate-900 {
+  color: oklch(0.95 0.01 280) !important;
+}
+
+.dark .text-slate-600 {
+  color: oklch(0.72 0.01 280) !important;
+}
+
+.dark .text-slate-700 {
+  color: oklch(0.82 0.01 280) !important;
+}
+
+/* Specific colored text in dark mode */
+.dark .text-purple-900 {
+  color: oklch(0.85 0.12 285) !important;
+}
+
+.dark .text-purple-700 {
+  color: oklch(0.75 0.15 285) !important;
+}
+
+.dark .text-red-900 {
+  color: oklch(0.75 0.12 27) !important;
+}
+
+.dark .text-amber-800 {
+  color: oklch(0.80 0.10 75) !important;
+}
+
+.dark .text-amber-700 {
+  color: oklch(0.75 0.10 75) !important;
+}
+
+.dark .text-emerald-800 {
+  color: oklch(0.80 0.10 165) !important;
+}
+
+.dark .text-emerald-700 {
+  color: oklch(0.75 0.10 165) !important;
+}
+
+.dark .text-blue-900 {
+  color: oklch(0.80 0.10 265) !important;
+}
+
+/* --- Borders --- */
+.dark .border-gray-200 {
+  border-color: oklch(1 0 0 / 0.10) !important;
+}
+
+.dark .border-gray-200\/60 {
+  border-color: oklch(1 0 0 / 0.08) !important;
+}
+
+.dark .border-gray-200\/50 {
+  border-color: oklch(1 0 0 / 0.07) !important;
+}
+
+.dark .border-gray-100 {
+  border-color: oklch(1 0 0 / 0.06) !important;
+}
+
+.dark .border-gray-300 {
+  border-color: oklch(1 0 0 / 0.12) !important;
+}
+
+.dark .border-slate-200 {
+  border-color: oklch(1 0 0 / 0.10) !important;
+}
+
+.dark .border-slate-300 {
+  border-color: oklch(1 0 0 / 0.12) !important;
+}
+
+.dark .border-purple-200 {
+  border-color: oklch(0.50 0.15 285 / 0.35) !important;
+}
+
+.dark .border-purple-100 {
+  border-color: oklch(0.50 0.15 285 / 0.25) !important;
+}
+
+.dark .border-red-200 {
+  border-color: oklch(0.50 0.15 27 / 0.35) !important;
+}
+
+.dark .border-red-200\/60 {
+  border-color: oklch(0.50 0.15 27 / 0.25) !important;
+}
+
+.dark .border-red-100 {
+  border-color: oklch(0.50 0.15 27 / 0.20) !important;
+}
+
+.dark .border-amber-200 {
+  border-color: oklch(0.50 0.12 75 / 0.35) !important;
+}
+
+.dark .border-amber-200\/60 {
+  border-color: oklch(0.50 0.12 75 / 0.25) !important;
+}
+
+.dark .border-emerald-200\/60 {
+  border-color: oklch(0.50 0.12 165 / 0.25) !important;
+}
+
+/* --- Shadows --- */
+.dark .shadow-xl {
+  --tw-shadow-color: oklch(0 0 0 / 0.3);
+}
+
+.dark .shadow-lg {
+  --tw-shadow-color: oklch(0 0 0 / 0.25);
+}
+
+.dark .shadow-md {
+  --tw-shadow-color: oklch(0 0 0 / 0.2);
+}
+
+.dark .shadow-sm {
+  --tw-shadow-color: oklch(0 0 0 / 0.15);
+}
+
+.dark .shadow-gray-200\/50 {
+  --tw-shadow-color: oklch(0 0 0 / 0.3);
+}
+
+.dark .shadow-gray-200\/40 {
+  --tw-shadow-color: oklch(0 0 0 / 0.25);
+}
+
+.dark .shadow-gray-100\/50 {
+  --tw-shadow-color: oklch(0 0 0 / 0.2);
+}
+
+.dark .shadow-gray-300\/50 {
+  --tw-shadow-color: oklch(0 0 0 / 0.3);
+}
+
+.dark .shadow-purple-500\/20 {
+  --tw-shadow-color: oklch(0.65 0.25 285 / 0.3);
+}
+
+.dark .shadow-purple-500\/25 {
+  --tw-shadow-color: oklch(0.65 0.25 285 / 0.35);
+}
+
+.dark .shadow-purple-500\/30 {
+  --tw-shadow-color: oklch(0.65 0.25 285 / 0.4);
+}
+
+/* --- Hover States --- */
+.dark .hover\:bg-gray-50:hover {
+  background-color: oklch(0.22 0.02 280) !important;
+}
+
+.dark .hover\:bg-gray-100:hover {
+  background-color: oklch(0.24 0.02 280) !important;
+}
+
+.dark .hover\:bg-white:hover {
+  background-color: oklch(0.22 0.025 280) !important;
+}
+
+.dark .hover\:bg-purple-50:hover {
+  background-color: oklch(0.22 0.04 285) !important;
+}
+
+.dark .hover\:bg-red-50:hover {
+  background-color: oklch(0.22 0.04 27) !important;
+}
+
+.dark .hover\:bg-slate-100:hover {
+  background-color: oklch(0.24 0.02 280) !important;
+}
+
+/* --- Inputs --- */
+.dark input,
+.dark textarea,
+.dark select {
+  background-color: oklch(0.20 0.02 280) !important;
+  color: oklch(0.95 0.01 280) !important;
+  border-color: oklch(1 0 0 / 0.12) !important;
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: oklch(0.50 0.01 280) !important;
+}
+
+.dark input:focus,
+.dark textarea:focus {
+  border-color: oklch(0.65 0.20 285) !important;
+}
+
+/* --- Glass Cards --- */
+.dark .glass-card {
+  background: oklch(0.20 0.025 280 / 0.8) !important;
+  border-color: oklch(1 0 0 / 0.10) !important;
+}
+
+.dark .glass-premium {
+  background: oklch(0.20 0.025 280 / 0.9) !important;
+  border-color: oklch(1 0 0 / 0.10) !important;
+}
+
+/* --- Rings (for focus) --- */
+.dark .ring-white {
+  --tw-ring-color: oklch(0.18 0.025 280);
+}
+
+/* --- Specific component overrides --- */
+
+/* Dashboard page wrapper */
+.dark .bg-background {
+  background-color: var(--background);
+}
+
+/* Gradient soft backgrounds in dark */
+.dark .bg-gradient-to-r.from-purple-50 {
+  --tw-gradient-from: oklch(0.22 0.04 285);
+}
+
+.dark .bg-gradient-to-r.to-pink-50 {
+  --tw-gradient-to: oklch(0.22 0.04 350);
+}
+
+/* Loading shimmer in dark mode */
+.dark .bg-gray-200\/70 {
+  background-color: oklch(0.25 0.02 280 / 0.7) !important;
+}
+
+.dark .bg-gray-200\/50 {
+  background-color: oklch(0.25 0.02 280 / 0.5) !important;
+}
+
+/* Badge overrides */
+.dark .bg-emerald-100.text-emerald-700 {
+  background-color: oklch(0.25 0.06 165) !important;
+  color: oklch(0.78 0.12 165) !important;
+}
+
+.dark .bg-purple-100.text-purple-700 {
+  background-color: oklch(0.25 0.06 285) !important;
+  color: oklch(0.78 0.15 285) !important;
+}
+
+/* Recharts / SVG charts in dark mode */
+.dark .recharts-cartesian-grid line {
+  stroke: oklch(1 0 0 / 0.06) !important;
+}
+
+.dark .recharts-text {
+  fill: oklch(0.65 0.01 280) !important;
+}
+
+.dark .recharts-tooltip-wrapper .recharts-default-tooltip {
+  background-color: oklch(0.20 0.025 280) !important;
+  border-color: oklch(1 0 0 / 0.10) !important;
+  color: oklch(0.95 0.01 280) !important;
+}
+
+/* Sonner toast in dark */
+.dark [data-sonner-toaster] [data-sonner-toast] {
+  background-color: oklch(0.22 0.025 280) !important;
+  border-color: oklch(1 0 0 / 0.10) !important;
+  color: oklch(0.95 0.01 280) !important;
+}
+
+/* Scrollbar in dark */
+.dark .scrollbar-minimal:hover::-webkit-scrollbar-thumb {
+  background: rgba(139, 92, 246, 0.3);
+}
+
+/* Fix white ring on avatar in dark */
+.dark .ring-2.ring-purple-100 {
+  --tw-ring-color: oklch(0.30 0.08 285);
+}
+
+/* Auth page backgrounds */
+.dark [data-auth-page] {
+  background-color: var(--background) !important;
+}
+
+/* Gradient backgrounds keep working in dark */
+.dark .from-purple-600,
+.dark .from-\[\#5D2F8F\],
+.dark .from-\[\#8B5CF6\] {
+  /* These gradient elements are intentionally colorful - don't override */
+}
+
+/* Fix hover:shadow in dark */
+.dark .hover\:shadow-2xl:hover {
+  --tw-shadow-color: oklch(0 0 0 / 0.35);
+}
+
+.dark .hover\:shadow-xl:hover {
+  --tw-shadow-color: oklch(0 0 0 / 0.3);
+}
+
+.dark .hover\:shadow-lg:hover {
+  --tw-shadow-color: oklch(0 0 0 / 0.25);
+}
+
+/* Fix the landing page specific glass cards */
+.dark .shadow-3d-soft {
+  box-shadow: 0 8px 30px oklch(0 0 0 / 0.3), 0 2px 8px oklch(0 0 0 / 0.2);
+}
+
+.dark .shadow-3d-float {
+  box-shadow: 0 20px 60px oklch(0 0 0 / 0.35), 0 8px 20px oklch(0 0 0 / 0.25);
+}
+
+.dark .shadow-3d-deep {
+  box-shadow: 0 25px 70px oklch(0 0 0 / 0.4), 0 10px 25px oklch(0 0 0 / 0.3);
+}
+
+/* Ensure popover/dropdown menus work in dark */
+.dark [data-radix-popper-content-wrapper] > div {
+  background-color: oklch(0.20 0.025 280) !important;
+  border-color: oklch(1 0 0 / 0.10) !important;
+}
+
+/* --- Additional colored-50/50 backgrounds --- */
+.dark .bg-emerald-50\/50 {
+  background-color: oklch(0.20 0.04 165 / 0.5) !important;
+}
+
+.dark .bg-orange-50\/50 {
+  background-color: oklch(0.20 0.04 60 / 0.5) !important;
+}
+
+.dark .bg-blue-50\/50 {
+  background-color: oklch(0.20 0.04 265 / 0.5) !important;
+}
+
+.dark .bg-purple-50\/50 {
+  background-color: oklch(0.20 0.04 285 / 0.5) !important;
+}
+
+.dark .bg-green-50 {
+  background-color: oklch(0.22 0.04 155) !important;
+}
+
+.dark .bg-orange-50 {
+  background-color: oklch(0.22 0.04 60) !important;
+}
+
+.dark .bg-orange-100 {
+  background-color: oklch(0.25 0.05 60) !important;
+}
+
+.dark .bg-rose-50 {
+  background-color: oklch(0.22 0.04 15) !important;
+}
+
+.dark .bg-teal-50 {
+  background-color: oklch(0.22 0.04 175) !important;
+}
+
+.dark .bg-indigo-50 {
+  background-color: oklch(0.22 0.04 275) !important;
+}
+
+.dark .bg-violet-50 {
+  background-color: oklch(0.22 0.04 290) !important;
+}
+
+.dark .bg-cyan-50 {
+  background-color: oklch(0.22 0.04 200) !important;
+}
+
+/* Slate backgrounds */
+.dark .bg-slate-100 {
+  background-color: oklch(0.22 0.02 280) !important;
+}
+
+.dark .bg-slate-200 {
+  background-color: oklch(0.25 0.02 280) !important;
+}
+
+/* --- Additional border colors --- */
+.dark .border-emerald-100 {
+  border-color: oklch(0.50 0.12 165 / 0.20) !important;
+}
+
+.dark .border-emerald-200 {
+  border-color: oklch(0.50 0.12 165 / 0.30) !important;
+}
+
+.dark .border-emerald-300 {
+  border-color: oklch(0.50 0.12 165 / 0.40) !important;
+}
+
+.dark .border-orange-100 {
+  border-color: oklch(0.50 0.12 60 / 0.20) !important;
+}
+
+.dark .border-orange-200 {
+  border-color: oklch(0.50 0.12 60 / 0.30) !important;
+}
+
+.dark .border-orange-300 {
+  border-color: oklch(0.50 0.12 60 / 0.40) !important;
+}
+
+.dark .border-blue-100 {
+  border-color: oklch(0.50 0.12 265 / 0.20) !important;
+}
+
+.dark .border-blue-200 {
+  border-color: oklch(0.50 0.12 265 / 0.30) !important;
+}
+
+.dark .border-blue-300 {
+  border-color: oklch(0.50 0.12 265 / 0.40) !important;
+}
+
+/* --- Additional text colors --- */
+.dark .text-emerald-600 {
+  color: oklch(0.70 0.14 165) !important;
+}
+
+.dark .text-orange-600 {
+  color: oklch(0.70 0.14 60) !important;
+}
+
+.dark .text-blue-600 {
+  color: oklch(0.70 0.14 265) !important;
+}
+
+.dark .text-orange-800 {
+  color: oklch(0.80 0.10 60) !important;
+}
+
+.dark .text-emerald-950 {
+  color: oklch(0.82 0.10 165) !important;
+}
+
+.dark .text-purple-950 {
+  color: oklch(0.82 0.12 285) !important;
+}
+
+.dark .text-blue-950 {
+  color: oklch(0.82 0.10 265) !important;
+}
+
+.dark .text-green-700 {
+  color: oklch(0.72 0.14 155) !important;
+}
+
+.dark .text-red-700 {
+  color: oklch(0.72 0.14 27) !important;
+}
+
+.dark .text-red-600 {
+  color: oklch(0.68 0.18 27) !important;
+}
+
+/* --- Hover border colors --- */
+.dark .hover\:border-purple-300:hover {
+  border-color: oklch(0.55 0.15 285 / 0.50) !important;
+}
+
+.dark .hover\:border-purple-300\/50:hover {
+  border-color: oklch(0.55 0.15 285 / 0.35) !important;
+}
+
+.dark .hover\:border-blue-300:hover {
+  border-color: oklch(0.55 0.15 265 / 0.50) !important;
+}
+
+.dark .hover\:border-orange-300:hover {
+  border-color: oklch(0.55 0.15 60 / 0.50) !important;
+}
+
+.dark .hover\:border-emerald-300:hover {
+  border-color: oklch(0.55 0.15 165 / 0.50) !important;
+}
+
+/* --- Gradient-to-br light colors (for tinted card bgs) --- */
+.dark .from-amber-50 {
+  --tw-gradient-from: oklch(0.22 0.04 75);
+}
+
+.dark .to-orange-50 {
+  --tw-gradient-to: oklch(0.22 0.04 60);
+}
+
+.dark .from-pink-50 {
+  --tw-gradient-from: oklch(0.22 0.04 350);
+}
+
+.dark .to-rose-50 {
+  --tw-gradient-to: oklch(0.22 0.04 15);
+}
+
+.dark .from-emerald-50 {
+  --tw-gradient-from: oklch(0.22 0.04 165);
+}
+
+.dark .to-teal-50 {
+  --tw-gradient-to: oklch(0.22 0.04 175);
+}
+
+.dark .from-purple-50 {
+  --tw-gradient-from: oklch(0.22 0.04 285);
+}
+
+.dark .to-fuchsia-50 {
+  --tw-gradient-to: oklch(0.22 0.04 320);
+}
+
+/* --- Gradient hover overlays --- */
+.dark .group-hover\:from-purple-50\/50 {
+  --tw-gradient-from: oklch(0.22 0.04 285 / 0.5);
+}
+
+.dark .group-hover\:to-fuchsia-50\/30 {
+  --tw-gradient-to: oklch(0.22 0.04 320 / 0.3);
+}
+
+.dark .group-hover\:from-purple-50\/60 {
+  --tw-gradient-from: oklch(0.22 0.04 285 / 0.6);
+}
+
+.dark .group-hover\:to-fuchsia-50\/40 {
+  --tw-gradient-to: oklch(0.22 0.04 320 / 0.4);
+}
+
+/* Hover shadow colors in dark */
+.dark .hover\:shadow-purple-200\/30:hover {
+  --tw-shadow-color: oklch(0.65 0.25 285 / 0.2);
+}
+
+.dark .hover\:shadow-purple-300\/50:hover {
+  --tw-shadow-color: oklch(0.65 0.25 285 / 0.25);
+}
+
+.dark .shadow-purple-200\/30 {
+  --tw-shadow-color: oklch(0.65 0.25 285 / 0.15);
+}
+
+/* --- Group hover text --- */
+.dark .group-hover\:text-purple-900 {
+  color: oklch(0.85 0.12 285) !important;
+}
+
+/* --- Divide colors --- */
+.dark .divide-gray-200 > :not([hidden]) ~ :not([hidden]) {
+  border-color: oklch(1 0 0 / 0.10) !important;
+}
+
+.dark .divide-gray-100 > :not([hidden]) ~ :not([hidden]) {
+  border-color: oklch(1 0 0 / 0.06) !important;
+}
+
+/* Fix any white text on white bg issue */
+.dark .bg-gradient-to-br.from-purple-600.text-white,
+.dark .bg-gradient-to-r.from-\[\#8B5CF6\].text-white {
+  color: white !important;
+}
+
+/* Ensure all buttons keep their styling */
+.dark button.bg-gradient-to-r {
+  /* Don't override gradient buttons */
+}
+
+/* Fix backdrop blur elements */
+.dark .backdrop-blur-sm {
+  /* Ensure backdrop blur still works */
 }

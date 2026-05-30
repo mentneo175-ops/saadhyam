@@ -19,8 +19,9 @@ from ai_models.website_ai.app.utils.logger import get_logger
 from ai_models.website_ai.app.utils.uuid_helpers import validate_and_convert_uuid, uuid_to_string
 from utils.slug import generate_unique_slug
 
-# Use the main Celery app from celery_worker instead of the separate website_ai celery_app
-from celery_worker import celery as celery_app
+# Register website generation tasks on the website_ai Celery app so the worker started by
+# start_celery.py / start_celery_worker.py can actually consume them.
+from ai_models.website_ai.app.workers.celery_app import celery_app
 
 
 logger = get_logger(__name__)

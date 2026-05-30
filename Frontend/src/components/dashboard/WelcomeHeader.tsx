@@ -72,7 +72,10 @@ export const WelcomeHeader = () => {
     <div className="mb-8 pt-4">
       <div className="flex flex-col gap-2">
         <h1 className="text-3xl lg:text-4xl font-bold text-gray-900">
-          {getGreeting()}, <span className="bg-linear-to-r from-purple-600 to-purple-500 bg-clip-text text-transparent">{businessName}</span>
+          {getGreeting()},{" "}
+          <span className="bg-linear-to-r from-purple-600 to-purple-500 bg-clip-text text-transparent">
+            {businessName}
+          </span>
         </h1>
         <p className="text-gray-600 text-base lg:text-lg italic max-w-2xl leading-relaxed">
           "{quote}"

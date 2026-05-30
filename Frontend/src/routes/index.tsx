@@ -289,7 +289,7 @@ function Landing() {
   }, []);
 
   return (
-    <div className="min-h-screen" style={{ background: 'linear-gradient(135deg, #F8F7FC 0%, #F3F1F9 50%, #EDE9F6 100%)' }}>
+    <div className="min-h-screen bg-background">
       <Navbar />
 
       {/* Hero Section - Premium Design */}
@@ -386,7 +386,7 @@ function Landing() {
                   className="w-14 h-14 object-contain"
                 />
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-900">
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                     Saadhyam <span className="text-[#8B5CF6]">AI</span>
                   </h2>
                 </div>
@@ -399,12 +399,12 @@ function Landing() {
               </div>
 
               {/* Hero Heading */}
-              <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.05] text-gray-900">
+              <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.05] text-gray-900 dark:text-gray-100">
                 Get discovered by <span className="text-[#8B5CF6]">Google, ChatGPT</span> & AI search
               </h1>
 
               {/* Description */}
-              <p className="text-xl text-gray-600 leading-relaxed max-w-xl">
+              <p className="text-xl text-gray-600 dark:text-gray-400 leading-relaxed max-w-xl">
                 The AI visibility platform that optimizes your business for traditional search, AI engines, voice assistants, and generative AI platforms.
               </p>
 
@@ -412,11 +412,11 @@ function Landing() {
               <div className="grid grid-cols-2 gap-4 py-4">
                 <div className="glass-card rounded-2xl p-5 shadow-3d-soft">
                   <div className="text-3xl font-bold bg-gradient-to-r from-[#8B5CF6] to-[#A855F7] bg-clip-text text-transparent">89%</div>
-                  <div className="text-sm text-gray-600 mt-1">AI Visibility Score</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">AI Visibility Score</div>
                 </div>
                 <div className="glass-card rounded-2xl p-5 shadow-3d-soft">
                   <div className="text-3xl font-bold bg-gradient-to-r from-[#8B5CF6] to-[#A855F7] bg-clip-text text-transparent">12.4K</div>
-                  <div className="text-sm text-gray-600 mt-1">AI Mentions/Month</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">AI Mentions/Month</div>
                 </div>
               </div>
 
@@ -445,7 +445,7 @@ function Landing() {
 
               {/* AI Search Platforms Row */}
               <div className="pt-4">
-                <p className="text-sm text-gray-600 mb-3 font-medium">Optimized for AI-powered discovery:</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 font-medium">Optimized for AI-powered discovery:</p>
                 <div className="flex items-center gap-3 flex-wrap">
                   {[
                     { icon: Globe, name: "Google", color: "text-blue-600" },
@@ -478,9 +478,9 @@ function Landing() {
                     {Array.from({ length: 5 }).map((_, i) => (
                       <Star key={i} size={14} className="fill-[#8B5CF6] text-[#8B5CF6]" />
                     ))}
-                    <span className="ml-1 font-bold text-gray-900">4.9</span>
+                    <span className="ml-1 font-bold text-gray-900 dark:text-gray-100">4.9</span>
                   </div>
-                  <p className="text-sm text-gray-600">from 2,400+ businesses</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">from 2,400+ businesses</p>
                 </div>
               </div>
             </div>
@@ -505,17 +505,17 @@ function Landing() {
                     <div className="grid grid-cols-3 gap-4 mb-4">
                       <div>
                         <p className="text-xs text-gray-500 mb-1">Revenue</p>
-                        <p className="text-xl font-bold text-gray-900">₹24.8K</p>
+                        <p className="text-xl font-bold text-gray-900 dark:text-gray-100">₹24.8K</p>
                         <p className="text-xs text-green-600 font-semibold">↑ 18.5%</p>
                       </div>
                       <div>
                         <p className="text-xs text-gray-500 mb-1">Leads</p>
-                        <p className="text-xl font-bold text-gray-900">612</p>
+                        <p className="text-xl font-bold text-gray-900 dark:text-gray-100">612</p>
                         <p className="text-xs text-green-600 font-semibold">↑ 12.3%</p>
                       </div>
                       <div>
                         <p className="text-xs text-gray-500 mb-1">Conversions</p>
-                        <p className="text-xl font-bold text-gray-900">98</p>
+                        <p className="text-xl font-bold text-gray-900 dark:text-gray-100">98</p>
                         <p className="text-xs text-green-600 font-semibold">↑ 8.7%</p>
                       </div>
                     </div>
@@ -544,7 +544,7 @@ function Landing() {
                     style={{ transform: 'rotateX(-3deg) rotateY(3deg)', animationDelay: '0.5s' }}
                   >
                     <div className="flex items-center justify-between mb-3">
-                      <p className="text-xs font-semibold text-gray-600">AI Score</p>
+                      <p className="text-xs font-semibold text-gray-600 dark:text-gray-400">AI Score</p>
                       <Zap className="w-5 h-5 text-[#8B5CF6]" />
                     </div>
                     <div className="flex items-baseline gap-1 mb-3">
@@ -564,9 +564,9 @@ function Landing() {
                   >
                     <div className="flex items-center gap-2 mb-3">
                       <Target className="w-5 h-5 text-[#8B5CF6]" />
-                      <p className="text-xs font-semibold text-gray-600">Monthly Goal</p>
+                      <p className="text-xs font-semibold text-gray-600 dark:text-gray-400">Monthly Goal</p>
                     </div>
-                    <p className="text-3xl font-bold text-gray-900 mb-3">87%</p>
+                    <p className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-3">87%</p>
                     <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                       <div className="h-full w-[87%] bg-gradient-to-r from-[#8B5CF6] to-[#A855F7] rounded-full"></div>
                     </div>
@@ -579,7 +579,7 @@ function Landing() {
                   >
                     <div className="flex items-center gap-2 mb-2">
                       <TrendingUp className="w-4 h-4 text-[#8B5CF6]" />
-                      <p className="text-xs font-semibold text-gray-600">Growth Trend</p>
+                      <p className="text-xs font-semibold text-gray-600 dark:text-gray-400">Growth Trend</p>
                     </div>
                     <p className="text-2xl font-bold text-green-600 mb-1">+24.5%</p>
                     <p className="text-xs text-gray-500">vs last month</p>
@@ -602,10 +602,10 @@ function Landing() {
               AI Search Capabilities
             </span>
           </div>
-          <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-gray-900 mb-4">
+          <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-gray-900 dark:text-gray-100 mb-4">
             Rank beyond Google — Dominate AI search
           </h2>
-          <p className="text-lg text-gray-600">
+          <p className="text-lg text-gray-600 dark:text-gray-400">
             Six AI-powered capabilities designed to maximize your visibility across traditional search, AI engines, and voice assistants.
           </p>
         </div>
@@ -634,8 +634,8 @@ function Landing() {
                 >
                   <f.icon size={24} className="text-white" />
                 </div>
-                <h3 className="font-bold text-xl mb-3 text-gray-900">{f.title}</h3>
-                <p className="text-sm text-gray-600 leading-relaxed">{f.desc}</p>
+                <h3 className="font-bold text-xl mb-3 text-gray-900 dark:text-gray-100">{f.title}</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">{f.desc}</p>
               </div>
             </div>
           ))}
@@ -655,10 +655,10 @@ function Landing() {
                 <TrendingUp size={16} className="text-[#8B5CF6]" />
                 <span className="text-sm font-semibold text-[#8B5CF6]">The Future of Search</span>
               </div>
-              <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-gray-900 mb-4">
+              <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-gray-900 dark:text-gray-100 mb-4">
                 Why businesses need AEO + GEO now
               </h2>
-              <p className="text-lg text-gray-600">
+              <p className="text-lg text-gray-600 dark:text-gray-400">
                 Search behavior is changing. AI-powered platforms are replacing traditional search engines. Your business needs to adapt or risk becoming invisible.
               </p>
             </div>
@@ -671,8 +671,8 @@ function Landing() {
                   <div className="text-5xl font-bold bg-gradient-to-r from-[#8B5CF6] to-[#A855F7] bg-clip-text text-transparent mb-3">
                     40%+
                   </div>
-                  <p className="text-base font-semibold text-gray-900 mb-2">Users now prefer AI search</p>
-                  <p className="text-sm text-gray-600">ChatGPT, Perplexity, and AI assistants are replacing Google for many queries</p>
+                  <p className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-2">Users now prefer AI search</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">ChatGPT, Perplexity, and AI assistants are replacing Google for many queries</p>
                 </div>
               </div>
               
@@ -683,8 +683,8 @@ function Landing() {
                   <div className="text-5xl font-bold bg-gradient-to-r from-[#8B5CF6] to-[#A855F7] bg-clip-text text-transparent mb-3">
                     58%
                   </div>
-                  <p className="text-base font-semibold text-gray-900 mb-2">Voice search growth</p>
-                  <p className="text-sm text-gray-600">Conversational and voice-based queries continue to dominate mobile search</p>
+                  <p className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-2">Voice search growth</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Conversational and voice-based queries continue to dominate mobile search</p>
                 </div>
               </div>
               
@@ -695,8 +695,8 @@ function Landing() {
                   <div className="text-5xl font-bold bg-gradient-to-r from-[#8B5CF6] to-[#A855F7] bg-clip-text text-transparent mb-3">
                     73%
                   </div>
-                  <p className="text-base font-semibold text-gray-900 mb-2">Trust AI-generated answers</p>
-                  <p className="text-sm text-gray-600">Consumers trust and act on information from AI platforms when making decisions</p>
+                  <p className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-2">Trust AI-generated answers</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Consumers trust and act on information from AI platforms when making decisions</p>
                 </div>
               </div>
             </div>
@@ -708,8 +708,8 @@ function Landing() {
                     <Search size={22} className="text-white" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-lg mb-2 text-gray-900">Traditional SEO isn't enough</h3>
-                    <p className="text-sm text-gray-600 leading-relaxed">
+                    <h3 className="font-bold text-lg mb-2 text-gray-900 dark:text-gray-100">Traditional SEO isn't enough</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
                       Ranking on Google is just the beginning. Your customers are asking ChatGPT, using voice search, and trusting AI-generated recommendations.
                     </p>
                   </div>
@@ -722,8 +722,8 @@ function Landing() {
                     <Brain size={22} className="text-white" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-lg mb-2 text-gray-900">Future-proof your visibility</h3>
-                    <p className="text-sm text-gray-600 leading-relaxed">
+                    <h3 className="font-bold text-lg mb-2 text-gray-900 dark:text-gray-100">Future-proof your visibility</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
                       Businesses optimized for AI search engines and generative platforms will dominate the next decade of digital discovery.
                     </p>
                   </div>
@@ -744,10 +744,10 @@ function Landing() {
                 How it works
               </span>
             </div>
-            <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-gray-900 mb-4">
+            <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-gray-900 dark:text-gray-100 mb-4">
               From setup to AI visibility in 3 steps
             </h2>
-            <p className="text-lg text-gray-600">
+            <p className="text-lg text-gray-600 dark:text-gray-400">
               Get discovered across Google, ChatGPT, voice search, and AI platforms in minutes
             </p>
           </div>
@@ -756,8 +756,8 @@ function Landing() {
               <div key={s.num} className="relative">
                 <div className="glass-card rounded-2xl p-8 border border-[#E9D5FF]/50 shadow-3d-soft hover:shadow-3d-float transition-all h-full group">
                   <div className="text-6xl font-bold bg-gradient-to-r from-[#8B5CF6] to-[#A855F7] bg-clip-text text-transparent mb-4 group-hover:scale-110 transition-transform">{s.num}</div>
-                  <h3 className="font-bold text-xl mb-3 text-gray-900">{s.title}</h3>
-                  <p className="text-sm text-gray-600 leading-relaxed">{s.desc}</p>
+                  <h3 className="font-bold text-xl mb-3 text-gray-900 dark:text-gray-100">{s.title}</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">{s.desc}</p>
                 </div>
                 {i < steps.length - 1 && (
                   <ArrowRight
@@ -780,7 +780,7 @@ function Landing() {
               Loved by founders
             </span>
           </div>
-          <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-gray-900 mb-4">
+          <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-gray-900 dark:text-gray-100 mb-4">
             Trusted by 2,400+ businesses
           </h2>
         </div>
@@ -802,8 +802,8 @@ function Landing() {
               <div className="flex items-center gap-3">
                 <div className="h-12 w-12 rounded-full bg-gradient-to-br from-[#8B5CF6] to-[#A855F7]" />
                 <div>
-                  <p className="text-sm font-bold text-gray-900">{t.name}</p>
-                  <p className="text-xs text-gray-600">{t.role}</p>
+                  <p className="text-sm font-bold text-gray-900 dark:text-gray-100">{t.name}</p>
+                  <p className="text-xs text-gray-600 dark:text-gray-400">{t.role}</p>
                 </div>
               </div>
             </div>
@@ -820,7 +820,7 @@ function Landing() {
               {pricingState === "live" ? "Live Pricing" : "Pricing"}
             </span>
           </div>
-          <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-gray-900 mb-4">
+          <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-gray-900 dark:text-gray-100 mb-4">
             Simple plans that grow with you
           </h2>
         </div>
@@ -836,15 +836,15 @@ function Landing() {
             >
               {t.highlighted && (
                 <span className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full bg-gradient-to-r from-[#8B5CF6] to-[#A855F7] text-white text-xs font-bold shadow-lg">
-                    RECOMMENDED
+                  RECOMMENDED
                 </span>
               )}
-              <h3 className="font-bold text-xl text-gray-900">{t.name}</h3>
+              <h3 className="font-bold text-xl text-gray-900 dark:text-gray-100">{t.name}</h3>
               <div className="mt-4 mb-2">
-                <span className="text-5xl font-bold text-gray-900">{t.price}</span>
-                  {t.price !== "Custom" ? <span className="text-base text-gray-600">/mo</span> : null}
+                <span className="text-5xl font-bold text-gray-900 dark:text-gray-100">{t.price}</span>
+                <span className="text-base text-gray-600 dark:text-gray-400">/mo</span>
               </div>
-              <p className="text-sm mb-7 text-gray-600">{t.desc}</p>
+              <p className="text-sm mb-7 text-gray-600 dark:text-gray-400">{t.desc}</p>
               <Button 
                 className={`w-full mb-7 h-12 text-base font-semibold rounded-xl transition-all ${
                   t.highlighted 

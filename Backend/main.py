@@ -447,6 +447,16 @@ async def lifespan(app: FastAPI):
         await init_db()
         logger.info("[OK] Database initialized")
         
+        # Start feature flags poller
+        logger.info("🔄 Starting feature flags poller...")
+        try:
+            from feature_flags import start_poller
+            await start_poller(app)
+            logger.info("✅ Feature flags poller started")
+        except Exception as e:
+            logger.error(f"❌ Failed to start feature flags poller: {e}")
+
+        
         # Run migrations
         logger.info("[*] Skipping migrations (disabled for faster startup)...")
         # migrate_add_name_column()
@@ -597,6 +607,16 @@ async def lifespan(app: FastAPI):
         await close_db()
         logger.info("✅ Database connections closed")
         
+        # Stop feature flags poller
+        logger.info("🔄 Stopping feature flags poller...")
+        try:
+            from feature_flags import stop_poller
+            await stop_poller(app)
+            logger.info("✅ Feature flags poller stopped")
+        except Exception as e:
+            logger.error(f"❌ Error stopping feature flags poller: {e}")
+
+        
         logger.info("=" * 60)
         logger.info("✅ Application shutdown complete")
         logger.info("=" * 60)
@@ -700,6 +720,7 @@ WEBSITE_AI_OUTPUT.mkdir(parents=True, exist_ok=True)
 
 app.mount("/website-ai/static", StaticFiles(directory=str(WEBSITE_AI_STATIC)), name="website_ai_static")
 app.mount("/website-ai/output", StaticFiles(directory=str(WEBSITE_AI_OUTPUT)), name="website_ai_output")
+app.mount("/voice-audio", StaticFiles(directory=str(BASE_DIR / "audio_output")), name="voice_audio")
 
 # Content Creator / Image Generator output directory
 OUTPUT_IMAGES_DIR = BASE_DIR / "output" / "images"

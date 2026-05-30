@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { Logo } from "@/components/brand/Logo";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { Menu, X } from "lucide-react";
 import { useState } from "react";
 
@@ -30,6 +31,7 @@ export function Navbar() {
             ))}
           </nav>
           <div className="hidden md:flex items-center gap-3">
+            <ThemeToggle />
             <Button variant="ghost" size="sm" asChild>
               <Link to="/login">Sign in</Link>
             </Button>
@@ -57,6 +59,7 @@ export function Navbar() {
                 {l.label}
               </a>
             ))}
+            <ThemeToggle />
             <div className="flex gap-2 pt-2">
               <Button variant="outline" size="sm" className="flex-1" asChild>
                 <Link to="/login">Sign in</Link>

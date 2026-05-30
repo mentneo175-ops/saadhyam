@@ -72,6 +72,10 @@ def process_campaign_calls(campaign_id: int):
         processed_count = 0
         max_calls_per_batch = 100  # Safety limit
         
+        # Check if Exotel is configured for real calls
+        from config.settings import settings
+        has_exotel = bool(settings.EXOTEL_SID and settings.EXOTEL_API_KEY and settings.EXOPHONE_NUMBER)
+        
         while processed_count < max_calls_per_batch:
             # Get next queued call
             next_call = voice_call_queue_service.get_next_queued_call(db, campaign_id)
@@ -86,11 +90,15 @@ def process_campaign_calls(campaign_id: int):
                 result = voice_call_queue_service.process_call(db, next_call.id)
                 
                 if result["success"]:
-                    logger.info(f"✅ Call {next_call.id} completed: {result['outcome']}")
+                    logger.info(f"✅ Call {next_call.id} completed: {result.get('outcome') or result.get('status')}")
                 else:
-                    logger.warning(f"⚠️ Call {next_call.id} failed: {result['status']}")
+                    logger.warning(f"⚠️ Call {next_call.id} failed: {result.get('status')}")
                 
                 processed_count += 1
+                
+                if has_exotel:
+                    logger.info(f"🚀 Exotel call {next_call.id} triggered. Pausing task loop. Exotel callback/webhook will handle sequential call progression.")
+                    break
                 
                 # Small delay between calls (simulate realistic calling pace)
                 time.sleep(2)

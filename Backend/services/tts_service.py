@@ -1,12 +1,17 @@
 """
-Text-to-Speech Service using Coqui TTS (Free Open Source)
-Supports multiple languages including Telugu, Hindi, and English
+Text-to-Speech Service using Coqui TTS with Windows-friendly fallbacks.
+Supports multiple languages including Telugu, Hindi, and English.
 """
 
+import hashlib
 import logging
 import os
+import shutil
+import subprocess
+import tempfile
 from pathlib import Path
 from typing import Optional
+
 import torch
 
 logger = logging.getLogger(__name__)
@@ -19,6 +24,22 @@ except ImportError:
     logger.warning("⚠️ TTS library not installed. Run: pip install TTS")
     TTS_AVAILABLE = False
 
+# Lightweight offline fallback for Windows
+try:
+    import pyttsx3
+    PYTTSX3_AVAILABLE = True
+except ImportError:
+    logger.warning("⚠️ pyttsx3 not installed. Run: pip install pyttsx3")
+    PYTTSX3_AVAILABLE = False
+
+# Last-resort network fallback
+try:
+    from gtts import gTTS
+    GTTS_AVAILABLE = True
+except ImportError:
+    logger.warning("⚠️ gTTS not installed. Run: pip install gTTS")
+    GTTS_AVAILABLE = False
+
 
 class TTSService:
     """Text-to-Speech service using Coqui TTS"""
@@ -26,8 +47,10 @@ class TTSService:
     def __init__(self):
         self.tts_models = {}
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
-        self.output_dir = Path("audio_output")
+        self.output_dir = Path(__file__).resolve().parents[1] / "audio_output"
         self.output_dir.mkdir(exist_ok=True)
+        self.pyttsx3_available = PYTTSX3_AVAILABLE
+        self.gtts_available = GTTS_AVAILABLE
         
         if TTS_AVAILABLE:
             self._initialize_models()
@@ -86,47 +109,122 @@ class TTSService:
         Returns:
             Path to generated audio file
         """
-        if not TTS_AVAILABLE:
-            raise Exception("TTS library not installed")
-        
-        if not self.tts_models:
-            raise Exception("TTS models not initialized")
-        
         try:
-            # Get appropriate model
-            model = self.tts_models.get(language.lower())
-            if not model:
-                logger.warning(f"⚠️ Language {language} not found, using English")
-                model = self.tts_models.get('english')
-            
-            # Generate output filename
-            if not output_path:
-                import hashlib
-                text_hash = hashlib.md5(text.encode()).hexdigest()[:8]
-                output_path = str(self.output_dir / f"tts_{language}_{text_hash}.wav")
-            
-            # Generate speech
-            logger.info(f"🎙️ Generating speech for: {text[:50]}...")
-            
-            if language.lower() == 'english':
-                model.tts_to_file(
+            output_path = self._ensure_wav_path(text=text, language=language, output_path=output_path)
+
+            # Priority A: Coqui TTS
+            if TTS_AVAILABLE and self.tts_models:
+                try:
+                    return self._text_to_speech_coqui(
+                        text=text,
+                        language=language,
+                        voice_type=voice_type,
+                        output_path=output_path,
+                    )
+                except Exception as e:
+                    logger.warning(f"⚠️ Coqui TTS failed, trying fallback: {e}")
+
+            # Priority B: pyttsx3 fallback (offline, Windows friendly)
+            if self.pyttsx3_available:
+                return self._text_to_speech_pyttsx3(
                     text=text,
-                    file_path=output_path
+                    output_path=output_path,
                 )
-            else:
-                # For multilingual models, specify language
-                model.tts_to_file(
+
+            # Priority C: gTTS fallback (network required, converted to WAV)
+            if self.gtts_available:
+                return self._text_to_speech_gtts(
                     text=text,
-                    file_path=output_path,
-                    language=self._get_language_code(language)
+                    language=language,
+                    output_path=output_path,
                 )
-            
-            logger.info(f"✅ Speech generated: {output_path}")
-            return output_path
-            
+
+            raise Exception("No text-to-speech backend is available")
+
         except Exception as e:
             logger.error(f"❌ Failed to generate speech: {e}")
             raise
+
+    def _ensure_wav_path(self, text: str, language: str, output_path: Optional[str]) -> str:
+        if output_path:
+            if output_path.lower().endswith('.wav'):
+                return output_path
+            return str(Path(output_path).with_suffix('.wav'))
+
+        text_hash = hashlib.md5(text.encode()).hexdigest()[:8]
+        return str(self.output_dir / f"tts_{language}_{text_hash}.wav")
+
+    def _text_to_speech_coqui(self, text: str, language: str, voice_type: str, output_path: str) -> str:
+        if not self.tts_models:
+            raise Exception("TTS models not initialized")
+
+        model = self.tts_models.get(language.lower())
+        if not model:
+            logger.warning(f"⚠️ Language {language} not found, using English")
+            model = self.tts_models.get('english')
+        if not model:
+            raise Exception("English TTS model not available")
+
+        logger.info(f"🎙️ Generating speech with Coqui for: {text[:50]}...")
+        if language.lower() == 'english':
+            model.tts_to_file(text=text, file_path=output_path)
+        else:
+            model.tts_to_file(
+                text=text,
+                file_path=output_path,
+                language=self._get_language_code(language)
+            )
+
+        logger.info(f"✅ Speech generated with Coqui: {output_path}")
+        return output_path
+
+    def _text_to_speech_pyttsx3(self, text: str, output_path: str) -> str:
+        logger.info(f"🎙️ Generating speech with pyttsx3 for: {text[:50]}...")
+        engine = pyttsx3.init()
+        engine.setProperty('rate', 165)
+        engine.save_to_file(text, output_path)
+        engine.runAndWait()
+
+        if not Path(output_path).exists():
+            raise Exception(f"pyttsx3 did not create output file: {output_path}")
+
+        logger.info(f"✅ Speech generated with pyttsx3: {output_path}")
+        return output_path
+
+    def _text_to_speech_gtts(self, text: str, language: str, output_path: str) -> str:
+        logger.info(f"🎙️ Generating speech with gTTS for: {text[:50]}...")
+        lang_code = self._get_language_code(language)
+        temp_fd, temp_mp3 = tempfile.mkstemp(suffix='.mp3')
+        os.close(temp_fd)
+        try:
+            tts = gTTS(text=text, lang=lang_code, slow=False)
+            tts.save(temp_mp3)
+            self._convert_to_wav(temp_mp3, output_path)
+            logger.info(f"✅ Speech generated with gTTS: {output_path}")
+            return output_path
+        finally:
+            try:
+                if os.path.exists(temp_mp3):
+                    os.remove(temp_mp3)
+            except Exception:
+                pass
+
+    def _convert_to_wav(self, input_path: str, output_path: str) -> None:
+        ffmpeg_path = shutil.which('ffmpeg')
+        if not ffmpeg_path:
+            local_app_data = os.getenv('LOCALAPPDATA')
+            if local_app_data:
+                winget_root = Path(local_app_data) / 'Microsoft' / 'WinGet' / 'Packages'
+                candidates = list(winget_root.glob('Gyan.FFmpeg*/*/bin/ffmpeg.exe'))
+                if candidates:
+                    ffmpeg_path = str(candidates[0])
+        if not ffmpeg_path:
+            raise Exception("ffmpeg not found in PATH; required to convert gTTS output to WAV")
+
+        command = [ffmpeg_path, '-y', '-i', input_path, '-ac', '1', '-ar', '22050', output_path]
+        result = subprocess.run(command, capture_output=True, text=True)
+        if result.returncode != 0:
+            raise Exception(f"ffmpeg conversion failed: {result.stderr.strip()}")
     
     def text_to_speech_bytes(
         self,
@@ -176,7 +274,7 @@ class TTSService:
     
     def is_available(self) -> bool:
         """Check if TTS service is available"""
-        return TTS_AVAILABLE and len(self.tts_models) > 0
+        return (TTS_AVAILABLE and len(self.tts_models) > 0) or self.pyttsx3_available or self.gtts_available
 
 
 # Singleton instance

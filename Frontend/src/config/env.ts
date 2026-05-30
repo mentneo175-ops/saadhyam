@@ -11,6 +11,7 @@ interface EnvConfig {
   cloudinaryUploadPreset: string;
   cloudinaryVideoUploadPreset: string;
   cloudinaryImageUploadPreset: string;
+  instagramVideoCompressorUrl: string;
   environment: 'development' | 'staging' | 'production';
   isDevelopment: boolean;
   isProduction: boolean;
@@ -36,6 +37,7 @@ export const env: EnvConfig = {
   cloudinaryUploadPreset: getEnvVar('VITE_CLOUDINARY_UPLOAD_PRESET', ''),
   cloudinaryVideoUploadPreset: getEnvVar('VITE_CLOUDINARY_VIDEO_UPLOAD_PRESET', getEnvVar('VITE_CLOUDINARY_UPLOAD_PRESET', '')),
   cloudinaryImageUploadPreset: getEnvVar('VITE_CLOUDINARY_IMAGE_UPLOAD_PRESET', getEnvVar('VITE_CLOUDINARY_UPLOAD_PRESET', '')),
+  instagramVideoCompressorUrl: getEnvVar('VITE_INSTAGRAM_VIDEO_COMPRESSOR_URL', 'https://www.freeconvert.com/video-compressor?utm_source=chatgpt.com'),
   environment: getEnvVar('VITE_ENVIRONMENT', 'development') as EnvConfig['environment'],
   isDevelopment: getEnvVar('VITE_ENVIRONMENT', 'development') === 'development',
   isProduction: getEnvVar('VITE_ENVIRONMENT', 'development') === 'production',

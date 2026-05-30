@@ -107,13 +107,13 @@ export function Sidebar() {
             className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all group relative cursor-pointer ${
               isAnyChildActive
                 ? "text-purple-700 bg-purple-500/5 font-semibold"
-                : "text-gray-700 hover:bg-[#F9F7FF] hover:text-purple-700"
+                : "text-gray-700 dark:text-gray-300 hover:bg-[#F9F7FF] dark:hover:bg-purple-900/20 hover:text-purple-700 dark:hover:text-purple-400"
             } ${isMinimized ? 'justify-center' : ''}`}
             title={isMinimized ? item.label : undefined}
           >
             <Icon
               size={18}
-              className={isAnyChildActive ? "text-purple-600" : "text-gray-400 group-hover:text-purple-600"}
+              className={isAnyChildActive ? "text-purple-600" : "text-gray-400 dark:text-gray-500 group-hover:text-purple-600 dark:group-hover:text-purple-400"}
             />
             {!isMinimized && (
               <>
@@ -139,7 +139,7 @@ export function Sidebar() {
                     className={`flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
                       childActive
                         ? "bg-gradient-to-r from-[#8B5CF6] to-[#A855F7] text-white shadow-md shadow-purple-500/10 font-semibold"
-                        : "text-gray-600 hover:bg-purple-50/50 hover:text-purple-700"
+                        : "text-gray-600 dark:text-gray-400 hover:bg-purple-50/50 dark:hover:bg-purple-900/20 hover:text-purple-700 dark:hover:text-purple-400"
                     }`}
                   >
                     <ChildIcon size={14} className={childActive ? "text-white" : "text-gray-400"} />
@@ -165,13 +165,13 @@ export function Sidebar() {
         className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all group relative ${
           active
             ? "bg-gradient-to-r from-[#8B5CF6] to-[#A855F7] text-white shadow-lg shadow-purple-500/20"
-            : "text-gray-700 hover:bg-[#F9F7FF] hover:text-purple-700"
+            : "text-gray-700 dark:text-gray-300 hover:bg-[#F9F7FF] dark:hover:bg-purple-900/20 hover:text-purple-700 dark:hover:text-purple-400"
         } ${isMinimized ? 'justify-center' : ''}`}
         title={isMinimized ? item.label : undefined}
       >
         <Icon
           size={18}
-          className={active ? "text-white" : "text-gray-400 group-hover:text-purple-600"}
+          className={active ? "text-white" : "text-gray-400 dark:text-gray-500 group-hover:text-purple-600 dark:group-hover:text-purple-400"}
         />
         {!isMinimized && (
           <>

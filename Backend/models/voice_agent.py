@@ -50,6 +50,8 @@ class Language(str, enum.Enum):
     TELUGU = "telugu"
     HINGLISH = "hinglish"
     ENGLISH = "english"
+    HINDI = "hindi"
+    TAMIL = "tamil"
 
 
 class VoiceCampaign(Base):
@@ -121,6 +123,7 @@ class VoiceCampaign(Base):
             "calls_failed": self.calls_failed,
             "avg_call_duration": self.avg_call_duration,
             "conversion_rate": self.conversion_rate,
+            "script_template": self.script_template,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
         }
@@ -199,6 +202,7 @@ class VoiceCall(Base):
     # Outcome
     call_outcome = Column(String(100), nullable=True)
     notes = Column(Text, nullable=True)
+    key_quote = Column(Text, nullable=True)
     
     # Timestamps
     created_at = Column(DateTime(timezone=True), server_default=func.now())
@@ -217,12 +221,16 @@ class VoiceCall(Base):
             "id": self.id,
             "campaign_id": self.campaign_id,
             "contact_id": self.contact_id,
+            "contact_name": self.contact.name if self.contact else "Customer",
             "phone_number": self.phone_number,
             "status": self.status.value if self.status else None,
             "duration": self.duration,
+            "conversation_transcript": self.conversation_transcript,
             "conversation_summary": self.conversation_summary,
             "customer_sentiment": self.customer_sentiment,
             "call_outcome": self.call_outcome,
+            "notes": self.notes,
+            "key_quote": self.key_quote,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "started_at": self.started_at.isoformat() if self.started_at else None,
             "ended_at": self.ended_at.isoformat() if self.ended_at else None,
@@ -272,6 +280,7 @@ class VoiceLead(Base):
     notes = Column(Text, nullable=True)
     tags = Column(JSON, nullable=True)
     custom_fields = Column(JSON, nullable=True)
+    key_quote = Column(Text, nullable=True)
     
     # Conversion
     is_converted = Column(Boolean, default=False, index=True)
@@ -304,6 +313,8 @@ class VoiceLead(Base):
             "appointment_scheduled": self.appointment_scheduled,
             "interaction_count": self.interaction_count,
             "is_converted": self.is_converted,
+            "notes": self.notes,
+            "key_quote": self.key_quote,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
         }

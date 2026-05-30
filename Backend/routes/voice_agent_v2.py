@@ -3,21 +3,26 @@ AI Voice Agent API Routes V2
 Complete voice calling agent system with conversation engine and script generator
 """
 
+import json
 import logging
+import tempfile
+from pathlib import Path
 from typing import List, Optional, Dict, Any
 from datetime import datetime
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
 from pydantic import BaseModel, Field
 import csv
 import io
 
-from config.database import get_db
+from config.database import get_db_sync
+from sqlalchemy.orm import Session
 from utils.dependencies import get_current_user
 from services.conversation_engine import conversation_engine
+from services.voice_integration_service import voice_integration_service
 from services.script_generator import script_generator
 from services.voice_agent_service import voice_agent_service
 from models.user import User
-from models.voice_agent import VoiceCampaign, VoiceContact, VoiceCall, VoiceLead
+from models.voice_agent import VoiceCampaign, VoiceContact, VoiceCall, VoiceLead, CallStatus
 
 logger = logging.getLogger(__name__)
 
@@ -65,13 +70,305 @@ class LeadCreateRequest(BaseModel):
     notes: Optional[str] = None
 
 
+class LocalConversationStartRequest(BaseModel):
+    session_name: Optional[str] = None
+    business_name: str
+    business_description: Optional[str] = ""
+    services: Optional[str] = ""
+    offer_details: str
+    industry: Optional[str] = ""
+    language: str = Field(default="english", pattern="^(telugu|hinglish|english|tamil|hindi)$")
+    voice_type: str = Field(default="female", pattern="^(male|female)$")
+    customer_name: Optional[str] = ""
+    customer_type: Optional[str] = ""
+    campaign_goal: str
+    target_audience: Optional[str] = ""
+    call_purpose: Optional[str] = ""
+
+
+class LocalConversationEndRequest(BaseModel):
+    call_id: int
+    conversation_history: List[Dict[str, str]] = []
+    final_note: Optional[str] = None
+
+
+def _build_transcript(conversation_history: List[Dict[str, str]]) -> str:
+    transcript_lines: List[str] = []
+    for entry in conversation_history:
+        role = entry.get("role", "user")
+        content = entry.get("content", "").strip()
+        if not content:
+            continue
+        label = "Customer" if role in {"user", "customer"} else "Agent"
+        transcript_lines.append(f"{label}: {content}")
+    return "\n".join(transcript_lines)
+
+
+def _audio_url_from_path(audio_path: str) -> str:
+    return f"/voice-audio/{Path(audio_path).name}"
+
+
+@router.post("/conversation/local/start")
+async def start_local_conversation(
+    request: LocalConversationStartRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db_sync)
+):
+    """Create a browser-local voice conversation session."""
+    try:
+        campaign_name = request.session_name or f"Live Voice Session - {request.business_name}"
+        campaign = voice_agent_service.create_campaign(
+            db=db,
+            user_id=current_user.id,
+            name=campaign_name,
+            description=request.campaign_goal,
+            language=request.language,
+            voice_type=request.voice_type,
+            script_template=f"Business: {request.business_name}\nDescription: {request.business_description}\nServices: {request.services}\nIndustry: {request.industry}\nOffers: {request.offer_details}\nCustomer Name: {request.customer_name}\nCustomer Type: {request.customer_type}\nCampaign Goal: {request.campaign_goal}",
+            scheduled_start=None,
+        )
+
+        contact = VoiceContact(
+            campaign_id=campaign.id,
+            name=request.customer_name or "Browser Visitor",
+            phone_number="browser-session",
+            email=None,
+            custom_data={
+                "business_name": request.business_name,
+                "business_description": request.business_description,
+                "services": request.services,
+                "industry": request.industry,
+                "offer_details": request.offer_details,
+                "customer_name": request.customer_name,
+                "customer_type": request.customer_type,
+                "campaign_goal": request.campaign_goal,
+            },
+        )
+        db.add(contact)
+        db.flush()
+
+        call = VoiceCall(
+            campaign_id=campaign.id,
+            contact_id=contact.id,
+            phone_number=contact.phone_number,
+            call_sid=f"local_{campaign.id}_{contact.id}_{int(datetime.utcnow().timestamp())}",
+            status=CallStatus.CONNECTED,
+            started_at=datetime.utcnow(),
+        )
+        db.add(call)
+        db.commit()
+        db.refresh(call)
+
+        greeting = voice_integration_service.generate_greeting(campaign=campaign, contact=contact)
+        if not greeting.get("success"):
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=greeting.get("error", "Failed to generate greeting"))
+
+        return {
+            "success": True,
+            "session": {
+                "session_id": call.call_sid,
+                "call_id": call.id,
+                "campaign_id": campaign.id,
+                "contact_id": contact.id,
+                "campaign_name": campaign.name,
+                "business_name": request.business_name,
+                "language": request.language,
+                "voice_type": request.voice_type,
+            },
+            "greeting": {
+                "text": greeting["text"],
+                "audio_url": _audio_url_from_path(greeting["audio_path"]),
+            },
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Failed to start local conversation: {e}")
+        db.rollback()
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
+
+@router.post("/conversation/local/turn")
+async def process_local_conversation_turn(
+    call_id: int = Form(...),
+    conversation_history: str = Form("[]"),
+    language: str = Form("english"),
+    customer_audio: UploadFile = File(...),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db_sync)
+):
+    """Process a browser-recorded audio turn through Whisper, Gemini, and TTS."""
+    temp_audio_path: Optional[str] = None
+    try:
+        call = db.query(VoiceCall).filter(VoiceCall.id == call_id).first()
+        if not call:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Call session not found")
+
+        campaign = db.query(VoiceCampaign).filter(VoiceCampaign.id == call.campaign_id, VoiceCampaign.user_id == current_user.id).first()
+        if not campaign:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Campaign not found")
+
+        history = json.loads(conversation_history or "[]")
+        if not isinstance(history, list):
+            history = []
+
+        suffix = Path(customer_audio.filename or "turn.webm").suffix or ".webm"
+        with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as temp_audio:
+            temp_audio.write(await customer_audio.read())
+            temp_audio_path = temp_audio.name
+
+        result = voice_integration_service.process_customer_speech(
+            audio_path=temp_audio_path,
+            call_id=call.id,
+            campaign=campaign,
+            db=db,
+        )
+        if not result.get("success"):
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=result.get("error", "Failed to process conversation turn"))
+
+        customer_text = result["customer_text"]
+        analysis = conversation_engine.analyze_customer_intent(customer_text, history)
+        updated_history = history + [
+            {"role": "user", "content": customer_text},
+            {"role": "assistant", "content": result["ai_response"]},
+        ]
+        transcript = _build_transcript(updated_history)
+
+        call.conversation_transcript = transcript
+        call.customer_sentiment = analysis.get("sentiment") or result.get("sentiment")
+        call.status = CallStatus.CONNECTED
+        db.commit()
+
+        return {
+            "success": True,
+            "turn": {
+                "customer_text": customer_text,
+                "intent": analysis.get("intent", "neutral"),
+                "sentiment": analysis.get("sentiment", result.get("sentiment", "neutral")),
+                "interest_level": analysis.get("interest_level", "medium"),
+                "should_followup": analysis.get("should_followup", False),
+                "recommended_action": analysis.get("recommended_action", "continue_conversation"),
+                "should_continue": result.get("should_continue", True),
+            },
+            "response": {
+                "text": result["ai_response"],
+                "audio_url": _audio_url_from_path(result["response_audio_path"]),
+            },
+            "conversation_history": updated_history,
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Failed to process local conversation turn: {e}")
+        db.rollback()
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+    finally:
+        if temp_audio_path:
+            try:
+                Path(temp_audio_path).unlink(missing_ok=True)
+            except Exception:
+                pass
+
+
+@router.post("/conversation/local/end")
+async def end_local_conversation(
+    request: LocalConversationEndRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db_sync)
+):
+    """Finalize a browser-local voice conversation and persist the summary."""
+    try:
+        call = db.query(VoiceCall).filter(VoiceCall.id == request.call_id).first()
+        if not call:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Call session not found")
+
+        campaign = db.query(VoiceCampaign).filter(VoiceCampaign.id == call.campaign_id, VoiceCampaign.user_id == current_user.id).first()
+        if not campaign:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Campaign not found")
+
+        transcript = _build_transcript(request.conversation_history)
+        summary = voice_agent_service.generate_conversation_summary(transcript=transcript)
+        sentiment = voice_agent_service.analyze_conversation_sentiment(transcript=transcript)
+
+        call.conversation_transcript = transcript
+        call.conversation_summary = summary
+        call.customer_sentiment = sentiment
+        call.status = CallStatus.COMPLETED
+        call.ended_at = datetime.utcnow()
+        call.duration = max(call.duration or 0, len(request.conversation_history) * 15)
+
+        # Analyze customer intent from history
+        intents = [msg.get("intent") for msg in request.conversation_history if msg.get("role") == "user"]
+        transcript_lower = transcript.lower()
+
+        status_val = "interested"
+        interest_level = "medium"
+        follow_up_required = False
+        callback_requested = False
+        lead_score = 50
+
+        if "not_interested" in intents or any(kw in transcript_lower for kw in ["not interested", "no thanks", "busy", "don't want", "not looking"]):
+            status_val = "not_interested"
+            interest_level = "low"
+            lead_score = 15
+        elif "callback" in intents or any(kw in transcript_lower for kw in ["call back", "later", "tomorrow", "next week", "call later"]):
+            status_val = "callback_requested"
+            interest_level = "medium"
+            callback_requested = True
+            follow_up_required = True
+            lead_score = 70
+        elif "needs_info" in intents or "objection" in intents or any(kw in transcript_lower for kw in ["price", "cost", "how much", "details", "email me", "send me info"]):
+            status_val = "follow_up_required"
+            interest_level = "medium"
+            follow_up_required = True
+            lead_score = 60
+        elif "interested" in intents or any(kw in transcript_lower for kw in ["interested", "yes", "sure", "ok", "sounds good", "interested in", "love it"]):
+            status_val = "interested"
+            interest_level = "high"
+            lead_score = 85
+
+        # Create a Lead from this Call
+        lead = voice_agent_service.create_lead_from_call(
+            db=db,
+            call=call,
+            status=status_val,
+            lead_score=lead_score,
+            notes=request.final_note or summary,
+        )
+        
+        # Populate fields
+        from datetime import timedelta
+        lead.interest_level = interest_level
+        lead.follow_up_required = follow_up_required
+        lead.callback_requested = callback_requested
+        if callback_requested:
+            lead.callback_time = datetime.utcnow() + timedelta(days=1)
+
+        db.commit()
+        db.refresh(lead)
+
+        return {
+            "success": True,
+            "summary": summary,
+            "sentiment": sentiment,
+            "lead": lead.to_dict() if lead else None,
+            "call": call.to_dict(),
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Failed to end local conversation: {e}")
+        db.rollback()
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
+
 # ==================== Campaign Management ====================
 
 @router.post("/campaigns")
 async def create_campaign(
     request: CampaignCreateRequest,
     current_user: User = Depends(get_current_user),
-    db = Depends(get_db)
+    db: Session = Depends(get_db_sync)
 ):
     """Create a new voice campaign"""
     try:
@@ -112,7 +409,7 @@ Goal: {request.campaign_goal}
 @router.get("/campaigns")
 async def get_campaigns(
     current_user: User = Depends(get_current_user),
-    db = Depends(get_db),
+    db: Session = Depends(get_db_sync),
     skip: int = 0,
     limit: int = 100
 ):
@@ -137,7 +434,7 @@ async def get_campaigns(
 async def get_campaign(
     campaign_id: int,
     current_user: User = Depends(get_current_user),
-    db = Depends(get_db)
+    db: Session = Depends(get_db_sync)
 ):
     """Get campaign details"""
     try:
@@ -164,13 +461,53 @@ async def get_campaign(
         )
 
 
+@router.delete("/campaigns/{campaign_id}")
+async def delete_campaign(
+    campaign_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db_sync)
+):
+    """Delete a voice campaign and all its associated contacts, calls, and leads"""
+    try:
+        success = voice_agent_service.delete_campaign(
+            db=db,
+            campaign_id=campaign_id,
+            user_id=current_user.id
+        )
+        
+        if not success:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Campaign not found"
+            )
+            
+        return {
+            "success": True,
+            "message": "Campaign deleted successfully"
+        }
+        
+    except ValueError as ve:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(ve)
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Failed to delete campaign: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to delete campaign: {str(e)}"
+        )
+
+
 # ==================== Script Generation ====================
 
 @router.post("/script/generate")
 async def generate_script(
     request: ScriptGenerateRequest,
     current_user: User = Depends(get_current_user),
-    db = Depends(get_db)
+    db: Session = Depends(get_db_sync)
 ):
     """Generate AI sales script"""
     try:
@@ -208,7 +545,7 @@ async def generate_script(
 async def generate_opening(
     request: ScriptGenerateRequest,
     current_user: User = Depends(get_current_user),
-    db = Depends(get_db)
+    db: Session = Depends(get_db_sync)
 ):
     """Generate opening line"""
     try:
@@ -241,7 +578,7 @@ async def generate_opening(
 async def generate_objections(
     request: ScriptGenerateRequest,
     current_user: User = Depends(get_current_user),
-    db = Depends(get_db)
+    db: Session = Depends(get_db_sync)
 ):
     """Generate objection handling responses"""
     try:
@@ -274,7 +611,7 @@ async def generate_objections(
 async def simulate_conversation(
     request: ConversationRequest,
     current_user: User = Depends(get_current_user),
-    db = Depends(get_db)
+    db: Session = Depends(get_db_sync)
 ):
     """Simulate AI conversation"""
     try:
@@ -305,7 +642,7 @@ async def simulate_conversation(
 async def analyze_intent(
     customer_message: str,
     current_user: User = Depends(get_current_user),
-    db = Depends(get_db),
+    db: Session = Depends(get_db_sync),
     conversation_history: List[Dict[str, str]] = []
 ):
     """Analyze customer intent"""
@@ -335,7 +672,7 @@ async def add_lead(
     campaign_id: int,
     request: LeadCreateRequest,
     current_user: User = Depends(get_current_user),
-    db = Depends(get_db)
+    db: Session = Depends(get_db_sync)
 ):
     """Add single lead to campaign"""
     try:
@@ -403,7 +740,7 @@ async def upload_leads(
     campaign_id: int,
     file: UploadFile = File(...),
     current_user: User = Depends(get_current_user),
-    db = Depends(get_db)
+    db: Session = Depends(get_db_sync)
 ):
     """Upload leads from CSV/Excel"""
     try:
@@ -469,7 +806,7 @@ async def upload_leads(
 async def get_leads(
     campaign_id: int,
     current_user: User = Depends(get_current_user),
-    db = Depends(get_db),
+    db: Session = Depends(get_db_sync),
     skip: int = 0,
     limit: int = 100
 ):
@@ -524,7 +861,7 @@ async def get_leads(
 @router.get("/dashboard/stats")
 async def get_dashboard_stats(
     current_user: User = Depends(get_current_user),
-    db = Depends(get_db)
+    db: Session = Depends(get_db_sync)
 ):
     """Get dashboard statistics"""
     try:

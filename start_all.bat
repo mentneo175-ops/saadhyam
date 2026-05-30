@@ -69,6 +69,15 @@ start "Saadhyam Celery - Worker" cmd /k "cd Backend && call venv\Scripts\activat
 echo [SUCCESS] Main Celery worker starting...
 echo.
 
+REM Start Website AI Celery Worker
+echo ============================================
+echo   Starting Website AI Celery Worker
+echo   (Website Generation Tasks)
+echo ============================================
+start "Saadhyam Celery - Website Worker" cmd /k "cd Backend && call venv\Scripts\activate.bat && python -m celery -A ai_models.website_ai.app.workers.celery_app worker --loglevel=info --pool=solo"
+echo [SUCCESS] Website AI Celery worker starting...
+echo.
+
 REM Start Celery Beat (Task Scheduler)
 echo ============================================
 echo   Starting Celery Beat Scheduler
@@ -112,9 +121,10 @@ echo.
 echo [INFO] 5 terminal windows opened:
 echo   1. Backend Server (FastAPI - Port 8000)
 echo   2. Celery Worker (Background Tasks)
-echo   3. Celery Beat (Task Scheduler)
-echo   4. Content Creator AI (Image Generation - Port 8001)
-echo   5. Frontend Server (Vite - Port 8080)
+echo   3. Website AI Celery Worker (Website Generation)
+echo   4. Celery Beat (Task Scheduler)
+echo   5. Content Creator AI (Image Generation - Port 8001)
+echo   6. Frontend Server (Vite - Port 8080)
 echo.
 echo Press any key to open the application in browser...
 pause >nul

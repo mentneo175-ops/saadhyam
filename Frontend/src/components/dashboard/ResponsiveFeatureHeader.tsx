@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { apiClient } from "@/lib/api";
 import { useSidebar } from "@/contexts/SidebarContext";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 
 interface BusinessProfile {
   business_name?: string;
@@ -45,17 +46,17 @@ export function ResponsiveFeatureHeader() {
     : "Business";
 
   return (
-    <div className="lg:hidden fixed top-0 left-0 right-0 h-14 bg-white border-b border-gray-200 z-50 flex items-center justify-center px-4">
+    <div className="lg:hidden fixed top-0 left-0 right-0 h-14 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 z-50 flex items-center justify-between px-4">
       {/* Hamburger Menu - LEFT */}
       <button
         onClick={toggleMobileMenu}
-        className="absolute left-4 p-2 hover:bg-gray-100 rounded-lg transition-colors"
+        className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
         aria-label="Toggle menu"
       >
         {isMobileMenuOpen ? (
-          <X className="w-5 h-5 text-gray-700" />
+          <X className="w-5 h-5 text-gray-700 dark:text-gray-300" />
         ) : (
-          <Menu className="w-5 h-5 text-gray-700" />
+          <Menu className="w-5 h-5 text-gray-700 dark:text-gray-300" />
         )}
       </button>
 
@@ -67,10 +68,13 @@ export function ResponsiveFeatureHeader() {
           </span>
         </div>
         <div className="flex flex-col">
-          <span className="text-sm font-semibold text-gray-900">{displayName}</span>
-          <span className="text-xs text-gray-500">{businessProfile?.business_type || "Business"}</span>
+          <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">{displayName}</span>
+          <span className="text-xs text-gray-500 dark:text-gray-400">{businessProfile?.business_type || "Business"}</span>
         </div>
       </div>
+
+      {/* Theme Toggle - RIGHT */}
+      <ThemeToggle />
     </div>
   );
 }

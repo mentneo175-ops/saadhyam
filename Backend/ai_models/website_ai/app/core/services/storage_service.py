@@ -287,7 +287,7 @@ class StorageService:
         Returns:
             Public URL for the website
         """
-        return f"/website/{website_id}"
+        return f"/saadhyam/{website_id}"
 
     def get_public_url(self, key_or_path: str) -> str:
         """

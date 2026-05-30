@@ -9,7 +9,7 @@ from typing import List, Optional, Dict, Any
 from sqlalchemy.orm import Session
 from sqlalchemy import and_
 
-from models.voice_agent import VoiceCampaign, VoiceContact, VoiceCall, VoiceLead, CallStatus, LeadStatus
+from models.voice_agent import VoiceCampaign, VoiceContact, VoiceCall, VoiceLead, CallStatus, LeadStatus, CampaignStatus
 from services.voice_conversation_ai_service import VoiceConversationAI
 
 logger = logging.getLogger(__name__)
@@ -58,7 +58,7 @@ class VoiceCallQueueService:
                     and_(
                         VoiceCall.campaign_id == campaign_id,
                         VoiceCall.contact_id == contact.id,
-                        VoiceCall.status.in_([CallStatus.QUEUED, CallStatus.RINGING, CallStatus.CONNECTED])
+                        VoiceCall.status.in_([CallStatus.PENDING, CallStatus.CALLING, CallStatus.CONNECTED])
                     )
                 ).first()
                 
@@ -68,7 +68,7 @@ class VoiceCallQueueService:
                         campaign_id=campaign_id,
                         contact_id=contact.id,
                         phone_number=contact.phone_number,
-                        status=CallStatus.QUEUED,
+                        status=CallStatus.PENDING,
                         created_at=datetime.utcnow()
                     )
                     db.add(call)
@@ -95,21 +95,13 @@ class VoiceCallQueueService:
         return db.query(VoiceCall).filter(
             and_(
                 VoiceCall.campaign_id == campaign_id,
-                VoiceCall.status == CallStatus.QUEUED
+                VoiceCall.status == CallStatus.PENDING
             )
         ).order_by(VoiceCall.created_at).first()
     
     def process_call(self, db: Session, call_id: int) -> Dict[str, Any]:
         """
-        Process a single call (MOCK VERSION - simulates calling)
-        
-        In production, this would:
-        1. Call voice API (Exotel/Twilio)
-        2. Handle real-time conversation
-        3. Record audio
-        4. Get live transcription
-        
-        For MVP, we simulate the call with mock data
+        Process a single call (integrates real Exotel calling, falls back to simulation if credentials are not configured)
         """
         try:
             call = db.query(VoiceCall).filter(VoiceCall.id == call_id).first()
@@ -123,14 +115,54 @@ class VoiceCallQueueService:
             if not campaign or not contact:
                 raise ValueError("Campaign or contact not found")
             
+            # Check if real Exotel calling is configured
+            from config.settings import settings
+            has_exotel = bool(settings.EXOTEL_SID and settings.EXOTEL_API_KEY and settings.EXOPHONE_NUMBER)
+
+            if has_exotel:
+                # Update call status to CALLING / RINGING
+                call.status = CallStatus.CALLING
+                call.started_at = datetime.utcnow()
+                db.commit()
+                
+                logger.info(f"📞 Exotel Outbound Dialing contact {contact.name} ({contact.phone_number})")
+                
+                # Trigger call connects to WebSocket
+                from services.exotel_service import exotel_service
+                res = exotel_service.trigger_outbound_call(contact.phone_number, call.id)
+                
+                if res["success"]:
+                    # Save Exotel Call SID to track
+                    call.call_sid = res["exotel_call_sid"]
+                    db.commit()
+                    return {
+                        "success": True,
+                        "call_id": call_id,
+                        "status": "calling_triggered",
+                        "exotel_call_sid": res["exotel_call_sid"]
+                    }
+                else:
+                    # Update status to failed
+                    call.status = CallStatus.FAILED
+                    call.ended_at = datetime.utcnow()
+                    call.call_outcome = "failed_trigger"
+                    db.commit()
+                    return {
+                        "success": False,
+                        "call_id": call_id,
+                        "status": "failed",
+                        "message": res["message"]
+                    }
+
+            # FALLBACK MOCK SIMULATOR
             # Update call status to RINGING
-            call.status = CallStatus.RINGING
+            call.status = CallStatus.CALLING
             call.started_at = datetime.utcnow()
             db.commit()
             
-            logger.info(f"📞 Calling {contact.name} at {contact.phone_number}")
+            logger.info(f"📞 [MOCK] Calling {contact.name} at {contact.phone_number}")
             
-            # MOCK: Simulate call connection (in production, wait for actual connection)
+            # MOCK: Simulate call connection
             import time
             import random
             time.sleep(2)  # Simulate ringing time
@@ -149,7 +181,7 @@ class VoiceCallQueueService:
                 contact.call_attempts += 1
                 
                 db.commit()
-                logger.warning(f"❌ Call to {contact.name} not answered")
+                logger.warning(f"❌ [MOCK] Call to {contact.name} not answered")
                 
                 return {
                     "success": False,
@@ -161,7 +193,7 @@ class VoiceCallQueueService:
             call.status = CallStatus.CONNECTED
             db.commit()
             
-            logger.info(f"✅ Call connected with {contact.name}")
+            logger.info(f"✅ [MOCK] Call connected with {contact.name}")
             
             # MOCK: Simulate conversation
             conversation_result = self._simulate_conversation(
@@ -174,7 +206,7 @@ class VoiceCallQueueService:
             call.status = CallStatus.COMPLETED
             call.ended_at = datetime.utcnow()
             call.duration = conversation_result["duration"]
-            call.transcript = conversation_result["transcript"]
+            call.conversation_transcript = conversation_result["transcript"]
             call.conversation_summary = conversation_result["summary"]
             call.customer_sentiment = conversation_result["sentiment"]
             call.call_outcome = conversation_result["outcome"]
@@ -182,7 +214,7 @@ class VoiceCallQueueService:
             # Update contact
             contact.call_attempts += 1
             contact.is_completed = True
-            contact.last_called_at = datetime.utcnow()
+            contact.last_call_at = datetime.utcnow()
             
             # Update campaign stats
             campaign.calls_completed += 1
@@ -191,11 +223,11 @@ class VoiceCallQueueService:
             # Generate lead if customer is interested
             if conversation_result["is_interested"]:
                 lead = self._create_lead_from_call(db, call, contact, conversation_result)
-                logger.info(f"🎯 Lead generated: {lead.name} (score: {lead.lead_score})")
+                logger.info(f"🎯 [MOCK] Lead generated: {lead.name} (score: {lead.lead_score})")
             
             db.commit()
             
-            logger.info(f"✅ Call completed with {contact.name} - Duration: {call.duration}s")
+            logger.info(f"✅ [MOCK] Call completed with {contact.name} - Duration: {call.duration}s")
             
             return {
                 "success": True,
@@ -292,9 +324,14 @@ class VoiceCallQueueService:
         else:
             status = LeadStatus.FOLLOW_UP_REQUIRED
         
+        # Retrieve campaign to get user_id
+        campaign = db.query(VoiceCampaign).filter(VoiceCampaign.id == call.campaign_id).first()
+        user_id = campaign.user_id if campaign else 1
+
         lead = VoiceLead(
             campaign_id=call.campaign_id,
             contact_id=contact.id,
+            user_id=user_id,
             name=contact.name,
             phone_number=contact.phone_number,
             email=contact.email,
@@ -366,9 +403,18 @@ class VoiceCallQueueService:
             active_call = db.query(VoiceCall).filter(
                 and_(
                     VoiceCall.campaign_id == campaign_id,
-                    VoiceCall.status.in_([CallStatus.RINGING, CallStatus.CONNECTED])
+                    VoiceCall.status.in_([CallStatus.CALLING, CallStatus.CONNECTED])
                 )
             ).first()
+            
+            # If no active call is in progress, check for the next queued call
+            if not active_call:
+                active_call = db.query(VoiceCall).filter(
+                    and_(
+                        VoiceCall.campaign_id == campaign_id,
+                        VoiceCall.status == CallStatus.PENDING
+                    )
+                ).order_by(VoiceCall.created_at).first()
             
             current_call_info = None
             if active_call:
@@ -386,8 +432,14 @@ class VoiceCallQueueService:
             total_contacts = campaign.total_contacts
             completed = stats_dict.get("completed", 0)
             failed = stats_dict.get("failed", 0)
-            queued = stats_dict.get("queued", 0)
-            in_progress = stats_dict.get("ringing", 0) + stats_dict.get("connected", 0)
+            queued = stats_dict.get("pending", 0)
+            in_progress = stats_dict.get("calling", 0) + stats_dict.get("connected", 0)
+            
+            # Auto-complete campaign if all calls are done (especially in interactive/mic mode)
+            if campaign.status == CampaignStatus.ACTIVE and (completed + failed) >= total_contacts and total_contacts > 0:
+                campaign.status = CampaignStatus.COMPLETED
+                campaign.completed_at = datetime.utcnow()
+                db.commit()
             
             progress_percentage = (completed + failed) / total_contacts * 100 if total_contacts > 0 else 0
             

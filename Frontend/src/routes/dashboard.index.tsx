@@ -428,7 +428,7 @@ function Overview() {
       {/* Dashboard Loading Screen - Shows after onboarding */}
       <DashboardLoader isLoading={isDashboardLoading} message="Analyzing your business" />
 
-      <div className="flex flex-1 bg-white">
+      <div className="flex flex-1 bg-background">
         <div className="flex-1 min-w-0 p-4 md:p-6 lg:p-8 space-y-6">
           {/* Loading state */}
           {checkingProfile && (

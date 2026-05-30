@@ -16,10 +16,10 @@ from models.business_profile import BusinessProfile
 from models.settings import UserSettings
 from models.instagram_analytics import (
     InstagramBusinessAccount,
+    AnalyticsSnapshot,
     PostAnalytics,
-    StoryAnalytics,
     ReelAnalytics,
-    AudienceInsights,
+    StoryAnalytics,
 )
 from models.task_tracking import DailyTask, GrowthMetric
 from models.whatsapp_account import WhatsAppAccount
@@ -514,6 +514,10 @@ def confirm_website(
         current_user.last_generated_website_id = website_id
         db.commit()
         db.refresh(current_user)
+
+        # Invalidate cached profile responses so the dashboard loads the newest website id
+        cache_key = generate_cache_key(CACHE_PREFIX["profile"], "full_profile", user_id=current_user.id)
+        delete_pattern(cache_key)
         
         logger.info(f"✅ Website {website_id} confirmed for user {current_user.id}")
         
@@ -573,10 +577,10 @@ def delete_account(
             db.query(YouTubeChannel).filter(YouTubeChannel.id.in_(youtube_channel_ids)).delete(synchronize_session=False)
 
         if instagram_account_ids:
-            db.query(InstagramPost).filter(InstagramPost.account_id.in_(instagram_account_ids)).delete(synchronize_session=False)
-            db.query(InstagramStory).filter(InstagramStory.account_id.in_(instagram_account_ids)).delete(synchronize_session=False)
-            db.query(InstagramReel).filter(InstagramReel.account_id.in_(instagram_account_ids)).delete(synchronize_session=False)
-            db.query(InstagramInsight).filter(InstagramInsight.account_id.in_(instagram_account_ids)).delete(synchronize_session=False)
+            db.query(PostAnalytics).filter(PostAnalytics.account_id.in_(instagram_account_ids)).delete(synchronize_session=False)
+            db.query(StoryAnalytics).filter(StoryAnalytics.account_id.in_(instagram_account_ids)).delete(synchronize_session=False)
+            db.query(ReelAnalytics).filter(ReelAnalytics.account_id.in_(instagram_account_ids)).delete(synchronize_session=False)
+            db.query(AnalyticsSnapshot).filter(AnalyticsSnapshot.account_id.in_(instagram_account_ids)).delete(synchronize_session=False)
             db.query(InstagramBusinessAccount).filter(InstagramBusinessAccount.id.in_(instagram_account_ids)).delete(synchronize_session=False)
 
         if whatsapp_account_ids:

@@ -250,7 +250,7 @@ export function ContentTabs() {
           WebkitOverflowScrolling: 'touch'
         }}
       >
-        <style jsx>{`
+        <style>{`
           div::-webkit-scrollbar {
             display: none;
           }

@@ -133,7 +133,7 @@ async def publish_blog(
         # Update blog status
         blog_data["status"] = "published"
         blog_data["published_at"] = datetime.utcnow().isoformat()
-        blog_data["url"] = f"/website/{result['website_id']}#blog-{request.blog_id}"
+        blog_data["url"] = f"/saadhyam/{result['website_id']}#blog-{request.blog_id}"
         blog_data["website_id"] = result["website_id"]
         
         # Save updated data

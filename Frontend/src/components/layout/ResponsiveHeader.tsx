@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useEffect, useState } from "react";
 import { apiClient } from "@/lib/api";
 import { SidebarProvider, useSidebar } from "@/contexts/SidebarContext";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 
 interface BusinessProfile {
   business_name?: string;
@@ -24,9 +25,10 @@ function ResponsiveHeaderContent() {
 
   // Check if we're on dashboard pages
   const isDashboardPage = location.pathname.startsWith("/dashboard");
-  
-  // Only show on non-dashboard pages and mobile devices
-  const shouldShow = !isDashboardPage && isMobile;
+  const isLandingPage = location.pathname === "/";
+
+  // Only show on non-dashboard pages, excluding the landing page, and mobile devices
+  const shouldShow = !isDashboardPage && !isLandingPage && isMobile;
 
   useEffect(() => {
     if (shouldShow) {
@@ -74,28 +76,31 @@ function ResponsiveHeaderContent() {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-gray-200 bg-white/95 backdrop-blur-xl shadow-sm">
+    <header className="sticky top-0 z-50 w-full border-b border-gray-200 dark:border-gray-800 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl shadow-sm">
       <div className="flex h-14 items-center justify-between px-4">
-        {/* Left side - Logo (optional, for brand consistency) */}
+        {/* Left side - Logo */}
         <div className="w-10 flex justify-start">
           <Logo size="sm" showText={false} />
         </div>
 
         {/* Center - Company name */}
         <div className="flex-1 flex justify-center">
-          <h1 className="text-lg font-semibold text-gray-900 truncate max-w-[200px]">
+          <h1 className="text-lg font-semibold text-gray-900 dark:text-gray-100 truncate max-w-[200px]">
             {getCompanyName()}
           </h1>
         </div>
 
-        {/* Right side - Hamburger menu */}
-        <button
-          onClick={toggleMobileMenu}
-          className="flex items-center justify-center w-10 h-10 rounded-lg hover:bg-gray-100 transition-colors"
-          aria-label="Open navigation menu"
-        >
-          <Menu size={20} className="text-gray-600" />
-        </button>
+        {/* Right side - Theme toggle + Hamburger menu */}
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+          <button
+            onClick={toggleMobileMenu}
+            className="flex items-center justify-center w-10 h-10 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            aria-label="Open navigation menu"
+          >
+            <Menu size={20} className="text-gray-600 dark:text-gray-400" />
+          </button>
+        </div>
       </div>
     </header>
   );
@@ -104,12 +109,13 @@ function ResponsiveHeaderContent() {
 export function ResponsiveHeader() {
   const location = useLocation();
   const isMobile = useIsMobile();
-  
+
   // Check if we're on dashboard pages
   const isDashboardPage = location.pathname.startsWith("/dashboard");
-  
-  // Only show on non-dashboard pages and mobile devices
-  const shouldShow = !isDashboardPage && isMobile;
+  const isLandingPage = location.pathname === "/";
+
+  // Only show on non-dashboard pages, excluding the landing page, and mobile devices
+  const shouldShow = !isDashboardPage && !isLandingPage && isMobile;
 
   // Don't render if conditions aren't met
   if (!shouldShow) {

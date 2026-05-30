@@ -25,6 +25,7 @@ export function VideoUploadForm({ channelDbId, onSubmit }: VideoUploadFormProps)
   const [isScheduled, setIsScheduled] = useState(false);
   const [scheduledTime, setScheduledTime] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [uploadHelpMessage, setUploadHelpMessage] = useState<string | null>(null);
 
   // AI assistant loading states
   const [isGeneratingTitles, setIsGeneratingTitles] = useState(false);
@@ -42,12 +43,15 @@ export function VideoUploadForm({ channelDbId, onSubmit }: VideoUploadFormProps)
     if (f) {
       const sizeMb = bytesToMB(f.size);
       if (sizeMb > MAX_UPLOAD_MB) {
-        toast.error(`Selected video is ${sizeMb.toFixed(2)} MB — maximum allowed is ${MAX_UPLOAD_MB} MB. Please choose a smaller file.`);
+        setUploadHelpMessage(
+          `Video file too large. Compress it here: ${env.instagramVideoCompressorUrl}`,
+        );
         setVideoFile(null);
         e.currentTarget.value = "";
         return;
       }
     }
+    setUploadHelpMessage(null);
     setVideoFile(f);
   };
 
@@ -138,7 +142,7 @@ export function VideoUploadForm({ channelDbId, onSubmit }: VideoUploadFormProps)
     setIsSubmitting(true);
     try {
       if (videoFile && videoFile.size > MAX_UPLOAD_MB * 1024 * 1024) {
-        toast.error(`Selected video is ${bytesToMB(videoFile.size).toFixed(2)} MB — maximum allowed is ${MAX_UPLOAD_MB} MB. Please choose a smaller file.`);
+        setUploadHelpMessage(`Video file too large. Compress it here: ${env.instagramVideoCompressorUrl}`);
         setIsSubmitting(false);
         return;
       }
@@ -185,6 +189,7 @@ export function VideoUploadForm({ channelDbId, onSubmit }: VideoUploadFormProps)
       setThumbnailFile(null);
       setIsScheduled(false);
       setScheduledTime("");
+      setUploadHelpMessage(null);
     } catch (err: any) {
       toast.error(err?.message || err?.response?.data?.detail || "Failed to process video upload");
     } finally {
@@ -324,6 +329,19 @@ export function VideoUploadForm({ channelDbId, onSubmit }: VideoUploadFormProps)
               />
               {videoFile && <p className="mt-2.5 text-[11px] text-slate-500 font-medium">Selected: {videoFile.name}</p>}
             </div>
+            {uploadHelpMessage && (
+              <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+                Video file too large. Compress it here:{" "}
+                <a
+                  href={env.instagramVideoCompressorUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-semibold underline underline-offset-2 hover:text-amber-700"
+                >
+                  open the compressor link
+                </a>
+              </div>
+            )}
           </div>
 
           {/* Thumbnail */}

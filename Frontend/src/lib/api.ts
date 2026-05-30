@@ -543,9 +543,12 @@ class ApiClient {
    * Get current user info
    */
   async getCurrentUser(): Promise<User> {
-    const data = await this.fetchJson("/me", {
+    const data = await this.fetchJson("/api/profile/", {
       method: "GET",
     });
+
+    // The /api/profile/ endpoint returns nested business_profile
+    const bp = data.business_profile || {};
 
     const user: User = {
       id: data.id,
@@ -553,11 +556,6 @@ class ApiClient {
       name: data.name,
       auth_provider: data.auth_provider,
       profile_picture: data.profile_picture,
-      business_name: data.business_name,
-      business_type: data.business_type,
-      business_location: data.business_location,
-      business_description: data.business_description,
-      business_setup_completed: data.business_setup_completed,
       selected_plan_key: data.selected_plan_key,
       selected_plan_name: data.selected_plan_name,
       selected_plan_price: data.selected_plan_price,
@@ -567,6 +565,11 @@ class ApiClient {
       selected_plan_currency: data.selected_plan_currency,
       selected_plan_status: data.selected_plan_status,
       selected_plan_purchased_at: data.selected_plan_purchased_at,
+      business_name: bp.business_name || data.business_name,
+      business_type: bp.business_type || data.business_type,
+      business_location: bp.business_location || data.business_location,
+      business_description: bp.business_description || data.business_description,
+      business_setup_completed: bp.business_setup_completed ?? data.business_setup_completed,
       created_at: data.created_at,
     };
 

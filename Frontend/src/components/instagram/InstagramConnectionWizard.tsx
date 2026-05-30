@@ -232,7 +232,7 @@ export const InstagramConnectionWizard: React.FC<InstagramConnectionWizardProps>
 
   return (
     <>
-      <motion.div 
+      <motion.div
         className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 relative overflow-hidden"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -268,7 +268,7 @@ export const InstagramConnectionWizard: React.FC<InstagramConnectionWizardProps>
 
         <div className="max-w-5xl mx-auto px-6 py-12 relative z-10" ref={stepRef}>
           {/* Modern Progress Bar */}
-          <motion.div 
+          <motion.div
             className="mb-12"
             initial={{ y: -20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
@@ -276,7 +276,7 @@ export const InstagramConnectionWizard: React.FC<InstagramConnectionWizardProps>
           >
             <div className="flex items-center justify-between mb-6">
               <div>
-                <motion.h1 
+                <motion.h1
                   className="text-3xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-orange-600 bg-clip-text text-transparent"
                   initial={{ x: -20, opacity: 0 }}
                   animate={{ x: 0, opacity: 1 }}
@@ -284,7 +284,7 @@ export const InstagramConnectionWizard: React.FC<InstagramConnectionWizardProps>
                 >
                   Connect Instagram
                 </motion.h1>
-                <motion.p 
+                <motion.p
                   className="text-gray-600 mt-1"
                   initial={{ x: -20, opacity: 0 }}
                   animate={{ x: 0, opacity: 1 }}
@@ -298,15 +298,15 @@ export const InstagramConnectionWizard: React.FC<InstagramConnectionWizardProps>
                 animate={{ scale: 1 }}
                 transition={{ delay: 0.5, type: "spring" }}
               >
-                <Badge 
-                  variant="outline" 
+                <Badge
+                  variant="outline"
                   className="text-sm px-4 py-2 bg-white/80 backdrop-blur-sm border-purple-200 text-purple-700 font-medium"
                 >
                   Step {currentStep} of {connectionSteps.length}
                 </Badge>
               </motion.div>
             </div>
-            
+
             {/* Premium Progress Bar */}
             <div className="relative w-full h-2 bg-white/60 backdrop-blur-sm rounded-full overflow-hidden shadow-inner">
               <motion.div
@@ -340,11 +340,10 @@ export const InstagramConnectionWizard: React.FC<InstagramConnectionWizardProps>
                   transition={{ delay: 0.6 + index * 0.1 }}
                 >
                   <div
-                    className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold transition-all duration-300 ${
-                      step.id <= currentStep
-                        ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg scale-110'
-                        : 'bg-white/60 text-gray-400 backdrop-blur-sm'
-                    }`}
+                    className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold transition-all duration-300 ${step.id <= currentStep
+                      ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg scale-110'
+                      : 'bg-white/60 text-gray-400 backdrop-blur-sm'
+                      }`}
                   >
                     {step.id < currentStep ? (
                       <CheckCircle className="w-4 h-4" />
@@ -369,7 +368,7 @@ export const InstagramConnectionWizard: React.FC<InstagramConnectionWizardProps>
               <Card className="border-0 shadow-2xl bg-white/80 backdrop-blur-xl overflow-hidden">
                 {/* Gradient Top Border */}
                 <div className="h-1 bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500" />
-                
+
                 <CardHeader className="text-center pb-8 pt-12 relative">
                   {/* Icon with Glow Effect */}
                   <motion.div
@@ -420,515 +419,515 @@ export const InstagramConnectionWizard: React.FC<InstagramConnectionWizardProps>
                       exit={{ opacity: 0, x: -20 }}
                       transition={{ duration: 0.3 }}
                     >
-                    {/* Step 1: Introduction */}
-                    {currentStep === 1 && (
-                      <div className="space-y-8">
-                        {/* Instagram Icon Hero */}
-                        <motion.div 
-                          className="text-center relative"
-                          initial={{ opacity: 0, scale: 0.8 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          transition={{ delay: 0.3 }}
-                        >
-                          <div className="relative inline-block">
-                            {/* Floating Gradient Orbs */}
-                            <motion.div
-                              className="absolute -inset-8 bg-gradient-to-r from-pink-400/30 to-orange-400/30 rounded-full blur-2xl"
-                              animate={{
-                                scale: [1, 1.1, 1],
-                                rotate: [0, 90, 0],
-                              }}
-                              transition={{
-                                duration: 8,
-                                repeat: Infinity,
-                                ease: "easeInOut",
-                              }}
-                            />
-                            <motion.div
-                              className="relative w-28 h-28 mx-auto bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500 rounded-3xl flex items-center justify-center shadow-2xl"
-                              animate={{
-                                y: [0, -10, 0],
-                              }}
-                              transition={{
-                                duration: 4,
-                                repeat: Infinity,
-                                ease: "easeInOut",
-                              }}
-                            >
-                              <Instagram className="w-14 h-14 text-white" />
-                            </motion.div>
-                          </div>
-                          
-                          <motion.p 
-                            className="text-lg text-gray-700 mt-8 mb-6 max-w-2xl mx-auto leading-relaxed"
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.5 }}
-                          >
-                            Welcome! We'll guide you through connecting your Instagram Business account to unlock powerful{" "}
-                            <span className="font-semibold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                              AI-driven content creation
-                            </span>{" "}
-                            and scheduling tools.
-                          </motion.p>
-                        </motion.div>
-
-                        {/* Premium Info Cards */}
-                        <div className="grid md:grid-cols-2 gap-6">
+                      {/* Step 1: Introduction */}
+                      {currentStep === 1 && (
+                        <div className="space-y-8">
+                          {/* Instagram Icon Hero */}
                           <motion.div
-                            className="group relative"
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: 0.6 }}
-                            whileHover={{ y: -4 }}
+                            className="text-center relative"
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: 0.3 }}
                           >
-                            <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-indigo-500/10 rounded-2xl blur-xl group-hover:blur-2xl transition-all" />
-                            <div className="relative bg-white/90 backdrop-blur-sm p-8 rounded-2xl border border-purple-200/50 shadow-lg hover:shadow-xl transition-all">
-                              <div className="flex items-center gap-3 mb-4">
-                                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-500 flex items-center justify-center">
-                                  <Info className="w-5 h-5 text-white" />
-                                </div>
-                                <h3 className="font-bold text-gray-900 text-lg">What You'll Need</h3>
-                              </div>
-                              <ul className="space-y-3">
-                                {[
-                                  "Instagram Business Account",
-                                  "Connected Facebook Page",
-                                  "Admin access to the page",
-                                  "5 minutes of your time"
-                                ].map((item, i) => (
-                                  <motion.li
-                                    key={i}
-                                    className="flex items-center gap-3 text-gray-700"
-                                    initial={{ opacity: 0, x: -10 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    transition={{ delay: 0.7 + i * 0.1 }}
-                                  >
-                                    <div className="w-1.5 h-1.5 rounded-full bg-gradient-to-r from-purple-500 to-indigo-500" />
-                                    <span>{item}</span>
-                                  </motion.li>
-                                ))}
-                              </ul>
+                            <div className="relative inline-block">
+                              {/* Floating Gradient Orbs */}
+                              <motion.div
+                                className="absolute -inset-8 bg-gradient-to-r from-pink-400/30 to-orange-400/30 rounded-full blur-2xl"
+                                animate={{
+                                  scale: [1, 1.1, 1],
+                                  rotate: [0, 90, 0],
+                                }}
+                                transition={{
+                                  duration: 8,
+                                  repeat: Infinity,
+                                  ease: "easeInOut",
+                                }}
+                              />
+                              <motion.div
+                                className="relative w-28 h-28 mx-auto bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500 rounded-3xl flex items-center justify-center shadow-2xl"
+                                animate={{
+                                  y: [0, -10, 0],
+                                }}
+                                transition={{
+                                  duration: 4,
+                                  repeat: Infinity,
+                                  ease: "easeInOut",
+                                }}
+                              >
+                                <Instagram className="w-14 h-14 text-white" />
+                              </motion.div>
                             </div>
-                          </motion.div>
 
-                          <motion.div
-                            className="group relative"
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: 0.7 }}
-                            whileHover={{ y: -4 }}
-                          >
-                            <div className="absolute inset-0 bg-gradient-to-br from-pink-500/10 to-orange-500/10 rounded-2xl blur-xl group-hover:blur-2xl transition-all" />
-                            <div className="relative bg-white/90 backdrop-blur-sm p-8 rounded-2xl border border-pink-200/50 shadow-lg hover:shadow-xl transition-all">
-                              <div className="flex items-center gap-3 mb-4">
-                                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-pink-500 to-orange-500 flex items-center justify-center">
-                                  <Sparkles className="w-5 h-5 text-white" />
-                                </div>
-                                <h3 className="font-bold text-gray-900 text-lg">What You'll Get</h3>
-                              </div>
-                              <ul className="space-y-3">
-                                {[
-                                  "AI content generation",
-                                  "Smart post scheduling",
-                                  "Performance analytics",
-                                  "Automated workflows"
-                                ].map((item, i) => (
-                                  <motion.li
-                                    key={i}
-                                    className="flex items-center gap-3 text-gray-700"
-                                    initial={{ opacity: 0, x: 10 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    transition={{ delay: 0.8 + i * 0.1 }}
-                                  >
-                                    <div className="w-1.5 h-1.5 rounded-full bg-gradient-to-r from-pink-500 to-orange-500" />
-                                    <span>{item}</span>
-                                  </motion.li>
-                                ))}
-                              </ul>
-                            </div>
-                          </motion.div>
-                        </div>
-
-                        {/* Important Note - Redesigned */}
-                        <motion.div
-                          className="relative"
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: 1.2 }}
-                        >
-                          <div className="absolute inset-0 bg-gradient-to-r from-amber-500/10 to-orange-500/10 rounded-2xl blur-xl" />
-                          <div className="relative bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200/50 p-6 rounded-2xl backdrop-blur-sm">
-                            <div className="flex items-start gap-4">
-                              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center flex-shrink-0 shadow-lg">
-                                <AlertTriangle className="w-5 h-5 text-white" />
-                              </div>
-                              <div className="flex-1">
-                                <h4 className="font-bold text-amber-900 mb-2 text-lg">Important Note</h4>
-                                <p className="text-amber-800 leading-relaxed">
-                                  This process requires a <span className="font-semibold">Business Instagram account</span>. Personal accounts cannot be connected. 
-                                  Don't worry - we'll show you how to convert your account if needed.
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                        </motion.div>
-                      </div>
-                    )}
-
-                    {/* Step 2: Requirements */}
-                    {currentStep === 2 && (
-                      <div className="space-y-6">
-                        <motion.div 
-                          className="text-center mb-8"
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                        >
-                          <p className="text-gray-600 leading-relaxed">
-                            Please confirm that your Instagram account meets these requirements. 
-                            Check each item as you verify it.
-                          </p>
-                        </motion.div>
-
-                        <div className="space-y-4">
-                          {requirements.map((req, index) => (
-                            <motion.div
-                              key={index}
-                              className="group relative"
-                              initial={{ opacity: 0, y: 20 }}
+                            <motion.p
+                              className="text-lg text-gray-700 mt-8 mb-6 max-w-2xl mx-auto leading-relaxed"
+                              initial={{ opacity: 0, y: 10 }}
                               animate={{ opacity: 1, y: 0 }}
-                              transition={{ delay: index * 0.1 }}
+                              transition={{ delay: 0.5 }}
                             >
-                              <div className="absolute inset-0 bg-gradient-to-r from-purple-500/5 to-pink-500/5 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
-                              <div className="relative bg-white/90 backdrop-blur-sm border border-gray-200/50 rounded-2xl p-6 hover:shadow-lg transition-all">
-                                <div className="flex items-start gap-4">
-                                  <Checkbox
-                                    id={`req-${index}`}
-                                    checked={checkedRequirements[index]}
-                                    onCheckedChange={(checked) => handleRequirementCheck(index, checked as boolean)}
-                                    className="mt-1"
-                                  />
-                                  <div className="flex-1">
-                                    <label htmlFor={`req-${index}`} className="font-semibold text-gray-900 cursor-pointer flex items-center gap-2">
-                                      {req.title}
-                                      {req.required && <span className="text-pink-500">*</span>}
-                                    </label>
-                                    <p className="text-gray-600 text-sm mt-2 leading-relaxed">{req.description}</p>
-                                    <div className="mt-3 p-4 bg-gradient-to-br from-purple-50 to-indigo-50 rounded-xl border border-purple-100/50">
-                                      <p className="text-purple-800 text-sm leading-relaxed">
-                                        <strong className="font-semibold">How to check:</strong> {req.helpText}
-                                      </p>
-                                    </div>
+                              Welcome! We'll guide you through connecting your Instagram Business account to unlock powerful{" "}
+                              <span className="font-semibold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                                AI-driven content creation
+                              </span>{" "}
+                              and scheduling tools.
+                            </motion.p>
+                          </motion.div>
+
+                          {/* Premium Info Cards */}
+                          <div className="grid md:grid-cols-2 gap-6">
+                            <motion.div
+                              className="group relative"
+                              initial={{ opacity: 0, x: -20 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{ delay: 0.6 }}
+                              whileHover={{ y: -4 }}
+                            >
+                              <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-indigo-500/10 rounded-2xl blur-xl group-hover:blur-2xl transition-all" />
+                              <div className="relative bg-white/90 backdrop-blur-sm p-8 rounded-2xl border border-purple-200/50 shadow-lg hover:shadow-xl transition-all">
+                                <div className="flex items-center gap-3 mb-4">
+                                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-500 flex items-center justify-center">
+                                    <Info className="w-5 h-5 text-white" />
                                   </div>
+                                  <h3 className="font-bold text-gray-900 text-lg">What You'll Need</h3>
                                 </div>
+                                <ul className="space-y-3">
+                                  {[
+                                    "Instagram Business Account",
+                                    "Connected Facebook Page",
+                                    "Admin access to the page",
+                                    "5 minutes of your time"
+                                  ].map((item, i) => (
+                                    <motion.li
+                                      key={i}
+                                      className="flex items-center gap-3 text-gray-700"
+                                      initial={{ opacity: 0, x: -10 }}
+                                      animate={{ opacity: 1, x: 0 }}
+                                      transition={{ delay: 0.7 + i * 0.1 }}
+                                    >
+                                      <div className="w-1.5 h-1.5 rounded-full bg-gradient-to-r from-purple-500 to-indigo-500" />
+                                      <span>{item}</span>
+                                    </motion.li>
+                                  ))}
+                                </ul>
                               </div>
                             </motion.div>
-                          ))}
-                        </div>
 
-                        {!checkedRequirements.every(checked => checked) && (
+                            <motion.div
+                              className="group relative"
+                              initial={{ opacity: 0, x: 20 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{ delay: 0.7 }}
+                              whileHover={{ y: -4 }}
+                            >
+                              <div className="absolute inset-0 bg-gradient-to-br from-pink-500/10 to-orange-500/10 rounded-2xl blur-xl group-hover:blur-2xl transition-all" />
+                              <div className="relative bg-white/90 backdrop-blur-sm p-8 rounded-2xl border border-pink-200/50 shadow-lg hover:shadow-xl transition-all">
+                                <div className="flex items-center gap-3 mb-4">
+                                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-pink-500 to-orange-500 flex items-center justify-center">
+                                    <Sparkles className="w-5 h-5 text-white" />
+                                  </div>
+                                  <h3 className="font-bold text-gray-900 text-lg">What You'll Get</h3>
+                                </div>
+                                <ul className="space-y-3">
+                                  {[
+                                    "AI content generation",
+                                    "Smart post scheduling",
+                                    "Performance analytics",
+                                    "Automated workflows"
+                                  ].map((item, i) => (
+                                    <motion.li
+                                      key={i}
+                                      className="flex items-center gap-3 text-gray-700"
+                                      initial={{ opacity: 0, x: 10 }}
+                                      animate={{ opacity: 1, x: 0 }}
+                                      transition={{ delay: 0.8 + i * 0.1 }}
+                                    >
+                                      <div className="w-1.5 h-1.5 rounded-full bg-gradient-to-r from-pink-500 to-orange-500" />
+                                      <span>{item}</span>
+                                    </motion.li>
+                                  ))}
+                                </ul>
+                              </div>
+                            </motion.div>
+                          </div>
+
+                          {/* Important Note - Redesigned */}
                           <motion.div
                             className="relative"
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 1.2 }}
                           >
-                            <div className="absolute inset-0 bg-gradient-to-r from-orange-500/10 to-amber-500/10 rounded-2xl blur-xl" />
-                            <div className="relative bg-gradient-to-br from-orange-50 to-amber-50 border border-orange-200/50 p-6 rounded-2xl">
+                            <div className="absolute inset-0 bg-gradient-to-r from-amber-500/10 to-orange-500/10 rounded-2xl blur-xl" />
+                            <div className="relative bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200/50 p-6 rounded-2xl backdrop-blur-sm">
                               <div className="flex items-start gap-4">
-                                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center flex-shrink-0">
+                                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center flex-shrink-0 shadow-lg">
                                   <AlertTriangle className="w-5 h-5 text-white" />
                                 </div>
-                                <div>
-                                  <h4 className="font-bold text-orange-900 mb-2">Need Help?</h4>
-                                  <p className="text-orange-800 text-sm leading-relaxed">
-                                    If your account doesn't meet these requirements,{" "}
-                                    <a href="#" className="underline font-semibold hover:text-orange-900 transition-colors">
-                                      click here for step-by-step setup instructions
-                                    </a>.
+                                <div className="flex-1">
+                                  <h4 className="font-bold text-amber-900 mb-2 text-lg">Important Note</h4>
+                                  <p className="text-amber-800 leading-relaxed">
+                                    This process requires a <span className="font-semibold">Business Instagram account</span>. Personal accounts cannot be connected.
+                                    Don't worry - we'll show you how to convert your account if needed.
                                   </p>
                                 </div>
                               </div>
                             </div>
                           </motion.div>
-                        )}
-                      </div>
-                    )}
-
-                    {/* Step 3: Permissions */}
-                    {currentStep === 3 && (
-                      <div className="space-y-8">
-                        <motion.div 
-                          className="text-center mb-8"
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                        >
-                          <p className="text-gray-600 leading-relaxed">
-                            Here's what we'll access from your Instagram account and how we protect your data.
-                          </p>
-                        </motion.div>
-
-                        <div className="grid gap-5">
-                          {permissions.map((permission, index) => (
-                            <motion.div
-                              key={index}
-                              className="group relative"
-                              initial={{ opacity: 0, x: -20 }}
-                              animate={{ opacity: 1, x: 0 }}
-                              transition={{ delay: index * 0.1 }}
-                              whileHover={{ x: 4 }}
-                            >
-                              <div className="absolute inset-0 bg-gradient-to-r from-purple-500/5 to-pink-500/5 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
-                              <div className="relative flex items-start gap-5 p-6 bg-white/90 backdrop-blur-sm border border-gray-200/50 rounded-2xl hover:shadow-lg transition-all">
-                                <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg">
-                                  <permission.icon className="w-6 h-6 text-white" />
-                                </div>
-                                <div className="flex-1">
-                                  <h3 className="font-semibold text-gray-900 mb-1">{permission.title}</h3>
-                                  <p className="text-gray-600 text-sm leading-relaxed">{permission.description}</p>
-                                </div>
-                              </div>
-                            </motion.div>
-                          ))}
                         </div>
+                      )}
 
-                        <motion.div
-                          className="relative"
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: 0.5 }}
-                        >
-                          <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/10 to-green-500/10 rounded-2xl blur-xl" />
-                          <div className="relative bg-gradient-to-br from-emerald-50 to-green-50 border border-emerald-200/50 p-8 rounded-2xl">
-                            <h3 className="font-bold text-emerald-900 mb-4 flex items-center gap-3 text-lg">
-                              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-green-500 flex items-center justify-center shadow-lg">
-                                <Shield className="w-5 h-5 text-white" />
-                              </div>
-                              Your Data is Protected
-                            </h3>
-                            <ul className="space-y-3">
-                              {[
-                                "We never store your Instagram password",
-                                "All data is encrypted and securely stored",
-                                "You can disconnect anytime from settings",
-                                "We only access what's necessary for features",
-                                "Your content remains yours - we don't claim ownership"
-                              ].map((item, i) => (
-                                <motion.li
-                                  key={i}
-                                  className="flex items-center gap-3 text-emerald-800"
-                                  initial={{ opacity: 0, x: -10 }}
-                                  animate={{ opacity: 1, x: 0 }}
-                                  transition={{ delay: 0.6 + i * 0.1 }}
-                                >
-                                  <div className="w-1.5 h-1.5 rounded-full bg-gradient-to-r from-emerald-500 to-green-500" />
-                                  <span>{item}</span>
-                                </motion.li>
-                              ))}
-                            </ul>
-                          </div>
-                        </motion.div>
-                      </div>
-                    )}
-
-                    {/* Step 4: Features */}
-                    {currentStep === 4 && (
-                      <div className="space-y-8">
-                        <motion.div 
-                          className="text-center mb-8"
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                        >
-                          <p className="text-gray-600 leading-relaxed">
-                            Once connected, you'll have access to these powerful features to grow your Instagram presence.
-                          </p>
-                        </motion.div>
-
-                        <div className="grid gap-6">
-                          {features.map((feature, index) => (
-                            <motion.div
-                              key={index}
-                              className="group relative"
-                              initial={{ opacity: 0, y: 20 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              transition={{ delay: index * 0.15 }}
-                              whileHover={{ y: -4, scale: 1.02 }}
-                            >
-                              <div className="absolute inset-0 bg-gradient-to-r from-orange-500/10 to-pink-500/10 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
-                              <div className="relative flex items-start gap-5 p-6 bg-white/90 backdrop-blur-sm border border-gray-200/50 rounded-2xl hover:shadow-xl transition-all">
-                                <div className="w-14 h-14 bg-gradient-to-br from-orange-500 to-pink-500 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg">
-                                  <span className="text-white font-bold text-lg">{index + 1}</span>
-                                </div>
-                                <div className="flex-1">
-                                  <div className="flex items-start justify-between gap-4 mb-2">
-                                    <h3 className="font-bold text-gray-900 text-lg">{feature.title}</h3>
-                                    <Badge 
-                                      variant="secondary" 
-                                      className="text-xs px-3 py-1 bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700 border-0 font-semibold whitespace-nowrap"
-                                    >
-                                      {feature.benefit}
-                                    </Badge>
-                                  </div>
-                                  <p className="text-gray-600 leading-relaxed">{feature.description}</p>
-                                </div>
-                              </div>
-                            </motion.div>
-                          ))}
-                        </div>
-
-                        <motion.div
-                          className="relative"
-                          initial={{ opacity: 0, scale: 0.95 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          transition={{ delay: 0.8 }}
-                        >
-                          <div className="absolute inset-0 bg-gradient-to-r from-pink-500/10 to-orange-500/10 rounded-2xl blur-xl" />
-                          <div className="relative bg-gradient-to-br from-pink-50 via-purple-50 to-orange-50 border border-pink-200/50 p-8 rounded-2xl">
-                            <div className="flex items-start gap-4">
-                              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-pink-500 to-orange-500 flex items-center justify-center flex-shrink-0 shadow-lg">
-                                <TrendingUp className="w-6 h-6 text-white" />
-                              </div>
-                              <div>
-                                <h3 className="font-bold text-pink-900 mb-2 text-lg">Ready to Transform Your Instagram?</h3>
-                                <p className="text-pink-800 leading-relaxed">
-                                  Join thousands of businesses already using our AI-powered tools to create engaging content, 
-                                  grow their audience, and save hours of manual work every week.
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                        </motion.div>
-                      </div>
-                    )}
-
-                    {/* Step 5: Final Confirmation */}
-                    {currentStep === 5 && (
-                      <div className="space-y-8">
-                        <motion.div 
-                          className="text-center mb-8"
-                          initial={{ opacity: 0, scale: 0.9 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                        >
+                      {/* Step 2: Requirements */}
+                      {currentStep === 2 && (
+                        <div className="space-y-6">
                           <motion.div
-                            className="relative inline-block mb-6"
-                            animate={{
-                              rotate: [0, 5, -5, 0],
-                            }}
-                            transition={{
-                              duration: 2,
-                              repeat: Infinity,
-                              ease: "easeInOut",
-                            }}
+                            className="text-center mb-8"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
                           >
-                            <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/30 to-green-500/30 rounded-full blur-2xl" />
-                            <div className="relative w-24 h-24 mx-auto bg-gradient-to-br from-emerald-500 to-green-500 rounded-3xl flex items-center justify-center shadow-2xl">
-                              <CheckCircle className="w-12 h-12 text-white" />
+                            <p className="text-gray-600 leading-relaxed">
+                              Please confirm that your Instagram account meets these requirements.
+                              Check each item as you verify it.
+                            </p>
+                          </motion.div>
+
+                          <div className="space-y-4">
+                            {requirements.map((req, index) => (
+                              <motion.div
+                                key={index}
+                                className="group relative"
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: index * 0.1 }}
+                              >
+                                <div className="absolute inset-0 bg-gradient-to-r from-purple-500/5 to-pink-500/5 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
+                                <div className="relative bg-white/90 backdrop-blur-sm border border-gray-200/50 rounded-2xl p-6 hover:shadow-lg transition-all">
+                                  <div className="flex items-start gap-4">
+                                    <Checkbox
+                                      id={`req-${index}`}
+                                      checked={checkedRequirements[index]}
+                                      onCheckedChange={(checked) => handleRequirementCheck(index, checked as boolean)}
+                                      className="mt-1"
+                                    />
+                                    <div className="flex-1">
+                                      <label htmlFor={`req-${index}`} className="font-semibold text-gray-900 cursor-pointer flex items-center gap-2">
+                                        {req.title}
+                                        {req.required && <span className="text-pink-500">*</span>}
+                                      </label>
+                                      <p className="text-gray-600 text-sm mt-2 leading-relaxed">{req.description}</p>
+                                      <div className="mt-3 p-4 bg-gradient-to-br from-purple-50 to-indigo-50 rounded-xl border border-purple-100/50">
+                                        <p className="text-purple-800 text-sm leading-relaxed">
+                                          <strong className="font-semibold">How to check:</strong> {req.helpText}
+                                        </p>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </motion.div>
+                            ))}
+                          </div>
+
+                          {!checkedRequirements.every(checked => checked) && (
+                            <motion.div
+                              className="relative"
+                              initial={{ opacity: 0, scale: 0.95 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                            >
+                              <div className="absolute inset-0 bg-gradient-to-r from-orange-500/10 to-amber-500/10 rounded-2xl blur-xl" />
+                              <div className="relative bg-gradient-to-br from-orange-50 to-amber-50 border border-orange-200/50 p-6 rounded-2xl">
+                                <div className="flex items-start gap-4">
+                                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center flex-shrink-0">
+                                    <AlertTriangle className="w-5 h-5 text-white" />
+                                  </div>
+                                  <div>
+                                    <h4 className="font-bold text-orange-900 mb-2">Need Help?</h4>
+                                    <p className="text-orange-800 text-sm leading-relaxed">
+                                      If your account doesn't meet these requirements,{" "}
+                                      <a href="#" className="underline font-semibold hover:text-orange-900 transition-colors">
+                                        click here for step-by-step setup instructions
+                                      </a>.
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+                            </motion.div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Step 3: Permissions */}
+                      {currentStep === 3 && (
+                        <div className="space-y-8">
+                          <motion.div
+                            className="text-center mb-8"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                          >
+                            <p className="text-gray-600 leading-relaxed">
+                              Here's what we'll access from your Instagram account and how we protect your data.
+                            </p>
+                          </motion.div>
+
+                          <div className="grid gap-5">
+                            {permissions.map((permission, index) => (
+                              <motion.div
+                                key={index}
+                                className="group relative"
+                                initial={{ opacity: 0, x: -20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: index * 0.1 }}
+                                whileHover={{ x: 4 }}
+                              >
+                                <div className="absolute inset-0 bg-gradient-to-r from-purple-500/5 to-pink-500/5 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
+                                <div className="relative flex items-start gap-5 p-6 bg-white/90 backdrop-blur-sm border border-gray-200/50 rounded-2xl hover:shadow-lg transition-all">
+                                  <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg">
+                                    <permission.icon className="w-6 h-6 text-white" />
+                                  </div>
+                                  <div className="flex-1">
+                                    <h3 className="font-semibold text-gray-900 mb-1">{permission.title}</h3>
+                                    <p className="text-gray-600 text-sm leading-relaxed">{permission.description}</p>
+                                  </div>
+                                </div>
+                              </motion.div>
+                            ))}
+                          </div>
+
+                          <motion.div
+                            className="relative"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.5 }}
+                          >
+                            <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/10 to-green-500/10 rounded-2xl blur-xl" />
+                            <div className="relative bg-gradient-to-br from-emerald-50 to-green-50 border border-emerald-200/50 p-8 rounded-2xl">
+                              <h3 className="font-bold text-emerald-900 mb-4 flex items-center gap-3 text-lg">
+                                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-green-500 flex items-center justify-center shadow-lg">
+                                  <Shield className="w-5 h-5 text-white" />
+                                </div>
+                                Your Data is Protected
+                              </h3>
+                              <ul className="space-y-3">
+                                {[
+                                  "We never store your Instagram password",
+                                  "All data is encrypted and securely stored",
+                                  "You can disconnect anytime from settings",
+                                  "We only access what's necessary for features",
+                                  "Your content remains yours - we don't claim ownership"
+                                ].map((item, i) => (
+                                  <motion.li
+                                    key={i}
+                                    className="flex items-center gap-3 text-emerald-800"
+                                    initial={{ opacity: 0, x: -10 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: 0.6 + i * 0.1 }}
+                                  >
+                                    <div className="w-1.5 h-1.5 rounded-full bg-gradient-to-r from-emerald-500 to-green-500" />
+                                    <span>{item}</span>
+                                  </motion.li>
+                                ))}
+                              </ul>
                             </div>
                           </motion.div>
-                          <p className="text-gray-600 leading-relaxed">
-                            You're all set! Review the summary below and click "Connect Instagram" to complete the setup.
-                          </p>
-                        </motion.div>
+                        </div>
+                      )}
 
-                        <motion.div
-                          className="relative"
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: 0.2 }}
-                        >
-                          <div className="absolute inset-0 bg-gradient-to-r from-purple-500/5 to-pink-500/5 rounded-2xl blur-xl" />
-                          <div className="relative bg-white/90 backdrop-blur-sm p-8 rounded-2xl border border-gray-200/50 shadow-lg">
-                            <h3 className="font-bold text-gray-900 mb-6 text-lg flex items-center gap-2">
-                              <Zap className="w-5 h-5 text-purple-500" />
-                              Connection Summary
-                            </h3>
-                            <div className="grid md:grid-cols-2 gap-8">
-                              <div>
-                                <h4 className="font-semibold text-gray-700 mb-4 flex items-center gap-2">
-                                  <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-purple-500 to-indigo-500 flex items-center justify-center">
-                                    <CheckCircle className="w-4 h-4 text-white" />
+                      {/* Step 4: Features */}
+                      {currentStep === 4 && (
+                        <div className="space-y-8">
+                          <motion.div
+                            className="text-center mb-8"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                          >
+                            <p className="text-gray-600 leading-relaxed">
+                              Once connected, you'll have access to these powerful features to grow your Instagram presence.
+                            </p>
+                          </motion.div>
+
+                          <div className="grid gap-6">
+                            {features.map((feature, index) => (
+                              <motion.div
+                                key={index}
+                                className="group relative"
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: index * 0.15 }}
+                                whileHover={{ y: -4, scale: 1.02 }}
+                              >
+                                <div className="absolute inset-0 bg-gradient-to-r from-orange-500/10 to-pink-500/10 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
+                                <div className="relative flex items-start gap-5 p-6 bg-white/90 backdrop-blur-sm border border-gray-200/50 rounded-2xl hover:shadow-xl transition-all">
+                                  <div className="w-14 h-14 bg-gradient-to-br from-orange-500 to-pink-500 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg">
+                                    <span className="text-white font-bold text-lg">{index + 1}</span>
                                   </div>
-                                  Account Requirements
-                                </h4>
-                                <ul className="space-y-3">
-                                  {[
-                                    "Instagram Business Account",
-                                    "Facebook Page Connected",
-                                    "Admin Access Confirmed"
-                                  ].map((item, i) => (
-                                    <li key={i} className="flex items-center gap-3 text-gray-600">
-                                      <div className="w-1.5 h-1.5 rounded-full bg-gradient-to-r from-purple-500 to-indigo-500" />
-                                      <span>{item}</span>
-                                    </li>
-                                  ))}
-                                </ul>
-                              </div>
-                              <div>
-                                <h4 className="font-semibold text-gray-700 mb-4 flex items-center gap-2">
-                                  <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-pink-500 to-orange-500 flex items-center justify-center">
-                                    <Sparkles className="w-4 h-4 text-white" />
+                                  <div className="flex-1">
+                                    <div className="flex items-start justify-between gap-4 mb-2">
+                                      <h3 className="font-bold text-gray-900 text-lg">{feature.title}</h3>
+                                      <Badge
+                                        variant="secondary"
+                                        className="text-xs px-3 py-1 bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700 border-0 font-semibold whitespace-nowrap"
+                                      >
+                                        {feature.benefit}
+                                      </Badge>
+                                    </div>
+                                    <p className="text-gray-600 leading-relaxed">{feature.description}</p>
                                   </div>
-                                  Features Enabled
-                                </h4>
-                                <ul className="space-y-3">
-                                  {[
-                                    "AI Content Creation",
-                                    "Smart Scheduling",
-                                    "Performance Analytics"
-                                  ].map((item, i) => (
-                                    <li key={i} className="flex items-center gap-3 text-gray-600">
-                                      <div className="w-1.5 h-1.5 rounded-full bg-gradient-to-r from-pink-500 to-orange-500" />
-                                      <span>{item}</span>
-                                    </li>
-                                  ))}
-                                </ul>
-                              </div>
-                            </div>
+                                </div>
+                              </motion.div>
+                            ))}
                           </div>
-                        </motion.div>
 
-                        <motion.div
-                          className="space-y-4"
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          transition={{ delay: 0.4 }}
-                        >
-                          <div className="flex items-start gap-4 p-5 bg-white/90 backdrop-blur-sm rounded-2xl border border-gray-200/50">
-                            <Checkbox
-                              id="terms"
-                              checked={agreedToTerms}
-                              onCheckedChange={(checked) => setAgreedToTerms(checked as boolean)}
-                              className="mt-1"
-                            />
-                            <label htmlFor="terms" className="text-sm text-gray-700 cursor-pointer leading-relaxed">
-                              I agree to the{" "}
-                              <a href="#" className="text-purple-600 underline font-semibold hover:text-purple-700 transition-colors">
-                                Terms of Service
-                              </a>{" "}
-                              and{" "}
-                              <a href="#" className="text-purple-600 underline font-semibold hover:text-purple-700 transition-colors">
-                                Privacy Policy
-                              </a>.
-                              I understand that I can disconnect my account at any time from the settings page.
-                            </label>
-                          </div>
-                        </motion.div>
-
-                        {!agreedToTerms && (
                           <motion.div
                             className="relative"
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: 0.8 }}
                           >
-                            <div className="absolute inset-0 bg-gradient-to-r from-amber-500/10 to-orange-500/10 rounded-2xl blur-xl" />
-                            <div className="relative bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200/50 p-5 rounded-2xl">
-                              <p className="text-amber-800 text-sm leading-relaxed">
-                                Please agree to the terms and conditions to continue with the connection.
-                              </p>
+                            <div className="absolute inset-0 bg-gradient-to-r from-pink-500/10 to-orange-500/10 rounded-2xl blur-xl" />
+                            <div className="relative bg-gradient-to-br from-pink-50 via-purple-50 to-orange-50 border border-pink-200/50 p-8 rounded-2xl">
+                              <div className="flex items-start gap-4">
+                                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-pink-500 to-orange-500 flex items-center justify-center flex-shrink-0 shadow-lg">
+                                  <TrendingUp className="w-6 h-6 text-white" />
+                                </div>
+                                <div>
+                                  <h3 className="font-bold text-pink-900 mb-2 text-lg">Ready to Transform Your Instagram?</h3>
+                                  <p className="text-pink-800 leading-relaxed">
+                                    Join thousands of businesses already using our AI-powered tools to create engaging content,
+                                    grow their audience, and save hours of manual work every week.
+                                  </p>
+                                </div>
+                              </div>
                             </div>
                           </motion.div>
-                        )}
-                      </div>
-                    )}
+                        </div>
+                      )}
+
+                      {/* Step 5: Final Confirmation */}
+                      {currentStep === 5 && (
+                        <div className="space-y-8">
+                          <motion.div
+                            className="text-center mb-8"
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                          >
+                            <motion.div
+                              className="relative inline-block mb-6"
+                              animate={{
+                                rotate: [0, 5, -5, 0],
+                              }}
+                              transition={{
+                                duration: 2,
+                                repeat: Infinity,
+                                ease: "easeInOut",
+                              }}
+                            >
+                              <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/30 to-green-500/30 rounded-full blur-2xl" />
+                              <div className="relative w-24 h-24 mx-auto bg-gradient-to-br from-emerald-500 to-green-500 rounded-3xl flex items-center justify-center shadow-2xl">
+                                <CheckCircle className="w-12 h-12 text-white" />
+                              </div>
+                            </motion.div>
+                            <p className="text-gray-600 leading-relaxed">
+                              You're all set! Review the summary below and click "Connect Instagram" to complete the setup.
+                            </p>
+                          </motion.div>
+
+                          <motion.div
+                            className="relative"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.2 }}
+                          >
+                            <div className="absolute inset-0 bg-gradient-to-r from-purple-500/5 to-pink-500/5 rounded-2xl blur-xl" />
+                            <div className="relative bg-white/90 backdrop-blur-sm p-8 rounded-2xl border border-gray-200/50 shadow-lg">
+                              <h3 className="font-bold text-gray-900 mb-6 text-lg flex items-center gap-2">
+                                <Zap className="w-5 h-5 text-purple-500" />
+                                Connection Summary
+                              </h3>
+                              <div className="grid md:grid-cols-2 gap-8">
+                                <div>
+                                  <h4 className="font-semibold text-gray-700 mb-4 flex items-center gap-2">
+                                    <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-purple-500 to-indigo-500 flex items-center justify-center">
+                                      <CheckCircle className="w-4 h-4 text-white" />
+                                    </div>
+                                    Account Requirements
+                                  </h4>
+                                  <ul className="space-y-3">
+                                    {[
+                                      "Instagram Business Account",
+                                      "Facebook Page Connected",
+                                      "Admin Access Confirmed"
+                                    ].map((item, i) => (
+                                      <li key={i} className="flex items-center gap-3 text-gray-600">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-gradient-to-r from-purple-500 to-indigo-500" />
+                                        <span>{item}</span>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                                <div>
+                                  <h4 className="font-semibold text-gray-700 mb-4 flex items-center gap-2">
+                                    <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-pink-500 to-orange-500 flex items-center justify-center">
+                                      <Sparkles className="w-4 h-4 text-white" />
+                                    </div>
+                                    Features Enabled
+                                  </h4>
+                                  <ul className="space-y-3">
+                                    {[
+                                      "AI Content Creation",
+                                      "Smart Scheduling",
+                                      "Performance Analytics"
+                                    ].map((item, i) => (
+                                      <li key={i} className="flex items-center gap-3 text-gray-600">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-gradient-to-r from-pink-500 to-orange-500" />
+                                        <span>{item}</span>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              </div>
+                            </div>
+                          </motion.div>
+
+                          <motion.div
+                            className="space-y-4"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: 0.4 }}
+                          >
+                            <div className="flex items-start gap-4 p-5 bg-white/90 backdrop-blur-sm rounded-2xl border border-gray-200/50">
+                              <Checkbox
+                                id="terms"
+                                checked={agreedToTerms}
+                                onCheckedChange={(checked) => setAgreedToTerms(checked as boolean)}
+                                className="mt-1"
+                              />
+                              <label htmlFor="terms" className="text-sm text-gray-700 cursor-pointer leading-relaxed">
+                                I agree to the{" "}
+                                <a href="#" className="text-purple-600 underline font-semibold hover:text-purple-700 transition-colors">
+                                  Terms of Service
+                                </a>{" "}
+                                and{" "}
+                                <a href="#" className="text-purple-600 underline font-semibold hover:text-purple-700 transition-colors">
+                                  Privacy Policy
+                                </a>.
+                                I understand that I can disconnect my account at any time from the settings page.
+                              </label>
+                            </div>
+                          </motion.div>
+
+                          {!agreedToTerms && (
+                            <motion.div
+                              className="relative"
+                              initial={{ opacity: 0, scale: 0.95 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                            >
+                              <div className="absolute inset-0 bg-gradient-to-r from-amber-500/10 to-orange-500/10 rounded-2xl blur-xl" />
+                              <div className="relative bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200/50 p-5 rounded-2xl">
+                                <p className="text-amber-800 text-sm leading-relaxed">
+                                  Please agree to the terms and conditions to continue with the connection.
+                                </p>
+                              </div>
+                            </motion.div>
+                          )}
+                        </div>
+                      )}
                     </motion.div>
                   </AnimatePresence>
                 </CardContent>
@@ -937,7 +936,7 @@ export const InstagramConnectionWizard: React.FC<InstagramConnectionWizardProps>
           </AnimatePresence>
 
           {/* Premium Navigation Buttons */}
-          <motion.div 
+          <motion.div
             className="flex items-center justify-between mt-12"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -1043,7 +1042,7 @@ export const InstagramConnectionWizard: React.FC<InstagramConnectionWizardProps>
               </span>
             </AlertDialogTitle>
             <AlertDialogDescription className="text-gray-600 leading-relaxed pt-2">
-              You'll be redirected to Instagram to authorize the connection. 
+              You'll be redirected to Instagram to authorize the connection.
               This will open a new window where you can safely log in and grant permissions.
             </AlertDialogDescription>
           </AlertDialogHeader>

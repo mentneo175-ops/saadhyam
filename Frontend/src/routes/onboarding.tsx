@@ -37,6 +37,7 @@ function OnboardingPage() {
   const [currentStep, setCurrentStep] = useState(1);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
+  const [isCheckingSetup, setIsCheckingSetup] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState<FormData>({
     name: "",
@@ -58,6 +59,32 @@ function OnboardingPage() {
     }, 4200);
     return () => clearInterval(interval);
   }, [isAnalyzing]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const checkSetupStatus = async () => {
+      try {
+        const setupStatus = await apiClient.getBusinessSetupStatus();
+        if (!cancelled && setupStatus?.setup_completed) {
+          navigate({ to: "/dashboard", replace: true });
+          return;
+        }
+      } catch (checkError) {
+        console.error("Failed to check onboarding status:", checkError);
+      }
+
+      if (!cancelled) {
+        setIsCheckingSetup(false);
+      }
+    };
+
+    checkSetupStatus();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [navigate]);
 
   const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement>(null);
 
@@ -274,22 +301,50 @@ function OnboardingPage() {
         business_description: formData.description.trim(),
       };
 
-      console.log("📤 Submitting business profile:", {
+      console.log("📤 [Step 1/4] Saving business profile...", {
         name_length: businessProfile.business_name.length,
         type_length: businessProfile.business_type.length,
         location_length: businessProfile.business_location.length,
         description_length: businessProfile.business_description.length
       });
 
-      await apiClient.updateBusinessProfile(businessProfile);
+      try {
+        await apiClient.updateBusinessProfile(businessProfile);
+        console.log("✅ [Step 1/4] Business profile saved successfully");
+      } catch (profileErr) {
+        console.error("❌ [Step 1/4] FAILED - updateBusinessProfile:", profileErr);
+        throw profileErr;
+      }
 
-      // Trigger comprehensive business analysis (NEW API)
-      await triggerComprehensiveAnalysis(token);
+      console.log("📤 [Step 2/4] Fetching updated user...");
+      try {
+        await apiClient.getCurrentUser();
+        console.log("✅ [Step 2/4] User fetched successfully");
+      } catch (userErr) {
+        console.error("❌ [Step 2/4] FAILED - getCurrentUser:", userErr);
+        // Non-critical: continue even if this fails
+        console.warn("⚠️ Continuing despite getCurrentUser failure...");
+      }
 
-      // Poll for analysis completion
-      await pollAnalysisStatus(token, (status) => {
-        console.log("Analysis status:", status.status);
-      });
+      console.log("📤 [Step 3/4] Triggering comprehensive analysis...");
+      try {
+        await triggerComprehensiveAnalysis(token);
+        console.log("✅ [Step 3/4] Analysis triggered successfully");
+      } catch (analysisErr) {
+        console.error("❌ [Step 3/4] FAILED - triggerComprehensiveAnalysis:", analysisErr);
+        throw analysisErr;
+      }
+
+      console.log("📤 [Step 4/4] Polling analysis status...");
+      try {
+        await pollAnalysisStatus(token, (status) => {
+          console.log("📊 Analysis status:", status.status);
+        });
+        console.log("✅ [Step 4/4] Analysis completed!");
+      } catch (pollErr) {
+        console.error("❌ [Step 4/4] FAILED - pollAnalysisStatus:", pollErr);
+        throw pollErr;
+      }
 
       // Analysis complete!
       setIsComplete(true);
@@ -301,12 +356,23 @@ function OnboardingPage() {
       }, 2000);
 
     } catch (err) {
+      console.error("❌ Onboarding submit failed:", err);
       const errorMsg = err instanceof Error ? err.message : "Failed to save business profile";
       setError(errorMsg);
       setIsAnalyzing(false);
       toast.error(errorMsg);
     }
   };
+
+  if (isCheckingSetup) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-white to-pink-50 px-4">
+        <div className="rounded-2xl border border-purple-100 bg-white/90 px-6 py-5 shadow-lg shadow-purple-100/50 backdrop-blur-md">
+          <p className="text-sm font-medium text-slate-700">Checking setup status...</p>
+        </div>
+      </div>
+    );
+  }
 
   // Enhanced Analyzing state
   if (isAnalyzing) {

@@ -235,6 +235,15 @@ class Settings(BaseSettings):
     ALERT_ON_FAILED_LOGIN: bool = True
     ALERT_ON_API_KEY_EXPOSURE: bool = True
 
+    # Speech-to-Text, Text-to-Speech, & Telephony
+    DEEPGRAM_API_KEY: str = ""
+    ELEVENLABS_API_KEY: str = ""
+    EXOTEL_SID: str = ""
+    EXOTEL_API_KEY: str = ""
+    EXOTEL_API_TOKEN: str = ""
+    EXOPHONE_NUMBER: str = ""
+    EXOTEL_STREAM_URL: str = ""
+
     def get_cors_origins(self) -> List[str]:
         raw_value = (self.CORS_ORIGINS or os.getenv("ALLOWED_ORIGINS", "")).strip()
 

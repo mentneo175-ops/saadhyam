@@ -23,8 +23,18 @@ export function Logo({ size = "md", showText = true, to = "/dashboard" }: LogoPr
         className={`${s.img} w-auto object-contain`}
       />
       {showText && (
-        <span className={`font-bold ${s.text} tracking-tight`}>
-          Saadhyam <span className="text-gradient">AI</span>
+        <span className="flex items-baseline gap-1 leading-none">
+          <span className={`font-bold ${s.text} tracking-tight`}>
+            Saadhyam
+          </span>
+          <span className="flex flex-col items-center leading-none">
+            <span className={`font-bold ${s.text} tracking-tight text-gradient`}>
+              AI
+            </span>
+            <span className="mt-0 text-[5px] font-medium uppercase tracking-[0.08em] text-muted-foreground leading-none opacity-60">
+              v0.56
+            </span>
+          </span>
         </span>
       )}
     </Link>

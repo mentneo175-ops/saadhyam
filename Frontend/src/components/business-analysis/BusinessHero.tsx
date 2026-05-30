@@ -29,7 +29,7 @@ function HeroBackground() {
         style={{
           background: `linear-gradient(145deg, ${HERO.baseFrom} 0%, ${HERO.baseVia} 48%, ${HERO.baseTo} 100%)`,
         }}
-        animate={{ opacity: [0.92, 1, 0.92] }}
+        animate={{ opacity: [0.14, 0.2, 0.14] }}
         transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
       />
 
@@ -43,14 +43,14 @@ function HeroBackground() {
             radial-gradient(ellipse 55% 45% at 50% 100%, ${HERO.meshC}, transparent 52%)
           `,
         }}
-        animate={{ opacity: [0.75, 1, 0.75] }}
+        animate={{ opacity: [0.18, 0.3, 0.18] }}
         transition={{ duration: 12, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
       />
 
       {/* Layer 3 — slow shifting wash (pink-violet) */}
       <motion.div
-        className="absolute inset-0 bg-gradient-to-tr from-[oklch(0.65_0.14_330/0.25)] via-transparent to-[oklch(0.7_0.12_310/0.2)]"
-        animate={{ opacity: [0.4, 0.75, 0.4] }}
+        className="absolute inset-0 bg-linear-to-tr from-[oklch(0.65_0.14_330/0.08)] via-transparent to-[oklch(0.7_0.12_310/0.08)]"
+        animate={{ opacity: [0.12, 0.22, 0.12] }}
         transition={{ duration: 11, repeat: Infinity, ease: "easeInOut" }}
       />
 
@@ -58,8 +58,7 @@ function HeroBackground() {
       <motion.div
         className="absolute -left-[10%] -top-[20%] h-[55%] w-[55%] rounded-full"
         style={{
-          background:
-            "radial-gradient(circle, oklch(0.75 0.1 320 / 0.22) 0%, transparent 68%)",
+          background: "radial-gradient(circle, oklch(0.75 0.1 320 / 0.22) 0%, transparent 68%)",
         }}
         animate={{ opacity: [0.5, 0.85, 0.5], scale: [1, 1.04, 1] }}
         transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
@@ -69,8 +68,7 @@ function HeroBackground() {
       <motion.div
         className="absolute -bottom-[15%] -right-[8%] h-[50%] w-[50%] rounded-full"
         style={{
-          background:
-            "radial-gradient(circle, oklch(0.72 0.15 345 / 0.2) 0%, transparent 65%)",
+          background: "radial-gradient(circle, oklch(0.72 0.15 345 / 0.2) 0%, transparent 65%)",
         }}
         animate={{ opacity: [0.35, 0.65, 0.35], x: [0, 8, 0] }}
         transition={{ duration: 13, repeat: Infinity, ease: "easeInOut" }}
@@ -90,7 +88,7 @@ function HeroBackground() {
 
       {/* Subtle top edge highlight */}
       <motion.div
-        className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/35 to-transparent"
+        className="absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-white/35 to-transparent"
         animate={{ opacity: [0.4, 0.8, 0.4] }}
         transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
       />
@@ -101,7 +99,7 @@ function HeroBackground() {
         style={{ maskImage: "linear-gradient(to bottom, black 0%, transparent 100%)" }}
       >
         <motion.div
-          className="absolute top-0 h-full w-[45%] skew-x-[-12deg] bg-gradient-to-r from-transparent via-white/[0.07] to-transparent"
+          className="absolute top-0 h-full w-[45%] -skew-x-12 bg-linear-to-r from-transparent via-white/7 to-transparent"
           animate={{ x: ["-80%", "220%"] }}
           transition={{ duration: 11, repeat: Infinity, repeatDelay: 4, ease: "easeInOut" }}
         />
@@ -163,7 +161,7 @@ function HealthScoreWidget({ score }: { score: number }) {
 
   return (
     <motion.div
-      variants={scaleReveal}
+      variants={scaleReveal as any}
       initial="hidden"
       animate="show"
       transition={{ delay: 0.18 }}
@@ -175,8 +173,7 @@ function HealthScoreWidget({ score }: { score: number }) {
         aria-hidden
         className="absolute -inset-4 rounded-[1.75rem]"
         style={{
-          background:
-            "radial-gradient(circle, oklch(0.75 0.12 320 / 0.35) 0%, transparent 70%)",
+          background: "radial-gradient(circle, oklch(0.75 0.12 320 / 0.35) 0%, transparent 70%)",
         }}
         animate={{ opacity: [0.35, 0.65, 0.35], scale: [0.98, 1.03, 0.98] }}
         transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
@@ -187,18 +184,17 @@ function HealthScoreWidget({ score }: { score: number }) {
         aria-hidden
         className="absolute -inset-5 rounded-[2rem]"
         style={{
-          background:
-            "radial-gradient(circle, oklch(0.68 0.18 310 / 0.3) 0%, transparent 65%)",
+          background: "radial-gradient(circle, oklch(0.68 0.18 310 / 0.3) 0%, transparent 65%)",
         }}
         animate={{ opacity: [0.2, 0.45, 0.2], scale: [0.96, 1.05, 0.96] }}
         transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
       />
 
-      <div className="relative overflow-hidden rounded-xl border border-white/[0.22] bg-white/[0.08] p-4 shadow-[0_12px_40px_-12px_oklch(0.45_0.18_310/0.45)] backdrop-blur-2xl md:p-5">
+      <div className="relative overflow-visible rounded-[1.4rem] border border-white/14 bg-white/2 px-5 pb-5 pt-6 shadow-none backdrop-blur-2xl md:px-6 md:pb-6 md:pt-7">
         {/* Glass layers */}
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-b from-white/[0.14] via-white/[0.04] to-transparent"
+          className="pointer-events-none absolute inset-0 rounded-xl bg-linear-to-b from-white/14 via-white/4 to-transparent"
         />
         <motion.div
           aria-hidden
@@ -209,7 +205,7 @@ function HealthScoreWidget({ score }: { score: number }) {
 
         <motion.div
           aria-hidden
-          className="pointer-events-none absolute inset-x-4 top-0 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent"
+          className="pointer-events-none absolute inset-x-4 top-0 h-px bg-linear-to-r from-transparent via-white/40 to-transparent"
           animate={{ opacity: [0.3, 0.7, 0.3] }}
           transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
         />
@@ -227,11 +223,11 @@ function HealthScoreWidget({ score }: { score: number }) {
           transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
         />
 
-        <div className="relative flex flex-col items-center">
-          <div className="relative flex h-[120px] w-[120px] items-center justify-center">
+        <div className="relative flex flex-col items-end gap-1">
+          <div className="relative flex h-34 w-34 items-center justify-center self-end">
             <svg
-              width="120"
-              height="120"
+              width="136"
+              height="136"
               className="-rotate-90"
               style={{ filter: "drop-shadow(0 0 14px oklch(0.72 0.14 320 / 0.4))" }}
             >
@@ -269,7 +265,7 @@ function HealthScoreWidget({ score }: { score: number }) {
                 filter={`url(#${ringGlow})`}
                 initial={{ strokeDashoffset: circumference }}
                 animate={{ strokeDashoffset: offset }}
-                transition={{ duration: 1.4, delay: 0.45, ease: [0.16, 1, 0.3, 1] }}
+                transition={{ duration: 1, delay: 0.35, ease: [0.16, 1, 0.3, 1] }}
               />
             </svg>
             <motion.div
@@ -291,7 +287,7 @@ function HealthScoreWidget({ score }: { score: number }) {
             initial={{ opacity: 0, y: 4 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.85 }}
-            className="mt-2.5 text-center text-[11px] font-medium leading-snug text-white/90"
+            className="mt-1.5 self-center text-center text-[11px] font-medium leading-snug text-white/90"
           >
             <span className="text-white">{scoreLabel}</span>
             <span className="mx-1.5 text-white/35">·</span>
@@ -315,7 +311,7 @@ export function BusinessHero({
       initial={{ opacity: 0, y: 24 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
-      className="group/hero relative isolate overflow-hidden rounded-2xl border border-white/[0.12] shadow-[0_24px_64px_-28px_oklch(0.48_0.18_310/0.4)]"
+      className="group/hero relative isolate overflow-hidden rounded-2xl border border-white/12 bg-transparent shadow-none backdrop-blur-xl"
     >
       <HeroBackground />
       <AmbientParticles />
@@ -330,7 +326,7 @@ export function BusinessHero({
 
       <motion.div
         aria-hidden
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/[0.12] to-transparent"
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-linear-to-t from-black/12 to-transparent"
       />
 
       <motion.div
@@ -340,10 +336,10 @@ export function BusinessHero({
         transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut" }}
       />
 
-      <div className="relative z-[1] p-6 md:p-8 lg:p-10">
+      <div className="relative z-1 p-6 md:p-8 lg:p-10">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between lg:gap-6">
           <motion.div
-            variants={revealFromLeft}
+            variants={revealFromLeft as any}
             initial="hidden"
             animate="show"
             className="flex min-w-0 flex-1 items-start gap-3.5 md:gap-4"
@@ -351,20 +347,25 @@ export function BusinessHero({
             <motion.div
               whileHover={{ scale: 1.04, y: -1 }}
               transition={{ type: "spring", stiffness: 400, damping: 24 }}
-              className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-white/[0.2] bg-white/[0.1] shadow-[0_8px_24px_-8px_rgba(0,0,0,0.2)] backdrop-blur-md md:h-16 md:w-16"
+              className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-white/20 bg-white/10 shadow-[0_8px_24px_-8px_rgba(0,0,0,0.2)] backdrop-blur-md md:h-16 md:w-16"
             >
               <Building2 className="h-6 w-6 text-white/95 md:h-7 md:w-7" strokeWidth={1.75} />
             </motion.div>
             <div className="min-w-0 flex-1 pt-0.5">
-              <h2 className="break-words text-2xl font-semibold tracking-tight text-white md:text-3xl lg:text-[2rem]">
+              <h2 className="wrap-break-word text-2xl font-semibold tracking-tight text-white md:text-3xl lg:text-[2rem]">
                 {details.business_name}
               </h2>
-              <div className="mt-2.5 flex flex-wrap items-center gap-2">
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-white/[0.18] bg-white/[0.08] px-3.5 py-1.5 text-sm font-medium text-white/95 backdrop-blur-md">
+              {details.summary && (
+                <p className="mt-2.5 max-w-3xl text-[15px] leading-[1.7] text-white/92">
+                  {details.summary}
+                </p>
+              )}
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-white/18 bg-white/8 px-3.5 py-1.5 text-sm font-medium text-white/95 backdrop-blur-md">
                   <Briefcase className="h-3.5 w-3.5 text-white/75" strokeWidth={2} />
                   {details.business_type}
                 </span>
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-white/[0.18] bg-white/[0.08] px-3.5 py-1.5 text-sm font-medium text-white/95 backdrop-blur-md">
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-white/18 bg-white/8 px-3.5 py-1.5 text-sm font-medium text-white/95 backdrop-blur-md">
                   <MapPin className="h-3.5 w-3.5 text-white/75" strokeWidth={2} />
                   {details.location}
                 </span>
@@ -372,7 +373,11 @@ export function BusinessHero({
             </div>
           </motion.div>
 
-          {healthScore !== undefined && <HealthScoreWidget score={healthScore} />}
+          {healthScore !== undefined && (
+            <div className="mt-5 lg:mt-8">
+              <HealthScoreWidget score={healthScore} />
+            </div>
+          )}
         </div>
 
         {details.services && details.services.length > 0 && (
@@ -380,7 +385,7 @@ export function BusinessHero({
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.22, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-            className="mt-5 border-t border-white/[0.1] pt-4"
+            className="mt-5 border-t border-white/10 pt-4"
           >
             <p className="mb-2.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/55">
               Services offered
@@ -393,31 +398,11 @@ export function BusinessHero({
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.28 + idx * 0.04, duration: 0.4 }}
                   whileHover={{ y: -2 }}
-                  className="rounded-lg border border-white/[0.15] bg-white/[0.06] px-2.5 py-1 text-sm font-medium text-white/92 backdrop-blur-sm transition-colors hover:border-white/25 hover:bg-white/[0.1]"
+                  className="rounded-lg border border-white/15 bg-white/6 px-2.5 py-1 text-sm font-medium text-white/92 backdrop-blur-sm transition-colors hover:border-white/25 hover:bg-white/10"
                 >
                   {service}
                 </motion.span>
               ))}
-            </div>
-          </motion.div>
-        )}
-
-        {details.summary && (
-          <motion.div
-            initial={{ opacity: 0, y: 14 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-            className="mt-5 border-t border-white/[0.1] pt-4"
-          >
-            <p className="mb-2.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/55">
-              Business overview
-            </p>
-            <div className="relative overflow-hidden rounded-xl border border-white/[0.12] bg-gradient-to-br from-white/[0.08] via-white/[0.04] to-transparent p-5 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.12)] backdrop-blur-md md:p-5">
-              <div
-                aria-hidden
-                className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent"
-              />
-              <p className="relative text-[15px] leading-[1.7] text-white/[0.92]">{details.summary}</p>
             </div>
           </motion.div>
         )}

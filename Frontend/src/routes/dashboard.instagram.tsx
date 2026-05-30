@@ -88,6 +88,7 @@ function InstagramPage() {
   const [posts, setPosts] = useState<InstagramPost[]>([]);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [uploadHelpMessage, setUploadHelpMessage] = useState<string | null>(null);
   const [caption, setCaption] = useState("");
   const [isScheduled, setIsScheduled] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<InstagramConnectionStatus>({
@@ -515,9 +516,16 @@ function InstagramPage() {
       const maxSize = isVideo ? 100 * 1024 * 1024 : 10 * 1024 * 1024; // 100MB for video, 10MB for image
       if (file.size > maxSize) {
         const maxSizeMB = isVideo ? 100 : 10;
-        toast.error(`${isVideo ? 'Video' : 'Image'} file too large. Maximum size is ${maxSizeMB}MB.`);
+        if (isVideo) {
+          setUploadHelpMessage(`Video file too large. Compress it here: ${env.instagramVideoCompressorUrl}`);
+        } else {
+          setUploadHelpMessage(`Image file too large. Maximum size is ${maxSizeMB}MB.`);
+          toast.error(`Image file too large. Maximum size is ${maxSizeMB}MB.`);
+        }
         return;
       }
+
+      setUploadHelpMessage(null);
 
       // Validate video duration (if video)
       if (isVideo) {
@@ -533,6 +541,7 @@ function InstagramPage() {
             if (fileInputRef.current) {
               fileInputRef.current.value = "";
             }
+            setUploadHelpMessage(null);
             return;
           }
           
@@ -700,6 +709,7 @@ function InstagramPage() {
         // Reset form
         setSelectedImage(null);
         setImagePreview(null);
+        setUploadHelpMessage(null);
         setCaption("");
         setScheduledDate("");
         setScheduledHour("12");
@@ -934,6 +944,25 @@ function InstagramPage() {
                   </div>
                 )}
               </div>
+              {uploadHelpMessage && (
+                <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+                  {uploadHelpMessage.includes("Compress it here:") ? (
+                    <>
+                      Video file too large. Compress it here:{" "}
+                      <a
+                        href={env.instagramVideoCompressorUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-semibold underline underline-offset-2 hover:text-amber-700"
+                      >
+                        open the compressor link
+                      </a>
+                    </>
+                  ) : (
+                    uploadHelpMessage
+                  )}
+                </div>
+              )}
               <input
                 ref={fileInputRef}
                 type="file"

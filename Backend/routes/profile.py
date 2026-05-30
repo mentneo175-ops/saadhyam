@@ -15,10 +15,10 @@ from models.business_profile import BusinessProfile
 from models.settings import UserSettings
 from models.instagram_analytics import (
     InstagramBusinessAccount,
-    InstagramPost,
-    InstagramStory,
-    InstagramReel,
-    InstagramInsight,
+    AnalyticsSnapshot,
+    PostAnalytics,
+    ReelAnalytics,
+    StoryAnalytics,
 )
 from models.task_tracking import DailyTask, GrowthMetric
 from models.whatsapp_account import WhatsAppAccount
@@ -28,9 +28,9 @@ from models.whatsapp_automation import WhatsAppAutomation
 from models.voice_agent import VoiceCampaign, VoiceContact, VoiceCall, VoiceLead, VoiceFollowUp
 from models.youtube import YouTubeChannel, YouTubeVideo, YouTubeAnalytics
 from models.influencer import Influencer
-from models.retention_campaign import RetentionCampaign, RetentionEmail
+from models.retention_campaign import RetentionCampaign
 from db.models import BusinessAnalysis, ReviewHistory
-from db.aeo_geo_models import AEOQuestion, AEOContent, AIVisibilityTracking
+from db.aeo_geo_models import AEOQuestion, AEOContent, AIVisibility
 from utils.dependencies import get_current_user
 from services.token_blacklist_service import token_blacklist_service
 from services.comprehensive_cache_service import (
@@ -395,6 +395,10 @@ def confirm_website(
         current_user.last_generated_website_id = website_id
         db.commit()
         db.refresh(current_user)
+
+        # Invalidate cached profile responses so the dashboard loads the newest website id
+        cache_key = generate_cache_key(CACHE_PREFIX["profile"], "full_profile", user_id=current_user.id)
+        delete_pattern(cache_key)
         
         logger.info(f"✅ Website {website_id} confirmed for user {current_user.id}")
         
@@ -454,10 +458,10 @@ def delete_account(
             db.query(YouTubeChannel).filter(YouTubeChannel.id.in_(youtube_channel_ids)).delete(synchronize_session=False)
 
         if instagram_account_ids:
-            db.query(InstagramPost).filter(InstagramPost.account_id.in_(instagram_account_ids)).delete(synchronize_session=False)
-            db.query(InstagramStory).filter(InstagramStory.account_id.in_(instagram_account_ids)).delete(synchronize_session=False)
-            db.query(InstagramReel).filter(InstagramReel.account_id.in_(instagram_account_ids)).delete(synchronize_session=False)
-            db.query(InstagramInsight).filter(InstagramInsight.account_id.in_(instagram_account_ids)).delete(synchronize_session=False)
+            db.query(PostAnalytics).filter(PostAnalytics.account_id.in_(instagram_account_ids)).delete(synchronize_session=False)
+            db.query(StoryAnalytics).filter(StoryAnalytics.account_id.in_(instagram_account_ids)).delete(synchronize_session=False)
+            db.query(ReelAnalytics).filter(ReelAnalytics.account_id.in_(instagram_account_ids)).delete(synchronize_session=False)
+            db.query(AnalyticsSnapshot).filter(AnalyticsSnapshot.account_id.in_(instagram_account_ids)).delete(synchronize_session=False)
             db.query(InstagramBusinessAccount).filter(InstagramBusinessAccount.id.in_(instagram_account_ids)).delete(synchronize_session=False)
 
         if whatsapp_account_ids:
@@ -470,14 +474,13 @@ def delete_account(
         db.query(ReviewHistory).filter(ReviewHistory.user_id == user_id).delete(synchronize_session=False)
         db.query(AEOQuestion).filter(AEOQuestion.user_id == user_id).delete(synchronize_session=False)
         db.query(AEOContent).filter(AEOContent.user_id == user_id).delete(synchronize_session=False)
-        db.query(AIVisibilityTracking).filter(AIVisibilityTracking.user_id == user_id).delete(synchronize_session=False)
+        db.query(AIVisibility).filter(AIVisibility.user_id == user_id).delete(synchronize_session=False)
         db.query(BusinessProfile).filter(BusinessProfile.user_id == user_id).delete(synchronize_session=False)
         db.query(UserSettings).filter(UserSettings.user_id == user_id).delete(synchronize_session=False)
         db.query(DailyTask).filter(DailyTask.user_id == user_id).delete(synchronize_session=False)
         db.query(GrowthMetric).filter(GrowthMetric.user_id == user_id).delete(synchronize_session=False)
         db.query(Influencer).filter(Influencer.user_id == user_id).delete(synchronize_session=False)
-        db.query(RetentionCampaign).filter(RetentionCampaign.user_id == user_id).delete(synchronize_session=False)
-        db.query(RetentionEmail).filter(RetentionEmail.user_id == user_id).delete(synchronize_session=False)
+
 
         # These models are linked to the user through ORM relationships and will be removed on user delete.
         current_user.active_session_token = None

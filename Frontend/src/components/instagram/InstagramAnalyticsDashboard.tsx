@@ -69,11 +69,11 @@ export function InstagramAnalyticsDashboard() {
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [showPromoteModal, setShowPromoteModal] = useState(false);
   const [selectedPostForPromotion, setSelectedPostForPromotion] = useState<any>(null);
-  
+
   // Cooldown for sync button (2 hours)
   const syncCooldown = useCooldown({
     cooldownMinutes: 120,
-    storageKey: 'instagram-sync-cooldown',
+    storageKey: "instagram-sync-cooldown",
   });
 
   useEffect(() => {
@@ -93,7 +93,7 @@ export function InstagramAnalyticsDashboard() {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
-        }
+        },
       );
 
       if (!accountResponse.ok) {
@@ -130,7 +130,7 @@ export function InstagramAnalyticsDashboard() {
   const triggerSync = async (accountId: number) => {
     // Check cooldown
     if (!syncCooldown.canExecute) {
-      toast.warning('Sync on Cooldown', {
+      toast.warning("Sync on Cooldown", {
         description: `Please wait ${formatCooldownTime(syncCooldown.remainingTime)} before syncing again.`,
       });
       return;
@@ -140,31 +140,28 @@ export function InstagramAnalyticsDashboard() {
       setSyncing(true);
       const token = localStorage.getItem("saadhyam_token");
 
-      const response = await fetch(
-        `${env.apiBaseUrl}/api/instagram-analytics/sync/${accountId}`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const response = await fetch(`${env.apiBaseUrl}/api/instagram-analytics/sync/${accountId}`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
 
       if (response.ok) {
         toast.success("✅ Sync started successfully!");
-        
+
         // Show syncing message
         toast.info("🔄 Syncing data... This may take 30 seconds", {
           duration: 5000,
         });
-        
+
         // Poll for sync completion and load data
         setTimeout(async () => {
           try {
             await loadDashboard(accountId);
             toast.success("✅ Data refreshed successfully!");
-            
+
             // Start cooldown ONLY after successfully getting complete data
             syncCooldown.execute();
           } catch (error) {
@@ -196,7 +193,7 @@ export function InstagramAnalyticsDashboard() {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
-        }
+        },
       );
 
       if (response.ok) {
@@ -232,9 +229,7 @@ export function InstagramAnalyticsDashboard() {
           <h2 className="text-2xl font-bold">Analytics Dashboard</h2>
           <p className="text-muted-foreground">
             @{account.username} • Last synced:{" "}
-            {account.last_synced_at
-              ? new Date(account.last_synced_at).toLocaleString()
-              : "Never"}
+            {account.last_synced_at ? new Date(account.last_synced_at).toLocaleString() : "Never"}
           </p>
         </div>
         <Button
@@ -255,7 +250,7 @@ export function InstagramAnalyticsDashboard() {
           ) : !syncCooldown.canExecute ? (
             <>
               <RefreshCw className="w-4 h-4" />
-              {formatCooldownTime(syncCooldown.remainingTime).split(' ')[0]}
+              {formatCooldownTime(syncCooldown.remainingTime).split(" ")[0]}
             </>
           ) : (
             <>
@@ -302,18 +297,14 @@ export function InstagramAnalyticsDashboard() {
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Engagement Rate
-                </CardTitle>
+                <CardTitle className="text-sm font-medium">Engagement Rate</CardTitle>
                 <Heart className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
                   {dashboardData.overview.engagement_rate.toFixed(1)}%
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  Average across all posts
-                </p>
+                <p className="text-xs text-muted-foreground">Average across all posts</p>
               </CardContent>
             </Card>
 
@@ -327,17 +318,14 @@ export function InstagramAnalyticsDashboard() {
                   {dashboardData.overview.reach.toLocaleString()}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  {dashboardData.overview.impressions.toLocaleString()}{" "}
-                  impressions
+                  {dashboardData.overview.impressions.toLocaleString()} impressions
                 </p>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Profile Views
-                </CardTitle>
+                <CardTitle className="text-sm font-medium">Profile Views</CardTitle>
                 <Target className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
@@ -376,16 +364,14 @@ export function InstagramAnalyticsDashboard() {
                               rec.priority === "high"
                                 ? "destructive"
                                 : rec.priority === "medium"
-                                ? "default"
-                                : "secondary"
+                                  ? "default"
+                                  : "secondary"
                             }
                           >
                             {rec.priority}
                           </Badge>
                         </div>
-                        <p className="text-sm text-muted-foreground mb-2">
-                          {rec.recommendation}
-                        </p>
+                        <p className="text-sm text-muted-foreground mb-2">{rec.recommendation}</p>
                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
                           <span>Confidence: {(rec.confidence_score * 100).toFixed(0)}%</span>
                           <span>•</span>
@@ -429,9 +415,7 @@ export function InstagramAnalyticsDashboard() {
                               <MessageCircle className="w-4 h-4 text-blue-500" />
                               <span>{post.comment_count}</span>
                             </div>
-                            <Badge variant="outline">
-                              {post.engagement_rate.toFixed(1)}%
-                            </Badge>
+                            <Badge variant="outline">{post.engagement_rate.toFixed(1)}%</Badge>
                             <Button
                               size="sm"
                               variant="outline"
@@ -466,7 +450,10 @@ export function InstagramAnalyticsDashboard() {
           <p className="text-muted-foreground mb-4">
             Click "Refresh Data" to sync your Instagram analytics
           </p>
-          <Button onClick={() => triggerSync(account.id)} disabled={syncing || !syncCooldown.canExecute}>
+          <Button
+            onClick={() => triggerSync(account.id)}
+            disabled={syncing || !syncCooldown.canExecute}
+          >
             {syncing ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin mr-2" />
@@ -475,7 +462,7 @@ export function InstagramAnalyticsDashboard() {
             ) : !syncCooldown.canExecute ? (
               <>
                 <RefreshCw className="w-4 h-4 mr-2" />
-                {formatCooldownTime(syncCooldown.remainingTime).split(' ')[0]}
+                {formatCooldownTime(syncCooldown.remainingTime).split(" ")[0]}
               </>
             ) : (
               <>
@@ -486,7 +473,7 @@ export function InstagramAnalyticsDashboard() {
           </Button>
         </div>
       )}
-      
+
       {/* Promote Post Modal */}
       {selectedPostForPromotion && (
         <PromotePostModal

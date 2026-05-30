@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider } from "@/lib/AuthContext";
 import { NotificationProvider } from "@/components/notifications";
 import { RateLimitProvider } from "@/contexts/RateLimitContext";
+import { ThemeProvider } from "@/contexts/ThemeContext";
 import { Toaster } from "@/components/ui/sonner";
 import AssistantWidget from "@/components/AssistantWidget";
 import { ResponsiveHeader } from "@/components/layout/ResponsiveHeader";
@@ -22,6 +23,22 @@ const queryClient = new QueryClient({
     },
   },
 });
+
+// Inline script to prevent FOUC (flash of unstyled content) before React hydrates
+const themeInitScript = `
+(function() {
+  try {
+    var theme = localStorage.getItem('saadhyam-theme');
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+      document.documentElement.style.colorScheme = 'dark';
+    } else {
+      document.documentElement.classList.remove('dark');
+      document.documentElement.style.colorScheme = 'light';
+    }
+  } catch (e) {}
+})();
+`;
 
 function NotFoundComponent() {
   return (
@@ -90,9 +107,10 @@ export const Route = createRootRoute({
 
 function RootShell({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <HeadContent />
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
       <body suppressHydrationWarning>
         {children}
@@ -104,17 +122,19 @@ function RootShell({ children }: { children: React.ReactNode }) {
 
 function RootComponent() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <NotificationProvider>
-          <RateLimitProvider>
-            <ResponsiveHeader />
-            <Outlet />
-            <AssistantWidget />
-            <Toaster />
-          </RateLimitProvider>
-        </NotificationProvider>
-      </AuthProvider>
-    </QueryClientProvider>
+    <ThemeProvider>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <NotificationProvider>
+            <RateLimitProvider>
+              <ResponsiveHeader />
+              <Outlet />
+              <AssistantWidget />
+              <Toaster />
+            </RateLimitProvider>
+          </NotificationProvider>
+        </AuthProvider>
+      </QueryClientProvider>
+    </ThemeProvider>
   );
 }

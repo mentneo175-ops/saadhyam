@@ -55,12 +55,13 @@ class VoiceAgentService:
 
     def _generate_with_fallback(self, prompt: str, system_instruction: Optional[str] = None) -> Optional[str]:
         """Try Gemini keys in sequence, fall back to Groq, and return text content"""
+        model_name = settings.GEMINI_CONTENT_MODEL
+
         # Try Gemini keys
         for i, key in enumerate(GEMINI_API_KEYS):
             try:
                 logger.info(f"🤖 Trying Voice Agent Gemini key {i+1}/{len(GEMINI_API_KEYS)}")
                 genai.configure(api_key=key)
-                model_name = settings.GEMINI_CONTENT_MODEL
                 
                 model = genai.GenerativeModel(
                     model_name=model_name,
@@ -73,7 +74,6 @@ class VoiceAgentService:
                 logger.warning(f"⚠️ Voice Agent Gemini key {i+1} failed: {e}")
         
         # If all Gemini keys fail, try Groq
-        from config.settings import settings
         from groq import Groq
         groq_api_key = settings.GROQ_API_KEY or os.getenv("GROQ_API_KEY")
         if groq_api_key:
@@ -184,11 +184,12 @@ class VoiceAgentService:
             if not campaign:
                 return None
             
-            campaign.status = CampaignStatus(status)
+            from models.voice_agent import CampaignStatus as VoiceCampaignStatus
+            campaign.status = VoiceCampaignStatus(status.lower())
             
-            if status == "active" and not campaign.started_at:
+            if status.lower() == "active" and not campaign.started_at:
                 campaign.started_at = datetime.utcnow()
-            elif status == "completed":
+            elif status.lower() == "completed":
                 campaign.completed_at = datetime.utcnow()
             
             db.commit()
@@ -200,6 +201,34 @@ class VoiceAgentService:
         except Exception as e:
             db.rollback()
             logger.error(f"❌ Failed to update campaign status: {e}")
+            raise
+
+    def delete_campaign(
+        self,
+        db: Session,
+        campaign_id: int,
+        user_id: int
+    ) -> bool:
+        """Delete campaign and cascade delete references"""
+        try:
+            campaign = self.get_campaign(db, campaign_id, user_id)
+            if not campaign:
+                return False
+            
+            # Check if active
+            from models.voice_agent import CampaignStatus as VoiceCampaignStatus
+            if campaign.status == VoiceCampaignStatus.ACTIVE:
+                raise ValueError("Cannot delete an active campaign. Please pause or complete it first.")
+            
+            db.delete(campaign)
+            db.commit()
+            
+            logger.info(f"✅ Deleted campaign {campaign_id}")
+            return True
+            
+        except Exception as e:
+            db.rollback()
+            logger.error(f"❌ Failed to delete campaign: {e}")
             raise
     
     # ==================== Contact Management ====================
@@ -364,14 +393,19 @@ You are an AI voice agent for a {campaign.language.value} speaking campaign.
 Campaign: {campaign.name}
 Language: {campaign.language.value}
 
-Your role is to:
-1. Engage customers in natural conversation
-2. Understand their needs and interests
-3. Answer questions professionally
-4. Qualify leads based on interest level
-5. Schedule callbacks or appointments if requested
+CRITICAL RULES FOR RESPONDING:
+1. Speak in exactly {campaign.language.value}. If the language is Telugu, Tamil, or Hindi, you MUST generate the response script in that native script/language.
+2. KEEP IT EXTREMELY SHORT AND QUICK. You are on a phone call.
+3. NEVER generate more than 1 or 2 short sentences.
+4. Always end your response with a quick question to keep the conversation interactive.
+5. Do not output large paragraphs, lists, or markdown. Speak as a human would on a brief phone call.
 
-Script Template:
+Your role is to:
+- Engage customers in a natural, fast-paced conversation.
+- Understand their needs and qualify leads.
+- Keep the interaction flowing.
+
+Script Template / Campaign Goal:
 {campaign.script_template or "Introduce the product/service and gauge interest."}
 
 Conversation History:
@@ -383,7 +417,7 @@ Conversation History:
                     content = msg.get("content", "")
                     context += f"\n{role}: {content}"
             
-            context += f"\n\nCustomer: {customer_message}\n\nYour response (keep it natural and conversational):"
+            context += f"\n\nCustomer: {customer_message}\n\nYour response (remember to keep it to 1-2 sentences max!):"
             
             # Generate response
             response_text = self._generate_with_fallback(context)
@@ -446,6 +480,65 @@ Summary:"""
             logger.error(f"❌ Failed to generate summary: {e}")
             return "Conversation completed."
     
+    def extract_specific_requirements(self, transcript: str) -> str:
+        """Extract specific customer requirements, interests, plans, packages, or requests from conversation transcript"""
+        try:
+            if not self.ai_available or not transcript:
+                return "No specific requirements mentioned."
+            
+            prompt = f"""
+Analyze the conversation transcript below between an AI Voice Agent and a Customer.
+Extract any specific requirements, plans, packages, budgets, or preferences the customer explicitly mentioned (e.g. "basic package", "interested in event decoration", "budget is under $500", "wants 2 videos").
+Format rules:
+- Keep it extremely concise, clear, and bullet-pointed.
+- Do NOT add introductory or conversational sentences.
+- If the customer did not specify any requirements, respond with EXACTLY: "No specific requirements mentioned."
+
+Transcript:
+{transcript}
+
+Extracted Requirements:"""
+
+            response_text = self._generate_with_fallback(prompt)
+            if response_text:
+                return response_text.strip()
+            return "No specific requirements mentioned."
+        except Exception as e:
+            logger.error(f"❌ Failed to extract requirements: {e}")
+            return "No specific requirements mentioned."
+            
+    def extract_key_quote(self, transcript: str) -> Optional[str]:
+        """Extract the exact customer quote representing their service requirement or need"""
+        try:
+            if not self.ai_available or not transcript:
+                return None
+            
+            prompt = f"""
+Analyze the conversation transcript below between an AI Voice Agent and a Customer.
+Find the exact sentence or line spoken by the CUSTOMER that best represents their need, requirement, package preference, or interest for the service (e.g., "My business is all about decoration to the large events" or "I want this package").
+
+Format rules:
+1. Output ONLY the exact quote/sentence spoken by the customer, word-for-word if possible.
+2. Do NOT add quotation marks around the output.
+3. Do NOT add introductory text (like "The key quote is:"), explanations, or bullet points.
+4. If no specific need or quote is mentioned by the customer, respond with EXACTLY: "None"
+
+Transcript:
+{transcript}
+
+Key Customer Quote:"""
+
+            response_text = self._generate_with_fallback(prompt)
+            if response_text:
+                cleaned = response_text.strip()
+                if cleaned == "None" or cleaned.lower() == "none" or len(cleaned) < 3:
+                    return None
+                return cleaned
+            return None
+        except Exception as e:
+            logger.error(f"❌ Failed to extract key quote: {e}")
+            return None
+    
     # ==================== Lead Management ====================
     
     def create_lead_from_call(
@@ -454,7 +547,8 @@ Summary:"""
         call: VoiceCall,
         status: str = "interested",
         lead_score: int = 50,
-        notes: str = None
+        notes: str = None,
+        key_quote: str = None
     ) -> VoiceLead:
         """Create lead from successful call"""
         try:
@@ -471,7 +565,8 @@ Summary:"""
                 email=contact.email,
                 status=LeadStatus(status),
                 lead_score=lead_score,
-                notes=notes or call.conversation_summary
+                notes=notes or call.conversation_summary,
+                key_quote=key_quote or call.key_quote
             )
             
             db.add(lead)

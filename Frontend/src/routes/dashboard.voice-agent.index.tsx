@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { env } from "@/config/env";
 import {
@@ -37,6 +37,7 @@ interface Campaign {
 }
 
 function VoiceAgentDashboard() {
+  const navigate = useNavigate();
   const [selectedView, setSelectedView] = useState<"overview" | "campaigns">("overview");
   const [statsData, setStatsData] = useState<any>(null);
   const [campaignsData, setCampaignsData] = useState<any>(null);
@@ -156,12 +157,14 @@ function VoiceAgentDashboard() {
           </div>
           <p className="text-sm text-gray-500">Automated calling campaigns with AI-powered conversations</p>
         </div>
-        <button
-          onClick={() => (window.location.href = "/dashboard/voice-agent/create-campaign")}
-          className="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-[#8B5CF6] to-[#A855F7] hover:from-[#7C3AED] hover:to-[#9333EA] text-white text-sm font-semibold rounded-xl shadow-lg shadow-[#8B5CF6]/25 hover:shadow-xl hover:shadow-[#8B5CF6]/30 transition-all"
-        >
-          <Plus size={16} /> New Campaign
-        </button>
+        <div className="flex flex-wrap gap-3">
+          <button
+            onClick={() => navigate({ to: "/dashboard/voice-agent/create-campaign" })}
+            className="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-[#8B5CF6] to-[#A855F7] hover:from-[#7C3AED] hover:to-[#9333EA] text-white text-sm font-semibold rounded-xl shadow-lg shadow-[#8B5CF6]/25 hover:shadow-xl hover:shadow-[#8B5CF6]/30 transition-all"
+          >
+            <Plus size={16} /> New Campaign
+          </button>
+        </div>
       </div>
 
       {/* Stats Cards */}
@@ -212,7 +215,7 @@ function VoiceAgentDashboard() {
                 key={campaign.id}
                 className="bg-white rounded-2xl border border-gray-200/60 shadow-lg shadow-gray-100/50 p-6 hover:shadow-xl hover:shadow-gray-100/80 hover:border-[#8B5CF6]/20 transition-all duration-300 cursor-pointer group"
                 onClick={() =>
-                  (window.location.href = `/dashboard/voice-agent/campaigns/${campaign.id}`)
+                  navigate({ to: "/dashboard/voice-agent/campaigns/$campaignId", params: { campaignId: campaign.id.toString() } })
                 }
               >
                 <div className="flex items-start justify-between mb-5">
@@ -252,7 +255,7 @@ function VoiceAgentDashboard() {
                     { label: "Pending", value: campaign.calls_pending, color: "text-amber-600" },
                     {
                       label: "Conversion",
-                      value: `${campaign.conversion_rate.toFixed(1)}%`,
+                      value: `${(campaign.conversion_rate ?? 0).toFixed(1)}%`,
                       color: "text-[#8B5CF6]",
                     },
                   ].map((m, j) => (
@@ -265,7 +268,7 @@ function VoiceAgentDashboard() {
 
                 <div className="flex items-center gap-4 text-xs text-gray-400 mt-4 pt-4 border-t border-gray-100">
                   <span className="flex items-center gap-1">
-                    <TrendingUp size={12} /> Avg: {Math.round(campaign.avg_call_duration)}s/call
+                    <TrendingUp size={12} /> Avg: {Math.round(campaign.avg_call_duration ?? 0)}s/call
                   </span>
                   <span>Language: {campaign.language}</span>
                 </div>
@@ -283,7 +286,7 @@ function VoiceAgentDashboard() {
                 Create your first voice campaign to start automated calling with AI
               </p>
               <button
-                onClick={() => (window.location.href = "/dashboard/voice-agent/create-campaign")}
+                onClick={() => navigate({ to: "/dashboard/voice-agent/create-campaign" })}
                 className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#8B5CF6] to-[#A855F7] hover:from-[#7C3AED] hover:to-[#9333EA] text-white text-sm font-semibold rounded-xl shadow-lg shadow-[#8B5CF6]/25 transition-all"
               >
                 <Plus size={16} /> Create Campaign

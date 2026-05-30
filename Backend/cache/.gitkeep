@@ -9,3 +9,4 @@ This directory is used for caching Instagram session data and other temporary fi
 
 ## Note
 This directory should be excluded from version control (add to .gitignore).
+

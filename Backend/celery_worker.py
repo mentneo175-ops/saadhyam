@@ -252,6 +252,18 @@ try:
 except ImportError as e:
     logger.warning(f"⚠️ Could not import voice call tasks: {e}")
 
+# Import WhatsApp tasks to register them with Celery beat and worker
+try:
+    from tasks.whatsapp_tasks import (
+        process_scheduled_campaigns,
+        process_follow_up_automations,
+        process_auto_reply,
+        sync_message_statuses,
+    )
+    logger.info("✅ WhatsApp tasks imported successfully")
+except ImportError as e:
+    logger.warning(f"⚠️ Could not import WhatsApp tasks: {e}")
+
 
 # Periodic tasks configuration
 from celery.schedules import crontab

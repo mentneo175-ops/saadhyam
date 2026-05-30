@@ -61,7 +61,7 @@ function WebsitePreviewPage() {
   };
 
   const handleShare = async () => {
-    const shareUrl = `${window.location.origin}/website/${websiteId}`;
+    const shareUrl = `${window.location.origin}/saadhyam/${websiteId}`;
     
     if (navigator.share) {
       try {
@@ -159,7 +159,7 @@ function WebsitePreviewPage() {
           </div>
           
           {/* Website iframe */}
-          <div className="aspect-[16/10] bg-white">
+          <div className="aspect-16/10 bg-white">
             {websiteData?.preview_url ? (
               <iframe
                 src={`${env.apiBaseUrl}${websiteData.preview_url}`}

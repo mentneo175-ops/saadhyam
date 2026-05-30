@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -583,7 +584,7 @@ function SettingsPage() {
 
   if (!mounted || initialLoading) {
     return (
-      <div className="flex flex-1 bg-white">
+      <div className="flex flex-1 bg-background">
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <div className="relative inline-block mb-4">
@@ -1107,15 +1108,34 @@ function SettingsPage() {
 
   const renderPreferencesTab = () => (
     <div className="space-y-6 animate-fadeIn">
-      {/* Notifications */}
-      <div className="bg-white rounded-2xl border border-gray-200/60 shadow-lg shadow-gray-100/50 overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
-          <div className="p-2 bg-blue-100 rounded-xl">
-            <Bell size={16} className="text-blue-600" />
+      {/* Appearance / Theme */}
+      <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200/60 dark:border-gray-700/60 shadow-lg shadow-gray-100/50 dark:shadow-black/20 overflow-hidden">
+        <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center gap-3">
+          <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-xl">
+            <Palette size={16} className="text-purple-600 dark:text-purple-400" />
           </div>
           <div>
-            <h3 className="font-semibold text-gray-900">Notifications</h3>
-            <p className="text-xs text-gray-500">Manage how you receive updates</p>
+            <h3 className="font-semibold text-gray-900 dark:text-gray-100">Appearance</h3>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Choose your preferred theme</p>
+          </div>
+        </div>
+        <div className="p-6">
+          <ThemeToggle variant="expanded" />
+          <p className="text-xs text-gray-400 dark:text-gray-500 mt-4">
+            Click to toggle between light and dark mode. Your preference is saved automatically.
+          </p>
+        </div>
+      </div>
+
+      {/* Notifications */}
+      <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200/60 dark:border-gray-700/60 shadow-lg shadow-gray-100/50 dark:shadow-black/20 overflow-hidden">
+        <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center gap-3">
+          <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-xl">
+            <Bell size={16} className="text-blue-600 dark:text-blue-400" />
+          </div>
+          <div>
+            <h3 className="font-semibold text-gray-900 dark:text-gray-100">Notifications</h3>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Manage how you receive updates</p>
           </div>
         </div>
         <div className="p-6 space-y-1">
@@ -1139,11 +1159,11 @@ function SettingsPage() {
           ].map((pref, idx) => (
             <div
               key={idx}
-              className="flex items-center justify-between p-3.5 rounded-xl hover:bg-gray-50 transition-colors"
+              className="flex items-center justify-between p-3.5 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
             >
               <div>
-                <p className="text-sm font-medium text-gray-900">{pref.label}</p>
-                <p className="text-xs text-gray-400">{pref.desc}</p>
+                <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{pref.label}</p>
+                <p className="text-xs text-gray-400 dark:text-gray-500">{pref.desc}</p>
               </div>
               <Switch defaultChecked={pref.enabled} />
             </div>
@@ -1152,28 +1172,28 @@ function SettingsPage() {
       </div>
 
       {/* Danger Zone */}
-      <div className="bg-white rounded-2xl border border-red-200/60 shadow-lg shadow-gray-100/50 overflow-hidden">
-        <div className="px-6 py-4 border-b border-red-100 flex items-center gap-3">
-          <div className="p-2 bg-red-100 rounded-xl">
-            <AlertCircle size={16} className="text-red-600" />
+      <div className="bg-white dark:bg-gray-900 rounded-2xl border border-red-200/60 dark:border-red-900/60 shadow-lg shadow-gray-100/50 dark:shadow-black/20 overflow-hidden">
+        <div className="px-6 py-4 border-b border-red-100 dark:border-red-900/40 flex items-center gap-3">
+          <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-xl">
+            <AlertCircle size={16} className="text-red-600 dark:text-red-400" />
           </div>
           <div>
-            <h3 className="font-semibold text-red-900">Danger Zone</h3>
-            <p className="text-xs text-red-500">Irreversible actions</p>
+            <h3 className="font-semibold text-red-900 dark:text-red-400">Danger Zone</h3>
+            <p className="text-xs text-red-500 dark:text-red-500/70">Irreversible actions</p>
           </div>
         </div>
         <div className="p-6 space-y-4">
-          <div className="flex items-center justify-between p-4 rounded-xl bg-red-50/50 border border-red-100">
+          <div className="flex items-center justify-between p-4 rounded-xl bg-red-50/50 dark:bg-red-950/20 border border-red-100 dark:border-red-900/40">
             <div>
-              <p className="text-sm font-medium text-gray-900">Delete account</p>
-              <p className="text-xs text-gray-500">Permanently delete your account and all data</p>
+              <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Delete account</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Permanently delete your account and all data</p>
             </div>
             <Button
               onClick={handleDeleteAccount}
               disabled={deleteLoading}
               variant="outline"
               size="sm"
-              className="rounded-xl border-red-200 text-red-600 hover:bg-red-50"
+              className="rounded-xl border-red-200 text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-950/30"
             >
               {deleteLoading ? <Loader2 size={14} className="mr-2 animate-spin" /> : null}
               {deleteLoading ? "Deleting..." : "Delete"}
@@ -1187,16 +1207,16 @@ function SettingsPage() {
   // ─── Main Render ───────────────────────────────────────────────────
 
   return (
-    <div className="flex flex-1 bg-white">
+    <div className="flex flex-1 bg-background">
       <div className="flex-1 min-w-0 p-4 md:p-6 lg:p-8">
         {/* Page Header */}
         <div className="mb-8">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-gray-900 tracking-tight">
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100 tracking-tight">
                 Settings
               </h1>
-              <p className="text-sm text-gray-500 mt-1">
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                 Manage your account, business profile, and preferences
               </p>
             </div>
@@ -1234,7 +1254,7 @@ function SettingsPage() {
           {/* Sidebar Navigation */}
           <div className="space-y-3">
             {/* Tab Navigation */}
-            <nav className="bg-white rounded-2xl border border-gray-200/60 shadow-lg shadow-gray-100/50 overflow-hidden p-2">
+            <nav className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200/60 dark:border-gray-700/60 shadow-lg shadow-gray-100/50 dark:shadow-black/20 overflow-hidden p-2">
               {tabs.map((tab) => {
                 const Icon = tab.icon;
                 const isActive = activeTab === tab.id;
@@ -1245,20 +1265,20 @@ function SettingsPage() {
                     className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all duration-200 group mb-1 last:mb-0 ${
                       isActive
                         ? "bg-gradient-to-r from-purple-600 to-fuchsia-600 text-white shadow-lg shadow-purple-500/25"
-                        : "text-gray-600 hover:bg-purple-50 hover:text-purple-700"
+                        : "text-gray-600 dark:text-gray-400 hover:bg-purple-50 dark:hover:bg-purple-950/30 hover:text-purple-700 dark:hover:text-purple-300"
                     }`}
                   >
                     <Icon
                       size={18}
                       className={
-                        isActive ? "text-white" : "text-gray-400 group-hover:text-purple-500"
+                        isActive ? "text-white" : "text-gray-400 dark:text-gray-500 group-hover:text-purple-500 dark:group-hover:text-purple-400"
                       }
                     />
                     <div className="flex-1 min-w-0">
                       <p className={`text-sm font-semibold ${isActive ? "text-white" : ""}`}>
                         {tab.label}
                       </p>
-                      <p className={`text-[11px] ${isActive ? "text-white/70" : "text-gray-400"}`}>
+                      <p className={`text-[11px] ${isActive ? "text-white/70" : "text-gray-400 dark:text-gray-500"}`}>
                         {tab.desc}
                       </p>
                     </div>

@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { ArrowLeft, Save, Loader2, Phone, Globe, Mic } from "lucide-react";
@@ -8,6 +8,7 @@ import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Textarea } from "../components/ui/textarea";
 import { env } from "@/config/env";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/dashboard/voice-agent/create-campaign")({
   component: CreateCampaignPage,
@@ -22,6 +23,7 @@ interface CampaignFormData {
 }
 
 function CreateCampaignPage() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState<CampaignFormData>({
     name: "",
     description: "",
@@ -29,6 +31,80 @@ function CreateCampaignPage() {
     voice_type: "female",
     script_template: "",
   });
+  
+  const [contacts, setContacts] = useState<Array<{ name: string; phone_number: string; email: string }>>([
+    { name: "", phone_number: "", email: "" }
+  ]);
+  const [uploadMode, setUploadMode] = useState<'manual' | 'text' | 'file'>('manual');
+  const [textPasteContent, setTextPasteContent] = useState("");
+
+  const parseContactsData = (text: string): Array<{ name: string; phone_number: string; email: string }> => {
+    const lines = text.split(/\r?\n/);
+    const parsed: Array<{ name: string; phone_number: string; email: string }> = [];
+    
+    lines.forEach(line => {
+      const cleanLine = line.trim();
+      if (!cleanLine) return;
+      
+      const separators = [',', ';', ':', '|', '\t'];
+      let parts: string[] = [];
+      let foundSeparator = false;
+      
+      for (const sep of separators) {
+        if (cleanLine.includes(sep)) {
+          parts = cleanLine.split(sep).map(p => p.trim());
+          foundSeparator = true;
+          break;
+        }
+      }
+      
+      if (!foundSeparator) {
+        parts = cleanLine.split(/\s+/).map(p => p.trim());
+      }
+      
+      if (parts.length >= 2) {
+        const part1 = parts[0];
+        const part2 = parts[1];
+        const part3 = parts[2] || '';
+        
+        const isPhone = (str: string) => /^\+?[0-9\s-]{7,15}$/.test(str.replace(/[\s-]/g, ''));
+        
+        if (isPhone(part2)) {
+          parsed.push({ name: part1, phone_number: part2.replace(/[\s-]/g, ''), email: isPhone(part3) ? '' : part3 });
+        } else if (isPhone(part1)) {
+          parsed.push({ name: part2, phone_number: part1.replace(/[\s-]/g, ''), email: isPhone(part3) ? '' : part3 });
+        } else {
+          parsed.push({ name: part1, phone_number: part2.replace(/[\s-]/g, ''), email: part3 });
+        }
+      } else if (parts.length === 1) {
+        const phone = parts[0].replace(/[\s-]/g, '');
+        if (/^\+?[0-9]{7,15}$/.test(phone)) {
+          parsed.push({ name: "Customer", phone_number: phone, email: "" });
+        }
+      }
+    });
+    return parsed;
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const text = event.target?.result as string;
+      if (!text) return;
+
+      const parsed = parseContactsData(text);
+      if (parsed.length > 0) {
+        setContacts(parsed);
+        toast.success(`Loaded ${parsed.length} contacts from file`);
+      } else {
+        toast.error("Could not parse any contacts. Ensure layout is: Name, Phone");
+      }
+    };
+    reader.readAsText(file);
+  };
 
   const createCampaignMutation = useMutation({
     mutationFn: async (data: CampaignFormData) => {
@@ -49,9 +125,47 @@ function CreateCampaignPage() {
 
       return response.json();
     },
-    onSuccess: (data) => {
-      // Redirect to campaign details page
-      window.location.href = `/dashboard/voice-agent/campaigns/${data.campaign.id}`;
+    onSuccess: async (data) => {
+      const campaignId = data.campaign.id;
+      const token = localStorage.getItem("saadhyam_token");
+      
+      let validContacts: Array<{ name: string; phone_number: string; email: string }> = [];
+      if (uploadMode === 'manual') {
+        validContacts = contacts.filter(c => c.name && c.phone_number);
+      } else if (uploadMode === 'text') {
+        validContacts = parseContactsData(textPasteContent);
+      } else if (uploadMode === 'file') {
+        validContacts = contacts.filter(c => c.name && c.phone_number);
+      }
+
+      if (validContacts.length > 0) {
+        try {
+          const uploadResponse = await fetch(
+            `${env.apiBaseUrl}/api/voice-agent/campaigns/${campaignId}/contacts/bulk`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({ contacts: validContacts }),
+            }
+          );
+          
+          if (uploadResponse.ok) {
+            toast.success(`Created campaign and uploaded ${validContacts.length} contacts!`);
+          } else {
+            toast.error("Campaign created, but failed to upload contacts.");
+          }
+        } catch (err) {
+          console.error("Contacts upload error:", err);
+          toast.error("Campaign created, but failed to upload contacts.");
+        }
+      } else {
+        toast.success("Campaign created successfully!");
+      }
+      
+      navigate({ to: "/dashboard/voice-agent/campaigns/$campaignId", params: { campaignId: campaignId.toString() } });
     },
   });
 
@@ -76,7 +190,7 @@ function CreateCampaignPage() {
         <Button
           variant="outline"
           size="sm"
-          onClick={() => (window.location.href = "/dashboard/voice-agent")}
+          onClick={() => navigate({ to: "/dashboard/voice-agent/campaigns" })}
         >
           <ArrowLeft size={16} className="mr-2" />
           Back
@@ -144,6 +258,8 @@ function CreateCampaignPage() {
                 <option value="english">English</option>
                 <option value="hinglish">Hinglish</option>
                 <option value="telugu">Telugu</option>
+                <option value="hindi">Hindi</option>
+                <option value="tamil">Tamil</option>
               </select>
               <p className="text-sm text-gray-500">
                 Select the language for AI conversations
@@ -200,6 +316,155 @@ Example:
               </p>
             </div>
 
+            {/* Step 2: Add Contacts */}
+            <div className="border-t pt-6 space-y-4">
+              <h3 className="text-lg font-semibold text-gray-900">Add Customer Contacts</h3>
+              <p className="text-sm text-gray-500">
+                Specify the customers to be called for this campaign. Upload via CSV/Text file or enter manually.
+              </p>
+
+              {/* Mode Toggle */}
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant={uploadMode === "manual" ? "default" : "outline"}
+                  onClick={() => setUploadMode("manual")}
+                  size="sm"
+                >
+                  Manual Entry
+                </Button>
+                <Button
+                  type="button"
+                  variant={uploadMode === "text" ? "default" : "outline"}
+                  onClick={() => setUploadMode("text")}
+                  size="sm"
+                >
+                  Copy & Paste
+                </Button>
+                <Button
+                  type="button"
+                  variant={uploadMode === "file" ? "default" : "outline"}
+                  onClick={() => setUploadMode("file")}
+                  size="sm"
+                >
+                  CSV / Text File Upload
+                </Button>
+              </div>
+
+              {uploadMode === "manual" && (
+                <div className="space-y-3">
+                  {contacts.map((contact, index) => (
+                    <div key={index} className="flex gap-3 items-end">
+                      <div className="flex-1 space-y-1">
+                        <Label className="text-xs">Name</Label>
+                        <Input
+                          placeholder="John Doe"
+                          value={contact.name}
+                          onChange={(e) => {
+                            const updated = [...contacts];
+                            updated[index].name = e.target.value;
+                            setContacts(updated);
+                          }}
+                          required={index === 0}
+                        />
+                      </div>
+                      <div className="flex-1 space-y-1">
+                        <Label className="text-xs">Phone Number</Label>
+                        <Input
+                          placeholder="+919876543210"
+                          value={contact.phone_number}
+                          onChange={(e) => {
+                            const updated = [...contacts];
+                            updated[index].phone_number = e.target.value;
+                            setContacts(updated);
+                          }}
+                          required={index === 0}
+                        />
+                      </div>
+                      <div className="flex-1 space-y-1">
+                        <Label className="text-xs">Email (Optional)</Label>
+                        <Input
+                          placeholder="john@example.com"
+                          value={contact.email}
+                          onChange={(e) => {
+                            const updated = [...contacts];
+                            updated[index].email = e.target.value;
+                            setContacts(updated);
+                          }}
+                        />
+                      </div>
+                      {contacts.length > 1 && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          onClick={() => setContacts(contacts.filter((_, i) => i !== index))}
+                          className="text-red-500 hover:text-red-700 hover:bg-red-50 text-xs px-2 h-9"
+                        >
+                          Remove
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setContacts([...contacts, { name: "", phone_number: "", email: "" }])}
+                    className="w-full mt-2"
+                  >
+                    + Add Another Customer
+                  </Button>
+                </div>
+              )}
+
+              {uploadMode === "text" && (
+                <div className="space-y-2">
+                  <Label htmlFor="textPasteContent">Paste contact rows here:</Label>
+                  <Textarea
+                    id="textPasteContent"
+                    placeholder="Formats:&#10;Kiran Kumar, +919876543210&#10;Kiran Kumar: 9876543210&#10;Jane Smith: jane@example.com: 9876543211"
+                    value={textPasteContent}
+                    onChange={(e) => setTextPasteContent(e.target.value)}
+                    rows={6}
+                    className="font-mono text-sm"
+                  />
+                  {textPasteContent && (
+                    <div className="bg-purple-50 text-purple-800 p-2.5 rounded text-xs font-semibold">
+                      🔍 Detected {parseContactsData(textPasteContent).length} contacts.
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {uploadMode === "file" && (
+                <div className="p-6 border-2 border-dashed border-gray-300 rounded-lg text-center space-y-3">
+                  <div className="mx-auto h-12 w-12 text-gray-400 flex items-center justify-center">
+                    <Globe size={48} className="mx-auto" />
+                  </div>
+                  <div>
+                    <Label htmlFor="contact-file-upload" className="cursor-pointer text-purple-600 font-semibold hover:underline">
+                      Upload a CSV or Text file
+                    </Label>
+                    <Input
+                      id="contact-file-upload"
+                      type="file"
+                      accept=".csv,.txt"
+                      onChange={handleFileChange}
+                      className="hidden"
+                    />
+                  </div>
+                  <p className="text-xs text-gray-500">
+                    Accepted formats: .csv or .txt (Format: Name, Phone, Email)
+                  </p>
+                  
+                  {contacts.length > 0 && contacts[0].name && (
+                    <div className="bg-purple-50 text-purple-700 text-sm py-2 px-4 rounded-md inline-block">
+                      📄 Loaded {contacts.filter(c => c.name).length} contacts from file
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
             {/* Info Box */}
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <h4 className="font-semibold text-blue-900 mb-2">💡 Tips for Better Campaigns</h4>
@@ -243,7 +508,7 @@ Example:
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => (window.location.href = "/dashboard/voice-agent")}
+                onClick={() => navigate({ to: "/dashboard/voice-agent/campaigns" })}
                 disabled={createCampaignMutation.isPending}
               >
                 Cancel

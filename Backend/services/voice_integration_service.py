@@ -209,23 +209,36 @@ class VoiceIntegrationService:
     
     def _build_greeting(self, campaign: VoiceCampaign, contact: VoiceContact) -> str:
         """Build personalized greeting message"""
+        business_name = "Saadhyam AI"
+        offer_details = ""
+        campaign_goal = ""
         
-        # Use script template if available
-        if campaign.script_template:
+        if contact.custom_data:
+            business_name = contact.custom_data.get("business_name", business_name)
+            offer_details = contact.custom_data.get("offer_details", "")
+            campaign_goal = contact.custom_data.get("campaign_goal", "")
+            
+        # Check if the script template exists and is actually a direct greeting
+        if campaign.script_template and not (
+            campaign.script_template.strip().startswith("Business:") or 
+            campaign.script_template.strip().startswith("Context:")
+        ):
             greeting = campaign.script_template
-            # Replace placeholders
             greeting = greeting.replace('[Name]', contact.name)
-            greeting = greeting.replace('[Company]', 'Saadhyam AI')
+            greeting = greeting.replace('[Company]', business_name)
             return greeting
         
-        # Default greeting based on language
-        greetings = {
-            'english': f"Hello {contact.name}! I'm calling from Saadhyam AI. How are you today?",
-            'hinglish': f"नमस्ते {contact.name}! मैं सध्याम एआई से बुला रहा हूं। आप कैसे हैं?",
-            'telugu': f"హలో {contact.name}! నేను సాధ్యం AI నుండి కాల్ చేస్తున్నాను. మీరు ఎలా ఉన్నారు?"
-        }
-        
-        return greetings.get(campaign.language.value, greetings['english'])
+        # Build language-specific personalized business greeting
+        lang = campaign.language.value if campaign.language else 'english'
+        if lang == 'telugu':
+            name_suffix = " గారు" if not contact.name.endswith("గారు") else ""
+            greeting = f"హలో {contact.name}{name_suffix}! నేను {business_name} నుండి కాల్ చేస్తున్నాను. {offer_details or campaign_goal or 'మా సేవల గురించి'} మీతో మాట్లాడటానికి ఈ కాల్ చేస్తున్నాను. మీరు ఎలా ఉన్నారు?"
+        elif lang == 'hinglish':
+            greeting = f"हेलो {contact.name} जी! मैं {business_name} से बात कर रहा हूँ। {offer_details or campaign_goal or 'हमारे ऑफर्स के बारे में'} आपसे बात करनी थी। कैसे हैं आप?"
+        else: # english
+            greeting = f"Hello {contact.name}! I am calling from {business_name} regarding {offer_details or campaign_goal or 'our services'}. How are you doing today?"
+            
+        return greeting
     
     def _get_conversation_history(self, call_id: int) -> List[Dict[str, str]]:
         """Get conversation history for a call"""

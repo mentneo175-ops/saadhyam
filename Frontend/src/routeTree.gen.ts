@@ -59,12 +59,15 @@ import { Route as DashboardVoiceAgentScriptGeneratorRouteImport } from './routes
 import { Route as DashboardVoiceAgentLeadsRouteImport } from './routes/dashboard.voice-agent.leads'
 import { Route as DashboardVoiceAgentCreateCampaignRouteImport } from './routes/dashboard.voice-agent.create-campaign'
 import { Route as DashboardVoiceAgentConversationsRouteImport } from './routes/dashboard.voice-agent.conversations'
+import { Route as DashboardVoiceAgentConversationRouteImport } from './routes/dashboard.voice-agent.conversation'
 import { Route as DashboardVoiceAgentCampaignsRouteImport } from './routes/dashboard.voice-agent.campaigns'
 import { Route as DashboardVoiceAgentAnalyticsRouteImport } from './routes/dashboard.voice-agent.analytics'
 import { Route as DashboardInstagramAnalyticsPostsRouteImport } from './routes/dashboard.instagram-analytics.posts'
 import { Route as DashboardAgentsPartnershipRouteImport } from './routes/dashboard.agents.partnership'
 import { Route as DashboardAgentsCustomerRetentionRouteImport } from './routes/dashboard.agents.customer-retention'
+import { Route as DashboardVoiceAgentCampaignsIndexRouteImport } from './routes/dashboard.voice-agent.campaigns.index'
 import { Route as DashboardVoiceAgentCampaignsCampaignIdRouteImport } from './routes/dashboard.voice-agent.campaigns.$campaignId'
+import { Route as DashboardVoiceAgentCampaignsCampaignIdIndexRouteImport } from './routes/dashboard.voice-agent.campaigns.$campaignId.index'
 import { Route as DashboardVoiceAgentCampaignsCampaignIdCallingRouteImport } from './routes/dashboard.voice-agent.campaigns.$campaignId.calling'
 
 const YoutubeOauthCallbackRoute = YoutubeOauthCallbackRouteImport.update({
@@ -327,6 +330,12 @@ const DashboardVoiceAgentConversationsRoute =
     path: '/voice-agent/conversations',
     getParentRoute: () => DashboardRoute,
   } as any)
+const DashboardVoiceAgentConversationRoute =
+  DashboardVoiceAgentConversationRouteImport.update({
+    id: '/voice-agent/conversation',
+    path: '/voice-agent/conversation',
+    getParentRoute: () => DashboardRoute,
+  } as any)
 const DashboardVoiceAgentCampaignsRoute =
   DashboardVoiceAgentCampaignsRouteImport.update({
     id: '/voice-agent/campaigns',
@@ -357,11 +366,23 @@ const DashboardAgentsCustomerRetentionRoute =
     path: '/customer-retention',
     getParentRoute: () => DashboardAgentsRoute,
   } as any)
+const DashboardVoiceAgentCampaignsIndexRoute =
+  DashboardVoiceAgentCampaignsIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => DashboardVoiceAgentCampaignsRoute,
+  } as any)
 const DashboardVoiceAgentCampaignsCampaignIdRoute =
   DashboardVoiceAgentCampaignsCampaignIdRouteImport.update({
     id: '/$campaignId',
     path: '/$campaignId',
     getParentRoute: () => DashboardVoiceAgentCampaignsRoute,
+  } as any)
+const DashboardVoiceAgentCampaignsCampaignIdIndexRoute =
+  DashboardVoiceAgentCampaignsCampaignIdIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => DashboardVoiceAgentCampaignsCampaignIdRoute,
   } as any)
 const DashboardVoiceAgentCampaignsCampaignIdCallingRoute =
   DashboardVoiceAgentCampaignsCampaignIdCallingRouteImport.update({
@@ -419,6 +440,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/instagram-analytics/posts': typeof DashboardInstagramAnalyticsPostsRoute
   '/dashboard/voice-agent/analytics': typeof DashboardVoiceAgentAnalyticsRoute
   '/dashboard/voice-agent/campaigns': typeof DashboardVoiceAgentCampaignsRouteWithChildren
+  '/dashboard/voice-agent/conversation': typeof DashboardVoiceAgentConversationRoute
   '/dashboard/voice-agent/conversations': typeof DashboardVoiceAgentConversationsRoute
   '/dashboard/voice-agent/create-campaign': typeof DashboardVoiceAgentCreateCampaignRoute
   '/dashboard/voice-agent/leads': typeof DashboardVoiceAgentLeadsRoute
@@ -427,7 +449,9 @@ export interface FileRoutesByFullPath {
   '/dashboard/agents/': typeof DashboardAgentsIndexRoute
   '/dashboard/voice-agent/': typeof DashboardVoiceAgentIndexRoute
   '/dashboard/voice-agent/campaigns/$campaignId': typeof DashboardVoiceAgentCampaignsCampaignIdRouteWithChildren
+  '/dashboard/voice-agent/campaigns/': typeof DashboardVoiceAgentCampaignsIndexRoute
   '/dashboard/voice-agent/campaigns/$campaignId/calling': typeof DashboardVoiceAgentCampaignsCampaignIdCallingRoute
+  '/dashboard/voice-agent/campaigns/$campaignId/': typeof DashboardVoiceAgentCampaignsCampaignIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -475,7 +499,7 @@ export interface FileRoutesByTo {
   '/dashboard/agents/partnership': typeof DashboardAgentsPartnershipRoute
   '/dashboard/instagram-analytics/posts': typeof DashboardInstagramAnalyticsPostsRoute
   '/dashboard/voice-agent/analytics': typeof DashboardVoiceAgentAnalyticsRoute
-  '/dashboard/voice-agent/campaigns': typeof DashboardVoiceAgentCampaignsRouteWithChildren
+  '/dashboard/voice-agent/conversation': typeof DashboardVoiceAgentConversationRoute
   '/dashboard/voice-agent/conversations': typeof DashboardVoiceAgentConversationsRoute
   '/dashboard/voice-agent/create-campaign': typeof DashboardVoiceAgentCreateCampaignRoute
   '/dashboard/voice-agent/leads': typeof DashboardVoiceAgentLeadsRoute
@@ -483,8 +507,9 @@ export interface FileRoutesByTo {
   '/dashboard/voice-agent/simulator': typeof DashboardVoiceAgentSimulatorRoute
   '/dashboard/agents': typeof DashboardAgentsIndexRoute
   '/dashboard/voice-agent': typeof DashboardVoiceAgentIndexRoute
-  '/dashboard/voice-agent/campaigns/$campaignId': typeof DashboardVoiceAgentCampaignsCampaignIdRouteWithChildren
+  '/dashboard/voice-agent/campaigns': typeof DashboardVoiceAgentCampaignsIndexRoute
   '/dashboard/voice-agent/campaigns/$campaignId/calling': typeof DashboardVoiceAgentCampaignsCampaignIdCallingRoute
+  '/dashboard/voice-agent/campaigns/$campaignId': typeof DashboardVoiceAgentCampaignsCampaignIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -536,6 +561,7 @@ export interface FileRoutesById {
   '/dashboard/instagram-analytics/posts': typeof DashboardInstagramAnalyticsPostsRoute
   '/dashboard/voice-agent/analytics': typeof DashboardVoiceAgentAnalyticsRoute
   '/dashboard/voice-agent/campaigns': typeof DashboardVoiceAgentCampaignsRouteWithChildren
+  '/dashboard/voice-agent/conversation': typeof DashboardVoiceAgentConversationRoute
   '/dashboard/voice-agent/conversations': typeof DashboardVoiceAgentConversationsRoute
   '/dashboard/voice-agent/create-campaign': typeof DashboardVoiceAgentCreateCampaignRoute
   '/dashboard/voice-agent/leads': typeof DashboardVoiceAgentLeadsRoute
@@ -544,7 +570,9 @@ export interface FileRoutesById {
   '/dashboard/agents/': typeof DashboardAgentsIndexRoute
   '/dashboard/voice-agent/': typeof DashboardVoiceAgentIndexRoute
   '/dashboard/voice-agent/campaigns/$campaignId': typeof DashboardVoiceAgentCampaignsCampaignIdRouteWithChildren
+  '/dashboard/voice-agent/campaigns/': typeof DashboardVoiceAgentCampaignsIndexRoute
   '/dashboard/voice-agent/campaigns/$campaignId/calling': typeof DashboardVoiceAgentCampaignsCampaignIdCallingRoute
+  '/dashboard/voice-agent/campaigns/$campaignId/': typeof DashboardVoiceAgentCampaignsCampaignIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -597,6 +625,7 @@ export interface FileRouteTypes {
     | '/dashboard/instagram-analytics/posts'
     | '/dashboard/voice-agent/analytics'
     | '/dashboard/voice-agent/campaigns'
+    | '/dashboard/voice-agent/conversation'
     | '/dashboard/voice-agent/conversations'
     | '/dashboard/voice-agent/create-campaign'
     | '/dashboard/voice-agent/leads'
@@ -605,7 +634,9 @@ export interface FileRouteTypes {
     | '/dashboard/agents/'
     | '/dashboard/voice-agent/'
     | '/dashboard/voice-agent/campaigns/$campaignId'
+    | '/dashboard/voice-agent/campaigns/'
     | '/dashboard/voice-agent/campaigns/$campaignId/calling'
+    | '/dashboard/voice-agent/campaigns/$campaignId/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -653,7 +684,7 @@ export interface FileRouteTypes {
     | '/dashboard/agents/partnership'
     | '/dashboard/instagram-analytics/posts'
     | '/dashboard/voice-agent/analytics'
-    | '/dashboard/voice-agent/campaigns'
+    | '/dashboard/voice-agent/conversation'
     | '/dashboard/voice-agent/conversations'
     | '/dashboard/voice-agent/create-campaign'
     | '/dashboard/voice-agent/leads'
@@ -661,8 +692,9 @@ export interface FileRouteTypes {
     | '/dashboard/voice-agent/simulator'
     | '/dashboard/agents'
     | '/dashboard/voice-agent'
-    | '/dashboard/voice-agent/campaigns/$campaignId'
+    | '/dashboard/voice-agent/campaigns'
     | '/dashboard/voice-agent/campaigns/$campaignId/calling'
+    | '/dashboard/voice-agent/campaigns/$campaignId'
   id:
     | '__root__'
     | '/'
@@ -713,6 +745,7 @@ export interface FileRouteTypes {
     | '/dashboard/instagram-analytics/posts'
     | '/dashboard/voice-agent/analytics'
     | '/dashboard/voice-agent/campaigns'
+    | '/dashboard/voice-agent/conversation'
     | '/dashboard/voice-agent/conversations'
     | '/dashboard/voice-agent/create-campaign'
     | '/dashboard/voice-agent/leads'
@@ -721,7 +754,9 @@ export interface FileRouteTypes {
     | '/dashboard/agents/'
     | '/dashboard/voice-agent/'
     | '/dashboard/voice-agent/campaigns/$campaignId'
+    | '/dashboard/voice-agent/campaigns/'
     | '/dashboard/voice-agent/campaigns/$campaignId/calling'
+    | '/dashboard/voice-agent/campaigns/$campaignId/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -1089,6 +1124,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardVoiceAgentConversationsRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/voice-agent/conversation': {
+      id: '/dashboard/voice-agent/conversation'
+      path: '/voice-agent/conversation'
+      fullPath: '/dashboard/voice-agent/conversation'
+      preLoaderRoute: typeof DashboardVoiceAgentConversationRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/voice-agent/campaigns': {
       id: '/dashboard/voice-agent/campaigns'
       path: '/voice-agent/campaigns'
@@ -1124,12 +1166,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardAgentsCustomerRetentionRouteImport
       parentRoute: typeof DashboardAgentsRoute
     }
+    '/dashboard/voice-agent/campaigns/': {
+      id: '/dashboard/voice-agent/campaigns/'
+      path: '/'
+      fullPath: '/dashboard/voice-agent/campaigns/'
+      preLoaderRoute: typeof DashboardVoiceAgentCampaignsIndexRouteImport
+      parentRoute: typeof DashboardVoiceAgentCampaignsRoute
+    }
     '/dashboard/voice-agent/campaigns/$campaignId': {
       id: '/dashboard/voice-agent/campaigns/$campaignId'
       path: '/$campaignId'
       fullPath: '/dashboard/voice-agent/campaigns/$campaignId'
       preLoaderRoute: typeof DashboardVoiceAgentCampaignsCampaignIdRouteImport
       parentRoute: typeof DashboardVoiceAgentCampaignsRoute
+    }
+    '/dashboard/voice-agent/campaigns/$campaignId/': {
+      id: '/dashboard/voice-agent/campaigns/$campaignId/'
+      path: '/'
+      fullPath: '/dashboard/voice-agent/campaigns/$campaignId/'
+      preLoaderRoute: typeof DashboardVoiceAgentCampaignsCampaignIdIndexRouteImport
+      parentRoute: typeof DashboardVoiceAgentCampaignsCampaignIdRoute
     }
     '/dashboard/voice-agent/campaigns/$campaignId/calling': {
       id: '/dashboard/voice-agent/campaigns/$campaignId/calling'
@@ -1174,12 +1230,15 @@ const DashboardInstagramAnalyticsRouteWithChildren =
 
 interface DashboardVoiceAgentCampaignsCampaignIdRouteChildren {
   DashboardVoiceAgentCampaignsCampaignIdCallingRoute: typeof DashboardVoiceAgentCampaignsCampaignIdCallingRoute
+  DashboardVoiceAgentCampaignsCampaignIdIndexRoute: typeof DashboardVoiceAgentCampaignsCampaignIdIndexRoute
 }
 
 const DashboardVoiceAgentCampaignsCampaignIdRouteChildren: DashboardVoiceAgentCampaignsCampaignIdRouteChildren =
   {
     DashboardVoiceAgentCampaignsCampaignIdCallingRoute:
       DashboardVoiceAgentCampaignsCampaignIdCallingRoute,
+    DashboardVoiceAgentCampaignsCampaignIdIndexRoute:
+      DashboardVoiceAgentCampaignsCampaignIdIndexRoute,
   }
 
 const DashboardVoiceAgentCampaignsCampaignIdRouteWithChildren =
@@ -1189,12 +1248,15 @@ const DashboardVoiceAgentCampaignsCampaignIdRouteWithChildren =
 
 interface DashboardVoiceAgentCampaignsRouteChildren {
   DashboardVoiceAgentCampaignsCampaignIdRoute: typeof DashboardVoiceAgentCampaignsCampaignIdRouteWithChildren
+  DashboardVoiceAgentCampaignsIndexRoute: typeof DashboardVoiceAgentCampaignsIndexRoute
 }
 
 const DashboardVoiceAgentCampaignsRouteChildren: DashboardVoiceAgentCampaignsRouteChildren =
   {
     DashboardVoiceAgentCampaignsCampaignIdRoute:
       DashboardVoiceAgentCampaignsCampaignIdRouteWithChildren,
+    DashboardVoiceAgentCampaignsIndexRoute:
+      DashboardVoiceAgentCampaignsIndexRoute,
   }
 
 const DashboardVoiceAgentCampaignsRouteWithChildren =
@@ -1238,6 +1300,7 @@ interface DashboardRouteChildren {
   DashboardIndexRoute: typeof DashboardIndexRoute
   DashboardVoiceAgentAnalyticsRoute: typeof DashboardVoiceAgentAnalyticsRoute
   DashboardVoiceAgentCampaignsRoute: typeof DashboardVoiceAgentCampaignsRouteWithChildren
+  DashboardVoiceAgentConversationRoute: typeof DashboardVoiceAgentConversationRoute
   DashboardVoiceAgentConversationsRoute: typeof DashboardVoiceAgentConversationsRoute
   DashboardVoiceAgentCreateCampaignRoute: typeof DashboardVoiceAgentCreateCampaignRoute
   DashboardVoiceAgentLeadsRoute: typeof DashboardVoiceAgentLeadsRoute
@@ -1284,6 +1347,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardVoiceAgentAnalyticsRoute: DashboardVoiceAgentAnalyticsRoute,
   DashboardVoiceAgentCampaignsRoute:
     DashboardVoiceAgentCampaignsRouteWithChildren,
+  DashboardVoiceAgentConversationRoute: DashboardVoiceAgentConversationRoute,
   DashboardVoiceAgentConversationsRoute: DashboardVoiceAgentConversationsRoute,
   DashboardVoiceAgentCreateCampaignRoute:
     DashboardVoiceAgentCreateCampaignRoute,

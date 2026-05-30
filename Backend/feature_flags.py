@@ -118,21 +118,25 @@ def setup(app):
     # Add middleware
     app.add_middleware(FeatureGuardMiddleware)
 
+
+async def start_poller(app) -> None:
     stop_event = asyncio.Event()
+    app.state._feature_poller_stop = stop_event
+    app.state._feature_poller = asyncio.create_task(_poller_task(stop_event))
 
-    async def _start_poller() -> None:
-        app.state._feature_poller_stop = stop_event
-        app.state._feature_poller = asyncio.create_task(_poller_task(stop_event))
 
-    async def _stop_poller() -> None:
-        try:
+async def stop_poller(app) -> None:
+    try:
+        stop_event = getattr(app.state, "_feature_poller_stop", None)
+        if stop_event:
             stop_event.set()
-            task = getattr(app.state, "_feature_poller", None)
-            if task:
-                task.cancel()
+        task = getattr(app.state, "_feature_poller", None)
+        if task:
+            task.cancel()
+            try:
                 await task
-        except Exception:
-            logger.exception("Error stopping feature poller")
+            except asyncio.CancelledError:
+                pass
+    except Exception:
+        logger.exception("Error stopping feature poller")
 
-    app.add_event_handler("startup", _start_poller)
-    app.add_event_handler("shutdown", _stop_poller)

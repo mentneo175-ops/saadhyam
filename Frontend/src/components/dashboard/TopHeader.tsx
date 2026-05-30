@@ -14,6 +14,7 @@ import { apiClient } from "@/lib/api";
 import { useNavigate, useRouter, useLocation } from "@tanstack/react-router";
 import { useDashboardContext } from "@/contexts/DashboardContext";
 import { useSidebar } from "@/contexts/SidebarContext";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 
 interface BusinessProfile {
   business_name?: string;
@@ -150,11 +151,11 @@ export function TopHeader() {
   }
 
   return (
-    <header className="h-16 border-b border-purple-200 bg-white shadow-sm sticky top-0 z-50 hidden lg:flex items-center justify-between px-4 lg:px-6">
+    <header className="h-16 border-b border-purple-200 dark:border-purple-800 bg-white dark:bg-gray-900 shadow-sm sticky top-0 z-50 hidden lg:flex items-center justify-between px-4 lg:px-6">
       {/* Left: Greeting Message (Desktop Only) */}
       <div className="flex items-center">
         <div className="hidden lg:block">
-          <h1 className="text-lg font-semibold text-gray-900">
+          <h1 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
             Good{" "}
             {new Date().getHours() < 12
               ? "Morning"
@@ -163,7 +164,7 @@ export function TopHeader() {
                 : "Evening"}
             !
           </h1>
-          <p className="text-sm text-gray-600">Welcome back to your dashboard</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400">Welcome back to your dashboard</p>
         </div>
       </div>
 
@@ -172,25 +173,28 @@ export function TopHeader() {
 
       {/* Right: Controls */}
       <div className="flex items-center gap-3">
+        {/* Theme Toggle */}
+        <ThemeToggle />
+
         {/* Refresh Button */}
         <button
           onClick={handleRefresh}
           disabled={isRefreshing}
           aria-label="Refresh Data"
-          className="h-9 px-3 rounded-lg border border-purple-200 hover:bg-purple-50 flex items-center justify-center gap-2 transition disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+          className="h-9 px-3 rounded-lg border border-purple-200 dark:border-purple-800 hover:bg-purple-50 dark:hover:bg-purple-900/30 flex items-center justify-center gap-2 transition disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
           title="Refresh all dashboard data"
         >
           <RefreshCw
             size={16}
             className={isRefreshing ? "animate-spin text-purple-600" : "text-purple-600"}
           />
-          <span className="hidden lg:inline text-sm font-medium text-gray-900">Refresh</span>
+          <span className="hidden lg:inline text-sm font-medium text-gray-900 dark:text-gray-100">Refresh</span>
         </button>
 
         {/* Notifications */}
         <button
           aria-label="Notifications"
-          className="relative h-9 w-9 rounded-lg border border-purple-200 hover:bg-purple-50 flex items-center justify-center transition shadow-sm"
+          className="relative h-9 w-9 rounded-lg border border-purple-200 dark:border-purple-800 hover:bg-purple-50 dark:hover:bg-purple-900/30 flex items-center justify-center transition shadow-sm"
         >
           <Bell size={16} className="text-purple-600" />
           <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-red-500 ring-2 ring-white flex items-center justify-center">
@@ -202,14 +206,14 @@ export function TopHeader() {
         <div className="relative">
           <button
             onClick={() => setShowProfileMenu(!showProfileMenu)}
-            className="flex items-center gap-2 h-10 pl-2 pr-3 rounded-lg border border-purple-200 hover:bg-purple-50 transition min-w-0 shadow-sm"
+            className="flex items-center gap-2 h-10 pl-2 pr-3 rounded-lg border border-purple-200 dark:border-purple-800 hover:bg-purple-50 dark:hover:bg-purple-900/30 transition min-w-0 shadow-sm"
           >
             <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-[#5D2F8F] to-[#A855F7] text-white flex items-center justify-center text-sm font-bold shrink-0">
               {avatarLetter}
             </div>
             <div className="hidden sm:block text-left leading-tight min-w-0 max-w-32">
-              <p className="text-sm font-semibold text-gray-900 truncate">{profileDisplayName}</p>
-              <p className="text-xs text-gray-600 truncate">{profileDisplaySubtext}</p>
+              <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">{profileDisplayName}</p>
+              <p className="text-xs text-gray-600 dark:text-gray-400 truncate">{profileDisplaySubtext}</p>
             </div>
             <ChevronDown size={12} className="text-purple-600 shrink-0" />
           </button>
@@ -221,18 +225,18 @@ export function TopHeader() {
               <div className="fixed inset-0 z-40" onClick={() => setShowProfileMenu(false)} />
 
               {/* Menu */}
-              <div className="absolute right-0 top-12 z-50 w-64 bg-white rounded-xl border border-gray-200 shadow-xl py-2">
+              <div className="absolute right-0 top-12 z-50 w-64 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-xl dark:shadow-2xl dark:shadow-black/40 py-2">
                 {/* User Info */}
-                <div className="px-4 py-3 border-b border-gray-100">
+                <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-800">
                   <div className="flex items-center gap-3">
                     <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-[#5D2F8F] to-[#A855F7] text-white flex items-center justify-center text-sm font-bold">
                       {avatarLetter}
                     </div>
                     <div>
-                      <p className="font-semibold text-sm text-gray-900">{profileDisplayName}</p>
-                      <p className="text-xs text-gray-600">{profileDisplaySubtext}</p>
+                      <p className="font-semibold text-sm text-gray-900 dark:text-gray-100">{profileDisplayName}</p>
+                      <p className="text-xs text-gray-600 dark:text-gray-400">{profileDisplaySubtext}</p>
                       {businessProfile?.business_name && (
-                        <p className="text-xs text-gray-500 mt-1">{displayEmail}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{displayEmail}</p>
                       )}
                     </div>
                   </div>
@@ -245,7 +249,7 @@ export function TopHeader() {
                       setShowProfileMenu(false);
                       navigate({ to: "/dashboard/business-details" });
                     }}
-                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-purple-50 transition"
+                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-purple-50 dark:hover:bg-purple-900/30 transition"
                   >
                     <Building2 size={16} className="text-purple-600" />
                     Business Details
@@ -256,7 +260,7 @@ export function TopHeader() {
                       setShowProfileMenu(false);
                       navigate({ to: "/dashboard/settings" });
                     }}
-                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-purple-50 transition"
+                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-purple-50 dark:hover:bg-purple-900/30 transition"
                   >
                     <Settings size={16} className="text-purple-600" />
                     Settings & Preferences
@@ -264,13 +268,13 @@ export function TopHeader() {
                 </div>
 
                 {/* Logout */}
-                <div className="border-t border-gray-100 pt-2">
+                <div className="border-t border-gray-100 dark:border-gray-800 pt-2">
                   <button
                     onClick={() => {
                       setShowProfileMenu(false);
                       handleLogout();
                     }}
-                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition"
+                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 transition"
                   >
                     <LogOut size={16} className="text-red-600" />
                     Sign Out

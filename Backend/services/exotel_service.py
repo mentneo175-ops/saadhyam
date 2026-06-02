@@ -51,20 +51,21 @@ class ExotelService:
         # Clean Caller ID (remove hyphens, spaces if present)
         caller_id = self.exophone.replace("-", "").replace(" ", "").strip()
 
-        # Connect API endpoint
-        # Indian accounts are hosted on the Mumbai cluster: api.in.exotel.com
-        url = f"https://api.in.exotel.com/v1/Accounts/{self.sid}/Calls/connect.json"
+        # Try global cluster first since these credentials are hosted there
+        url = f"https://api.exotel.com/v1/Accounts/{self.sid}/Calls/connect.json"
         
         # Construct the WebSocket endpoint
         stream_url = self.get_websocket_stream_url(call_id)
         
         payload = {
             "From": phone,
+            "To": caller_id,
             "CallerId": caller_id,
             "streamurl": stream_url,
             "streamtype": "bidirectional",
             "CallType": "trans",
-            "Record": "true"
+            "Record": "true",
+            "StatusCallback": f"{self.stream_url_base.rstrip('/')}/api/voice-agent/webhooks/exotel-status"
         }
 
         logger.info(f"📞 Exotel Outbound Call connect triggering: {phone} -> ExoPhone: {caller_id}")
@@ -74,11 +75,11 @@ class ExotelService:
             auth = HTTPBasicAuth(self.api_key, self.api_token)
             response = requests.post(url, data=payload, auth=auth, timeout=10)
             
-            # Fallback to standard global cluster if Mumbai cluster fails or is not applicable
-            if response.status_code == 404:
-                global_url = f"https://api.exotel.com/v1/Accounts/{self.sid}/Calls/connect.json"
-                logger.info(f"🔄 Mumbai cluster 404, falling back to global cluster: {global_url}")
-                response = requests.post(global_url, data=payload, auth=auth, timeout=10)
+            # Fallback to Mumbai cluster if global cluster fails with auth/not found error
+            if response.status_code in [401, 404]:
+                mumbai_url = f"https://api.in.exotel.com/v1/Accounts/{self.sid}/Calls/connect.json"
+                logger.info(f"🔄 Global cluster returned {response.status_code}, falling back to Mumbai cluster: {mumbai_url}")
+                response = requests.post(mumbai_url, data=payload, auth=auth, timeout=10)
 
             if response.status_code in [200, 201]:
                 data = response.json()

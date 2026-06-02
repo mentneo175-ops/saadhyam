@@ -28,6 +28,9 @@ import {
   Award,
   Calendar,
   Sparkles,
+  Wifi,
+  Radio,
+  Globe,
 } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../components/ui/card";
@@ -161,6 +164,25 @@ function CallingInterfacePage() {
   });
 
   const campaign = campaignData?.campaign;
+
+  // Query calling mode (Exotel vs simulation)
+  const { data: callingModeData } = useQuery<{ calling_mode: string; has_exotel: boolean; exophone_number: string | null; stream_url: string | null }>({
+    queryKey: ["voice-agent-calling-mode"],
+    queryFn: async () => {
+      const token = localStorage.getItem("saadhyam_token");
+      const response = await fetch(
+        `${env.apiBaseUrl}/api/voice-agent/calling-mode`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      if (!response.ok) return { calling_mode: "simulation", has_exotel: false, exophone_number: null, stream_url: null };
+      return response.json();
+    },
+    staleTime: 60000,
+  });
+
+  const isRealCalling = callingModeData?.has_exotel === true;
 
   useEffect(() => {
     campaignRef.current = campaign;
@@ -970,8 +992,8 @@ function CallingInterfacePage() {
   const isCompleted = progress.status === "completed";
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-purple-50 p-4 md:p-6">
-      <div className="mx-auto max-w-6xl space-y-6 rounded-3xl border border-gray-200 bg-white/90 p-4 md:p-6 shadow-2xl backdrop-blur-sm">
+    <div className="p-4 md:p-6 space-y-6">
+      <div className="mx-auto max-w-6xl space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
@@ -983,9 +1005,19 @@ function CallingInterfacePage() {
             <ArrowLeft size={16} className="mr-2" />
             Back
           </Button>
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">{progress.campaign_name}</h1>
-            <p className="text-gray-600 mt-1">Live Calling Interface</p>
+          <div className="flex items-center gap-3">
+            <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-lg">
+              <Phone size={24} className="text-white" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">{progress.campaign_name}</h1>
+              <p className="text-sm text-gray-500">
+                {isRealCalling ? "Live Exotel Calling" : "Calling Interface"}
+                {isRealCalling && callingModeData?.exophone_number && (
+                  <span className="ml-2 text-purple-600 font-semibold">via {callingModeData.exophone_number}</span>
+                )}
+              </p>
+            </div>
           </div>
         </div>
 
@@ -1039,43 +1071,74 @@ function CallingInterfacePage() {
         </CardContent>
       </Card>
 
-      {/* Calling Mode Toggle */}
+      {/* Calling Mode Indicator */}
       {!isCompleted && (
-        <div className="bg-purple-50 border border-purple-100 rounded-xl p-3 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-sm">
-          <div className="flex items-center gap-2">
-            <Badge className="bg-purple-600 text-white">MODE</Badge>
-            <span className="text-sm font-semibold text-purple-900">
-              {interactionMode === 'mic' ? "Talk Live (Interactive Mic Testing Mode)" : "Automated Background Calling Mode"}
-            </span>
+        isRealCalling ? (
+          /* Real Calling Mode Banner */
+          <div className="bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-sm">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-md">
+                <Wifi size={20} className="text-white" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <Badge className="bg-emerald-600 text-white font-bold">LIVE</Badge>
+                  <span className="text-sm font-bold text-emerald-900">Real Calling Mode — Exotel Connected</span>
+                </div>
+                <p className="text-xs text-emerald-700 mt-0.5">
+                  Calls are placed to real phone numbers via Exotel. AI agent uses Deepgram STT + ElevenLabs TTS.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 bg-emerald-100 rounded-lg px-3 py-1.5">
+                <Globe size={14} className="text-emerald-600" />
+                <span className="text-xs font-semibold text-emerald-800">Tunnel Active</span>
+              </div>
+              <div className="flex items-center gap-1.5 bg-purple-100 rounded-lg px-3 py-1.5">
+                <Radio size={14} className="text-purple-600" />
+                <span className="text-xs font-semibold text-purple-800">{callingModeData?.exophone_number || 'Exophone'}</span>
+              </div>
+            </div>
           </div>
-          <div className="flex gap-2">
-            <Button
-              size="sm"
-              variant={interactionMode === 'mic' ? 'default' : 'outline'}
-              onClick={() => {
-                setInteractionMode('mic');
-                setSpeakerStatus('idle');
-                setIsMicCallActive(false);
-              }}
-              className={interactionMode === 'mic' ? 'bg-purple-600 hover:bg-purple-700 font-semibold' : 'text-purple-600 border-purple-600 font-semibold'}
-            >
-              <Mic size={14} className="mr-1.5" />
-              Talk Live (Mic)
-            </Button>
-            <Button
-              size="sm"
-              variant={interactionMode === 'sim' ? 'default' : 'outline'}
-              onClick={() => {
-                setInteractionMode('sim');
-                setSimulatedCallId(null);
-              }}
-              className={interactionMode === 'sim' ? 'bg-purple-600 hover:bg-purple-700 font-semibold' : 'text-purple-600 border-purple-600 font-semibold'}
-            >
-              <Play size={14} className="mr-1.5" />
-              Auto-simulate
-            </Button>
+        ) : (
+          /* Simulation Mode Toggle (fallback when Exotel is not configured) */
+          <div className="bg-purple-50 border border-purple-100 rounded-xl p-3 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-sm">
+            <div className="flex items-center gap-2">
+              <Badge className="bg-purple-600 text-white">MODE</Badge>
+              <span className="text-sm font-semibold text-purple-900">
+                {interactionMode === 'mic' ? "Talk Live (Interactive Mic Testing Mode)" : "Automated Background Calling Mode"}
+              </span>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                size="sm"
+                variant={interactionMode === 'mic' ? 'default' : 'outline'}
+                onClick={() => {
+                  setInteractionMode('mic');
+                  setSpeakerStatus('idle');
+                  setIsMicCallActive(false);
+                }}
+                className={interactionMode === 'mic' ? 'bg-purple-600 hover:bg-purple-700 font-semibold' : 'text-purple-600 border-purple-600 font-semibold'}
+              >
+                <Mic size={14} className="mr-1.5" />
+                Talk Live (Mic)
+              </Button>
+              <Button
+                size="sm"
+                variant={interactionMode === 'sim' ? 'default' : 'outline'}
+                onClick={() => {
+                  setInteractionMode('sim');
+                  setSimulatedCallId(null);
+                }}
+                className={interactionMode === 'sim' ? 'bg-purple-600 hover:bg-purple-700 font-semibold' : 'text-purple-600 border-purple-600 font-semibold'}
+              >
+                <Play size={14} className="mr-1.5" />
+                Auto-simulate
+              </Button>
+            </div>
           </div>
-        </div>
+        )
       )}
 
       {/* Status Banner */}
@@ -1271,8 +1334,7 @@ function CallingInterfacePage() {
                                   className="w-1 bg-gradient-to-t from-purple-400 to-pink-400 rounded-full transition-all duration-300"
                                   style={{
                                     height: isSimSpeaking ? `${Math.floor(Math.random() * 35) + 15}px` : '4px',
-                                    animation: isSimSpeaking ? `wave 1.2s ease-in-out infinite alternate` : 'none',
-                                    animationDelay: `${baseDelay}s`
+                                    animation: isSimSpeaking ? `wave 1.2s ease-in-out ${baseDelay}s infinite alternate` : 'none',
                                   }}
                                 />
                               );
@@ -1998,17 +2060,21 @@ function CallingInterfacePage() {
 
       {/* Info Box */}
       {!isCompleted && (
-        <Card>
+        <Card className="border border-gray-100">
           <CardContent className="py-4">
             <div className="flex items-start gap-3">
-              <div className="bg-blue-100 p-2 rounded-lg">
-                <Phone className="text-blue-600" size={20} />
+              <div className={`p-2 rounded-lg ${isRealCalling ? 'bg-emerald-100' : 'bg-blue-100'}`}>
+                {isRealCalling ? <Wifi className="text-emerald-600" size={20} /> : <Phone className="text-blue-600" size={20} />}
               </div>
               <div className="flex-1">
-                <h4 className="font-semibold text-gray-900 mb-1">About This Interface</h4>
+                <h4 className="font-semibold text-gray-900 mb-1">
+                  {isRealCalling ? "Real Calling Active" : "About This Interface"}
+                </h4>
                 <p className="text-sm text-gray-600">
-                  This page shows real-time progress of your voice campaign. Calls are processed automatically
-                  in the background. You can pause/resume the campaign at any time. The page updates every 2 seconds.
+                  {isRealCalling
+                    ? "Real phone calls are being placed to your contacts via Exotel. The AI agent will speak through Deepgram (STT) and ElevenLabs (TTS). Call outcomes, transcripts, and summaries are saved automatically. You can pause/resume the campaign at any time."
+                    : "This page shows real-time progress of your voice campaign. Calls are processed automatically in the background. You can pause/resume the campaign at any time. The page updates every 2 seconds."
+                  }
                 </p>
               </div>
             </div>

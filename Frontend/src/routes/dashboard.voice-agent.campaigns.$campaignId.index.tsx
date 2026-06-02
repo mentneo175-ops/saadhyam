@@ -443,7 +443,7 @@ function CampaignDetailsPage() {
         <div className="flex gap-2">
           {campaign.status === "draft" && campaign.total_contacts > 0 && (
             <Button
-              onClick={() => startCallingMutation.mutate(false)}
+              onClick={() => startCallingMutation.mutate(true)}
               disabled={startCallingMutation.isPending}
               className="bg-green-600 hover:bg-green-700"
             >
@@ -1190,24 +1190,26 @@ function CampaignDetailsPage() {
             <AlertDialogTitle className="text-red-600">
               ⚠️ Delete Campaign?
             </AlertDialogTitle>
-            <AlertDialogDescription className="space-y-3">
-              <p className="font-semibold text-foreground">
-                This action CANNOT be undone!
-              </p>
-              <div className="bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-lg p-3">
-                <p className="text-sm text-red-900 dark:text-red-100 font-medium mb-2">
-                  ✗ This will permanently delete:
+            <AlertDialogDescription asChild>
+              <div className="space-y-3 text-sm text-muted-foreground">
+                <p className="font-semibold text-foreground">
+                  This action CANNOT be undone!
                 </p>
-                <ul className="text-xs text-red-800 dark:text-red-200 space-y-1 ml-4">
-                  <li>• The campaign "{campaign.name}"</li>
-                  <li>• All associated customer contacts</li>
-                  <li>• All recorded calls and summaries</li>
-                  <li>• All generated leads from this campaign</li>
-                </ul>
+                <div className="bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-lg p-3">
+                  <p className="text-sm text-red-900 dark:text-red-100 font-medium mb-2">
+                    ✗ This will permanently delete:
+                  </p>
+                  <ul className="text-xs text-red-800 dark:text-red-200 space-y-1 ml-4">
+                    <li>• The campaign "{campaign.name}"</li>
+                    <li>• All associated customer contacts</li>
+                    <li>• All recorded calls and summaries</li>
+                    <li>• All generated leads from this campaign</li>
+                  </ul>
+                </div>
+                <p className="text-sm">
+                  Are you absolutely sure you want to delete this campaign?
+                </p>
               </div>
-              <p className="text-sm">
-                Are you absolutely sure you want to delete this campaign?
-              </p>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

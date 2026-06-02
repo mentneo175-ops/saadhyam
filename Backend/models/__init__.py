@@ -54,6 +54,14 @@ from models.chat import (
     ConnectionRequest,
 )
 
+# Google Business Profile Models
+from models.google_business import (
+    GoogleBusinessAccount,
+    GoogleBusinessLocation,
+    GoogleBusinessReview,
+    GoogleBusinessPost,
+)
+
 __all__ = [
     "User",
     "SocialAccount",
@@ -87,4 +95,8 @@ __all__ = [
     "ChatRoom",
     "ChatMessage",
     "ConnectionRequest",
+    "GoogleBusinessAccount",
+    "GoogleBusinessLocation",
+    "GoogleBusinessReview",
+    "GoogleBusinessPost",
 ]

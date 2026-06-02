@@ -775,22 +775,78 @@ async def start_campaign_calling(
             status="active"
         )
         
-        task_id = None
-        if run_background:
-            # Trigger Celery task
-            from tasks.voice_call_tasks import process_campaign_calls as process_calls_task
-            task = process_calls_task.delay(campaign_id)
-            task_id = task.id
-            logger.info(f"🚀 Started background calling for campaign {campaign_id}, task_id: {task_id}")
-        else:
-            logger.info(f"📱 Started interactive calling for campaign {campaign_id} (no background worker)")
+        # Auto-detect Exotel credentials - force background mode for real calls
+        from config.settings import settings
+        has_exotel = bool(settings.EXOTEL_SID and settings.EXOTEL_API_KEY and settings.EXOPHONE_NUMBER)
+        if has_exotel:
+            logger.info(f"📞 Exotel credentials detected - triggering real calls")
+        
+        # Process calls directly in a background thread (no Redis/Celery needed)
+        import threading
+        def _process_calls_background(cid: int):
+            """Process campaign calls in background thread"""
+            import time
+            from config.database import get_db_sync
+            from services.voice_call_queue_service import voice_call_queue_service
+            from models.voice_agent import VoiceCampaign, CampaignStatus
+            
+            db_bg = next(get_db_sync())
+            try:
+                camp = db_bg.query(VoiceCampaign).filter(VoiceCampaign.id == cid).first()
+                if not camp or camp.status not in [CampaignStatus.ACTIVE]:
+                    return
+                
+                processed = 0
+                while processed < 100:
+                    # Re-check campaign status
+                    db_bg.refresh(camp)
+                    if camp.status != CampaignStatus.ACTIVE:
+                        logger.info(f"⏹️ Campaign {cid} no longer active, stopping")
+                        break
+                    
+                    next_call = voice_call_queue_service.get_next_queued_call(db_bg, cid)
+                    if not next_call:
+                        logger.info(f"✅ No more queued calls for campaign {cid}")
+                        break
+                    
+                    try:
+                        logger.info(f"📞 Processing call {next_call.id}")
+                        result = voice_call_queue_service.process_call(db_bg, next_call.id)
+                        processed += 1
+                        
+                        if has_exotel and result.get("success"):
+                            # For real Exotel calls, stop here - the WebSocket handler
+                            # and status callback will chain the next call automatically
+                            logger.info(f"🚀 Exotel call triggered. Sequential chaining via callbacks.")
+                            break
+                        
+                        time.sleep(2)
+                    except Exception as e:
+                        logger.error(f"❌ Error processing call {next_call.id}: {e}")
+                        continue
+                
+                # If simulation mode (no exotel) and no more calls, mark completed
+                if not has_exotel:
+                    remaining = voice_call_queue_service.get_next_queued_call(db_bg, cid)
+                    if not remaining:
+                        camp.status = CampaignStatus.COMPLETED
+                        db_bg.commit()
+                        logger.info(f"🎉 Campaign {cid} completed")
+            except Exception as e:
+                logger.error(f"❌ Background call processing error: {e}")
+            finally:
+                db_bg.close()
+        
+        thread = threading.Thread(target=_process_calls_background, args=(campaign_id,), daemon=True)
+        thread.start()
+        logger.info(f"🚀 Started background call processing thread for campaign {campaign_id}")
             
         return {
             "success": True,
-            "message": "Campaign calling started" if run_background else "Interactive calling mode ready",
+            "message": "Real calling started via Exotel" if has_exotel else "Campaign calling started",
             "campaign_id": campaign_id,
-            "task_id": task_id,
-            "total_contacts": campaign.total_contacts
+            "total_contacts": campaign.total_contacts,
+            "calling_mode": "exotel" if has_exotel else "simulation"
         }
         
     except HTTPException:
@@ -937,6 +993,31 @@ async def resume_campaign_calling(
         )
 
 
+@router.get("/calling-mode")
+async def get_calling_mode(
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Returns whether real Exotel calling is configured or simulation-only mode.
+    Frontend uses this to show the correct UI (real-call status vs simulation controls).
+    """
+    from config.settings import settings
+    has_exotel = bool(settings.EXOTEL_SID and settings.EXOTEL_API_KEY and settings.EXOPHONE_NUMBER)
+    has_deepgram = bool(settings.DEEPGRAM_API_KEY)
+    has_elevenlabs = bool(settings.ELEVENLABS_API_KEY)
+    has_stream_url = bool(settings.EXOTEL_STREAM_URL)
+    
+    return {
+        "calling_mode": "exotel" if has_exotel else "simulation",
+        "has_exotel": has_exotel,
+        "has_deepgram": has_deepgram,
+        "has_elevenlabs": has_elevenlabs,
+        "has_stream_url": has_stream_url,
+        "exophone_number": settings.EXOPHONE_NUMBER if has_exotel else None,
+        "stream_url": settings.EXOTEL_STREAM_URL if has_stream_url else None
+    }
+
+
 # ==================== Exotel WebSocket & Webhook routes ====================
 
 @router.websocket("/stream/{call_id}")
@@ -1015,8 +1096,17 @@ async def exotel_status_callback(
                 next_call = voice_call_queue_service.get_next_queued_call(db, campaign.id)
                 if next_call:
                     logger.info(f"🔄 Triggering next sequential call in queue (Call ID: {next_call.id})")
-                    from tasks.voice_call_tasks import process_single_call
-                    process_single_call.delay(next_call.id)
+                    import threading
+                    from config.database import get_db_sync as get_db_fn
+                    def _process_next(call_id: int):
+                        db2 = next(get_db_fn())
+                        try:
+                            voice_call_queue_service.process_call(db2, call_id)
+                        except Exception as e:
+                            logger.error(f"❌ Error processing next call {call_id}: {e}")
+                        finally:
+                            db2.close()
+                    threading.Thread(target=_process_next, args=(next_call.id,), daemon=True).start()
                 else:
                     logger.info(f"🎉 No more calls in queue. Marking Campaign {campaign.id} as COMPLETED")
                     campaign.status = "completed"

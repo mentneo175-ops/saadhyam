@@ -16,6 +16,7 @@ import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as LoginReferenceRouteImport } from './routes/login-reference'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as InstagramOauthCallbackRouteImport } from './routes/instagram-oauth-callback'
+import { Route as GoogleBusinessOauthCallbackRouteImport } from './routes/google-business-oauth-callback'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
@@ -106,6 +107,12 @@ const InstagramOauthCallbackRoute = InstagramOauthCallbackRouteImport.update({
   path: '/instagram-oauth-callback',
   getParentRoute: () => rootRouteImport,
 } as any)
+const GoogleBusinessOauthCallbackRoute =
+  GoogleBusinessOauthCallbackRouteImport.update({
+    id: '/google-business-oauth-callback',
+    path: '/google-business-oauth-callback',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -400,6 +407,7 @@ const DashboardVoiceAgentCampaignsCampaignIdCallingRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRouteWithChildren
+  '/google-business-oauth-callback': typeof GoogleBusinessOauthCallbackRoute
   '/instagram-oauth-callback': typeof InstagramOauthCallbackRoute
   '/login': typeof LoginRoute
   '/login-reference': typeof LoginReferenceRoute
@@ -462,6 +470,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/google-business-oauth-callback': typeof GoogleBusinessOauthCallbackRoute
   '/instagram-oauth-callback': typeof InstagramOauthCallbackRoute
   '/login': typeof LoginRoute
   '/login-reference': typeof LoginReferenceRoute
@@ -523,6 +532,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRouteWithChildren
+  '/google-business-oauth-callback': typeof GoogleBusinessOauthCallbackRoute
   '/instagram-oauth-callback': typeof InstagramOauthCallbackRoute
   '/login': typeof LoginRoute
   '/login-reference': typeof LoginReferenceRoute
@@ -588,6 +598,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/dashboard'
+    | '/google-business-oauth-callback'
     | '/instagram-oauth-callback'
     | '/login'
     | '/login-reference'
@@ -650,6 +661,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/google-business-oauth-callback'
     | '/instagram-oauth-callback'
     | '/login'
     | '/login-reference'
@@ -710,6 +722,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/dashboard'
+    | '/google-business-oauth-callback'
     | '/instagram-oauth-callback'
     | '/login'
     | '/login-reference'
@@ -774,6 +787,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DashboardRoute: typeof DashboardRouteWithChildren
+  GoogleBusinessOauthCallbackRoute: typeof GoogleBusinessOauthCallbackRoute
   InstagramOauthCallbackRoute: typeof InstagramOauthCallbackRoute
   LoginRoute: typeof LoginRoute
   LoginReferenceRoute: typeof LoginReferenceRoute
@@ -833,6 +847,13 @@ declare module '@tanstack/react-router' {
       path: '/instagram-oauth-callback'
       fullPath: '/instagram-oauth-callback'
       preLoaderRoute: typeof InstagramOauthCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/google-business-oauth-callback': {
+      id: '/google-business-oauth-callback'
+      path: '/google-business-oauth-callback'
+      fullPath: '/google-business-oauth-callback'
+      preLoaderRoute: typeof GoogleBusinessOauthCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -1386,6 +1407,7 @@ const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DashboardRoute: DashboardRouteWithChildren,
+  GoogleBusinessOauthCallbackRoute: GoogleBusinessOauthCallbackRoute,
   InstagramOauthCallbackRoute: InstagramOauthCallbackRoute,
   LoginRoute: LoginRoute,
   LoginReferenceRoute: LoginReferenceRoute,

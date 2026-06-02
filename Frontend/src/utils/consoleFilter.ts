@@ -33,6 +33,9 @@ const suppressedPatterns = [
   /meta-ads\/dashboard\/summary/i,
   /Gateway Timeout/i,
   /Received `true` for a non-boolean attribute/i,
+  /grammarly-desktop-integration/i,
+  /hydration/i,
+  /Did not expect server HTML/i,
 ];
 
 // Override console.warn

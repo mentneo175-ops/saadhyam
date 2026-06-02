@@ -127,7 +127,7 @@ function CampaignsPage() {
     const token = localStorage.getItem("saadhyam_token");
     try {
       const startResponse = await fetch(
-        `${env.apiBaseUrl}/api/voice-agent/campaigns/${campaignId}/start-calling?run_background=false`,
+        `${env.apiBaseUrl}/api/voice-agent/campaigns/${campaignId}/start-calling?run_background=true`,
         {
           method: "POST",
           headers: { Authorization: `Bearer ${token}` },
@@ -278,7 +278,7 @@ function CampaignsPage() {
 
       // 2. Start calling (background or interactive)
       const startResponse = await fetch(
-        `${env.apiBaseUrl}/api/voice-agent/campaigns/${campaignId}/start-calling?run_background=${runBackground}`,
+        `${env.apiBaseUrl}/api/voice-agent/campaigns/${campaignId}/start-calling?run_background=true`,
         {
           method: "POST",
           headers: { Authorization: `Bearer ${token}` },
@@ -350,21 +350,26 @@ function CampaignsPage() {
   }
 
   return (
-    <div className="p-4 md:p-6 space-y-6">
+    <div className="p-4 md:p-6 space-y-8 bg-[radial-gradient(circle_at_top_left,_rgba(139,92,246,0.12),_transparent_30%),radial-gradient(circle_at_top_right,_rgba(14,165,233,0.08),_transparent_24%),linear-gradient(180deg,#f8fafc_0%,#ffffff_100%)] min-h-full">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Voice Campaigns</h1>
-          <p className="text-gray-600 mt-1">
-            Manage your automated calling campaigns
-          </p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-2">
+        <div className="flex items-center gap-3">
+          <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-[#8B5CF6] to-[#A855F7] flex items-center justify-center shadow-lg shadow-purple-500/20">
+            <Phone size={22} className="text-white" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Voice Campaigns</h1>
+            <p className="text-sm text-gray-500 mt-0.5">Manage your automated calling campaigns</p>
+          </div>
         </div>
-        <Button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700" asChild>
-          <Link to="/dashboard/voice-agent/create-campaign">
-            <Plus size={20} className="mr-2" />
-            New Campaign
-          </Link>
-        </Button>
+        <div className="flex flex-wrap gap-3 shrink-0">
+          <Button className="bg-gradient-to-r from-[#8B5CF6] to-[#A855F7] hover:from-[#7C3AED] hover:to-[#9333EA] text-white text-sm font-semibold rounded-xl shadow-lg shadow-purple-500/25 hover:shadow-xl hover:shadow-purple-500/30 transition-all cursor-pointer" asChild>
+            <Link to="/dashboard/voice-agent/create-campaign">
+              <Plus size={20} className="mr-2" />
+              New Campaign
+            </Link>
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}

@@ -411,8 +411,13 @@ try:
 except Exception as e:
     logging.warning(f"Webhooks router not available: {e}")
     webhooks_available = False
-
-
+try:
+    from routes.google_business import router as google_business_router
+    google_business_available = True
+    logging.info("✅ Google Business router imported successfully")
+except Exception as e:
+    logging.warning(f"Google Business router not available: {e}")
+    google_business_available = False
 
 try:
     from routes.meta_oauth import router as meta_oauth_router
@@ -999,6 +1004,9 @@ if cache_management_available:
 if health_available:
     app.include_router(health_router)
     logging.info("✅ Health Check router included in app")
+if google_business_available:
+    app.include_router(google_business_router)
+    logging.info("✅ Google Business router included in app")
 if dashboard_analytics_available:
     app.include_router(dashboard_analytics_router)
     logging.info("✅ Dashboard Analytics router included in app")

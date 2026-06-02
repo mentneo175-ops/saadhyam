@@ -395,8 +395,17 @@ Provide your next direct script response now. Speak directly to the customer. Do
             
             if next_call:
                 logger.info(f"🔄 Triggering next sequential call in queue (Call ID: {next_call.id})")
-                from tasks.voice_call_tasks import process_single_call
-                process_single_call.delay(next_call.id)
+                # Process directly in a thread instead of Celery
+                import threading
+                def _process_next(call_id: int):
+                    db2 = next(get_db_sync())
+                    try:
+                        voice_call_queue_service.process_call(db2, call_id)
+                    except Exception as e:
+                        logger.error(f"❌ Error processing next call {call_id}: {e}")
+                    finally:
+                        db2.close()
+                threading.Thread(target=_process_next, args=(next_call.id,), daemon=True).start()
             else:
                 logger.info(f"🎉 No more calls in queue. Marking Campaign {campaign.id} as COMPLETED")
                 campaign.status = "completed"

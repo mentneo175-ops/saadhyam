@@ -148,19 +148,22 @@ function VoiceAgentDashboard() {
   ];
 
   return (
-    <div className="min-h-full bg-white p-4 md:p-6 lg:p-8">
+    <div className="p-4 md:p-6 space-y-8 bg-[radial-gradient(circle_at_top_left,_rgba(139,92,246,0.12),_transparent_30%),radial-gradient(circle_at_top_right,_rgba(14,165,233,0.08),_transparent_24%),linear-gradient(180deg,#f8fafc_0%,#ffffff_100%)] min-h-full">
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <div className="mb-2">
-            <h1 className="text-2xl font-bold text-gray-900">AI Voice Agent</h1>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+        <div className="flex items-center gap-3">
+          <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-[#8B5CF6] to-[#A855F7] flex items-center justify-center shadow-lg shadow-purple-500/20">
+            <Phone size={22} className="text-white" />
           </div>
-          <p className="text-sm text-gray-500">Automated calling campaigns with AI-powered conversations</p>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">AI Voice Agent</h1>
+            <p className="text-sm text-gray-500 mt-0.5">Automated calling campaigns with AI-powered conversations</p>
+          </div>
         </div>
-        <div className="flex flex-wrap gap-3">
+        <div className="flex flex-wrap gap-3 shrink-0">
           <button
             onClick={() => navigate({ to: "/dashboard/voice-agent/create-campaign" })}
-            className="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-[#8B5CF6] to-[#A855F7] hover:from-[#7C3AED] hover:to-[#9333EA] text-white text-sm font-semibold rounded-xl shadow-lg shadow-[#8B5CF6]/25 hover:shadow-xl hover:shadow-[#8B5CF6]/30 transition-all"
+            className="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-[#8B5CF6] to-[#A855F7] hover:from-[#7C3AED] hover:to-[#9333EA] text-white text-sm font-semibold rounded-xl shadow-lg shadow-[#8B5CF6]/25 hover:shadow-xl hover:shadow-[#8B5CF6]/30 transition-all cursor-pointer"
           >
             <Plus size={16} /> New Campaign
           </button>

@@ -71,13 +71,14 @@ async def get_nearby_businesses_for_user(
     radius: int = Query(50000, description="Radius in meters (default: 50km for city-wide search)"),
     category: Optional[str] = Query(None, description="Filter by category"),
     saadhyam_only: bool = Query(False, description="Show only Sadhyam users"),
+    relevant_only: bool = Query(True, description="Show only relevant synergistic businesses"),
     current_user: User = Depends(get_current_user)
 ):
     """
     Get businesses in YOUR city (city-wide search) - SIMPLIFIED VERSION
     """
     try:
-        print(f"🚀 B2B Network API called by user: {current_user.email}")
+        print(f"🚀 B2B Network API called by user: {current_user.email} (relevant_only={relevant_only})")
         
         # Use the real service to fetch businesses
         service = NearbyBusinessService()
@@ -124,16 +125,40 @@ async def get_nearby_businesses_for_user(
                     lng=lng,
                     radius=radius,
                     category=category,
-                    user_id=current_user.id,
-                    saadhyam_only=saadhyam_only
+                    user_id=str(current_user.id),
+                    saadhyam_only=saadhyam_only,
+                    relevant_only=relevant_only
                 ),
                 timeout=25.0  # 25 second timeout
             )
         except asyncio.TimeoutError:
-            print("⏱️ Request timed out after 25 seconds")
+            print("⏱️ Request timed out after 25 seconds - executing fallback logic")
             # Return at least Sadhyam users even if external API times out
             businesses = await service._get_saadhyam_businesses(lat, lng, radius, category)
-            print(f"✅ Fallback: Returning {len(businesses)} Sadhyam users only")
+            
+            # Apply B2B Synergy Matrix Filter to fallback if enabled
+            if relevant_only and current_user.business_type:
+                synergistic_cats = service.SYNERGY_MATRIX.get(current_user.business_type, [])
+                allowed_cats = set(synergistic_cats + [current_user.business_type])
+                businesses = [b for b in businesses if b["category"] in allowed_cats]
+            
+            # Populate distance and compatibility metrics
+            user_lat = current_user.latitude if current_user.latitude else lat
+            user_lng = current_user.longitude if current_user.longitude else lng
+            user_services = [s.strip() for s in current_user.business_services.split(",") if s.strip()] if current_user.business_services else []
+            
+            for b in businesses:
+                dist = service._calculate_distance(user_lat, user_lng, b["location"]["lat"], b["location"]["lng"])
+                b["distance"] = round(dist)
+                b["distance_km"] = round(dist / 1000, 1)
+                b["ai_score"] = service._calculate_compatibility(
+                    user_category=current_user.business_type,
+                    user_services=user_services,
+                    candidate_category=b["category"],
+                    candidate_services=b.get("services", [])
+                )
+            
+            print(f"✅ Fallback completed: returning {len(businesses)} synergistic Sadhyam users")
         
         print(f"✅ Found {len(businesses)} businesses")
         

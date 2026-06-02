@@ -61,13 +61,15 @@ export function NeuralNetworkExplorer() {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [showSaadhyamOnly, setShowSaadhyamOnly] = useState(false);
   const [showVerifiedOnly, setShowVerifiedOnly] = useState(false);
+  const [showRelevantOnly, setShowRelevantOnly] = useState(true);
 
   const { business: userBusiness, loading: businessLoading } = useBusiness();
   const { businesses: nearbyBusinesses, loading: businessesLoading, error } = useNearbyBusinesses(
     undefined,
     undefined,
     50000,
-    showSaadhyamOnly
+    showSaadhyamOnly,
+    showRelevantOnly
   );
 
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
@@ -205,20 +207,28 @@ export function NeuralNetworkExplorer() {
             },
           });
 
+          // Compute edge style based on AI Score / compatibility
+          const matchScore = business.aiScore ?? (business as any).ai_score ?? 50;
+          const isHighMatch = matchScore >= 80;
+          const strokeWidth = isHighMatch ? 3.5 : 1.5;
+          const strokeDasharray = isHighMatch ? undefined : "4 4";
+
           // Add edge from category to business
           newEdges.push({
             id: `edge-${category.id}-${business.id}`,
             source: `category-${category.id}`,
             target: `business-${business.id}`,
             type: ConnectionLineType.Bezier,
-            animated: true,
+            animated: isHighMatch, // only animate high match connections to reduce clutter
             style: {
-              stroke: `url(#gradient-${category.id})`,
-              strokeWidth: 2,
+              stroke: isHighMatch ? `url(#gradient-${category.id})` : "#9ca3af",
+              strokeWidth,
+              strokeDasharray,
+              opacity: isHighMatch ? 0.9 : 0.4,
             },
             markerEnd: {
               type: MarkerType.ArrowClosed,
-              color: "#a855f7",
+              color: isHighMatch ? "#a855f7" : "#9ca3af",
             },
           });
         });
@@ -328,7 +338,7 @@ export function NeuralNetworkExplorer() {
           onSearchChange={setSearchQuery}
           onFilterClick={() => setShowFilters(!showFilters)}
           showFilters={showFilters}
-          activeFilterCount={selectedCategories.length + (showSaadhyamOnly ? 1 : 0) + (showVerifiedOnly ? 1 : 0)}
+          activeFilterCount={selectedCategories.length + (showSaadhyamOnly ? 1 : 0) + (showVerifiedOnly ? 1 : 0) + (showRelevantOnly ? 1 : 0)}
         />
       </div>
 
@@ -342,6 +352,8 @@ export function NeuralNetworkExplorer() {
         onSaadhyamOnlyChange={setShowSaadhyamOnly}
         showVerifiedOnly={showVerifiedOnly}
         onVerifiedOnlyChange={setShowVerifiedOnly}
+        showRelevantOnly={showRelevantOnly}
+        onRelevantOnlyChange={setShowRelevantOnly}
       />
 
       {/* Neural Network Visualization */}
@@ -402,12 +414,18 @@ export function NeuralNetworkExplorer() {
         </p>
         
         {/* Active Filters */}
-        {(showSaadhyamOnly || showVerifiedOnly || selectedCategories.length > 0) && (
+        {(showSaadhyamOnly || showVerifiedOnly || showRelevantOnly || selectedCategories.length > 0) && (
           <div className="mb-4 p-3 bg-purple-50 dark:bg-purple-900/20 rounded-xl border border-purple-200 dark:border-purple-800">
             <p className="text-xs font-semibold text-purple-900 dark:text-purple-100 mb-2">
               Active Filters:
             </p>
             <div className="flex flex-wrap gap-2">
+              {showRelevantOnly && (
+                <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-[10px] font-bold shadow-sm">
+                  <Sparkles className="w-2.5 h-2.5 animate-pulse" />
+                  Synergistic Only
+                </span>
+              )}
               {showSaadhyamOnly && (
                 <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 text-white text-[10px] font-bold">
                   <Sparkles className="w-3 h-3" />

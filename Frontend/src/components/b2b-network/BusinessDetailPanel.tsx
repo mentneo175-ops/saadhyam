@@ -30,6 +30,10 @@ export function BusinessDetailPanel({
   business,
   onClose,
 }: BusinessDetailPanelProps) {
+  const aiScore = business.aiScore ?? (business as any).ai_score;
+  const isVerified = business.isVerified ?? (business as any).is_verified;
+  const isPartner = business.isPartner ?? (business as any).is_partner;
+
   const [connectionStatus, setConnectionStatus] = useState<{
     connected: boolean;
     pending: boolean;
@@ -225,7 +229,7 @@ export function BusinessDetailPanel({
 
           {/* Badges */}
           <div className="flex flex-wrap gap-2 mb-6">
-            {business.isVerified && (
+            {isVerified && (
               <div className="px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 flex items-center gap-2">
                 <CheckCircle2 className="w-3 h-3 text-emerald-600" />
                 <span className="text-xs font-medium text-emerald-700">
@@ -233,7 +237,7 @@ export function BusinessDetailPanel({
                 </span>
               </div>
             )}
-            {business.isPartner && (
+            {isPartner && (
               <div className="px-3 py-1 rounded-full bg-purple-50 border border-purple-200 flex items-center gap-2">
                 <Sparkles className="w-3 h-3 text-purple-600" />
                 <span className="text-xs font-medium text-purple-700">
@@ -299,13 +303,13 @@ export function BusinessDetailPanel({
                 <p className="text-xs text-muted-foreground">Employees</p>
               </div>
             )}
-            {business.aiScore && (
-              <div className="p-4 rounded-xl bg-muted/50 border border-border/60">
+            {aiScore !== undefined && (
+              <div className="p-4 rounded-xl bg-purple-50 dark:bg-purple-950/20 border border-purple-100 dark:border-purple-900/40 shadow-sm animate-pulse">
                 <Sparkles className="w-5 h-5 text-purple-600 mb-2" />
-                <p className="text-2xl font-bold text-gray-900">
-                  {business.aiScore}
+                <p className="text-2xl font-bold text-purple-700 dark:text-purple-400">
+                  {aiScore}%
                 </p>
-                <p className="text-xs text-muted-foreground">AI Score</p>
+                <p className="text-xs text-purple-600 dark:text-purple-300">Synergy Match</p>
               </div>
             )}
           </div>

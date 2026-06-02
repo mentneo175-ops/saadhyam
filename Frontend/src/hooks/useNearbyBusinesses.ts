@@ -5,7 +5,8 @@ import { env } from "@/config/env";
 // Fetch function for React Query with timeout
 async function fetchNearbyBusinesses(
   radius: number,
-  saadhyamOnly?: boolean
+  saadhyamOnly?: boolean,
+  relevantOnly?: boolean
 ): Promise<Business[]> {
   const token = localStorage.getItem("saadhyam_token");
 
@@ -16,6 +17,9 @@ async function fetchNearbyBusinesses(
   const params = new URLSearchParams({ radius: radius.toString() });
   if (saadhyamOnly) {
     params.append("saadhyam_only", "true");
+  }
+  if (relevantOnly !== undefined) {
+    params.append("relevant_only", relevantOnly ? "true" : "false");
   }
 
   // Create abort controller for timeout
@@ -55,12 +59,13 @@ export function useNearbyBusinesses(
   userLat?: number,  // Not used anymore - gets from backend
   userLng?: number,  // Not used anymore - gets from backend
   radius: number = 50000,  // 50km radius for city-wide coverage
-  saadhyamOnly?: boolean  // Filter to show only Sadhyam users
+  saadhyamOnly?: boolean,  // Filter to show only Sadhyam users
+  relevantOnly: boolean = true  // Filter to show synergistic categories (default: true)
 ) {
   const { data: businesses = [], isLoading, error, refetch } = useQuery({
-    queryKey: ["nearby-businesses", radius, saadhyamOnly],
+    queryKey: ["nearby-businesses", radius, saadhyamOnly, relevantOnly],
     queryFn: async () => {
-      const result = await fetchNearbyBusinesses(radius, saadhyamOnly);
+      const result = await fetchNearbyBusinesses(radius, saadhyamOnly, relevantOnly);
       console.log('📊 useNearbyBusinesses received:', result.length, 'businesses');
       console.log('📊 First business:', result[0]);
       return result;

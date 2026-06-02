@@ -10,6 +10,8 @@ interface FilterPanelProps {
   onSaadhyamOnlyChange: (value: boolean) => void;
   showVerifiedOnly: boolean;
   onVerifiedOnlyChange: (value: boolean) => void;
+  showRelevantOnly: boolean;
+  onRelevantOnlyChange: (value: boolean) => void;
 }
 
 const categories = [
@@ -33,6 +35,8 @@ export function FilterPanel({
   onSaadhyamOnlyChange,
   showVerifiedOnly,
   onVerifiedOnlyChange,
+  showRelevantOnly,
+  onRelevantOnlyChange,
 }: FilterPanelProps) {
   const toggleCategory = (categoryId: string) => {
     if (selectedCategories.includes(categoryId)) {
@@ -48,6 +52,7 @@ export function FilterPanel({
     onCategoriesChange([]);
     onSaadhyamOnlyChange(false);
     onVerifiedOnlyChange(false);
+    onRelevantOnlyChange(true);
   };
 
   return (
@@ -100,6 +105,30 @@ export function FilterPanel({
                   Business Type
                 </h3>
                 <div className="space-y-3">
+                  {/* Synergistic Partners Only */}
+                  <motion.label
+                    whileHover={{ scale: 1.02 }}
+                    className="flex items-center gap-3 p-4 rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 border-2 border-blue-200 dark:border-blue-800/60 cursor-pointer"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={showRelevantOnly}
+                      onChange={(e) => onRelevantOnlyChange(e.target.checked)}
+                      className="w-5 h-5 rounded border-blue-300 text-purple-600 focus:ring-purple-500"
+                    />
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <Sparkles className="w-4 h-4 text-purple-600 animate-pulse" />
+                        <span className="font-semibold text-gray-900 dark:text-white">
+                          Synergistic Partners Only
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                        Show only categories relevant to your business type
+                      </p>
+                    </div>
+                  </motion.label>
+
                   {/* Saadhyam Partners Only */}
                   <motion.label
                     whileHover={{ scale: 1.02 }}

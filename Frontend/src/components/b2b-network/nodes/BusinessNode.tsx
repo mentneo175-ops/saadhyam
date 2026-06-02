@@ -13,12 +13,21 @@ interface BusinessNodeProps {
 export const BusinessNode = memo(({ data }: BusinessNodeProps) => {
   const { business } = data;
 
+  const aiScore = business.aiScore ?? (business as any).ai_score;
+  const isVerified = business.isVerified ?? (business as any).is_verified;
+  const isPartner = business.isPartner ?? (business as any).is_partner;
+  const isHighMatch = aiScore !== undefined && aiScore >= 80;
+
   return (
     <div className="relative">
-      {/* Node Container - No glow effects */}
+      {/* Node Container - Glow effect for high-synergy match */}
       <button
         onClick={data.onClick}
-        className="relative w-40 rounded-2xl bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 shadow-lg overflow-hidden hover:shadow-xl hover:border-purple-400 transition-all cursor-pointer"
+        className={`relative w-40 rounded-2xl bg-white dark:bg-gray-800 border-2 shadow-lg overflow-hidden hover:shadow-xl transition-all cursor-pointer ${
+          isHighMatch
+            ? "border-purple-500/80 shadow-purple-500/10 dark:shadow-purple-500/5 ring-1 ring-purple-500/30"
+            : "border-gray-200 dark:border-gray-700 hover:border-purple-400"
+        }`}
       >
         {/* Header - Special gradient for Saadhyam partners */}
         <div className={`h-16 flex items-center justify-center ${
@@ -59,8 +68,8 @@ export const BusinessNode = memo(({ data }: BusinessNodeProps) => {
                 <MapPin className="w-3 h-3" />
                 <span>
                   {business.distance_km < 1 
-                    ? `${Math.round(business.distance_km * 1000)}m`
-                    : `${business.distance_km}km`
+                     ? `${Math.round(business.distance_km * 1000)}m`
+                     : `${business.distance_km}km`
                   }
                 </span>
               </div>
@@ -76,21 +85,30 @@ export const BusinessNode = memo(({ data }: BusinessNodeProps) => {
 
           {/* Badges */}
           <div className="flex items-center gap-1 flex-wrap">
+            {aiScore !== undefined && (
+              <div className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-white text-[9px] font-bold shadow-sm ${
+                isHighMatch
+                  ? "bg-gradient-to-r from-purple-600 to-indigo-600 animate-pulse"
+                  : "bg-gray-500 dark:bg-gray-600"
+              }`}>
+                <span>⚡ {aiScore}% Synergy</span>
+              </div>
+            )}
             {business.source === "saadhyam" && (
-              <div className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 text-white text-[10px] font-bold shadow-lg">
-                <Sparkles className="w-2.5 h-2.5" />
+              <div className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 text-white text-[9px] font-bold shadow-md">
+                <Sparkles className="w-2 h-2" />
                 <span>SAADHYAM</span>
               </div>
             )}
-            {business.isVerified && business.source !== "saadhyam" && (
-              <div className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 text-[10px] font-medium">
-                <CheckCircle2 className="w-2.5 h-2.5" />
+            {isVerified && business.source !== "saadhyam" && (
+              <div className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 text-[9px] font-medium">
+                <CheckCircle2 className="w-2 h-2" />
                 <span>Verified</span>
               </div>
             )}
-            {business.isPartner && business.source !== "saadhyam" && (
-              <div className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 text-[10px] font-medium">
-                <Sparkles className="w-2.5 h-2.5" />
+            {isPartner && business.source !== "saadhyam" && (
+              <div className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 text-[9px] font-medium">
+                <Sparkles className="w-2 h-2" />
                 <span>Partner</span>
               </div>
             )}

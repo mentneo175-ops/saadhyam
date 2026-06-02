@@ -7,10 +7,13 @@ import logging
 from contextlib import asynccontextmanager
 from pathlib import Path
 from fastapi import FastAPI
+from fastapi import Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from dotenv import load_dotenv
 import socketio
+from sqlalchemy import inspect, select, text
+from sqlalchemy.ext.asyncio import AsyncSession
 
 # Load environment variables first from the backend workspace
 load_dotenv(Path(__file__).resolve().parent / ".env")
@@ -21,10 +24,46 @@ import os
 ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
 configure_logging(ENVIRONMENT)
 
-from config.database import init_db, close_db
+from config.database import init_db, close_db, get_db, sync_engine
 from config.settings import settings
 from migrations.add_name_column import migrate_add_name_column
 from services.realtime_service import realtime_service
+
+
+def ensure_notifications_schema():
+    try:
+        inspector = inspect(sync_engine)
+        if not inspector.has_table("notifications"):
+            return
+
+        columns = {column["name"] for column in inspector.get_columns("notifications")}
+        alterations = []
+
+        if "user_id" not in columns:
+            alterations.append("ADD COLUMN user_id INTEGER")
+        if "type" not in columns:
+            alterations.append("ADD COLUMN type VARCHAR(50) DEFAULT 'info'")
+        if "source" not in columns:
+            alterations.append("ADD COLUMN source VARCHAR(50) DEFAULT 'admin'")
+        if "is_read" not in columns:
+            alterations.append("ADD COLUMN is_read BOOLEAN DEFAULT FALSE")
+        if "read_at" not in columns:
+            alterations.append("ADD COLUMN read_at TIMESTAMP")
+        if "extra_data" not in columns:
+            alterations.append("ADD COLUMN extra_data JSON")
+        if "updated_at" not in columns:
+            alterations.append("ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+
+        if not alterations:
+            return
+
+        with sync_engine.begin() as connection:
+            for statement in alterations:
+                connection.execute(text(f"ALTER TABLE notifications {statement}"))
+
+        logging.info("✅ Notifications schema repaired for shared inbox support")
+    except Exception as e:
+        logging.warning(f"Notifications schema repair skipped: {e}")
 
 # Initialize Firebase Service
 try:
@@ -62,6 +101,20 @@ try:
 except Exception as e:
     logging.warning(f"Protected router not available: {e}")
     protected_available = False
+
+try:
+    from routes.notifications import router as notifications_router
+    notifications_available = True
+except Exception as e:
+    logging.warning(f"Notifications router not available: {e}")
+    notifications_available = False
+
+try:
+    from routes.internal_notifications import router as internal_notifications_router
+    internal_notifications_available = True
+except Exception as e:
+    logging.warning(f"Internal notifications router not available: {e}")
+    internal_notifications_available = False
 
 try:
     from routes.instagram import router as instagram_router
@@ -783,6 +836,8 @@ app.add_middleware(
     max_age=3600,  # Cache preflight requests for 1 hour
 )
 
+ensure_notifications_schema()
+
 # Include routers - only include those that loaded successfully
 print("=" * 60)
 print("REGISTERING ROUTERS...")
@@ -814,6 +869,21 @@ try:
         logging.error("❌ Protected router NOT available")
 except Exception as e:
     print(f"[FAIL] FAILED TO INCLUDE PROTECTED ROUTER: {e}")
+    import traceback
+    traceback.print_exc()
+
+try:
+    if notifications_available:
+        app.include_router(notifications_router)
+    if internal_notifications_available:
+        app.include_router(internal_notifications_router)
+        print("[OK] NOTIFICATIONS ROUTER INCLUDED")
+        logging.info("✅ Notifications router included in app")
+    else:
+        print("[FAIL] NOTIFICATIONS ROUTER NOT AVAILABLE")
+        logging.error("❌ Notifications router NOT available")
+except Exception as e:
+    print(f"[FAIL] FAILED TO INCLUDE NOTIFICATIONS ROUTER: {e}")
     import traceback
     traceback.print_exc()
 if instagram_available:
@@ -1027,7 +1097,74 @@ async def list_routes():
     return {"routes": routes}
 
 
-# The duplicate global exception handler has been removed to allow the comprehensive one above to catch all exceptions and format them nicely.
+@app.post("/api/admin/broadcast-notification")
+async def api_broadcast_notification(payload: dict, db: AsyncSession = Depends(get_db)):
+    title = payload.get("title")
+    message = payload.get("message")
+    notification_type = payload.get("type", "info")
+    user_id = payload.get("user_id")
+    email = payload.get("email")
+    target_type = payload.get("target_type") or ("targeted" if user_id or email else "global")
+    created_by = payload.get("created_by")
+    extra_data = payload.get("extra_data") or {
+        key: value
+        for key, value in payload.items()
+        if key not in {"title", "message", "type", "user_id", "email", "target_type", "created_by", "extra_data"}
+    }
+    
+    if not title or not message:
+        return {"ok": False, "error": "Title and message are required"}
+
+    from models.notification import UserNotification
+    from models.user import User
+
+    recipient_ids: list[int] = []
+    if user_id:
+        recipient_ids = [int(user_id)]
+    elif email:
+        result = await db.execute(select(User).where(User.email == email.strip()))
+        matched_user = result.scalars().first()
+        if matched_user:
+            recipient_ids = [matched_user.id]
+
+    if not recipient_ids:
+        result = await db.execute(select(User.id).where(User.is_active.is_(True)))
+        recipient_ids = [row[0] for row in result.all()]
+
+    persisted_notifications: list[UserNotification] = []
+    for recipient_id in recipient_ids:
+        notification_row = UserNotification(
+            user_id=recipient_id,
+            title=title.strip(),
+            message=message.strip(),
+            type=notification_type,
+            target_type=target_type,
+            source="admin",
+            created_by=created_by,
+            extra_data=extra_data or None,
+        )
+        db.add(notification_row)
+        persisted_notifications.append(notification_row)
+
+    await db.commit()
+
+    for notification_row in persisted_notifications:
+        await db.refresh(notification_row)
+        await realtime_service.notify_user(
+            notification_row.user_id,
+            {
+                "id": notification_row.id,
+                "title": notification_row.title,
+                "message": notification_row.message,
+                "type": notification_row.type,
+                "target_type": notification_row.target_type,
+                "source": notification_row.source,
+                "created_by": notification_row.created_by,
+                "extra_data": notification_row.extra_data,
+            },
+        )
+
+    return {"ok": True, "delivered_to": len(persisted_notifications)}
 
 
 if __name__ == "__main__":

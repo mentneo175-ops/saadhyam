@@ -34,6 +34,7 @@ import {
   ArrowLeft,
   Youtube,
   Share2,
+  LifeBuoy,
 } from "lucide-react";
 
 type SubNavItem = {
@@ -77,6 +78,7 @@ const items: NavItem[] = [
   { to: "/dashboard/pricing", label: "Pricing", icon: DollarSign },
   // { to: "/dashboard/automation", label: "Automation", icon: Workflow },
   { to: "/dashboard/settings", label: "Settings", icon: Settings },
+  { to: "/dashboard/support", label: "Support", icon: LifeBuoy },
 ];
 
 export function Sidebar() {

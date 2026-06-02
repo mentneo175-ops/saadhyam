@@ -13,11 +13,11 @@ const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
 const STORAGE_KEY = "saadhyam-theme";
 
 function getStoredTheme(): Theme {
-  if (typeof window === "undefined") return "light";
+  if (typeof window === "undefined") return "dark";
   const stored = localStorage.getItem(STORAGE_KEY);
   if (stored === "light" || stored === "dark") return stored;
-  // Default to light
-  return "light";
+  // Default to dark
+  return "dark";
 }
 
 function applyTheme(theme: Theme) {
@@ -31,7 +31,7 @@ function applyTheme(theme: Theme) {
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>("light");
+  const [theme, setThemeState] = useState<Theme>("dark");
 
   const setTheme = useCallback((newTheme: Theme) => {
     setThemeState(newTheme);
@@ -50,7 +50,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       setThemeState(stored);
       applyTheme(stored);
     } else {
-      applyTheme("light");
+      applyTheme("dark");
     }
   }, []);
 

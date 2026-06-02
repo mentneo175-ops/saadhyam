@@ -4,13 +4,12 @@
  * Listens to the global `feature-blocked` CustomEvent dispatched by api.ts
  * whenever the backend returns a 503 for a feature action.
  *
- * Renders a non-blocking subscription/maintenance banner so the feature page
- * stays accessible while the blocked action is explained to the user.
+ * Renders a centered modal card so blocked features are immediately visible
+ * on entry and can be dismissed with OK.
  */
 
 import { useEffect, useState, useCallback } from "react";
-import { Shield, WrenchIcon, ArrowLeft, RefreshCw, Clock } from "lucide-react";
-import { Link } from "@tanstack/react-router";
+import { AlertTriangle, Shield, WrenchIcon } from "lucide-react";
 import { useAuthContext } from "@/lib/AuthContext";
 import { getUpgradePlansForFeature, normalizePackKey } from "@/config/subscriptions";
 
@@ -65,75 +64,73 @@ export function FeatureDisabledBanner() {
       : `Subscription needed for ${featureName}. You can open the page, but this action is locked until you upgrade or your usage limit resets.`);
 
   return (
-    <div className="mx-4 mb-4 rounded-2xl border border-purple-200 bg-white/95 p-4 shadow-sm backdrop-blur-sm">
-      <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-        <div className="flex items-start gap-3">
-          <div className={`mt-0.5 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${isMaintenance ? "bg-amber-100" : "bg-purple-100"}`}>
+    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/60 px-4 py-6 backdrop-blur-sm">
+      <div className="w-full max-w-xl rounded-3xl border border-white/10 bg-white p-6 shadow-2xl dark:bg-slate-950">
+        <div className="flex items-start gap-4">
+          <div className={`inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl ${isMaintenance ? "bg-amber-100" : "bg-purple-100"}`}>
             {isMaintenance ? (
-              <WrenchIcon className="h-5 w-5 text-amber-600" />
+              <WrenchIcon className="h-6 w-6 text-amber-600" />
             ) : (
-              <Shield className="h-5 w-5 text-purple-600" />
+              <Shield className="h-6 w-6 text-purple-600" />
             )}
           </div>
 
-          <div>
-            <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-sm font-semibold text-gray-900">
-                {isMaintenance ? "Under Maintenance" : "Subscription needed"}
-              </h1>
-              {blocked.feature_key && (
-                <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-600">
-                  {featureName}
-                </span>
-              )}
-              {requiresSubscription && (
-                <span className="rounded-full bg-purple-100 px-2 py-0.5 text-[11px] font-medium text-purple-700">
-                  Action locked
-                </span>
-              )}
-            </div>
-            <p className="mt-1 text-sm text-gray-700">{message}</p>
-            <p className="mt-1 text-xs text-gray-500">
-              {isMaintenance
-                ? "You can keep browsing this page while we fix it."
-                : "The page stays open, but generate/download/publish actions remain locked until you upgrade or the limit resets."}
+          <div className="min-w-0 flex-1">
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">
+              Feature alert
             </p>
+            <h1 className="mt-2 text-2xl font-bold text-slate-900 dark:text-white">
+              {isMaintenance ? "Feature under maintenance" : "Feature disabled"}
+            </h1>
+            <p className="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300">
+              {message}
+            </p>
+
+            <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-200">
+              {blocked.feature_key && (
+                <div className="flex items-center gap-2">
+                  <AlertTriangle className="h-4 w-4 text-amber-500" />
+                  <span className="font-semibold">{featureName}</span>
+                </div>
+              )}
+              <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+                {isMaintenance
+                  ? "This feature is temporarily unavailable while maintenance is in progress."
+                  : "This feature is currently disabled by the super admin."}
+              </p>
+            </div>
+
+            <div className="mt-6 flex justify-end">
+              <button
+                onClick={dismiss}
+                className="inline-flex items-center justify-center rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200"
+              >
+                OK
+              </button>
+            </div>
+
+            {!isMaintenance && upgradePlans.length > 0 ? (
+              <div className="mt-4 flex flex-wrap gap-2">
+                {upgradePlans.map((plan) => (
+                  <a
+                    key={plan.key}
+                    href="/dashboard/pricing"
+                    onClick={(event) => {
+                      event.preventDefault();
+                      dismiss();
+                      window.location.href = `/dashboard/checkout?plan=${encodeURIComponent(plan.key)}&upgrade_from=${encodeURIComponent(currentPlanKey)}`;
+                    }}
+                    className="inline-flex items-center gap-2 rounded-full border border-purple-200 bg-purple-50 px-3 py-1.5 text-xs font-semibold text-purple-700 transition hover:bg-purple-100"
+                  >
+                    {plan.name}
+                    <span className="text-purple-500">{plan.price}</span>
+                  </a>
+                ))}
+              </div>
+            ) : null}
           </div>
         </div>
-
-        <div className="flex flex-wrap gap-2">
-          <Link
-            to="/dashboard/pricing"
-            onClick={dismiss}
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#8B5CF6] to-[#A855F7] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:from-[#7C3AED] hover:to-[#9333EA]"
-          >
-            Upgrade
-          </Link>
-          <button
-            onClick={dismiss}
-            className="inline-flex items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
-          >
-            Dismiss
-          </button>
-        </div>
       </div>
-
-      {!isMaintenance && upgradePlans.length > 0 ? (
-        <div className="mt-3 flex flex-wrap gap-2">
-          {upgradePlans.map((plan) => (
-            <Link
-              key={plan.key}
-              to="/dashboard/checkout"
-              search={{ plan: plan.key, upgrade_from: currentPlanKey }}
-              onClick={dismiss}
-              className="inline-flex items-center gap-2 rounded-full border border-purple-200 bg-purple-50 px-3 py-1.5 text-xs font-semibold text-purple-700 transition hover:bg-purple-100"
-            >
-              {plan.name}
-              <span className="text-purple-500">{plan.price}</span>
-            </Link>
-          ))}
-        </div>
-      ) : null}
     </div>
   );
 }

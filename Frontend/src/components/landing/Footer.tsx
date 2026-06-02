@@ -46,16 +46,19 @@ export function Footer() {
             <div key={col.title}>
               <h4 className="text-sm font-semibold mb-3">{col.title}</h4>
               <ul className="space-y-2">
-                {col.items.map((it) => (
-                  <li key={it}>
-                    <a
-                      href="#"
-                      className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                    >
-                      {it}
-                    </a>
-                  </li>
-                ))}
+                {col.items.map((it) => {
+                  const href = it === "Contact" ? "mailto:info@saadhyam.com" : "#";
+                  return (
+                    <li key={it}>
+                      <a
+                        href={href}
+                        className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        {it}
+                      </a>
+                    </li>
+                  );
+                })}
               </ul>
             </div>
           ))}

@@ -1,5 +1,4 @@
 import {
-  Bell,
   ChevronDown,
   Sparkles,
   Building2,
@@ -15,6 +14,7 @@ import { useNavigate, useRouter, useLocation } from "@tanstack/react-router";
 import { useDashboardContext } from "@/contexts/DashboardContext";
 import { useSidebar } from "@/contexts/SidebarContext";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
+import { NotificationCenter } from "@/components/notifications";
 
 interface BusinessProfile {
   business_name?: string;
@@ -192,15 +192,7 @@ export function TopHeader() {
         </button>
 
         {/* Notifications */}
-        <button
-          aria-label="Notifications"
-          className="relative h-9 w-9 rounded-lg border border-purple-200 dark:border-purple-800 hover:bg-purple-50 dark:hover:bg-purple-900/30 flex items-center justify-center transition shadow-sm"
-        >
-          <Bell size={16} className="text-purple-600" />
-          <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-red-500 ring-2 ring-white flex items-center justify-center">
-            <span className="text-[8px] text-white font-bold">3</span>
-          </span>
-        </button>
+        <NotificationCenter />
 
         {/* Profile Dropdown */}
         <div className="relative">

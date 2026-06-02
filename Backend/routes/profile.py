@@ -453,6 +453,28 @@ async def confirm_selected_plan(
 
         logger.info(f"✅ Selected plan {request.plan_key} saved for user {current_user.id}")
 
+        # Send internal notification to admin service
+        try:
+            import httpx
+            admin_url = os.getenv("ADMIN_SERVICE_URL", "http://127.0.0.1:8082")
+            headers = {
+                "X-Internal-Token": os.getenv("ADMIN_INTERNAL_NOTIFICATION_TOKEN", "dev-admin-notification-token"),
+                "Content-Type": "application/json"
+            }
+            noti_payload = {
+                "title": "Subscription Purchased",
+                "message": f"User {current_user.email} purchased {request.plan_name} ({request.plan_key}) for {request.plan_price}!",
+                "target_type": "subscription",
+                "target_user_id": current_user.id,
+                "created_by": current_user.id
+            }
+            # Perform async POST request to admin service
+            async with httpx.AsyncClient(timeout=3.0) as client:
+                await client.post(f"{admin_url}/api/notifications/internal", json=noti_payload, headers=headers)
+            logger.info("Sent purchase notification to admin service")
+        except Exception as admin_err:
+            logger.error(f"Failed to send purchase notification to admin service: {admin_err}")
+
         return {
             "status": "success",
             "message": "Selected plan saved successfully",

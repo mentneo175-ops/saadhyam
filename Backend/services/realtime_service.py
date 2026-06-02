@@ -383,6 +383,19 @@ class RealtimeService:
         except Exception as e:
             logger.error(f"[ERROR] Failed to broadcast youtube analytics: {e}")
     
+    async def broadcast_notification(self, notification: Dict[str, Any]):
+        """
+        Broadcast notification to all connected users
+        """
+        try:
+            await self.sio.emit('notification', {
+                'notification': notification,
+                'timestamp': datetime.now().isoformat()
+            })
+            logger.info("[SUCCESS] Broadcasted notification to all users")
+        except Exception as e:
+            logger.error(f"[ERROR] Failed to broadcast notification: {e}")
+    
     def is_user_online(self, user_id: int) -> bool:
         """
         Check if user is currently online

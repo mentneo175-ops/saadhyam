@@ -44,6 +44,27 @@ export interface User {
   created_at: string;
 }
 
+export interface UserNotification {
+  id: number;
+  user_id: number;
+  title: string;
+  message: string;
+  type: string;
+  target_type: string;
+  source: string;
+  created_by?: number | null;
+  is_read: boolean;
+  read_at?: string | null;
+  extra_data?: Record<string, any> | null;
+  created_at: string;
+}
+
+export interface NotificationsResponse {
+  notifications: UserNotification[];
+  total: number;
+  unread_count: number;
+}
+
 export interface AuthResponse {
   access_token: string;
   token_type: string;
@@ -575,6 +596,30 @@ class ApiClient {
 
     this.saveUser(user);
     return user;
+  }
+
+  /**
+   * Fetch user notifications from the main backend inbox.
+   */
+  async getNotifications(limit: number = 50, unreadOnly: boolean = true): Promise<NotificationsResponse> {
+    const params = new URLSearchParams();
+    params.append("limit", String(limit));
+    params.append("unread_only", unreadOnly ? "true" : "false");
+    return this.get(`/api/notifications?${params.toString()}`);
+  }
+
+  /**
+   * Mark a single notification as read.
+   */
+  async markNotificationRead(notificationId: number): Promise<any> {
+    return this.post(`/api/notifications/${notificationId}/read`);
+  }
+
+  /**
+   * Mark all unread notifications as read.
+   */
+  async markAllNotificationsRead(): Promise<any> {
+    return this.post("/api/notifications/mark-all-read");
   }
 
   /**

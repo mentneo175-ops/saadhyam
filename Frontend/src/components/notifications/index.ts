@@ -1,4 +1,5 @@
 export { NotificationProvider, useNotifications } from './NotificationSystem';
+export { NotificationCenter } from './NotificationCenter';
 export { Toast } from './Toast';
 export { GlobalBanner } from './GlobalBanner';
 export { FormValidation, ValidatedInput } from './FormValidation';

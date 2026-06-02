@@ -25,6 +25,7 @@ from models.task_tracking import (
     GrowthMetric,
     TaskTemplate,
 )
+from models.notification import UserNotification
 from models.influencer import Influencer
 
 # YouTube Models
@@ -75,6 +76,7 @@ __all__ = [
     "DailyTask",
     "GrowthMetric",
     "TaskTemplate",
+    "UserNotification",
     "Influencer",
     "YouTubeChannel",
     "YouTubeVideo",

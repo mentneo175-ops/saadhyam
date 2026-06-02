@@ -24,6 +24,7 @@ import { Route as DashboardYoutubeRouteImport } from './routes/dashboard.youtube
 import { Route as DashboardWhatsappSalesRouteImport } from './routes/dashboard.whatsapp-sales'
 import { Route as DashboardWhatsappRouteImport } from './routes/dashboard.whatsapp'
 import { Route as DashboardWebsiteRouteImport } from './routes/dashboard.website'
+import { Route as DashboardSupportRouteImport } from './routes/dashboard.support'
 import { Route as DashboardSettingsRouteImport } from './routes/dashboard.settings'
 import { Route as DashboardSeoGoogleMapsRouteImport } from './routes/dashboard.seo-google-maps'
 import { Route as DashboardSeoRouteImport } from './routes/dashboard.seo'
@@ -143,6 +144,11 @@ const DashboardWhatsappRoute = DashboardWhatsappRouteImport.update({
 const DashboardWebsiteRoute = DashboardWebsiteRouteImport.update({
   id: '/website',
   path: '/website',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardSupportRoute = DashboardSupportRouteImport.update({
+  id: '/support',
+  path: '/support',
   getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardSettingsRoute = DashboardSettingsRouteImport.update({
@@ -429,6 +435,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/seo': typeof DashboardSeoRoute
   '/dashboard/seo-google-maps': typeof DashboardSeoGoogleMapsRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
+  '/dashboard/support': typeof DashboardSupportRoute
   '/dashboard/website': typeof DashboardWebsiteRoute
   '/dashboard/whatsapp': typeof DashboardWhatsappRoute
   '/dashboard/whatsapp-sales': typeof DashboardWhatsappSalesRoute
@@ -489,6 +496,7 @@ export interface FileRoutesByTo {
   '/dashboard/seo': typeof DashboardSeoRoute
   '/dashboard/seo-google-maps': typeof DashboardSeoGoogleMapsRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
+  '/dashboard/support': typeof DashboardSupportRoute
   '/dashboard/website': typeof DashboardWebsiteRoute
   '/dashboard/whatsapp': typeof DashboardWhatsappRoute
   '/dashboard/whatsapp-sales': typeof DashboardWhatsappSalesRoute
@@ -550,6 +558,7 @@ export interface FileRoutesById {
   '/dashboard/seo': typeof DashboardSeoRoute
   '/dashboard/seo-google-maps': typeof DashboardSeoGoogleMapsRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
+  '/dashboard/support': typeof DashboardSupportRoute
   '/dashboard/website': typeof DashboardWebsiteRoute
   '/dashboard/whatsapp': typeof DashboardWhatsappRoute
   '/dashboard/whatsapp-sales': typeof DashboardWhatsappSalesRoute
@@ -614,6 +623,7 @@ export interface FileRouteTypes {
     | '/dashboard/seo'
     | '/dashboard/seo-google-maps'
     | '/dashboard/settings'
+    | '/dashboard/support'
     | '/dashboard/website'
     | '/dashboard/whatsapp'
     | '/dashboard/whatsapp-sales'
@@ -674,6 +684,7 @@ export interface FileRouteTypes {
     | '/dashboard/seo'
     | '/dashboard/seo-google-maps'
     | '/dashboard/settings'
+    | '/dashboard/support'
     | '/dashboard/website'
     | '/dashboard/whatsapp'
     | '/dashboard/whatsapp-sales'
@@ -734,6 +745,7 @@ export interface FileRouteTypes {
     | '/dashboard/seo'
     | '/dashboard/seo-google-maps'
     | '/dashboard/settings'
+    | '/dashboard/support'
     | '/dashboard/website'
     | '/dashboard/whatsapp'
     | '/dashboard/whatsapp-sales'
@@ -877,6 +889,13 @@ declare module '@tanstack/react-router' {
       path: '/website'
       fullPath: '/dashboard/website'
       preLoaderRoute: typeof DashboardWebsiteRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/support': {
+      id: '/dashboard/support'
+      path: '/support'
+      fullPath: '/dashboard/support'
+      preLoaderRoute: typeof DashboardSupportRouteImport
       parentRoute: typeof DashboardRoute
     }
     '/dashboard/settings': {
@@ -1293,6 +1312,7 @@ interface DashboardRouteChildren {
   DashboardSeoRoute: typeof DashboardSeoRoute
   DashboardSeoGoogleMapsRoute: typeof DashboardSeoGoogleMapsRoute
   DashboardSettingsRoute: typeof DashboardSettingsRoute
+  DashboardSupportRoute: typeof DashboardSupportRoute
   DashboardWebsiteRoute: typeof DashboardWebsiteRoute
   DashboardWhatsappRoute: typeof DashboardWhatsappRoute
   DashboardWhatsappSalesRoute: typeof DashboardWhatsappSalesRoute
@@ -1339,6 +1359,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardSeoRoute: DashboardSeoRoute,
   DashboardSeoGoogleMapsRoute: DashboardSeoGoogleMapsRoute,
   DashboardSettingsRoute: DashboardSettingsRoute,
+  DashboardSupportRoute: DashboardSupportRoute,
   DashboardWebsiteRoute: DashboardWebsiteRoute,
   DashboardWhatsappRoute: DashboardWhatsappRoute,
   DashboardWhatsappSalesRoute: DashboardWhatsappSalesRoute,

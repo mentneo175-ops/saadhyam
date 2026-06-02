@@ -10,7 +10,9 @@ import {
   type FeatureStatus,
 } from "@/config/subscriptions";
 import { Lock, Sparkles, ArrowRight, Crown, Zap, Shield } from "lucide-react";
-import { type ReactNode, useMemo } from "react";
+import { type ReactNode, useMemo, useState, useEffect } from "react";
+import { getAdminApiBaseUrl } from "@/lib/runtimeUrls";
+import { FeatureDisabledState } from "@/components/feature/FeatureDisabledState";
 
 interface FeatureUpgradeGuardProps {
   children: ReactNode;
@@ -30,12 +32,100 @@ const PLAN_GRADIENTS: Record<string, string> = {
   enterprise: "from-emerald-500 to-teal-500",
 };
 
+function getGlobalFeatureKey(pathname: string): string | null {
+  const path = pathname.toLowerCase();
+  if (path.includes("/dashboard/website")) return "website_ai";
+  if (path.includes("/dashboard/content")) return "content_scheduler";
+  if (path.includes("/dashboard/voice-agent")) return "voice_agent";
+  if (path.includes("/dashboard/aeo-geo") || path.includes("/dashboard/seo")) return "aeo_geo";
+  if (path.includes("/dashboard/instagram")) return "instagram_manager";
+  if (path.includes("/dashboard/whatsapp")) return "whatsapp_campaigns";
+  if (path.includes("/dashboard/b2b-network") || path.includes("/dashboard/b2b-chat")) return "b2b_network";
+  if (path.includes("/dashboard/meta-ads")) return "meta_ads";
+  return null;
+}
+
 export function FeatureUpgradeGuard({ children }: FeatureUpgradeGuardProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const { user } = useAuthContext();
+  const [globalStatus, setGlobalStatus] = useState<{ status: string; reason?: string } | null>(null);
+  const [isGlobalNoticeOpen, setIsGlobalNoticeOpen] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+    const fetchFlags = async () => {
+      try {
+        const adminUrl = getAdminApiBaseUrl();
+        const res = await fetch(`${adminUrl}/api/features/public`);
+        if (res.ok && active) {
+          const flags = await res.json();
+          const routeKey = getGlobalFeatureKey(location.pathname);
+          if (routeKey) {
+            const flag = flags.find((f: any) => f.key === routeKey);
+            if (flag && flag.status !== "enabled") {
+              setGlobalStatus({ status: flag.status, reason: flag.reason });
+              setIsGlobalNoticeOpen(true);
+            } else {
+              setGlobalStatus(null);
+              setIsGlobalNoticeOpen(true);
+            }
+          } else {
+            setGlobalStatus(null);
+            setIsGlobalNoticeOpen(true);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch global feature flags", err);
+      }
+    };
+
+    fetchFlags();
+    return () => {
+      active = false;
+    };
+  }, [location.pathname]);
 
   const currentPlanKey = normalizePackKey(user?.selected_plan_key);
+
+  useEffect(() => {
+    const routeKey = getGlobalFeatureKey(location.pathname);
+    if (!routeKey || globalStatus) return;
+
+    // Check if the user plan excludes the feature
+    const featureName = resolveFeatureFromPath(location.pathname);
+    if (featureName) {
+      const planStatus = PACK_FEATURE_MATRIX[currentPlanKey]?.[featureName];
+      if (planStatus === "excluded") {
+        return; // Excluded - don't record usage
+      }
+    }
+
+    const recordUsage = async () => {
+      try {
+        const adminUrl = getAdminApiBaseUrl();
+        await fetch(`${adminUrl}/api/admin/analytics/feature-usage/event`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            feature_key: routeKey,
+            path: location.pathname,
+            user_id: user?.id,
+            metadata: {
+              plan: currentPlanKey,
+              email: user?.email,
+            },
+          }),
+        });
+      } catch (err) {
+        console.error("Failed to record feature usage event", err);
+      }
+    };
+
+    recordUsage();
+  }, [location.pathname, globalStatus, currentPlanKey, user?.id, user?.email]);
 
   const gateInfo = useMemo(() => {
     const featureName = resolveFeatureFromPath(location.pathname);
@@ -53,6 +143,27 @@ export function FeatureUpgradeGuard({ children }: FeatureUpgradeGuardProps) {
       currentPlanName: PACK_LABELS[currentPlanKey],
     };
   }, [location.pathname, currentPlanKey]);
+
+  if (globalStatus) {
+    const isMaintenance = globalStatus.status === "maintenance";
+    const title = isMaintenance ? "Feature Under Maintenance" : "Feature Disabled";
+    const message = isMaintenance
+      ? globalStatus.reason || "This feature is currently under maintenance. We will have it back for you soon."
+      : globalStatus.reason || "This feature is disabled and will be available soon.";
+    return (
+      <>
+        {children}
+        {isGlobalNoticeOpen && (
+          <FeatureDisabledState
+            title={title}
+            message={message}
+            featureLabel={getGlobalFeatureKey(location.pathname) || undefined}
+            onDismiss={() => setIsGlobalNoticeOpen(false)}
+          />
+        )}
+      </>
+    );
+  }
 
   if (!gateInfo) {
     return <>{children}</>;

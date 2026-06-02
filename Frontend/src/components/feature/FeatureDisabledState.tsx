@@ -1,30 +1,30 @@
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { AlertTriangle, ArrowLeft, RefreshCw } from "lucide-react";
+import { AlertTriangle } from "lucide-react";
 
 type FeatureDisabledStateProps = {
   title: string;
   message?: string;
   featureLabel?: string;
+  onDismiss?: () => void;
 };
 
 export function FeatureDisabledState({
   title,
   message,
   featureLabel,
+  onDismiss,
 }: FeatureDisabledStateProps) {
-  const standardMessage = "This feature is temporarily disabled by administrators. It will be available in a few days.";
+  const standardMessage = "This feature is disabled and will be available soon.";
   
   let displayMessage = message || standardMessage;
   
-  if (featureLabel && typeof window !== "undefined") {
+  if (!message && featureLabel && typeof window !== "undefined") {
     try {
       const stored = localStorage.getItem("saadhyam_feature_blocks");
       if (stored) {
         const entries = JSON.parse(stored);
         const match = entries.find((e: any) => e.feature_key === featureLabel);
         if (match && match.mode === "maintenance") {
-          displayMessage = "This feature is currently under maintenance. It will be available in a few days.";
+          displayMessage = "This feature is currently under maintenance. We will have it back for you soon.";
         }
       }
     } catch (e) {
@@ -33,41 +33,41 @@ export function FeatureDisabledState({
   }
 
   // Ensure compliance with user's required wording
-  if (!message || displayMessage.includes("disabled by your admin") || displayMessage.includes("currently disabled by your admin")) {
+  if (displayMessage.includes("disabled by your admin") || displayMessage.includes("currently disabled by your admin")) {
     displayMessage = standardMessage;
   }
 
   return (
-    <div className="min-h-[60vh] flex items-center justify-center p-6">
-      <Card className="max-w-2xl w-full border-amber-200 bg-amber-50/60 shadow-sm">
-        <CardContent className="p-8 text-center space-y-6">
-          <div className="mx-auto h-14 w-14 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center">
-            <AlertTriangle size={28} />
+    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/60 px-4 py-6 backdrop-blur-sm">
+      <div className="w-full max-w-xl rounded-3xl border border-white/10 bg-white p-6 shadow-2xl dark:bg-slate-950">
+        <div className="flex items-start gap-4">
+          <div className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-100 text-amber-700">
+            <AlertTriangle size={24} />
           </div>
 
-          <div className="space-y-2">
-            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-amber-700">
-              Feature unavailable
+          <div className="min-w-0 flex-1">
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">
+              Feature alert
             </p>
-            <h1 className="text-2xl font-bold text-gray-900">{title}</h1>
-            <p className="text-sm text-gray-600 max-w-xl mx-auto">{displayMessage}</p>
+            <h1 className="mt-2 text-2xl font-bold text-slate-900 dark:text-white">{title}</h1>
+            <p className="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300">{displayMessage}</p>
             {featureLabel && (
-              <p className="text-xs text-gray-500">Feature key: {featureLabel}</p>
+              <p className="mt-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-xs text-slate-500 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-400">
+                Feature key: {featureLabel}
+              </p>
             )}
-          </div>
 
-          <div className="flex flex-wrap justify-center gap-3">
-            <Button variant="outline" onClick={() => window.history.back()}>
-              <ArrowLeft size={16} className="mr-2" />
-              Go back
-            </Button>
-            <Button onClick={() => window.location.reload()} className="bg-amber-600 hover:bg-amber-700">
-              <RefreshCw size={16} className="mr-2" />
-              Check again
-            </Button>
+            <div className="mt-6 flex justify-end">
+              <button
+                onClick={onDismiss}
+                className="inline-flex items-center justify-center rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200"
+              >
+                OK
+              </button>
+            </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }

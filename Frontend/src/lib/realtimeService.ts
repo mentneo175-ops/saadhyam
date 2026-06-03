@@ -49,13 +49,10 @@ class RealtimeService {
    */
   connect(userId: number): void {
     if (this.socket?.connected) {
-      console.log('✅ Already connected to real-time server');
       return;
     }
 
     this.userId = userId;
-
-    console.log('🔌 Connecting to real-time server...', { userId, url: BACKEND_URL });
 
     this.socket = io(BACKEND_URL, {
       auth: {
@@ -63,9 +60,10 @@ class RealtimeService {
       },
       transports: ['websocket', 'polling'],
       reconnection: true,
-      reconnectionDelay: 1000,
-      reconnectionDelayMax: 5000,
-      reconnectionAttempts: this.maxReconnectAttempts,
+      reconnectionDelay: 2000,
+      reconnectionDelayMax: 10000,
+      reconnectionAttempts: 3,
+      timeout: 5000,
     });
 
     this.setupEventHandlers();
@@ -76,7 +74,6 @@ class RealtimeService {
    */
   disconnect(): void {
     if (this.socket) {
-      console.log('🔌 Disconnecting from real-time server...');
       this.socket.disconnect();
       this.socket = null;
       this.userId = null;
@@ -99,56 +96,46 @@ class RealtimeService {
 
     // Connection events
     this.socket.on('connect', () => {
-      console.log('✅ Connected to real-time server', { socketId: this.socket?.id });
       this.reconnectAttempts = 0;
       this.emit('connected', { socketId: this.socket?.id });
     });
 
     this.socket.on('disconnect', (reason) => {
-      console.log('❌ Disconnected from real-time server', { reason });
       this.emit('disconnected', { reason });
     });
 
-    this.socket.on('connect_error', (error) => {
-      console.error('❌ Connection error:', error);
+    this.socket.on('connect_error', () => {
       this.reconnectAttempts++;
       
       if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-        console.error('❌ Max reconnection attempts reached');
-        this.emit('connection_failed', { error });
+        this.emit('connection_failed', {});
       }
     });
 
     // User presence events
     this.socket.on('user_online', (data: UserPresence) => {
-      console.log('👤 User online:', data);
       this.emit('user_online', data);
     });
 
     this.socket.on('user_offline', (data: UserPresence) => {
-      console.log('👤 User offline:', data);
       this.emit('user_offline', data);
     });
 
     // Message events
     this.socket.on('new_message', (data: { conversation_id: number; message: RealtimeMessage; timestamp: string }) => {
-      console.log('📨 New message:', data);
       this.emit('new_message', data);
     });
 
     this.socket.on('user_typing', (data: TypingStatus) => {
-      console.log('⌨️ User typing:', data);
       this.emit('user_typing', data);
     });
 
     this.socket.on('message_read', (data: any) => {
-      console.log('✓✓ Message read:', data);
       this.emit('message_read', data);
     });
 
     // Notification events
     this.socket.on('notification', (data: Notification) => {
-      console.log('🔔 Notification:', data);
       this.emit('notification', data);
     });
   }
@@ -163,8 +150,6 @@ class RealtimeService {
         return;
       }
 
-      console.log('🚪 Joining conversation:', { conversationId, userId: this.userId });
-
       this.socket.emit(
         'join_conversation',
         {
@@ -172,7 +157,6 @@ class RealtimeService {
           user_id: this.userId,
         },
         (response: any) => {
-          console.log('✅ Joined conversation:', response);
           resolve(response);
         }
       );
@@ -189,8 +173,6 @@ class RealtimeService {
         return;
       }
 
-      console.log('🚪 Leaving conversation:', { conversationId, userId: this.userId });
-
       this.socket.emit(
         'leave_conversation',
         {
@@ -198,7 +180,6 @@ class RealtimeService {
           user_id: this.userId,
         },
         (response: any) => {
-          console.log('✅ Left conversation:', response);
           resolve(response);
         }
       );

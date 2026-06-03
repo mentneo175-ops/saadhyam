@@ -215,7 +215,8 @@ async def get_questions(
 async def search_questions_semantic(
     query: str,
     top_k: int = 5,
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
 ) -> Dict[str, Any]:
     """
     Search for similar questions using semantic search (Pinecone)
@@ -235,7 +236,7 @@ async def search_questions_semantic(
             detail="Query text is required"
         )
     
-    results = await search_similar_questions(current_user, query.strip(), top_k)
+    results = await search_similar_questions(current_user, db, query.strip(), top_k)
     
     return {
         "status": "success",

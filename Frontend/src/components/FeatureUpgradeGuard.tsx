@@ -9,7 +9,7 @@ import {
   type PackKey,
   type FeatureStatus,
 } from "@/config/subscriptions";
-import { Lock, Sparkles, ArrowRight, Crown, Zap, Shield } from "lucide-react";
+import { Lock, Sparkles, ArrowRight, Crown, Zap, Shield, X } from "lucide-react";
 import { type ReactNode, useMemo, useState, useEffect } from "react";
 import { getAdminApiBaseUrl } from "@/lib/runtimeUrls";
 import { FeatureDisabledState } from "@/components/feature/FeatureDisabledState";
@@ -86,6 +86,12 @@ export function FeatureUpgradeGuard({ children }: FeatureUpgradeGuardProps) {
     };
   }, [location.pathname]);
 
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   const currentPlanKey = normalizePackKey(user?.selected_plan_key);
 
   useEffect(() => {
@@ -128,6 +134,8 @@ export function FeatureUpgradeGuard({ children }: FeatureUpgradeGuardProps) {
   }, [location.pathname, globalStatus, currentPlanKey, user?.id, user?.email]);
 
   const gateInfo = useMemo(() => {
+    if (!isMounted) return null;
+
     const featureName = resolveFeatureFromPath(location.pathname);
     if (!featureName) return null;
 
@@ -142,7 +150,13 @@ export function FeatureUpgradeGuard({ children }: FeatureUpgradeGuardProps) {
       upgradePlans,
       currentPlanName: PACK_LABELS[currentPlanKey],
     };
-  }, [location.pathname, currentPlanKey]);
+  }, [location.pathname, currentPlanKey, isMounted]);
+
+  const [isBannerDismissed, setIsBannerDismissed] = useState(false);
+
+  useEffect(() => {
+    setIsBannerDismissed(false);
+  }, [location.pathname]);
 
   if (globalStatus) {
     const isMaintenance = globalStatus.status === "maintenance";
@@ -177,49 +191,77 @@ export function FeatureUpgradeGuard({ children }: FeatureUpgradeGuardProps) {
 
   return (
     <>
-      <div className={`mx-4 mt-2 mb-0 rounded-2xl border px-5 py-3 shadow-sm ${bannerTone === "amber" ? "border-amber-200/60 bg-gradient-to-r from-amber-50 via-orange-50 to-yellow-50" : "border-purple-200/60 bg-gradient-to-r from-purple-50 via-fuchsia-50 to-pink-50"}`}>
-        <div className="flex items-center gap-3">
-          <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl shadow-lg ${bannerTone === "amber" ? "bg-gradient-to-br from-amber-400 to-orange-500 shadow-amber-200/50" : "bg-gradient-to-br from-purple-500 to-fuchsia-500 shadow-purple-200/50"}`}>
-            <Lock className="h-4 w-4 text-white" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className={`text-sm font-semibold ${bannerTone === "amber" ? "text-amber-900" : "text-purple-900"}`}>
-              {gateInfo.status === "partial" ? "Limited access" : "Subscription needed"} - {gateInfo.featureName}
-            </p>
-            <p className={`text-xs mt-0.5 ${bannerTone === "amber" ? "text-amber-700/80" : "text-purple-700/80"}`}>
-              {leadMessage}
-            </p>
-          </div>
-          <button
-            onClick={() => navigate({ to: "/dashboard/pricing" })}
-            className={`shrink-0 inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-semibold text-white shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98] ${bannerTone === "amber" ? "bg-gradient-to-r from-amber-500 to-orange-500 shadow-amber-300/30 hover:shadow-amber-300/50" : "bg-gradient-to-r from-purple-500 to-fuchsia-500 shadow-purple-300/30 hover:shadow-purple-300/50"}`}
-          >
-            Upgrade
-            <ArrowRight className="h-3 w-3" />
-          </button>
-        </div>
+      {!isBannerDismissed && (
+        <div 
+          className={`fixed top-20 right-6 z-40 max-w-md w-[calc(100vw-3rem)] sm:w-[420px] rounded-2xl border p-4 shadow-2xl backdrop-blur-lg animate-in fade-in slide-in-from-top-4 duration-300 ${
+            bannerTone === "amber" 
+              ? "border-amber-500/20 bg-amber-950/90 text-amber-100 shadow-amber-950/40" 
+              : "border-purple-500/20 bg-purple-950/90 text-purple-100 shadow-purple-950/40"
+          }`}
+        >
+          <div className="flex items-start gap-3">
+            <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl shadow-lg ${
+              bannerTone === "amber" 
+                ? "bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow-amber-500/20" 
+                : "bg-gradient-to-br from-purple-500 to-fuchsia-500 text-white shadow-purple-500/20"
+            }`}>
+              <Lock className="h-4 w-4" />
+            </div>
+            
+            <div className="flex-1 min-w-0 pr-6">
+              <p className="text-sm font-semibold tracking-wide text-white">
+                {gateInfo.status === "partial" ? "Limited access" : "Subscription needed"} - {gateInfo.featureName}
+              </p>
+              <p className={`text-xs mt-1 leading-relaxed ${
+                bannerTone === "amber" ? "text-amber-200/80" : "text-purple-200/80"
+              }`}>
+                {leadMessage}
+              </p>
+              
+              {gateInfo.upgradePlans.length > 0 && (
+                <div className="mt-3 flex flex-wrap gap-1.5">
+                  {gateInfo.upgradePlans.map((plan) => (
+                    <button
+                      key={plan.key}
+                      onClick={() =>
+                        navigate({
+                          to: "/dashboard/checkout",
+                          search: { plan: plan.key, upgrade_from: currentPlanKey },
+                        })
+                      }
+                      className="inline-flex items-center gap-1.5 rounded-lg bg-white/10 hover:bg-white/20 border border-white/10 px-2.5 py-1 text-[11px] font-semibold text-white shadow-sm transition-all"
+                    >
+                      <span>{plan.name}</span>
+                      <span className="opacity-60">{plan.price}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
 
-        {gateInfo.upgradePlans.length > 0 && (
-          <div className="mt-4 flex flex-wrap gap-2">
-            {gateInfo.upgradePlans.map((plan) => (
+            <div className="flex flex-col gap-2 shrink-0 items-end">
               <button
-                key={plan.key}
-                onClick={() =>
-                  navigate({
-                    to: "/dashboard/checkout",
-                    search: { plan: plan.key, upgrade_from: currentPlanKey },
-                  })
-                }
-                className="inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/90 px-3 py-1.5 text-xs font-semibold text-gray-700 shadow-sm transition hover:border-purple-300 hover:text-purple-700"
+                onClick={() => setIsBannerDismissed(true)}
+                className="p-1 rounded-lg hover:bg-white/15 text-white/60 hover:text-white transition-colors"
+                aria-label="Dismiss banner"
               >
-                <span>{plan.name}</span>
-                <span className="text-gray-400">{plan.price}</span>
+                <X className="h-4 w-4" />
               </button>
-            ))}
+              <button
+                onClick={() => navigate({ to: "/dashboard/pricing" })}
+                className={`inline-flex items-center gap-1 rounded-xl px-3 py-1.5 text-xs font-semibold text-white shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98] ${
+                  bannerTone === "amber" 
+                    ? "bg-gradient-to-r from-amber-500 to-orange-500 shadow-amber-500/20" 
+                    : "bg-gradient-to-r from-purple-500 to-fuchsia-500 shadow-purple-500/20"
+                }`}
+              >
+                <span>Upgrade</span>
+                <ArrowRight className="h-3 w-3" />
+              </button>
+            </div>
           </div>
-        )}
-      </div>
-
+        </div>
+      )}
       {children}
     </>
   );

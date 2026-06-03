@@ -28,8 +28,6 @@ import { useState, useEffect } from "react";
 import LogoImage from "@/Icon/Saadhyam_Icon-removebg-preview.png";
 import { normalizePackKey } from "@/config/subscriptions";
 
-const ADMIN_API_URL = import.meta.env.VITE_ADMIN_API_URL || "http://127.0.0.1:8082";
-
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [

@@ -115,11 +115,47 @@ class VoiceCallQueueService:
             if not campaign or not contact:
                 raise ValueError("Campaign or contact not found")
             
-            # Check if real Exotel calling is configured
+            # Check if real Twilio or Exotel calling is configured
             from config.settings import settings
+            has_twilio = bool(settings.TWILIO_ACCOUNT_SID and settings.TWILIO_AUTH_TOKEN and settings.TWILIO_PHONE_NUMBER)
             has_exotel = bool(settings.EXOTEL_SID and settings.EXOTEL_API_KEY and settings.EXOPHONE_NUMBER)
 
-            if has_exotel:
+            if has_twilio:
+                # Update call status to CALLING / RINGING
+                call.status = CallStatus.CALLING
+                call.started_at = datetime.utcnow()
+                db.commit()
+                
+                logger.info(f"📞 Twilio Outbound Dialing contact {contact.name} ({contact.phone_number})")
+                
+                # Trigger call connects to WebSocket
+                from services.twilio_service import twilio_service
+                res = twilio_service.trigger_outbound_call(contact.phone_number, call.id)
+                
+                if res["success"]:
+                    # Save Call SID to track
+                    call.call_sid = res["exotel_call_sid"]
+                    db.commit()
+                    return {
+                        "success": True,
+                        "call_id": call_id,
+                        "status": "calling_triggered",
+                        "exotel_call_sid": res["exotel_call_sid"]
+                    }
+                else:
+                    # Update status to failed
+                    call.status = CallStatus.FAILED
+                    call.ended_at = datetime.utcnow()
+                    call.call_outcome = "failed_trigger"
+                    db.commit()
+                    return {
+                        "success": False,
+                        "call_id": call_id,
+                        "status": "failed",
+                        "message": res["message"]
+                    }
+
+            elif has_exotel:
                 # Update call status to CALLING / RINGING
                 call.status = CallStatus.CALLING
                 call.started_at = datetime.utcnow()

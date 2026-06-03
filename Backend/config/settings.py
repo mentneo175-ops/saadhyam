@@ -243,8 +243,36 @@ class Settings(BaseSettings):
     EXOTEL_API_TOKEN: str = ""
     EXOPHONE_NUMBER: str = ""
     EXOTEL_STREAM_URL: str = ""
+    TWILIO_ACCOUNT_SID: str = ""
+    TWILIO_AUTH_TOKEN: str = ""
+    TWILIO_PHONE_NUMBER: str = ""
+
+    def __init__(self, **values):
+        super().__init__(**values)
+        # Find the first valid Gemini API key format (not empty, doesn't start with AQ. or mock values, starts with AIzaSy)
+        keys = [self.GEMINI_API_KEY, self.GEMINI_API_KEY_2, self.GEMINI_API_KEY_3]
+        valid_key = None
+        for key in keys:
+            if key and key.strip() and not key.startswith("AQ.") and not key.startswith("your_google_ai_studio_api") and key.strip().startswith("AIzaSy"):
+                valid_key = key.strip()
+                break
+        
+        if not valid_key:
+            # Fallback to first non-empty, non-mock, non-AQ key
+            for key in keys:
+                if key and key.strip() and not key.startswith("AQ.") and not key.startswith("your_google_ai_studio_api"):
+                    valid_key = key.strip()
+                    break
+        
+        if valid_key and valid_key != self.GEMINI_API_KEY:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.info(f"🔄 Automatically resolved primary GEMINI_API_KEY to valid fallback key starting with {valid_key[:8]}")
+            self.GEMINI_API_KEY = valid_key
+            os.environ["GEMINI_API_KEY"] = valid_key
 
     def get_cors_origins(self) -> List[str]:
+
         raw_value = (self.CORS_ORIGINS or os.getenv("ALLOWED_ORIGINS", "")).strip()
 
         if not raw_value:

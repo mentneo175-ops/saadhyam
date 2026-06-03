@@ -25,9 +25,20 @@ logger = logging.getLogger(__name__)
 scheduler = None
 
 # Create synchronous database engine for scheduler
+is_sqlite = "sqlite" in settings.DATABASE_URL
+connect_args = {}
+if not is_sqlite:
+    connect_args = {
+        "sslmode": "require",
+        "connect_timeout": 10
+    }
+
 engine = create_engine(
     settings.DATABASE_URL.replace("postgresql+asyncpg", "postgresql"),
-    echo=False
+    echo=False,
+    pool_pre_ping=True,
+    pool_recycle=280,
+    connect_args=connect_args
 )
 SessionLocal = sessionmaker(bind=engine)
 

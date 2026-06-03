@@ -47,7 +47,7 @@ REM Start Backend Server
 echo ============================================
 echo   Starting Backend Server (Port 8000)
 echo ============================================
-start "Saadhyam Backend" cmd /k "cd Backend && call venv\Scripts\activate.bat && python -m uvicorn main:app --port 8000"
+start "Saadhyam Backend" cmd /k "cd Backend && call venv\Scripts\activate.bat && python main.py"
 echo [SUCCESS] Backend server starting in virtual environment...
 echo.
 

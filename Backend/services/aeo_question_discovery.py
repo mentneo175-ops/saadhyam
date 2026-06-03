@@ -593,6 +593,7 @@ async def get_discovered_questions(
 
 async def search_similar_questions(
     user: User,
+    db: AsyncSession,
     query_text: str,
     top_k: int = 5
 ) -> List[Dict[str, Any]]:

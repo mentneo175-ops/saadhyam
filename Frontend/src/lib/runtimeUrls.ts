@@ -15,7 +15,7 @@ export const getApiBaseUrl = () =>
   import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || buildUrl("8000");
 
 export const getAdminApiBaseUrl = () =>
-  import.meta.env.VITE_ADMIN_API_URL || buildUrl("8082");
+  import.meta.env.VITE_ADMIN_API_URL || buildUrl("8000");
 
 export const getAppBaseUrl = () =>
   import.meta.env.VITE_APP_URL || buildUrl("5173");

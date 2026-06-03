@@ -69,7 +69,7 @@ else:
             pool_size=20,                # Number of connections to maintain
             max_overflow=10,             # Additional connections when pool is full
             pool_timeout=30,             # Timeout for getting connection (seconds)
-            pool_recycle=3600,           # Recycle connections after 1 hour
+            pool_recycle=280,            # Recycle connections before Neon drops them (5 min idle)
             connect_args={
                 "ssl": "require",        # asyncpg SSL configuration
                 "server_settings": {
@@ -84,6 +84,7 @@ else:
             sync_url,
             echo=False,
             pool_pre_ping=True,
+            pool_recycle=280,
             connect_args={
                 "sslmode": "require",
                 "connect_timeout": 10
@@ -150,11 +151,11 @@ async def init_db():
     Initialize database tables using async engine
     """
     try:
-        logger.info("🔄 Initializing database...")
+        logger.info("🔄 Initializing database... (skipping table creation to avoid locks)")
         
         # Use async engine for table creation
-        async with async_engine.begin() as conn:
-            await conn.run_sync(Base.metadata.create_all)
+        # async with async_engine.begin() as conn:
+        #     await conn.run_sync(Base.metadata.create_all)
         
         logger.info("✅ Database initialized successfully")
     except Exception as e:

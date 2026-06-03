@@ -67,8 +67,9 @@ async def global_exception_handler(request: Request, call_next: Callable):
         
     except StarletteHTTPException as exc:
         # HTTP exceptions (404, 403, etc.)
+        # Log incoming exception detail but avoid returning raw third-party JSON to clients
         logger.warning(f"[{request_id}] HTTP exception: {exc.status_code} - {exc.detail}")
-        
+
         # Map HTTP status codes to error codes
         error_code_map = {
             401: ErrorCode.UNAUTHORIZED,
@@ -78,14 +79,36 @@ async def global_exception_handler(request: Request, call_next: Callable):
             429: ErrorCode.RATE_LIMIT_EXCEEDED,
             503: ErrorCode.SERVICE_UNAVAILABLE,
         }
-        
+
         error_code = error_code_map.get(exc.status_code, ErrorCode.INTERNAL_ERROR)
-        
+
+        # Sanitize detail: if detail looks like JSON or is very long, don't expose it to the user
+        detail_text = str(exc.detail) if exc.detail is not None else ""
+        sanitized_detail = None
+
+        try:
+            # Heuristics: JSON blob, contains typical Google error phrases, or very long
+            lowered = detail_text.lower()
+            if len(detail_text) > 300 or lowered.startswith("{") or "quota" in lowered or "rate_limit" in lowered or "error" in lowered and "google" in lowered:
+                # Log full external error for debugging with request id
+                logger.error(f"[{request_id}] External service error detail (sanitized for response): {detail_text}")
+                # Provide a short, friendly message to client
+                if "quota" in lowered or "rate_limit" in lowered:
+                    sanitized_detail = "External API rate limit reached. Try again later or contact support."
+                else:
+                    sanitized_detail = "An external service returned an error. Please try again later."
+            else:
+                sanitized_detail = detail_text or None
+        except Exception:
+            sanitized_detail = None
+
+        # Return sanitized response
         return JSONResponse(
             status_code=exc.status_code,
             content=error_response(
                 error_code=error_code,
-                message=str(exc.detail),
+                message=sanitized_detail or "An error occurred",
+                detail=None,
                 path=str(request.url.path),
                 request_id=request_id
             )

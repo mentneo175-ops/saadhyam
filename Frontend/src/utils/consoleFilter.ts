@@ -36,7 +36,15 @@ const suppressedPatterns = [
   /grammarly-desktop-integration/i,
   /hydration/i,
   /Did not expect server HTML/i,
+  /Text content does not match/i,
+  /There was an error while hydrating/i,
+  /Minified React error/i,
+  /WebSocket connection to .* failed/i,
+  /socket\.io/i,
+  /Connection error:/i,
+  /Max reconnection attempts reached/i,
 ];
+
 
 // Override console.warn
 console.warn = function (...args: any[]) {

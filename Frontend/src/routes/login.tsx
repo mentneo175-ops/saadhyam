@@ -23,8 +23,7 @@ import { apiClient, ApiError } from "@/lib/api";
 import { useNotificationHelpers } from "@/components/notifications";
 import { PublicRoute } from "@/components/auth/PublicRoute";
 import LogoImage from "@/Icon/Saadhyam_Icon-removebg-preview.png";
-
-const ADMIN_API_URL = import.meta.env.VITE_ADMIN_API_URL || "http://127.0.0.1:8082";
+import { getAdminApiBaseUrl } from "@/lib/runtimeUrls";
 
 function getErrorMessage(err: unknown, fallback: string): string {
   if (err instanceof ApiError) {
@@ -161,7 +160,8 @@ function LoginPage() {
     setContactSuccess("");
 
     try {
-      const response = await fetch(`${ADMIN_API_URL}/api/public/support-requests`, {
+      const adminApiUrl = getAdminApiBaseUrl();
+      const response = await fetch(`${adminApiUrl}/api/public/support-requests`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

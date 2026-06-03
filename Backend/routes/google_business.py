@@ -69,9 +69,11 @@ async def oauth_callback(
         # Step 1: Exchange code for Google Access & Refresh tokens
         token_result = await google_business_service.exchange_code(request.code, request.state)
         if not token_result.get("success"):
+            sanitized = google_business_service._summarize_external_error(token_result.get("error", ""))
+            logger.warning(f"Google OAuth exchange failed for user {current_user.id}: {token_result.get('error')}")
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=token_result.get("error", "Failed to exchange authorization code"),
+                detail=sanitized or "Failed to exchange authorization code",
             )
 
         access_token = token_result["access_token"]
@@ -81,9 +83,11 @@ async def oauth_callback(
         # Step 2: Retrieve Google Business Account profile details
         account_result = await google_business_service.get_account_info(access_token)
         if not account_result.get("success"):
+            sanitized = google_business_service._summarize_external_error(account_result.get("error", ""))
+            logger.warning(f"Failed to retrieve Google Business account info for user {current_user.id}: {account_result.get('error')}")
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=account_result.get("error", "Failed to retrieve Google Business account info"),
+                detail=sanitized or "Failed to retrieve Google Business account info",
             )
 
         # Step 3: Register account in Database
@@ -283,9 +287,11 @@ async def sync_reviews(
         )
 
         if not reviews_res.get("success"):
+            sanitized = google_business_service._summarize_external_error(reviews_res.get("error", ""))
+            logger.warning(f"Failed to fetch reviews for location {location_id}: {reviews_res.get('error')}")
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=reviews_res.get("error", "Failed to fetch reviews from Google My Business API")
+                detail=sanitized or "Failed to fetch reviews from Google My Business API"
             )
 
         # Save to DB
@@ -422,9 +428,11 @@ async def submit_review_reply(
         )
 
         if not reply_res.get("success"):
+            sanitized = google_business_service._summarize_external_error(reply_res.get("error", ""))
+            logger.warning(f"Failed to publish review reply for review {review_id}: {reply_res.get('error')}")
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=reply_res.get("error", "Failed to publish review reply to Google Maps")
+                detail=sanitized or "Failed to publish review reply to Google Maps"
             )
 
         # Update DB review record
@@ -504,7 +512,7 @@ async def publish_local_post(
                 db=db,
                 post_db_id=post.id,
                 status="failed",
-                error_message=publish_res.get("error", "Unknown publishing error")
+                error_message=google_business_service._summarize_external_error(publish_res.get("error", "")) or "Unknown publishing error"
             )
 
         return GoogleBusinessPostResponse.model_validate(updated_post)

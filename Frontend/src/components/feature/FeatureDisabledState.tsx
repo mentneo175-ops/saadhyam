@@ -1,4 +1,5 @@
 import { AlertTriangle } from "lucide-react";
+import { useEffect, useState } from "react";
 
 type FeatureDisabledStateProps = {
   title: string;
@@ -14,28 +15,37 @@ export function FeatureDisabledState({
   onDismiss,
 }: FeatureDisabledStateProps) {
   const standardMessage = "This feature is disabled and will be available soon.";
-  
-  let displayMessage = message || standardMessage;
-  
-  if (!message && featureLabel && typeof window !== "undefined") {
-    try {
-      const stored = localStorage.getItem("saadhyam_feature_blocks");
-      if (stored) {
-        const entries = JSON.parse(stored);
-        const match = entries.find((e: any) => e.feature_key === featureLabel);
-        if (match && match.mode === "maintenance") {
-          displayMessage = "This feature is currently under maintenance. We will have it back for you soon.";
-        }
-      }
-    } catch (e) {
-      // ignore
-    }
-  }
 
-  // Ensure compliance with user's required wording
-  if (displayMessage.includes("disabled by your admin") || displayMessage.includes("currently disabled by your admin")) {
-    displayMessage = standardMessage;
-  }
+  // Keep initial render deterministic between server and client to avoid hydration mismatch.
+  const [displayMessage, setDisplayMessage] = useState(message || standardMessage);
+
+  useEffect(() => {
+    let nextMessage = message || standardMessage;
+
+    if (!message && featureLabel) {
+      try {
+        const stored = localStorage.getItem("saadhyam_feature_blocks");
+        if (stored) {
+          const entries = JSON.parse(stored);
+          const match = entries.find((e: any) => e.feature_key === featureLabel);
+          if (match && match.mode === "maintenance") {
+            nextMessage = "This feature is currently under maintenance. We will have it back for you soon.";
+          }
+        }
+      } catch {
+        // ignore malformed local cache
+      }
+    }
+
+    if (
+      nextMessage.includes("disabled by your admin") ||
+      nextMessage.includes("currently disabled by your admin")
+    ) {
+      nextMessage = standardMessage;
+    }
+
+    setDisplayMessage(nextMessage);
+  }, [message, featureLabel]);
 
   return (
     <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/60 px-4 py-6 backdrop-blur-sm">
@@ -51,12 +61,6 @@ export function FeatureDisabledState({
             </p>
             <h1 className="mt-2 text-2xl font-bold text-slate-900 dark:text-white">{title}</h1>
             <p className="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300">{displayMessage}</p>
-            {featureLabel && (
-              <p className="mt-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-xs text-slate-500 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-400">
-                Feature key: {featureLabel}
-              </p>
-            )}
-
             <div className="mt-6 flex justify-end">
               <button
                 onClick={onDismiss}

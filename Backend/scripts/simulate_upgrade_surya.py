@@ -23,7 +23,7 @@ def main():
             print('NO_USER')
             return
 
-        print('BEFORE:', user.id, user.email, user.selected_plan_key, user.selected_plan_amount_paid, user.selected_plan_price)
+        print('BEFORE:', user.id, user.email, user.selected_plan_key, user.selected_plan_amount_paid)
 
         # Compute current paid
         current_paid = 0.0
@@ -50,7 +50,7 @@ def main():
         db.commit()
         db.refresh(user)
 
-        print('AFTER:', user.id, user.email, user.selected_plan_key, user.selected_plan_amount_paid, user.selected_plan_price, user.selected_plan_payment_id)
+        print('AFTER:', user.id, user.email, user.selected_plan_key, user.selected_plan_amount_paid)
 
     except Exception as exc:
         print('ERROR', exc)

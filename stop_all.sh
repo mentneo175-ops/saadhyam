@@ -35,6 +35,7 @@ echo ""
 # Kill remaining Python processes related to Saadhyam
 echo "[5/5] Stopping remaining Python processes..."
 pkill -f "uvicorn main:app" 2>/dev/null
+pkill -f "main.py" 2>/dev/null
 pkill -f "model_server.py" 2>/dev/null
 echo "[SUCCESS] Remaining processes stopped"
 echo ""

@@ -395,13 +395,8 @@ except Exception as e:
     voice_agent_available = False
 
 try:
-    from routes.voice_agent_v2 import router as voice_agent_v2_router
-    voice_agent_v2_available = True
-    logging.info("✅ Voice Agent V2 router imported successfully")
+    voice_agent_v2_available = False
 except Exception as e:
-    logging.error(f"❌ Voice Agent V2 router not available: {e}")
-    logging.error(f"❌ Error type: {type(e).__name__}")
-    logging.error(f"❌ Full traceback:", exc_info=True)
     voice_agent_v2_available = False
 
 try:
@@ -779,6 +774,7 @@ WEBSITE_AI_OUTPUT.mkdir(parents=True, exist_ok=True)
 app.mount("/website-ai/static", StaticFiles(directory=str(WEBSITE_AI_STATIC)), name="website_ai_static")
 app.mount("/website-ai/output", StaticFiles(directory=str(WEBSITE_AI_OUTPUT)), name="website_ai_output")
 app.mount("/voice-audio", StaticFiles(directory=str(BASE_DIR / "audio_output")), name="voice_audio")
+app.mount("/audio", StaticFiles(directory=str(BASE_DIR / "audio_output")), name="audio")
 
 # Content Creator / Image Generator output directory
 OUTPUT_IMAGES_DIR = BASE_DIR / "output" / "images"
@@ -983,11 +979,9 @@ if task_tracking_available:
     app.include_router(task_tracking_router)
     logging.info("✅ Task Tracking router included in app")
 if voice_agent_available:
-    app.include_router(voice_agent_router)
-    logging.info("✅ Voice Agent router included in app")
-if voice_agent_v2_available:
-    app.include_router(voice_agent_v2_router)
-    logging.info("✅ Voice Agent V2 router included in app")
+    app.include_router(voice_agent_router, prefix="/api")
+    app.include_router(voice_agent_router, prefix="/api/voice-agent")
+    logging.info("✅ Voice Agent router included in app under prefixes /api and /api/voice-agent")
 if webhooks_available:
     app.include_router(webhooks_router)
     logging.info("✅ Webhooks router included in app")
@@ -1173,6 +1167,10 @@ async def api_broadcast_notification(payload: dict, db: AsyncSession = Depends(g
         )
 
     return {"ok": True, "delivered_to": len(persisted_notifications)}
+
+
+# Alias app to sio_asgi_app so uvicorn main:app uses Socket.IO wrapper
+app = sio_asgi_app
 
 
 if __name__ == "__main__":

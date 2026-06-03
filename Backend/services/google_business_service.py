@@ -58,6 +58,40 @@ class GoogleBusinessService:
             autogenerate_code_verifier=True,
         )
 
+    def _summarize_external_error(self, text: str) -> str:
+        """Produce a short, user-friendly summary from a third-party API error body."""
+        if not text:
+            return "External service returned an error"
+
+        # Try to parse JSON and extract common fields
+        try:
+            payload = json.loads(text)
+            # Google APIs often include error.message or error.errors
+            if isinstance(payload, dict):
+                if 'error' in payload and isinstance(payload['error'], dict):
+                    err = payload['error']
+                    msg = err.get('message') or err.get('status') or None
+                    if msg:
+                        return str(msg)
+                # Fallback to top-level message
+                if 'message' in payload:
+                    return str(payload.get('message'))
+        except Exception:
+            pass
+
+        # Simple heuristics for known phrases
+        lower = text.lower()
+        if 'quota' in lower or 'rate_limit' in lower or 'rate limit' in lower:
+            return 'External API rate limit exceeded. Please try again later.'
+        if 'not found' in lower:
+            return 'Requested resource not found on external service.'
+
+        # Truncate long texts
+        short = text.strip().split('\n')[0]
+        if len(short) > 200:
+            return short[:197] + '...'
+        return short
+
     async def _store_code_verifier(self, state: str, code_verifier: Optional[str]) -> None:
         if not state or not code_verifier:
             return
@@ -191,7 +225,7 @@ class GoogleBusinessService:
                 }
             else:
                 logger.error(f"❌ Token refresh failed: {response.status_code} - {response.text}")
-                return {"success": False, "error": response.text}
+                return {"success": False, "error": self._summarize_external_error(response.text)}
         except Exception as e:
             logger.error(f"❌ Error refreshing Google Business token: {e}", exc_info=True)
             return {"success": False, "error": str(e)}
@@ -217,7 +251,7 @@ class GoogleBusinessService:
             
             if resp.status_code != 200:
                 logger.error(f"Error fetching accounts: {resp.text}")
-                return {"success": False, "error": resp.text}
+                return {"success": False, "error": self._summarize_external_error(resp.text)}
 
             data = resp.json()
             accounts = data.get("accounts", [])
@@ -291,7 +325,7 @@ class GoogleBusinessService:
 
             if resp.status_code != 200:
                 logger.error(f"Error fetching locations: {resp.text}")
-                return {"success": False, "error": resp.text}
+                return {"success": False, "error": self._summarize_external_error(resp.text)}
 
             data = resp.json()
             locations_raw = data.get("locations", [])
@@ -401,7 +435,7 @@ class GoogleBusinessService:
 
             if resp.status_code != 200:
                 logger.error(f"Error fetching reviews: {resp.text}")
-                return {"success": False, "error": resp.text}
+                return {"success": False, "error": self._summarize_external_error(resp.text)}
 
             data = resp.json()
             raw_reviews = data.get("reviews", [])
@@ -469,7 +503,7 @@ class GoogleBusinessService:
                 
             if resp.status_code != 200:
                 logger.error(f"Error submitting review reply: {resp.text}")
-                return {"success": False, "error": resp.text}
+                return {"success": False, "error": self._summarize_external_error(resp.text)}
 
             data = resp.json()
             return {
@@ -535,7 +569,7 @@ class GoogleBusinessService:
 
             if resp.status_code != 200 and resp.status_code != 201:
                 logger.error(f"Error publishing post: {resp.text}")
-                return {"success": False, "error": resp.text}
+                return {"success": False, "error": self._summarize_external_error(resp.text)}
 
             data = resp.json()
             return {

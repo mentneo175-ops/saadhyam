@@ -56,21 +56,9 @@ import { Route as DashboardAeoGeoRouteImport } from './routes/dashboard.aeo-geo'
 import { Route as DashboardActionsRouteImport } from './routes/dashboard.actions'
 import { Route as DashboardVoiceAgentIndexRouteImport } from './routes/dashboard.voice-agent.index'
 import { Route as DashboardAgentsIndexRouteImport } from './routes/dashboard.agents.index'
-import { Route as DashboardVoiceAgentSimulatorRouteImport } from './routes/dashboard.voice-agent.simulator'
-import { Route as DashboardVoiceAgentScriptGeneratorRouteImport } from './routes/dashboard.voice-agent.script-generator'
-import { Route as DashboardVoiceAgentLeadsRouteImport } from './routes/dashboard.voice-agent.leads'
-import { Route as DashboardVoiceAgentCreateCampaignRouteImport } from './routes/dashboard.voice-agent.create-campaign'
-import { Route as DashboardVoiceAgentConversationsRouteImport } from './routes/dashboard.voice-agent.conversations'
-import { Route as DashboardVoiceAgentConversationRouteImport } from './routes/dashboard.voice-agent.conversation'
-import { Route as DashboardVoiceAgentCampaignsRouteImport } from './routes/dashboard.voice-agent.campaigns'
-import { Route as DashboardVoiceAgentAnalyticsRouteImport } from './routes/dashboard.voice-agent.analytics'
 import { Route as DashboardInstagramAnalyticsPostsRouteImport } from './routes/dashboard.instagram-analytics.posts'
 import { Route as DashboardAgentsPartnershipRouteImport } from './routes/dashboard.agents.partnership'
 import { Route as DashboardAgentsCustomerRetentionRouteImport } from './routes/dashboard.agents.customer-retention'
-import { Route as DashboardVoiceAgentCampaignsIndexRouteImport } from './routes/dashboard.voice-agent.campaigns.index'
-import { Route as DashboardVoiceAgentCampaignsCampaignIdRouteImport } from './routes/dashboard.voice-agent.campaigns.$campaignId'
-import { Route as DashboardVoiceAgentCampaignsCampaignIdIndexRouteImport } from './routes/dashboard.voice-agent.campaigns.$campaignId.index'
-import { Route as DashboardVoiceAgentCampaignsCampaignIdCallingRouteImport } from './routes/dashboard.voice-agent.campaigns.$campaignId.calling'
 
 const YoutubeOauthCallbackRoute = YoutubeOauthCallbackRouteImport.update({
   id: '/youtube-oauth-callback',
@@ -313,54 +301,6 @@ const DashboardAgentsIndexRoute = DashboardAgentsIndexRouteImport.update({
   path: '/',
   getParentRoute: () => DashboardAgentsRoute,
 } as any)
-const DashboardVoiceAgentSimulatorRoute =
-  DashboardVoiceAgentSimulatorRouteImport.update({
-    id: '/voice-agent/simulator',
-    path: '/voice-agent/simulator',
-    getParentRoute: () => DashboardRoute,
-  } as any)
-const DashboardVoiceAgentScriptGeneratorRoute =
-  DashboardVoiceAgentScriptGeneratorRouteImport.update({
-    id: '/voice-agent/script-generator',
-    path: '/voice-agent/script-generator',
-    getParentRoute: () => DashboardRoute,
-  } as any)
-const DashboardVoiceAgentLeadsRoute =
-  DashboardVoiceAgentLeadsRouteImport.update({
-    id: '/voice-agent/leads',
-    path: '/voice-agent/leads',
-    getParentRoute: () => DashboardRoute,
-  } as any)
-const DashboardVoiceAgentCreateCampaignRoute =
-  DashboardVoiceAgentCreateCampaignRouteImport.update({
-    id: '/voice-agent/create-campaign',
-    path: '/voice-agent/create-campaign',
-    getParentRoute: () => DashboardRoute,
-  } as any)
-const DashboardVoiceAgentConversationsRoute =
-  DashboardVoiceAgentConversationsRouteImport.update({
-    id: '/voice-agent/conversations',
-    path: '/voice-agent/conversations',
-    getParentRoute: () => DashboardRoute,
-  } as any)
-const DashboardVoiceAgentConversationRoute =
-  DashboardVoiceAgentConversationRouteImport.update({
-    id: '/voice-agent/conversation',
-    path: '/voice-agent/conversation',
-    getParentRoute: () => DashboardRoute,
-  } as any)
-const DashboardVoiceAgentCampaignsRoute =
-  DashboardVoiceAgentCampaignsRouteImport.update({
-    id: '/voice-agent/campaigns',
-    path: '/voice-agent/campaigns',
-    getParentRoute: () => DashboardRoute,
-  } as any)
-const DashboardVoiceAgentAnalyticsRoute =
-  DashboardVoiceAgentAnalyticsRouteImport.update({
-    id: '/voice-agent/analytics',
-    path: '/voice-agent/analytics',
-    getParentRoute: () => DashboardRoute,
-  } as any)
 const DashboardInstagramAnalyticsPostsRoute =
   DashboardInstagramAnalyticsPostsRouteImport.update({
     id: '/posts',
@@ -378,30 +318,6 @@ const DashboardAgentsCustomerRetentionRoute =
     id: '/customer-retention',
     path: '/customer-retention',
     getParentRoute: () => DashboardAgentsRoute,
-  } as any)
-const DashboardVoiceAgentCampaignsIndexRoute =
-  DashboardVoiceAgentCampaignsIndexRouteImport.update({
-    id: '/',
-    path: '/',
-    getParentRoute: () => DashboardVoiceAgentCampaignsRoute,
-  } as any)
-const DashboardVoiceAgentCampaignsCampaignIdRoute =
-  DashboardVoiceAgentCampaignsCampaignIdRouteImport.update({
-    id: '/$campaignId',
-    path: '/$campaignId',
-    getParentRoute: () => DashboardVoiceAgentCampaignsRoute,
-  } as any)
-const DashboardVoiceAgentCampaignsCampaignIdIndexRoute =
-  DashboardVoiceAgentCampaignsCampaignIdIndexRouteImport.update({
-    id: '/',
-    path: '/',
-    getParentRoute: () => DashboardVoiceAgentCampaignsCampaignIdRoute,
-  } as any)
-const DashboardVoiceAgentCampaignsCampaignIdCallingRoute =
-  DashboardVoiceAgentCampaignsCampaignIdCallingRouteImport.update({
-    id: '/calling',
-    path: '/calling',
-    getParentRoute: () => DashboardVoiceAgentCampaignsCampaignIdRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -453,20 +369,8 @@ export interface FileRoutesByFullPath {
   '/dashboard/agents/customer-retention': typeof DashboardAgentsCustomerRetentionRoute
   '/dashboard/agents/partnership': typeof DashboardAgentsPartnershipRoute
   '/dashboard/instagram-analytics/posts': typeof DashboardInstagramAnalyticsPostsRoute
-  '/dashboard/voice-agent/analytics': typeof DashboardVoiceAgentAnalyticsRoute
-  '/dashboard/voice-agent/campaigns': typeof DashboardVoiceAgentCampaignsRouteWithChildren
-  '/dashboard/voice-agent/conversation': typeof DashboardVoiceAgentConversationRoute
-  '/dashboard/voice-agent/conversations': typeof DashboardVoiceAgentConversationsRoute
-  '/dashboard/voice-agent/create-campaign': typeof DashboardVoiceAgentCreateCampaignRoute
-  '/dashboard/voice-agent/leads': typeof DashboardVoiceAgentLeadsRoute
-  '/dashboard/voice-agent/script-generator': typeof DashboardVoiceAgentScriptGeneratorRoute
-  '/dashboard/voice-agent/simulator': typeof DashboardVoiceAgentSimulatorRoute
   '/dashboard/agents/': typeof DashboardAgentsIndexRoute
   '/dashboard/voice-agent/': typeof DashboardVoiceAgentIndexRoute
-  '/dashboard/voice-agent/campaigns/$campaignId': typeof DashboardVoiceAgentCampaignsCampaignIdRouteWithChildren
-  '/dashboard/voice-agent/campaigns/': typeof DashboardVoiceAgentCampaignsIndexRoute
-  '/dashboard/voice-agent/campaigns/$campaignId/calling': typeof DashboardVoiceAgentCampaignsCampaignIdCallingRoute
-  '/dashboard/voice-agent/campaigns/$campaignId/': typeof DashboardVoiceAgentCampaignsCampaignIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -515,18 +419,8 @@ export interface FileRoutesByTo {
   '/dashboard/agents/customer-retention': typeof DashboardAgentsCustomerRetentionRoute
   '/dashboard/agents/partnership': typeof DashboardAgentsPartnershipRoute
   '/dashboard/instagram-analytics/posts': typeof DashboardInstagramAnalyticsPostsRoute
-  '/dashboard/voice-agent/analytics': typeof DashboardVoiceAgentAnalyticsRoute
-  '/dashboard/voice-agent/conversation': typeof DashboardVoiceAgentConversationRoute
-  '/dashboard/voice-agent/conversations': typeof DashboardVoiceAgentConversationsRoute
-  '/dashboard/voice-agent/create-campaign': typeof DashboardVoiceAgentCreateCampaignRoute
-  '/dashboard/voice-agent/leads': typeof DashboardVoiceAgentLeadsRoute
-  '/dashboard/voice-agent/script-generator': typeof DashboardVoiceAgentScriptGeneratorRoute
-  '/dashboard/voice-agent/simulator': typeof DashboardVoiceAgentSimulatorRoute
   '/dashboard/agents': typeof DashboardAgentsIndexRoute
   '/dashboard/voice-agent': typeof DashboardVoiceAgentIndexRoute
-  '/dashboard/voice-agent/campaigns': typeof DashboardVoiceAgentCampaignsIndexRoute
-  '/dashboard/voice-agent/campaigns/$campaignId/calling': typeof DashboardVoiceAgentCampaignsCampaignIdCallingRoute
-  '/dashboard/voice-agent/campaigns/$campaignId': typeof DashboardVoiceAgentCampaignsCampaignIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -578,20 +472,8 @@ export interface FileRoutesById {
   '/dashboard/agents/customer-retention': typeof DashboardAgentsCustomerRetentionRoute
   '/dashboard/agents/partnership': typeof DashboardAgentsPartnershipRoute
   '/dashboard/instagram-analytics/posts': typeof DashboardInstagramAnalyticsPostsRoute
-  '/dashboard/voice-agent/analytics': typeof DashboardVoiceAgentAnalyticsRoute
-  '/dashboard/voice-agent/campaigns': typeof DashboardVoiceAgentCampaignsRouteWithChildren
-  '/dashboard/voice-agent/conversation': typeof DashboardVoiceAgentConversationRoute
-  '/dashboard/voice-agent/conversations': typeof DashboardVoiceAgentConversationsRoute
-  '/dashboard/voice-agent/create-campaign': typeof DashboardVoiceAgentCreateCampaignRoute
-  '/dashboard/voice-agent/leads': typeof DashboardVoiceAgentLeadsRoute
-  '/dashboard/voice-agent/script-generator': typeof DashboardVoiceAgentScriptGeneratorRoute
-  '/dashboard/voice-agent/simulator': typeof DashboardVoiceAgentSimulatorRoute
   '/dashboard/agents/': typeof DashboardAgentsIndexRoute
   '/dashboard/voice-agent/': typeof DashboardVoiceAgentIndexRoute
-  '/dashboard/voice-agent/campaigns/$campaignId': typeof DashboardVoiceAgentCampaignsCampaignIdRouteWithChildren
-  '/dashboard/voice-agent/campaigns/': typeof DashboardVoiceAgentCampaignsIndexRoute
-  '/dashboard/voice-agent/campaigns/$campaignId/calling': typeof DashboardVoiceAgentCampaignsCampaignIdCallingRoute
-  '/dashboard/voice-agent/campaigns/$campaignId/': typeof DashboardVoiceAgentCampaignsCampaignIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -644,20 +526,8 @@ export interface FileRouteTypes {
     | '/dashboard/agents/customer-retention'
     | '/dashboard/agents/partnership'
     | '/dashboard/instagram-analytics/posts'
-    | '/dashboard/voice-agent/analytics'
-    | '/dashboard/voice-agent/campaigns'
-    | '/dashboard/voice-agent/conversation'
-    | '/dashboard/voice-agent/conversations'
-    | '/dashboard/voice-agent/create-campaign'
-    | '/dashboard/voice-agent/leads'
-    | '/dashboard/voice-agent/script-generator'
-    | '/dashboard/voice-agent/simulator'
     | '/dashboard/agents/'
     | '/dashboard/voice-agent/'
-    | '/dashboard/voice-agent/campaigns/$campaignId'
-    | '/dashboard/voice-agent/campaigns/'
-    | '/dashboard/voice-agent/campaigns/$campaignId/calling'
-    | '/dashboard/voice-agent/campaigns/$campaignId/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -706,18 +576,8 @@ export interface FileRouteTypes {
     | '/dashboard/agents/customer-retention'
     | '/dashboard/agents/partnership'
     | '/dashboard/instagram-analytics/posts'
-    | '/dashboard/voice-agent/analytics'
-    | '/dashboard/voice-agent/conversation'
-    | '/dashboard/voice-agent/conversations'
-    | '/dashboard/voice-agent/create-campaign'
-    | '/dashboard/voice-agent/leads'
-    | '/dashboard/voice-agent/script-generator'
-    | '/dashboard/voice-agent/simulator'
     | '/dashboard/agents'
     | '/dashboard/voice-agent'
-    | '/dashboard/voice-agent/campaigns'
-    | '/dashboard/voice-agent/campaigns/$campaignId/calling'
-    | '/dashboard/voice-agent/campaigns/$campaignId'
   id:
     | '__root__'
     | '/'
@@ -768,20 +628,8 @@ export interface FileRouteTypes {
     | '/dashboard/agents/customer-retention'
     | '/dashboard/agents/partnership'
     | '/dashboard/instagram-analytics/posts'
-    | '/dashboard/voice-agent/analytics'
-    | '/dashboard/voice-agent/campaigns'
-    | '/dashboard/voice-agent/conversation'
-    | '/dashboard/voice-agent/conversations'
-    | '/dashboard/voice-agent/create-campaign'
-    | '/dashboard/voice-agent/leads'
-    | '/dashboard/voice-agent/script-generator'
-    | '/dashboard/voice-agent/simulator'
     | '/dashboard/agents/'
     | '/dashboard/voice-agent/'
-    | '/dashboard/voice-agent/campaigns/$campaignId'
-    | '/dashboard/voice-agent/campaigns/'
-    | '/dashboard/voice-agent/campaigns/$campaignId/calling'
-    | '/dashboard/voice-agent/campaigns/$campaignId/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -1129,62 +977,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardAgentsIndexRouteImport
       parentRoute: typeof DashboardAgentsRoute
     }
-    '/dashboard/voice-agent/simulator': {
-      id: '/dashboard/voice-agent/simulator'
-      path: '/voice-agent/simulator'
-      fullPath: '/dashboard/voice-agent/simulator'
-      preLoaderRoute: typeof DashboardVoiceAgentSimulatorRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/voice-agent/script-generator': {
-      id: '/dashboard/voice-agent/script-generator'
-      path: '/voice-agent/script-generator'
-      fullPath: '/dashboard/voice-agent/script-generator'
-      preLoaderRoute: typeof DashboardVoiceAgentScriptGeneratorRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/voice-agent/leads': {
-      id: '/dashboard/voice-agent/leads'
-      path: '/voice-agent/leads'
-      fullPath: '/dashboard/voice-agent/leads'
-      preLoaderRoute: typeof DashboardVoiceAgentLeadsRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/voice-agent/create-campaign': {
-      id: '/dashboard/voice-agent/create-campaign'
-      path: '/voice-agent/create-campaign'
-      fullPath: '/dashboard/voice-agent/create-campaign'
-      preLoaderRoute: typeof DashboardVoiceAgentCreateCampaignRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/voice-agent/conversations': {
-      id: '/dashboard/voice-agent/conversations'
-      path: '/voice-agent/conversations'
-      fullPath: '/dashboard/voice-agent/conversations'
-      preLoaderRoute: typeof DashboardVoiceAgentConversationsRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/voice-agent/conversation': {
-      id: '/dashboard/voice-agent/conversation'
-      path: '/voice-agent/conversation'
-      fullPath: '/dashboard/voice-agent/conversation'
-      preLoaderRoute: typeof DashboardVoiceAgentConversationRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/voice-agent/campaigns': {
-      id: '/dashboard/voice-agent/campaigns'
-      path: '/voice-agent/campaigns'
-      fullPath: '/dashboard/voice-agent/campaigns'
-      preLoaderRoute: typeof DashboardVoiceAgentCampaignsRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/voice-agent/analytics': {
-      id: '/dashboard/voice-agent/analytics'
-      path: '/voice-agent/analytics'
-      fullPath: '/dashboard/voice-agent/analytics'
-      preLoaderRoute: typeof DashboardVoiceAgentAnalyticsRouteImport
-      parentRoute: typeof DashboardRoute
-    }
     '/dashboard/instagram-analytics/posts': {
       id: '/dashboard/instagram-analytics/posts'
       path: '/posts'
@@ -1205,34 +997,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/dashboard/agents/customer-retention'
       preLoaderRoute: typeof DashboardAgentsCustomerRetentionRouteImport
       parentRoute: typeof DashboardAgentsRoute
-    }
-    '/dashboard/voice-agent/campaigns/': {
-      id: '/dashboard/voice-agent/campaigns/'
-      path: '/'
-      fullPath: '/dashboard/voice-agent/campaigns/'
-      preLoaderRoute: typeof DashboardVoiceAgentCampaignsIndexRouteImport
-      parentRoute: typeof DashboardVoiceAgentCampaignsRoute
-    }
-    '/dashboard/voice-agent/campaigns/$campaignId': {
-      id: '/dashboard/voice-agent/campaigns/$campaignId'
-      path: '/$campaignId'
-      fullPath: '/dashboard/voice-agent/campaigns/$campaignId'
-      preLoaderRoute: typeof DashboardVoiceAgentCampaignsCampaignIdRouteImport
-      parentRoute: typeof DashboardVoiceAgentCampaignsRoute
-    }
-    '/dashboard/voice-agent/campaigns/$campaignId/': {
-      id: '/dashboard/voice-agent/campaigns/$campaignId/'
-      path: '/'
-      fullPath: '/dashboard/voice-agent/campaigns/$campaignId/'
-      preLoaderRoute: typeof DashboardVoiceAgentCampaignsCampaignIdIndexRouteImport
-      parentRoute: typeof DashboardVoiceAgentCampaignsCampaignIdRoute
-    }
-    '/dashboard/voice-agent/campaigns/$campaignId/calling': {
-      id: '/dashboard/voice-agent/campaigns/$campaignId/calling'
-      path: '/calling'
-      fullPath: '/dashboard/voice-agent/campaigns/$campaignId/calling'
-      preLoaderRoute: typeof DashboardVoiceAgentCampaignsCampaignIdCallingRouteImport
-      parentRoute: typeof DashboardVoiceAgentCampaignsCampaignIdRoute
     }
   }
 }
@@ -1266,42 +1030,6 @@ const DashboardInstagramAnalyticsRouteChildren: DashboardInstagramAnalyticsRoute
 const DashboardInstagramAnalyticsRouteWithChildren =
   DashboardInstagramAnalyticsRoute._addFileChildren(
     DashboardInstagramAnalyticsRouteChildren,
-  )
-
-interface DashboardVoiceAgentCampaignsCampaignIdRouteChildren {
-  DashboardVoiceAgentCampaignsCampaignIdCallingRoute: typeof DashboardVoiceAgentCampaignsCampaignIdCallingRoute
-  DashboardVoiceAgentCampaignsCampaignIdIndexRoute: typeof DashboardVoiceAgentCampaignsCampaignIdIndexRoute
-}
-
-const DashboardVoiceAgentCampaignsCampaignIdRouteChildren: DashboardVoiceAgentCampaignsCampaignIdRouteChildren =
-  {
-    DashboardVoiceAgentCampaignsCampaignIdCallingRoute:
-      DashboardVoiceAgentCampaignsCampaignIdCallingRoute,
-    DashboardVoiceAgentCampaignsCampaignIdIndexRoute:
-      DashboardVoiceAgentCampaignsCampaignIdIndexRoute,
-  }
-
-const DashboardVoiceAgentCampaignsCampaignIdRouteWithChildren =
-  DashboardVoiceAgentCampaignsCampaignIdRoute._addFileChildren(
-    DashboardVoiceAgentCampaignsCampaignIdRouteChildren,
-  )
-
-interface DashboardVoiceAgentCampaignsRouteChildren {
-  DashboardVoiceAgentCampaignsCampaignIdRoute: typeof DashboardVoiceAgentCampaignsCampaignIdRouteWithChildren
-  DashboardVoiceAgentCampaignsIndexRoute: typeof DashboardVoiceAgentCampaignsIndexRoute
-}
-
-const DashboardVoiceAgentCampaignsRouteChildren: DashboardVoiceAgentCampaignsRouteChildren =
-  {
-    DashboardVoiceAgentCampaignsCampaignIdRoute:
-      DashboardVoiceAgentCampaignsCampaignIdRouteWithChildren,
-    DashboardVoiceAgentCampaignsIndexRoute:
-      DashboardVoiceAgentCampaignsIndexRoute,
-  }
-
-const DashboardVoiceAgentCampaignsRouteWithChildren =
-  DashboardVoiceAgentCampaignsRoute._addFileChildren(
-    DashboardVoiceAgentCampaignsRouteChildren,
   )
 
 interface DashboardRouteChildren {
@@ -1339,14 +1067,6 @@ interface DashboardRouteChildren {
   DashboardWhatsappSalesRoute: typeof DashboardWhatsappSalesRoute
   DashboardYoutubeRoute: typeof DashboardYoutubeRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
-  DashboardVoiceAgentAnalyticsRoute: typeof DashboardVoiceAgentAnalyticsRoute
-  DashboardVoiceAgentCampaignsRoute: typeof DashboardVoiceAgentCampaignsRouteWithChildren
-  DashboardVoiceAgentConversationRoute: typeof DashboardVoiceAgentConversationRoute
-  DashboardVoiceAgentConversationsRoute: typeof DashboardVoiceAgentConversationsRoute
-  DashboardVoiceAgentCreateCampaignRoute: typeof DashboardVoiceAgentCreateCampaignRoute
-  DashboardVoiceAgentLeadsRoute: typeof DashboardVoiceAgentLeadsRoute
-  DashboardVoiceAgentScriptGeneratorRoute: typeof DashboardVoiceAgentScriptGeneratorRoute
-  DashboardVoiceAgentSimulatorRoute: typeof DashboardVoiceAgentSimulatorRoute
   DashboardVoiceAgentIndexRoute: typeof DashboardVoiceAgentIndexRoute
 }
 
@@ -1386,17 +1106,6 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardWhatsappSalesRoute: DashboardWhatsappSalesRoute,
   DashboardYoutubeRoute: DashboardYoutubeRoute,
   DashboardIndexRoute: DashboardIndexRoute,
-  DashboardVoiceAgentAnalyticsRoute: DashboardVoiceAgentAnalyticsRoute,
-  DashboardVoiceAgentCampaignsRoute:
-    DashboardVoiceAgentCampaignsRouteWithChildren,
-  DashboardVoiceAgentConversationRoute: DashboardVoiceAgentConversationRoute,
-  DashboardVoiceAgentConversationsRoute: DashboardVoiceAgentConversationsRoute,
-  DashboardVoiceAgentCreateCampaignRoute:
-    DashboardVoiceAgentCreateCampaignRoute,
-  DashboardVoiceAgentLeadsRoute: DashboardVoiceAgentLeadsRoute,
-  DashboardVoiceAgentScriptGeneratorRoute:
-    DashboardVoiceAgentScriptGeneratorRoute,
-  DashboardVoiceAgentSimulatorRoute: DashboardVoiceAgentSimulatorRoute,
   DashboardVoiceAgentIndexRoute: DashboardVoiceAgentIndexRoute,
 }
 

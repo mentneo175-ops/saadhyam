@@ -7,8 +7,100 @@ from sqlalchemy import Column, Integer, String, Float, DateTime, Text, Boolean, 
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from config.database import Base
+from datetime import datetime
 import enum
 
+
+# ==================== NEW VOICE AGENT MODELS ====================
+
+class CompanyProfile(Base):
+    __tablename__ = "company_profile"
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(255), nullable=False)
+    description = Column(Text, nullable=True)
+    services = Column(Text, nullable=True)
+    offers = Column(Text, nullable=True)
+    summary = Column(Text, nullable=True)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+class AIAgent(Base):
+    __tablename__ = "ai_agent"
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(255), nullable=False)
+    role = Column(String(255), nullable=False)
+    prompt = Column(Text, nullable=False)
+    voice_id = Column(String(100), nullable=True)
+    languages = Column(String(255), default="te,en")
+    whatsapp_threshold = Column(Integer, default=70)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class Campaign(Base):
+    __tablename__ = "campaign"
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(255), nullable=False)
+    objective = Column(Text, nullable=True)
+    agent_id = Column(Integer, nullable=True)
+    status = Column(String(50), default="active")
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class Lead(Base):
+    __tablename__ = "lead"
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(255), nullable=False)
+    phone = Column(String(50), nullable=False)
+    language = Column(String(50), default="te")
+    campaign_id = Column(Integer, nullable=True)
+    status = Column(String(50), default="pending")
+    urgency_score = Column(Integer, default=0)
+    budget = Column(String(100), nullable=True)
+    student_class = Column(String(100), nullable=True)
+    city = Column(String(100), nullable=True)
+    interest_level = Column(String(50), default="Cold")
+    buying_intent = Column(Integer, default=0)
+    admission_probability = Column(Integer, default=0)
+    conversion_probability = Column(Integer, default=0)
+    existing_institute = Column(String(255), nullable=True)
+    callback_time = Column(String(100), nullable=True)
+    recommended_action = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class WhatsAppLog(Base):
+    __tablename__ = "whatsapp_log"
+    id = Column(Integer, primary_key=True, index=True)
+    lead_id = Column(Integer, nullable=False)
+    phone = Column(String(50), nullable=False)
+    message_type = Column(String(50), default="Brochure")
+    content = Column(Text, nullable=True)
+    sent_at = Column(DateTime, default=datetime.utcnow)
+
+
+class CallSession(Base):
+    __tablename__ = "call_session"
+    id = Column(Integer, primary_key=True, index=True)
+    session_id = Column(String(100), unique=True, index=True)
+    status = Column(String(50), default="connected")
+    transcript = Column(Text, default="")
+    summary = Column(Text, nullable=True)
+    sentiment = Column(String(50), default="neutral")
+    audio_url = Column(String(255), nullable=True)
+    lead_id = Column(Integer, nullable=True)
+    campaign_id = Column(Integer, nullable=True)
+    interest_score = Column(Integer, default=0)
+    buying_intent = Column(Integer, default=0)
+    admission_probability = Column(Integer, default=0)
+    conversion_probability = Column(Integer, default=0)
+    lead_category = Column(String(50), default="Cold")
+    objections = Column(Text, nullable=True)
+    callback_time = Column(String(100), nullable=True)
+    whatsapp_sent = Column(Integer, default=0)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
+# ==================== LEGACY VOICE AGENT MODELS ====================
 
 class CampaignStatus(str, enum.Enum):
     """Campaign status enumeration"""

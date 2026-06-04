@@ -43,29 +43,35 @@ graph TD
 
     %% External Systems Layer
     subgraph External [External Integrations]
-        LLM[Gemini, DeepSeek, Groq]
-        STT_TTS[Deepgram, ElevenLabs]
+        LLM[Gemini / DeepSeek / Groq]
+        STT_TTS[Deepgram / ElevenLabs]
         Tel[Exotel / Twilio]
-        Meta[Meta Graph API: IG & WA]
+        Meta[Meta Graph API]
         Cloudinary[Cloudinary CDN]
     end
 
     %% Communications Flow
-    FE <-->|HTTP / WS| BE
-    CF <-->|Reverse Proxy| BE
-    BE <-->|Async Queries| DB
-    BE <-->|Read/Write Cache| Redis
-    BE <-->|Trigger Job| Redis
+    FE --> BE
+    BE --> FE
+    CF --> BE
+    BE --> DB
+    BE --> Redis
+    Redis --> BE
     
-    Redis <-->|Queue Job| CW1
-    Redis <-->|Queue Job| CW2
-    CB -->|Periodic Schedules| Redis
+    Redis --> CW1
+    Redis --> CW2
+    CB --> Redis
     
-    CW1 & CW2 & BE -->|Embeddings / RAG| Pinecone
-    CW1 & CW2 & BE -->|External Operations| External
+    CW1 --> Pinecone
+    CW2 --> Pinecone
+    BE --> Pinecone
+    
+    CW1 --> External
+    CW2 --> External
+    BE --> External
     
     %% Telephony Stream Callback Flow
-    Tel -->|Real-time Webhook / Stream| CF
+    Tel --> CF
 ```
 
 ### 📡 Data Flow & Key Integration Mechanics

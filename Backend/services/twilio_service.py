@@ -33,7 +33,9 @@ class TwilioService:
         # Format number: ensure E.164 format (with +91 for India by default if 10 digits)
         phone = customer_phone.strip()
         if not phone.startswith("+") and not phone.startswith("0"):
-            if len(phone) == 10:
+            if len(phone) == 12 and phone.startswith("91"):
+                phone = f"+{phone}"
+            elif len(phone) == 10:
                 phone = f"+91{phone}"
 
         # Clean from number

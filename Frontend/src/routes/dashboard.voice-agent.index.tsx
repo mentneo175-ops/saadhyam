@@ -22,6 +22,7 @@ import {
   Layers,
   FileText,
   Zap,
+  Info,
 } from "lucide-react";
 import { env } from "@/config/env";
 import voiceAgentCss from "./voice-agent.css?url";
@@ -38,6 +39,7 @@ function VoiceAgentDashboard() {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
+  const [infoMsg, setInfoMsg] = useState("");
 
   // ================= STATE MODULES =================
   const [agents, setAgents] = useState<any[]>([]);
@@ -168,10 +170,13 @@ function VoiceAgentDashboard() {
     fetchCallLogs();
   };
 
-  const showToast = (type: "success" | "error", msg: string) => {
+  const showToast = (type: "success" | "error" | "info", msg: string) => {
     if (type === "success") {
       setSuccessMsg(msg);
       setTimeout(() => setSuccessMsg(""), 4000);
+    } else if (type === "info") {
+      setInfoMsg(msg);
+      setTimeout(() => setInfoMsg(""), 4000);
     } else {
       setErrorMsg(msg);
       setTimeout(() => setErrorMsg(""), 5000);
@@ -725,6 +730,25 @@ function VoiceAgentDashboard() {
     } finally {
       setIsProcessing(false);
       isProcessingRef.current = false;
+    }
+  };
+
+  const handleStartRealCall = async (lead: any) => {
+    try {
+      showToast("info", `Initiating real outbound call to ${lead.name} (${lead.phone})...`);
+      const res = await fetch(`${env.apiBaseUrl}/api/voice-agent/leads/${lead.id}/call-real`, {
+        method: "POST",
+        headers: getHeaders(),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        showToast("success", `Real call successfully triggered! Call SID: ${data.call_sid}`);
+      } else {
+        showToast("error", data.detail || data.message || "Failed to trigger real call.");
+      }
+    } catch (err: any) {
+      console.error("Error triggering real call:", err);
+      showToast("error", "Error connecting to backend API.");
     }
   };
 
@@ -1327,8 +1351,16 @@ function VoiceAgentDashboard() {
                             <button
                               className="btn btn-secondary p-2 rounded-full h-auto text-accent-green hover:bg-accent-green/20"
                               onClick={() => handleStartBrowserCall(l)}
+                              title="Call in Browser"
                             >
                               <Phone size={14} />
+                            </button>
+                            <button
+                              className="btn btn-secondary p-2 rounded-full h-auto text-accent-purple hover:bg-accent-purple/20"
+                              onClick={() => handleStartRealCall(l)}
+                              title="Real Outbound Call"
+                            >
+                              <Zap size={14} />
                             </button>
                             <button
                               className="btn btn-secondary p-2 rounded-full h-auto text-accent-red hover:bg-accent-red/20"
@@ -1836,6 +1868,12 @@ function VoiceAgentDashboard() {
         <div className="toast toast-success fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 bg-accent-green/20 border border-accent-green/40 px-4 py-2.5 rounded-full text-xs font-semibold shadow-lg">
           <Check size={14} className="text-accent-green" />
           <span className="text-primary">{successMsg}</span>
+        </div>
+      )}
+      {infoMsg && (
+        <div className="toast toast-info fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 bg-accent/20 border border-accent/40 px-4 py-2.5 rounded-full text-xs font-semibold shadow-lg">
+          <Info size={14} className="text-accent" />
+          <span className="text-primary">{infoMsg}</span>
         </div>
       )}
 

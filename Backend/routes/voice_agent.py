@@ -1880,3 +1880,137 @@ async def twilio_status_callback(
         return {"status": "error", "message": str(e)}
 
 
+@router.post("/leads/{lead_id}/call-real")
+def trigger_real_lead_call(
+    lead_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db_sync)
+):
+    """
+    Bridge route: Triggers a real outbound phone call (Twilio/Exotel) for a lead
+    by auto-provisioning the required VoiceCampaign, VoiceContact, and VoiceCall records.
+    """
+    # 1. Fetch Lead
+    lead = db.query(Lead).filter(Lead.id == lead_id).first()
+    if not lead:
+        raise HTTPException(status_code=404, detail="Lead not found")
+        
+    # 2. Fetch Campaign details
+    campaign_id = lead.campaign_id
+    campaign = None
+    if campaign_id:
+        campaign = db.query(Campaign).filter(Campaign.id == campaign_id).first()
+        
+    campaign_name = campaign.name if campaign else "Direct Lead Call"
+    campaign_obj = campaign.objective if campaign else "direct inquiry"
+    agent_id = campaign.agent_id if campaign else None
+    
+    # Get AIAgent details
+    agent = None
+    if agent_id:
+        agent = db.query(AIAgent).filter(AIAgent.id == agent_id).first()
+    
+    agent_prompt = agent.prompt if agent else "You are Swetha from Saadhyam AI. Greet the user."
+    agent_languages = agent.languages if agent else "te,en"
+    agent_voice_id = agent.voice_id if agent else "TX3LPaxmHKxFdv7VOQHJ"
+    
+    # 3. Resolve or Create VoiceCampaign (legacy model)
+    from models.voice_agent import VoiceCampaign, VoiceContact, VoiceCall, Language, CampaignStatus, CallStatus
+    voice_campaign = db.query(VoiceCampaign).filter(VoiceCampaign.name == campaign_name).first()
+    if not voice_campaign:
+        lang = Language.ENGLISH
+        if lead.language:
+            lead_lang_lower = lead.language.lower()
+            if "te" in lead_lang_lower:
+                lang = Language.TELUGU
+            elif "hi" in lead_lang_lower:
+                lang = Language.HINDI
+            elif "ta" in lead_lang_lower:
+                lang = Language.TAMIL
+                
+        voice_campaign = VoiceCampaign(
+            name=campaign_name,
+            description=campaign_obj,
+            user_id=current_user.id,
+            language=lang,
+            script_template=agent_prompt,
+            status=CampaignStatus.ACTIVE
+        )
+        db.add(voice_campaign)
+        db.commit()
+        db.refresh(voice_campaign)
+        
+    # 4. Resolve or Create VoiceContact (legacy model)
+    voice_contact = db.query(VoiceContact).filter(
+        and_(
+            VoiceContact.campaign_id == voice_campaign.id,
+            VoiceContact.phone_number == lead.phone
+        )
+    ).first()
+    if not voice_contact:
+        voice_contact = VoiceContact(
+            campaign_id=voice_campaign.id,
+            name=lead.name,
+            phone_number=lead.phone,
+            is_active=True,
+            is_completed=False
+        )
+        db.add(voice_contact)
+        db.commit()
+        db.refresh(voice_contact)
+        
+    # 5. Create VoiceCall record
+    voice_call = VoiceCall(
+        campaign_id=voice_campaign.id,
+        contact_id=voice_contact.id,
+        phone_number=lead.phone,
+        status=CallStatus.PENDING
+    )
+    db.add(voice_call)
+    db.commit()
+    db.refresh(voice_call)
+    
+    # 6. Trigger Twilio or Exotel call
+    from services.twilio_service import twilio_service
+    from services.exotel_service import exotel_service
+    from config.settings import settings
+    
+    has_twilio = bool(settings.TWILIO_ACCOUNT_SID and settings.TWILIO_AUTH_TOKEN and settings.TWILIO_PHONE_NUMBER)
+    has_exotel = bool(settings.EXOTEL_SID and settings.EXOTEL_API_KEY and settings.EXOPHONE_NUMBER)
+    
+    if has_twilio:
+        voice_call.status = CallStatus.CALLING
+        db.commit()
+        res = twilio_service.trigger_outbound_call(lead.phone, voice_call.id)
+        if res["success"]:
+            voice_call.call_sid = res["exotel_call_sid"]
+            db.commit()
+            return {"success": True, "call_id": voice_call.id, "provider": "twilio", "call_sid": res["exotel_call_sid"]}
+        else:
+            voice_call.status = CallStatus.FAILED
+            voice_call.call_outcome = "failed_trigger"
+            db.commit()
+            raise HTTPException(status_code=500, detail=f"Twilio call failed: {res['message']}")
+            
+    elif has_exotel:
+        voice_call.status = CallStatus.CALLING
+        db.commit()
+        res = exotel_service.trigger_outbound_call(lead.phone, voice_call.id)
+        if res["success"]:
+            voice_call.call_sid = res["exotel_call_sid"]
+            db.commit()
+            return {"success": True, "call_id": voice_call.id, "provider": "exotel", "call_sid": res["exotel_call_sid"]}
+        else:
+            voice_call.status = CallStatus.FAILED
+            voice_call.call_outcome = "failed_trigger"
+            db.commit()
+            raise HTTPException(status_code=500, detail=f"Exotel call failed: {res['message']}")
+            
+    else:
+        raise HTTPException(
+            status_code=400, 
+            detail="No calling credentials (Twilio/Exotel) configured on the backend. Please setup credentials in settings."
+        )
+
+
+

@@ -43,6 +43,15 @@ if errorlevel 1 (
     pause
 )
 
+REM Start Cloudflare Tunnel
+echo ============================================
+echo   Starting Cloudflare Tunnel
+echo ============================================
+start "Saadhyam Tunnel" cmd /k "cd Backend && call venv\Scripts\activate.bat && python start_tunnel.py"
+echo [INFO] Waiting for Cloudflare Tunnel to initialize and update .env...
+timeout /t 5 /nobreak >nul
+echo.
+
 REM Start Backend Server
 echo ============================================
 echo   Starting Backend Server (Port 8000)
@@ -115,16 +124,18 @@ echo Backend API:      http://localhost:8000
 echo Content Creator:  http://localhost:8001
 echo Celery Worker:    Running (Background Tasks)
 echo Celery Beat:      Running (Task Scheduler)
-echo Frontend:         http://localhost:8080
+echo Frontend:         http://localhost:8080 (or port 8081 if occupied)
 echo Redis:            Running (Port 6379)
+echo CF Tunnel:        Running (Auto-configured Webhooks)
 echo.
-echo [INFO] 5 terminal windows opened:
-echo   1. Backend Server (FastAPI - Port 8000)
-echo   2. Celery Worker (Background Tasks)
-echo   3. Website AI Celery Worker (Website Generation)
-echo   4. Celery Beat (Task Scheduler)
-echo   5. Content Creator AI (Image Generation - Port 8001)
-echo   6. Frontend Server (Vite - Port 8080)
+echo [INFO] 7 terminal windows opened:
+echo   1. Cloudflare Tunnel (trycloudflare.com)
+echo   2. Backend Server (FastAPI - Port 8000)
+echo   3. Celery Worker (Background Tasks)
+echo   4. Website AI Celery Worker (Website Generation)
+echo   5. Celery Beat (Task Scheduler)
+echo   6. Content Creator AI (Image Generation - Port 8001)
+echo   7. Frontend Server (Vite - Port 8080/8081)
 echo.
 echo Press any key to open the application in browser...
 pause >nul
@@ -134,6 +145,6 @@ start http://localhost:8080
 
 echo.
 echo [INFO] Application opened in browser
-echo [INFO] To stop all servers, close the 5 terminal windows or run stop_all.bat
+echo [INFO] To stop all services, close the 7 terminal windows or run stop_all.bat
 echo.
 pause

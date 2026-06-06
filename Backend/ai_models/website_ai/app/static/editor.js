@@ -15,8 +15,7 @@ class ContentEditor {
     init() {
         // Check if we're running inside an iframe (preview mode)
         if (window.self !== window.top) {
-            console.log('⚠️  Editor disabled - running in iframe (preview mode)');
-            return;
+            console.log('ℹ️  Editor running inside iframe (preview mode)');
         }
         
         // Don't initialize editor if no valid website ID
@@ -77,6 +76,15 @@ class ContentEditor {
     getCurrentTheme() {
         const params = new URLSearchParams(window.location.search);
         return params.get('theme') || document.body.dataset.theme || 'modern';
+    }
+
+    getApiUrl(endpoint) {
+        // If we are running on Vite dev port 8081 or 8080, route API requests to port 8000
+        const host = window.location.origin;
+        const apiBase = (host.includes('localhost:8081') || host.includes('localhost:8080') || host.includes('127.0.0.1:8081') || host.includes('127.0.0.1:8080')) 
+            ? 'http://localhost:8000' 
+            : '';
+        return `${apiBase}${endpoint}`;
     }
 
     createEditorUI() {
@@ -195,6 +203,12 @@ class ContentEditor {
         <option value="magazine-grid">Magazine Grid - Bold Editorial</option>
         <option value="bento-box">Bento Box - Apple Style</option>
         <option value="parallax-scroll">Parallax Scroll - Futuristic</option>
+        <option value="minimal-modern">Minimal Modern - Ultra Clean</option>
+        <option value="agency-dark">Agency Dark - Glassmorphism Dark</option>
+        <option value="retro-brutalism">Retro Brutalism - Cyberpunk Neo-Brutalist</option>
+        <option value="restaurant-showcase">Restaurant Showcase - Elegant Serif</option>
+        <option value="saas-dashboard">SaaS Dashboard - Product Dashboard Page</option>
+        <option value="creative-portfolio">Creative Portfolio - Sleek Showcase</option>
       </select>
       <span class="status" id="editor-status"></span>
     `;
@@ -294,7 +308,9 @@ class ContentEditor {
             '.footer-bottom p',
 
             // Buttons (text only, not the link itself)
-            '.btn', 'a.btn',
+            '.btn', 'a.btn', '.btn-primary', '.btn-secondary',
+            '.hero-btn', '.hero-cta', '.blog-btn', '.blog-cta-btn',
+            '.blog-more-btn', '.price-button', '.pricing-btn',
 
             // Section titles
             '.section-title', '.section-subtitle',
@@ -304,7 +320,14 @@ class ContentEditor {
             '.hero h1', '.hero p',
 
             // Other common elements
-            '.badge', '.tag', '.label', 'strong:not(nav strong)', 'em'
+            '.badge', '.tag', '.label', 'strong:not(nav strong)', 'em', 'li', 'blockquote', 'address',
+
+            // Specific template components
+            '.timeline-number', '.bento-icon', '.service-number', '.work-category',
+            '.metric-title', '.metric-value', '.mock-title', '.menu-tag',
+            '.magazine-category', '.magazine-title', '.magazine-excerpt',
+            '.parallax-title', '.parallax-desc', '.masonry-title', '.masonry-desc', '.masonry-tag',
+            '.nav-logo', '.brand', '.team-initial', '.stat-num', '.stat-text', '.item-number', '.top-bar'
         ];
 
         editableSelectors.forEach(selector => {
@@ -315,8 +338,8 @@ class ContentEditor {
                 // Skip if it's inside the editor toolbar
                 if (el.closest('#editor-toolbar')) return;
 
-                // Skip if it's inside navigation (keep nav functional)
-                if (el.closest('nav:not(.footer-section)')) return;
+                // Skip if it's inside navigation (keep nav functional) but allow logo
+                if (el.closest('nav:not(.footer-section)') && !el.classList.contains('nav-logo')) return;
 
                 // Skip if it's a link in navigation
                 if (el.tagName === 'A' && el.closest('.nav-links, .header-nav')) return;
@@ -337,7 +360,7 @@ class ContentEditor {
     async loadContent() {
         try {
             this.updateStatus('Loading...');
-            const response = await fetch(`/website-ai/api/content/${this.websiteId}`);
+            const response = await fetch(this.getApiUrl(`/website-ai/api/content/${this.websiteId}`));
 
             if (response.ok) {
                 const data = await response.json();
@@ -404,7 +427,7 @@ class ContentEditor {
             const fullHtml = htmlClone.outerHTML;
             console.log('📄 HTML length:', fullHtml.length);
 
-            const url = `/website-ai/api/content/${this.websiteId}`;
+            const url = this.getApiUrl(`/website-ai/api/content/${this.websiteId}`);
             console.log('🌐 Saving to:', url);
 
             const response = await fetch(url, {
@@ -427,6 +450,11 @@ class ContentEditor {
                 console.log('✅ Content saved successfully:', result);
                 this.showNotification('✅ Content saved successfully!');
                 this.updateStatus('Saved');
+                
+                // Post message if running inside an iframe
+                if (window.self !== window.top) {
+                    window.parent.postMessage({ type: 'contentSaved', websiteId: this.websiteId }, '*');
+                }
                 
                 // Update original content
                 this.originalContent = { html: fullHtml };

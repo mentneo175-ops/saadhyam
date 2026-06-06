@@ -253,6 +253,12 @@ def get_template_description(theme: str) -> str:
         "magazine-grid": "Bold magazine-style grid layout - Perfect for media and content-heavy sites",
         "bento-box": "Apple-inspired bento box grid - Modern and clean for product showcases",
         "parallax-scroll": "Futuristic parallax scrolling experience - Eye-catching for tech companies",
+        "minimal-modern": "Ultra-clean layout with beautiful typography - Perfect for startups and creative professionals",
+        "agency-dark": "Futuristic dark glassmorphism design with violet/blue accent glow states - Ideal for creative agencies",
+        "retro-brutalism": "Neo-brutalist cyberpunk style with bold borders and bright highlights - Distinct and high-impact",
+        "restaurant-showcase": "Elegant serif typography with list layout menu and reservation card - Perfect for food and products",
+        "saas-dashboard": "SaaS landing page with mock product preview panel and pricing plans - Great for software companies",
+        "creative-portfolio": "Sleek portfolio grid with smooth hover zoom effects and testimonial carousel - Ideal for portfolios",
     }
     return descriptions.get(theme, "Professional business template")
 

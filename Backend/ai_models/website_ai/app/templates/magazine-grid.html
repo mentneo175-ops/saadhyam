@@ -1,988 +1,295 @@
 <!doctype html>
 <html lang="en">
-
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ data.business_name }} | Magazine Grid Layout</title>
+    <title>{{ data.business_name }} | Magazine Editorial</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,400&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/website-ai/static/theme-adapter.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        :root {
+            --bg-color: #fcfcfc;
+            --ink-black: #111111;
+            --paper-gray: #f0f0f0;
+            --accent-red: #e11d48;
+            --border-thick: 3px solid #111111;
+            --border-thin: 1px solid #111111;
+            --font-headings: 'Playfair Display', Georgia, serif;
+            --font-body: 'DM Sans', sans-serif;
         }
-
         body {
-            font-family: 'Helvetica Neue', Arial, sans-serif;
-            background: white;
-            color: #1a1a1a;
+            font-family: var(--font-body);
+            background: var(--bg-color);
+            color: var(--ink-black);
+            padding: 40px;
             line-height: 1.6;
         }
-
-        /* Top bar */
-        .top-bar {
-            background: #1a1a1a;
-            color: white;
-            padding: 12px 0;
-            font-size: 13px;
-            text-align: center;
-            letter-spacing: 1px;
-        }
-
-        /* Header */
-        .header {
-            border-bottom: 3px solid #1a1a1a;
-            padding: 40px 60px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .brand {
-            font-size: 48px;
-            font-weight: 900;
-            letter-spacing: -2px;
-            text-transform: uppercase;
-        }
-
-        .header-nav {
-            display: flex;
-            gap: 40px;
-            list-style: none;
-        }
-
-        .header-nav a {
-            color: #1a1a1a;
-            text-decoration: none;
-            font-weight: 700;
-            font-size: 14px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            transition: color 0.3s;
-        }
-
-        .header-nav a:hover {
-            color: #ff6b6b;
-        }
-
-        /* Hero magazine style */
-        .hero-magazine {
-            display: grid;
-            grid-template-columns: 1.2fr 0.8fr;
-            gap: 0;
-            border-bottom: 3px solid #1a1a1a;
-        }
-
-        .hero-main {
-            padding: 80px 60px;
-            background: #ff6b6b;
-            color: white;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .hero-main::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            right: -20%;
-            width: 500px;
-            height: 500px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 50%;
-        }
-
-        .hero-content {
-            position: relative;
-            z-index: 1;
-        }
-
-        .hero-kicker {
-            font-size: 16px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 3px;
-            margin-bottom: 30px;
-            opacity: 0.9;
-        }
-
-        .hero-content h1 {
-            font-size: 68px;
-            font-weight: 900;
-            line-height: 0.95;
-            margin-bottom: 30px;
-            letter-spacing: -3px;
-        }
-
-        .hero-content p {
-            font-size: 20px;
-            line-height: 1.6;
-            margin-bottom: 40px;
-            max-width: 500px;
-        }
-
-        .hero-btn {
-            display: inline-block;
-            padding: 16px 40px;
-            background: white;
-            color: #ff6b6b;
-            text-decoration: none;
-            font-weight: 900;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            font-size: 14px;
-            transition: all 0.3s;
-        }
-
-        .hero-btn:hover {
-            background: #1a1a1a;
-            color: white;
-        }
-
-        .hero-sidebar {
-            background: #f8f8f8;
-            padding: 80px 40px;
-            border-left: 3px solid #1a1a1a;
-        }
-
-        .sidebar-stat {
-            margin-bottom: 50px;
-        }
-
-        .stat-number {
-            font-size: 56px;
-            font-weight: 900;
-            color: #ff6b6b;
-            line-height: 1;
-            margin-bottom: 10px;
-        }
-
-        .stat-label {
-            font-size: 14px;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            font-weight: 700;
-            color: #666;
-        }
-
-        /* Magazine grid */
-        .magazine-grid {
-            display: grid;
-            grid-template-columns: repeat(12, 1fr);
-            gap: 0;
-        }
-
-        .grid-item {
-            border-right: 3px solid #1a1a1a;
-            border-bottom: 3px solid #1a1a1a;
-            padding: 60px 40px;
-            min-height: 350px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-
-        .grid-item:nth-child(3n) {
-            border-right: none;
-        }
-
-        .grid-item-large {
-            grid-column: span 6;
-            background: #1a1a1a;
-            color: white;
-        }
-
-        .grid-item-medium {
-            grid-column: span 4;
-        }
-
-        .grid-item-small {
-            grid-column: span 3;
-        }
-
-        .item-number {
-            font-size: 24px;
-            font-weight: 900;
-            color: #ff6b6b;
-            margin-bottom: 20px;
-        }
-
-        .grid-item h3 {
-            font-size: 28px;
-            font-weight: 900;
-            margin-bottom: 16px;
-            line-height: 1.2;
-        }
-
-        .grid-item p {
-            font-size: 16px;
-            line-height: 1.7;
-            color: #666;
-        }
-
-        .grid-item-large p {
-            color: #ccc;
-        }
-
-        /* FAQ section */
-        .faq-section {
-            padding: 100px 60px;
-            background: #f8f8f8;
-        }
-
-        .faq-title {
-            font-size: 56px;
-            font-weight: 900;
-            margin-bottom: 60px;
-            text-align: center;
-            text-transform: uppercase;
-            letter-spacing: -2px;
-        }
-
-        .faq-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 40px;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .faq-item {
-            background: white;
-            border: 3px solid #1a1a1a;
-            padding: 40px;
-        }
-
-        .faq-item summary {
-            font-size: 22px;
-            font-weight: 900;
-            cursor: pointer;
-            list-style: none;
-            text-transform: uppercase;
-            letter-spacing: -1px;
-        }
-
-        .faq-item p {
-            margin-top: 20px;
-            font-size: 16px;
-            color: #666;
-            line-height: 1.8;
-        }
-
-        /* Contact section */
-        .contact-section {
-            background: #ff6b6b;
-            color: white;
-            padding: 100px 60px;
+        
+        /* Header Block */
+        .editorial-header {
+            border-bottom: var(--border-thick);
+            max-width: 1200px; margin: 0 auto 60px;
+            padding-bottom: 20px;
             text-align: center;
         }
+        .editorial-logo {
+            font-family: var(--font-headings); font-size: clamp(40px, 8vw, 84px); font-weight: 900; text-transform: uppercase; letter-spacing: -2px; margin-bottom: 10px; text-decoration: none; color: var(--ink-black); display: block;
+        }
+        .nav-links { list-style: none; display: flex; justify-content: center; gap: 32px; border-top: var(--border-thin); border-bottom: var(--border-thin); padding: 12px 0; }
+        .nav-links a { color: var(--ink-black); text-decoration: none; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; }
+        .nav-links a:hover { color: var(--accent-red); }
 
-        .contact-section h2 {
-            font-size: 64px;
-            font-weight: 900;
-            margin-bottom: 30px;
-            text-transform: uppercase;
-            letter-spacing: -2px;
+        /* Hero layout (Newspaper block style) */
+        .magazine-hero {
+            max-width: 1200px; margin: 0 auto 80px; display: grid; grid-template-columns: 2fr 1fr; gap: 40px; border-bottom: var(--border-thick); padding-bottom: 60px;
+        }
+        .hero-left { border-right: var(--border-thin); padding-right: 40px; }
+        .hero-tag { font-size: 11px; text-transform: uppercase; letter-spacing: 3px; font-weight: 700; color: var(--accent-red); margin-bottom: 16px; display: block; }
+        .hero-headline { font-family: var(--font-headings); font-size: clamp(32px, 5vw, 56px); font-weight: 900; line-height: 1.05; margin-bottom: 24px; letter-spacing: -1px; }
+        .hero-lead { font-size: 18px; line-height: 1.8; color: #444; margin-bottom: 30px; }
+        .hero-right { display: flex; flex-direction: column; justify-content: space-between; padding-left: 20px; }
+        .editorial-widget { background: var(--paper-gray); border: var(--border-thin); padding: 30px; }
+        
+        .btn-editorial { display: inline-block; padding: 14px 28px; background: var(--ink-black); color: white; text-decoration: none; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; font-size: 12px; transition: all 0.2s; }
+        .btn-editorial:hover { background: var(--accent-red); }
+
+        /* Marquee ticker */
+        .ticker-wrap { border-bottom: var(--border-thick); padding: 12px 0; margin-bottom: 80px; overflow: hidden; white-space: nowrap; max-width: 1200px; margin-left: auto; margin-right: auto; }
+        .ticker { display: inline-flex; animation: marquee 20s linear infinite; }
+        .ticker-item { font-family: var(--font-headings); font-size: 14px; font-weight: 700; text-transform: uppercase; padding: 0 40px; }
+        
+        /* General sections */
+        .section-block { max-width: 1200px; margin: 0 auto 100px; display: grid; grid-template-columns: 300px 1fr; gap: 60px; border-bottom: var(--border-thin); padding-bottom: 80px; }
+        .sec-head { font-family: var(--font-headings); font-size: 36px; font-weight: 900; text-transform: uppercase; }
+        .sec-tagline { font-size: 14px; color: #555; margin-top: 10px; }
+
+        /* About grid */
+        .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+        .about-text { font-size: 16px; line-height: 1.8; }
+        .stats-column { display: flex; flex-direction: column; gap: 20px; }
+        .stat-card { border: var(--border-thin); padding: 24px; }
+        .stat-num { font-family: var(--font-headings); font-size: 44px; font-weight: 900; line-height: 1; }
+        
+        /* Services blocks */
+        .services-layout { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; }
+        .service-column { border-right: var(--border-thin); padding-right: 40px; }
+        .service-column:last-child { border-right: none; padding-right: 0; }
+        .service-column h4 { font-family: var(--font-headings); font-size: 22px; font-weight: 900; margin-bottom: 12px; }
+        .service-column p { font-size: 14px; color: #444; }
+
+        /* FAQ columns */
+        .faq-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+        .faq-item { border-bottom: var(--border-thin); padding: 16px 0; }
+        .faq-item summary { font-size: 16px; font-weight: 700; cursor: pointer; list-style: none; display: flex; justify-content: space-between; }
+        .faq-item summary::after { content: '+'; font-weight: 900; }
+        .faq-item[open] summary::after { content: '-'; }
+        .faq-item p { font-size: 14px; color: #444; margin-top: 8px; }
+
+        /* Blog news feed */
+        .blog-row-layout { display: flex; flex-direction: column; gap: 30px; }
+        .blog-row { display: grid; grid-template-columns: 100px 1fr; gap: 40px; border-bottom: var(--border-thin); padding-bottom: 24px; cursor: pointer; }
+        .blog-row:hover h4 { color: var(--accent-red); }
+        .blog-row-date { font-family: var(--font-headings); font-size: 24px; font-weight: 900; text-align: right; }
+        .blog-row h4 { font-family: var(--font-headings); font-size: 22px; font-weight: 900; margin-bottom: 8px; }
+        .blog-row p { font-size: 14px; color: #444; }
+
+        /* Contact Details */
+        .contact-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+        .contact-form { display: flex; flex-direction: column; gap: 20px; }
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+        .form-group label { font-size: 12px; font-weight: 700; text-transform: uppercase; }
+        .form-group input, .form-group textarea { border: var(--border-thin); padding: 12px; font-family: inherit; font-size: 14px; background: transparent; }
+        
+        .footer {
+            max-width: 1200px; margin: 40px auto 0; padding-top: 40px; border-top: var(--border-thick); display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; text-transform: uppercase;
         }
 
-        .contact-section p {
-            font-size: 20px;
-            max-width: 700px;
-            margin: 0 auto 40px;
-            line-height: 1.7;
-        }
-
-        /* Stats Section */
-        .stats-section {
-            padding: 100px 60px;
-            background: white;
-        }
-
-        .stats-container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .stats-title {
-            font-size: 56px;
-            font-weight: 900;
-            margin-bottom: 60px;
-            text-align: center;
-            text-transform: uppercase;
-            letter-spacing: -2px;
-        }
-
-        .stats-row {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 40px;
-        }
-
-        .stat-item {
-            text-align: center;
-            padding: 40px 20px;
-            border: 3px solid #1a1a1a;
-            background: #f8f8f8;
-        }
-
-        .stat-num {
-            font-size: 48px;
-            font-weight: 900;
-            color: #ff6b6b;
-            margin-bottom: 10px;
-        }
-
-        .stat-text {
-            font-size: 14px;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            font-weight: 700;
-            color: #666;
-        }
-
-        /* Team Section */
-        .team-section {
-            padding: 100px 60px;
-            background: #f8f8f8;
-        }
-
-        .team-container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .team-title {
-            font-size: 56px;
-            font-weight: 900;
-            margin-bottom: 60px;
-            text-align: center;
-            text-transform: uppercase;
-            letter-spacing: -2px;
-        }
-
-        .team-row {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 40px;
-        }
-
-        .team-box {
-            background: white;
-            border: 3px solid #1a1a1a;
-            padding: 40px 20px;
-            text-align: center;
-        }
-
-        .team-initial {
-            width: 80px;
-            height: 80px;
-            background: #ff6b6b;
-            color: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            font-weight: 900;
-            margin: 0 auto 20px;
-        }
-
-        .team-box h4 {
-            font-size: 20px;
-            font-weight: 900;
-            margin-bottom: 8px;
-        }
-
-        .team-box p {
-            font-size: 14px;
-            color: #666;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        /* Testimonials Section */
-        .testimonials-section {
-            padding: 100px 60px;
-            background: white;
-        }
-
-        .testimonials-container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .testimonials-title {
-            font-size: 56px;
-            font-weight: 900;
-            margin-bottom: 60px;
-            text-align: center;
-            text-transform: uppercase;
-            letter-spacing: -2px;
-        }
-
-        .testimonials-row {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 40px;
-        }
-
-        .testimonial-card {
-            background: #f8f8f8;
-            border: 3px solid #1a1a1a;
-            padding: 40px;
-        }
-
-        .testimonial-content {
-            font-size: 18px;
-            line-height: 1.7;
-            margin-bottom: 30px;
-            font-style: italic;
-        }
-
-        .testimonial-footer {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .testimonial-avatar {
-            width: 50px;
-            height: 50px;
-            background: #ff6b6b;
-            color: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 900;
-        }
-
-        .testimonial-info strong {
-            display: block;
-            font-weight: 900;
-            margin-bottom: 4px;
-        }
-
-        .testimonial-info span {
-            font-size: 14px;
-            color: #666;
-        }
-
-        /* Pricing Section */
-        .pricing-section {
-            padding: 100px 60px;
-            background: #f8f8f8;
-        }
-
-        .pricing-container {
-            max-width: 1000px;
-            margin: 0 auto;
-        }
-
-        .pricing-title {
-            font-size: 56px;
-            font-weight: 900;
-            margin-bottom: 60px;
-            text-align: center;
-            text-transform: uppercase;
-            letter-spacing: -2px;
-        }
-
-        .pricing-row {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 40px;
-        }
-
-        .price-box {
-            background: white;
-            border: 3px solid #1a1a1a;
-            padding: 50px 40px;
-            text-align: center;
-            position: relative;
-        }
-
-        .price-box.featured {
-            background: #1a1a1a;
-            color: white;
-        }
-
-        .price-box h3 {
-            font-size: 24px;
-            font-weight: 900;
-            margin-bottom: 20px;
-            text-transform: uppercase;
-        }
-
-        .price-value {
-            font-size: 48px;
-            font-weight: 900;
-            color: #ff6b6b;
-            margin-bottom: 30px;
-        }
-
-        .price-value span {
-            font-size: 18px;
-            color: #666;
-        }
-
-        .price-box.featured .price-value span {
-            color: #ccc;
-        }
-
-        .price-list {
-            list-style: none;
-            margin-bottom: 40px;
-        }
-
-        .price-list li {
-            padding: 8px 0;
-            border-bottom: 1px solid #eee;
-        }
-
-        .price-box.featured .price-list li {
-            border-bottom-color: #333;
-        }
-
-        .price-button {
-            display: inline-block;
-            padding: 16px 40px;
-            background: #ff6b6b;
-            color: white;
-            text-decoration: none;
-            font-weight: 900;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            font-size: 14px;
-            transition: all 0.3s;
-        }
-
-        .price-button:hover {
-            background: #1a1a1a;
-        }
-
-        /* CTA Banner */
-        .cta-banner {
-            padding: 100px 60px;
-            background: #1a1a1a;
-            color: white;
-            text-align: center;
-        }
-
-        .cta-content h2 {
-            font-size: 56px;
-            font-weight: 900;
-            margin-bottom: 30px;
-            text-transform: uppercase;
-            letter-spacing: -2px;
-        }
-
-        .cta-content p {
-            font-size: 20px;
-            max-width: 700px;
-            margin: 0 auto 40px;
-            line-height: 1.7;
-        }
-
-        /* Footer Section */
-        .footer-section {
-            background: #f8f8f8;
-            padding: 80px 60px 40px;
-            border-top: 3px solid #1a1a1a;
-        }
-
-        .footer-container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .footer-row {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 40px;
-            margin-bottom: 40px;
-        }
-
-        .footer-block h3 {
-            font-size: 20px;
-            font-weight: 900;
-            margin-bottom: 20px;
-            text-transform: uppercase;
-        }
-
-        .footer-block p {
-            font-size: 14px;
-            line-height: 1.7;
-            color: #666;
-        }
-
-        .footer-block ul {
-            list-style: none;
-        }
-
-        .footer-block ul li {
-            margin-bottom: 8px;
-        }
-
-        .footer-block ul li a {
-            color: #666;
-            text-decoration: none;
-            font-size: 14px;
-            transition: color 0.3s;
-        }
-
-        .footer-block ul li a:hover {
-            color: #ff6b6b;
-        }
-
-        .footer-copyright {
-            text-align: center;
-            padding-top: 40px;
-            border-top: 1px solid #ddd;
-        }
-
-        .footer-copyright p {
-            font-size: 14px;
-            color: #666;
-        }
-
-        @media (max-width: 1024px) {
-            .hero-magazine {
-                grid-template-columns: 1fr;
-            }
-
-            .hero-sidebar {
-                border-left: none;
-                border-top: 3px solid #1a1a1a;
-            }
-
-            .magazine-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .grid-item-large,
-            .grid-item-medium,
-            .grid-item-small {
-                grid-column: span 1;
-            }
-
-            .faq-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .stats-row {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
-            .team-row {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
-            .testimonials-row {
-                grid-template-columns: 1fr;
-            }
-
-            .pricing-row {
-                grid-template-columns: 1fr;
-            }
-
-            .footer-row {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-
-        @media (max-width: 768px) {
-            .stats-row,
-            .team-row,
-            .footer-row {
-                grid-template-columns: 1fr;
-            }
-
-            .header {
-                padding: 20px 30px;
-                flex-direction: column;
-                gap: 20px;
-            }
-
-            .brand {
-                font-size: 32px;
-            }
-
-            .hero-main,
-            .hero-sidebar {
-                padding: 60px 30px;
-            }
-
-            .hero-content h1 {
-                font-size: 48px;
-            }
-
-            .stats-section,
-            .team-section,
-            .testimonials-section,
-            .pricing-section,
-            .faq-section,
-            .contact-section,
-            .cta-banner,
-            .footer-section {
-                padding: 60px 30px;
-            }
-
-            .stats-title,
-            .team-title,
-            .testimonials-title,
-            .pricing-title,
-            .faq-title {
-                font-size: 36px;
-            }
-
-            .contact-section h2,
-            .cta-content h2 {
-                font-size: 42px;
-            }
+        @media (max-width: 992px) {
+            body { padding: 20px; }
+            .magazine-hero { grid-template-columns: 1fr; gap: 30px; }
+            .hero-left { border-right: none; padding-right: 0; }
+            .hero-right { padding-left: 0; }
+            .section-block { grid-template-columns: 1fr; gap: 30px; }
+            .about-grid { grid-template-columns: 1fr; }
+            .services-layout { grid-template-columns: 1fr; gap: 30px; }
+            .service-column { border-right: none; padding-right: 0; }
+            .faq-layout { grid-template-columns: 1fr; }
+            .contact-layout { grid-template-columns: 1fr; }
         }
     </style>
     <script src="/website-ai/static/editor.js" defer></script>
 </head>
-
 <body data-theme="magazine-grid">
-    <div class="top-bar">{{ data.business_type }} • PROFESSIONAL SERVICES</div>
-
-    <header class="header">
-        <div class="brand">{{ data.business_name }}</div>
-        <nav>
-            <ul class="header-nav">
-                <li><a href="#services">Services</a></li>
-                <li><a href="#faq">FAQ</a></li>
-                <li><a href="#contact">Contact</a></li>
-            </ul>
-        </nav>
+    <header class="editorial-header">
+        <a href="#" class="editorial-logo nav-logo">{{ data.business_name }}</a>
+        <ul class="nav-links">
+            <li><a href="#about">Manifesto</a></li>
+            <li><a href="#services">Departments</a></li>
+            <li><a href="#faq">FAQ</a></li>
+            <li><a href="#blog">Chronicle</a></li>
+            <li><a href="#contact">Contact</a></li>
+        </ul>
     </header>
 
-    <section class="hero-magazine">
-        <div class="hero-main">
-            <div class="hero-content">
-                <div class="hero-kicker">{{ data.business_type }}</div>
-                <h1>{{ theme_state.headline }}</h1>
-                <p>{{ content.about }}</p>
-                <a href="#services" class="hero-btn">{{ theme_state.cta_line }}</a>
-            </div>
+    <div class="ticker-wrap">
+        <div class="ticker">
+            <span class="ticker-item">✦ Editorial Standards</span>
+            <span class="ticker-item">✦ Modern Layout Systems</span>
+            <span class="ticker-item">✦ Distinct Design Columns</span>
+            <span class="ticker-item">✦ High Contrast Grid</span>
+            <span class="ticker-item">✦ Editorial Standards</span>
+            <span class="ticker-item">✦ Modern Layout Systems</span>
         </div>
-        <div class="hero-sidebar">
-            <div class="sidebar-stat">
-                <div class="stat-number">100%</div>
-                <div class="stat-label">Quality</div>
-            </div>
-            <div class="sidebar-stat">
-                <div class="stat-number">24/7</div>
-                <div class="stat-label">Support</div>
-            </div>
-            <div class="sidebar-stat">
-                <div class="stat-number">∞</div>
-                <div class="stat-label">Possibilities</div>
+    </div>
+
+    <section class="magazine-hero">
+        <div class="hero-left">
+            <span class="hero-tag">Weekly Dispatch</span>
+            <h1 class="hero-headline">Redefining the <em>Art</em> of High-End Digital Presence</h1>
+            <p class="hero-lead">{{ content.about }}</p>
+            <a href="#contact" class="btn-editorial">Book Discovery Call</a>
+        </div>
+        <div class="hero-right">
+            <div class="editorial-widget">
+                <span class="hero-tag" style="margin-bottom: 10px;">Support Dispatch</span>
+                <p style="font-size: 14px; font-style: italic; line-height: 1.6; margin-bottom: 20px;">"{{ theme_state.support_line }} We structure content layout grids that command attention and deliver clean readability."</p>
+                <strong style="font-size: 12px; font-weight: 700; text-transform: uppercase;">— The Editorial Board</strong>
             </div>
         </div>
     </section>
 
-    <section id="services" class="magazine-grid">
-        {% for service in content.services %}
-        <div
-            class="grid-item {% if loop.index == 1 %}grid-item-large{% elif loop.index <= 3 %}grid-item-medium{% else %}grid-item-small{% endif %}">
-            <div>
-                <div class="item-number">{{ '%02d' % loop.index }}</div>
-                <h3>{{ service.name }}</h3>
-                <p>{{ service.description }}</p>
+    <main>
+        <!-- ABOUT -->
+        <section id="about" class="section-block">
+            <div class="sec-head">
+                <h3>Our Chronicle</h3>
+                <p class="sec-tagline">Since 2026</p>
             </div>
-        </div>
-        {% endfor %}
-    </section>
-
-    <!-- Stats Section -->
-    <section class="stats-section">
-        <div class="stats-container">
-            <h2 class="stats-title">Our Impact</h2>
-            <div class="stats-row">
-                <div class="stat-item">
-                    <div class="stat-num">750+</div>
-                    <div class="stat-text">Projects Delivered</div>
+            <div class="about-grid">
+                <div class="about-text">
+                    <p style="font-size: 18px; font-family: var(--font-headings); font-weight: 700; line-height: 1.6; margin-bottom: 20px;">Crafting layouts that reject the status quo of unified, master structures.</p>
+                    <p>{{ content.about }}</p>
                 </div>
-                <div class="stat-item">
-                    <div class="stat-num">99%</div>
-                    <div class="stat-text">Client Satisfaction</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-num">15+</div>
-                    <div class="stat-text">Years Experience</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-num">24/7</div>
-                    <div class="stat-text">Support Available</div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Team Section -->
-    <section class="team-section">
-        <div class="team-container">
-            <h2 class="team-title">Meet The Team</h2>
-            <div class="team-row">
-                <div class="team-box">
-                    <div class="team-initial">JD</div>
-                    <h4>John Doe</h4>
-                    <p>CEO & Founder</p>
-                </div>
-                <div class="team-box">
-                    <div class="team-initial">JS</div>
-                    <h4>Jane Smith</h4>
-                    <p>Creative Director</p>
-                </div>
-                <div class="team-box">
-                    <div class="team-initial">MB</div>
-                    <h4>Mike Brown</h4>
-                    <p>Lead Developer</p>
-                </div>
-                <div class="team-box">
-                    <div class="team-initial">SD</div>
-                    <h4>Sarah Davis</h4>
-                    <p>Marketing Head</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Testimonials Section -->
-    <section class="testimonials-section">
-        <div class="testimonials-container">
-            <h2 class="testimonials-title">Client Reviews</h2>
-            <div class="testimonials-row">
-                <div class="testimonial-card">
-                    <p class="testimonial-content">"{{ data.business_name }} transformed our digital presence. Their
-                        creativity
-                        and technical expertise are outstanding. Highly recommended!"</p>
-                    <div class="testimonial-footer">
-                        <div class="testimonial-avatar">AM</div>
-                        <div class="testimonial-info">
-                            <strong>Alex Martinez</strong>
-                            <span>CEO, Tech Innovations</span>
-                        </div>
+                <div class="stats-column">
+                    <div class="stat-card">
+                        <div class="stat-num">99%</div>
+                        <p style="font-size: 11px; text-transform: uppercase; font-weight: 700; margin-top: 4px;">Reader Satisfaction</p>
                     </div>
-                </div>
-                <div class="testimonial-card">
-                    <p class="testimonial-content">"Working with this team has been incredible. They delivered beyond
-                        our
-                        expectations and on time. True professionals!"</p>
-                    <div class="testimonial-footer">
-                        <div class="testimonial-avatar">LW</div>
-                        <div class="testimonial-info">
-                            <strong>Lisa Wang</strong>
-                            <span>Founder, Creative Labs</span>
-                        </div>
+                    <div class="stat-card">
+                        <div class="stat-num">150+</div>
+                        <p style="font-size: 11px; text-transform: uppercase; font-weight: 700; margin-top: 4px;">Editions Launched</p>
                     </div>
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <!-- Pricing Section -->
-    <section class="pricing-section">
-        <div class="pricing-container">
-            <h2 class="pricing-title">Pricing Plans</h2>
-            <div class="pricing-row">
-                <div class="price-box">
-                    <h3>Starter</h3>
-                    <div class="price-value">$99<span>/mo</span></div>
-                    <ul class="price-list">
-                        <li>5 Projects</li>
-                        <li>Basic Support</li>
-                        <li>1 GB Storage</li>
-                        <li>Email Support</li>
-                    </ul>
-                    <a href="#contact" class="price-button">Get Started</a>
-                </div>
-                <div class="price-box featured">
-                    <h3>Professional</h3>
-                    <div class="price-value">$299<span>/mo</span></div>
-                    <ul class="price-list">
-                        <li>Unlimited Projects</li>
-                        <li>Priority Support</li>
-                        <li>50 GB Storage</li>
-                        <li>24/7 Support</li>
-                    </ul>
-                    <a href="#contact" class="price-button">Get Started</a>
-                </div>
+        <!-- SERVICES -->
+        <section id="services" class="section-block">
+            <div class="sec-head">
+                <h3>Departments</h3>
+                <p class="sec-tagline">Specialized services</p>
             </div>
-        </div>
-    </section>
-
-    <!-- CTA Section -->
-    <section class="cta-banner">
-        <div class="cta-content">
-            <h2>Ready to Transform Your Business?</h2>
-            <p>Join hundreds of satisfied clients and take your business to the next level.</p>
-            <a href="#contact" class="hero-btn">{{ theme_state.cta_line }}</a>
-        </div>
-    </section>
-
-    <section id="faq" class="faq-section">
-        <h2 class="faq-title">FAQ</h2>
-        <div class="faq-grid">
-            {% for item in content.faq %}
-            <details class="faq-item">
-                <summary>{{ item.question }}</summary>
-                <p>{{ item.answer }}</p>
-            </details>
-            {% endfor %}
-        </div>
-    </section>
-
-    <section id="contact" class="contact-section">
-        <h2>Let's Talk</h2>
-        <p>{{ content.contact }}</p>
-        <p style="margin-top: 20px;">Email: hello@{{ data.business_name|lower|replace(' ', '') }}.com</p>
-        <p>Phone: +1 (555) 987-6543</p>
-    </section>
-
-    <!-- Footer -->
-    <footer class="footer-section">
-        <div class="footer-container">
-            <div class="footer-row">
-                <div class="footer-block">
-                    <h3>{{ data.business_name }}</h3>
-                    <p>{{ content.about|truncate(120) }}</p>
+            <div class="services-layout">
+                {% for service in content.services %}
+                <div class="service-column service-card">
+                    <h4>{{ service.name }}</h4>
+                    <p>{{ service.description }}</p>
                 </div>
-                <div class="footer-block">
-                    <h3>Services</h3>
-                    <ul>
-                        {% for service in content.services[:4] %}
-                        <li><a href="#services">{{ service.name }}</a></li>
-                        {% endfor %}
-                    </ul>
-                </div>
-                <div class="footer-block">
-                    <h3>Company</h3>
-                    <ul>
-                        <li><a href="#services">Services</a></li>
-                        <li><a href="#faq">FAQ</a></li>
-                        <li><a href="#contact">Contact</a></li>
-                    </ul>
-                </div>
-                <div class="footer-block">
-                    <h3>Legal</h3>
-                    <ul>
-                        <li><a href="#">Privacy Policy</a></li>
-                        <li><a href="#">Terms of Service</a></li>
-                        <li><a href="#">Cookie Policy</a></li>
-                    </ul>
-                </div>
+                {% endfor %}
             </div>
-            <div class="footer-copyright">
-                <p>&copy; 2024 {{ data.business_name }}. All rights reserved.</p>
+        </section>
+
+        <!-- FAQ -->
+        <section id="faq" class="section-block">
+            <div class="sec-head">
+                <h3>Inquiries</h3>
+                <p class="sec-tagline">Common guest questions</p>
             </div>
-        </div>
+            <div class="faq-layout">
+                {% for item in content.faq %}
+                <details class="faq-item">
+                    <summary>{{ item.question }}</summary>
+                    <p>{{ item.answer }}</p>
+                </details>
+                {% endfor %}
+            </div>
+        </section>
+
+        <!-- BLOG -->
+        <section id="blog" class="section-block">
+            <div class="sec-head">
+                <h3>Dispatches</h3>
+                <p class="sec-tagline">Latest articles</p>
+            </div>
+            <div id="blog-posts-container" class="blog-row-layout">
+                <div style="text-align: center; color: #555;">Loading columns...</div>
+            </div>
+        </section>
+
+        <!-- CONTACT -->
+        <section id="contact" class="section-block" style="border-bottom: none; padding-bottom: 0;">
+            <div class="sec-head">
+                <h3>Enquiry</h3>
+                <p class="sec-tagline">Reach our desk</p>
+            </div>
+            <div class="contact-layout">
+                <div>
+                    <p style="font-size: 18px; margin-bottom: 24px;">{{ content.contact }}</p>
+                    <p style="font-size: 13px; font-weight: 700; text-transform: uppercase;">saadhyam editorial desk</p>
+                    <p style="font-size: 14px; margin-top: 8px;">{{ data.contact_email or 'hello@saadhyam.ai' }}<br/>{{ data.contact_phone or '+1 (555) 918-0928' }}</p>
+                </div>
+                <form class="contact-form" onsubmit="event.preventDefault(); alert('Enquiry Sent!');">
+                    <div class="form-group">
+                        <label>Your Name</label>
+                        <input type="text" placeholder="Jane Doe" required />
+                    </div>
+                    <div class="form-group">
+                        <label>Email Address</label>
+                        <input type="email" placeholder="jane@example.com" required />
+                    </div>
+                    <div class="form-group">
+                        <label>Your Project Brief</label>
+                        <textarea rows="4" placeholder="Briefly describe your objectives..." required></textarea>
+                    </div>
+                    <button type="submit" class="btn-editorial" style="cursor: pointer; align-self: flex-start;">Submit briefing</button>
+                </form>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <span>&copy; 2026 {{ data.business_name }}</span>
+        <span>Magazine Grid. All rights reserved.</span>
     </footer>
-    
-    </body>
 
+    <script>
+        async function loadBlogPosts() {
+            const container = document.getElementById('blog-posts-container');
+            try {
+                const response = await fetch('blogs.json');
+                if (!response.ok) throw new Error('No blogs');
+                const data = await response.json();
+                const blogs = data.blogs || [];
+                if (blogs.length === 0) {
+                    container.innerHTML = '<p>No insights published yet.</p>';
+                    return;
+                }
+                container.innerHTML = blogs.slice(0, 3).map((blog, idx) => `
+                    <div class="blog-row" onclick="window.location.href='blog-\${blog.slug}.html'">
+                        <div class="blog-row-date">0\${idx+1}</div>
+                        <div>
+                            <h4>\${blog.title}</h4>
+                            <p>\${blog.meta_description || 'Click to view full journal dispatch'}</p>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                container.innerHTML = '<p>No insights published yet.</p>';
+            }
+        }
+        document.addEventListener('DOMContentLoaded', loadBlogPosts);
+    </script>
+</body>
 </html>

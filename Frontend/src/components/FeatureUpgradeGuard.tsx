@@ -51,6 +51,7 @@ export function FeatureUpgradeGuard({ children }: FeatureUpgradeGuardProps) {
   const { user } = useAuthContext();
   const [globalStatus, setGlobalStatus] = useState<{ status: string; reason?: string } | null>(null);
   const [isGlobalNoticeOpen, setIsGlobalNoticeOpen] = useState(true);
+  const [quotaBlock, setQuotaBlock] = useState<{ title: string; message: string; featureLabel?: string } | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -95,21 +96,48 @@ export function FeatureUpgradeGuard({ children }: FeatureUpgradeGuardProps) {
   const currentPlanKey = normalizePackKey(user?.selected_plan_key);
 
   useEffect(() => {
+    let active = true;
     const routeKey = getGlobalFeatureKey(location.pathname);
-    if (!routeKey || globalStatus) return;
-
-    // Check if the user plan excludes the feature
-    const featureName = resolveFeatureFromPath(location.pathname);
-    if (featureName) {
-      const planStatus = PACK_FEATURE_MATRIX[currentPlanKey]?.[featureName];
-      if (planStatus === "excluded") {
-        return; // Excluded - don't record usage
-      }
+    if (!routeKey || globalStatus) {
+      setQuotaBlock(null);
+      return;
     }
 
-    const recordUsage = async () => {
+    const checkQuotaAndRecord = async () => {
       try {
         const adminUrl = getAdminApiBaseUrl();
+        const params = new URLSearchParams();
+        if (user?.id !== undefined && user?.id !== null) {
+          params.set("user_id", String(user.id));
+        }
+        params.set("plan_key", currentPlanKey);
+        const evaluateResponse = await fetch(`${adminUrl}/api/features/${routeKey}/evaluate?${params.toString()}`);
+        if (!evaluateResponse.ok) {
+          throw new Error(`Quota evaluation failed with ${evaluateResponse.status}`);
+        }
+
+        const evaluation = await evaluateResponse.json();
+        if (!active) return;
+
+        if (evaluation.allowed === false) {
+          setQuotaBlock({
+            title: `${evaluation.feature_name || resolveFeatureFromPath(location.pathname) || "Feature"} limit reached`,
+            message: evaluation.message || "This feature has reached the free usage limit.",
+            featureLabel: routeKey,
+          });
+          return;
+        }
+
+        setQuotaBlock(null);
+
+        const featureName = resolveFeatureFromPath(location.pathname);
+        if (featureName) {
+          const planStatus = PACK_FEATURE_MATRIX[currentPlanKey]?.[featureName];
+          if (planStatus === "excluded") {
+            return;
+          }
+        }
+
         await fetch(`${adminUrl}/api/admin/analytics/feature-usage/event`, {
           method: "POST",
           headers: {
@@ -126,11 +154,18 @@ export function FeatureUpgradeGuard({ children }: FeatureUpgradeGuardProps) {
           }),
         });
       } catch (err) {
-        console.error("Failed to record feature usage event", err);
+        if (active) {
+          console.error("Failed to evaluate or record feature usage", err);
+          setQuotaBlock(null);
+        }
       }
     };
 
-    recordUsage();
+    checkQuotaAndRecord();
+
+    return () => {
+      active = false;
+    };
   }, [location.pathname, globalStatus, currentPlanKey, user?.id, user?.email]);
 
   const gateInfo = useMemo(() => {
@@ -176,6 +211,17 @@ export function FeatureUpgradeGuard({ children }: FeatureUpgradeGuardProps) {
           />
         )}
       </>
+    );
+  }
+
+  if (quotaBlock) {
+    return (
+      <FeatureDisabledState
+        title={quotaBlock.title}
+        message={quotaBlock.message}
+        featureLabel={quotaBlock.featureLabel}
+        onDismiss={() => navigate({ to: "/dashboard/pricing" })}
+      />
     );
   }
 

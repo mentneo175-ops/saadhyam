@@ -10,6 +10,7 @@ from typing import Optional, Dict, Any, List
 from utils.dependencies import get_current_user
 from config.database import get_db, get_db_sync
 from models.user import User
+from utils.feature_gate import check_feature_access
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 from services.aeo_geo_service import get_aeo_geo_overview, run_full_aeo_geo_optimization
@@ -168,6 +169,9 @@ async def discover_questions_endpoint(
     - Difficulty scores
     """
     
+    # Check feature access
+    await check_feature_access(current_user, "aeo_geo")
+    
     result = await discover_questions(current_user, db, limit)
     
     if result.get("status") == "error":
@@ -266,6 +270,9 @@ async def generate_content(
     - GEO score
     - Readability metrics
     """
+    
+    # Check feature access
+    await check_feature_access(current_user, "aeo_geo")
     
     result = await generate_aeo_content(current_user, question_id, db)
     
@@ -495,6 +502,9 @@ async def generate_blog(
     - HTML formatted content
     - Publishing instructions
     """
+    
+    # Check feature access
+    await check_feature_access(current_user, "aeo_geo")
     
     # Get business details
     from db.models import BusinessAnalysis

@@ -29,10 +29,12 @@ def migrate_add_chat_tables():
             )
         """))
         
-        # Create unique functional index on chat_rooms
-        db.execute(text("""
-            CREATE UNIQUE INDEX IF NOT EXISTS unique_room ON chat_rooms (LEAST(user1_id, user2_id), GREATEST(user1_id, user2_id))
-        """))
+        # Create unique functional index on chat_rooms (only on non-SQLite databases like PostgreSQL)
+        from config.database import sync_engine
+        if "sqlite" not in sync_engine.dialect.name:
+            db.execute(text("""
+                CREATE UNIQUE INDEX IF NOT EXISTS unique_room ON chat_rooms (LEAST(user1_id, user2_id), GREATEST(user1_id, user2_id))
+            """))
         
         # Create chat_messages table
         db.execute(text("""

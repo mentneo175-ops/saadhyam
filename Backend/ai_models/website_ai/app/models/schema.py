@@ -38,6 +38,8 @@ class WebsiteRequest(BaseModel):
     business_name: str = Field(..., min_length=1, max_length=120)
     business_type: str = Field(..., min_length=1, max_length=80)
     theme: Optional[str] = None
+    contact_email: Optional[str] = None
+    contact_phone: Optional[str] = None
 
     @field_validator("business_name", "business_type")
     @classmethod
@@ -56,6 +58,7 @@ class WebsiteRequest(BaseModel):
         return cleaned or None
 
 
+
 class WebsiteProfile(BaseModel):
     business_name: str = Field(..., min_length=1, max_length=120)
     business_type: str = Field(..., min_length=1, max_length=80)
@@ -63,6 +66,7 @@ class WebsiteProfile(BaseModel):
     target_audience: str = Field(..., min_length=1, max_length=180)
     tone: str = Field(..., min_length=1, max_length=80)
     branding_style: str = Field(..., min_length=1, max_length=120)
+    description: Optional[str] = None
 
     @field_validator("business_name", "business_type", "target_audience", "tone", "branding_style")
     @classmethod

@@ -14,8 +14,36 @@ logger = logging.getLogger(__name__)
 # Model server configuration
 MODEL_SERVER_URL = "http://localhost:9000"
 MODEL_SERVER_TIMEOUT = 1200  # 20 minutes timeout for generation (model inference takes time)
+ADMIN_API_URL = "http://127.0.0.1:8082"
+BUSINESS_ANALYSIS_FEATURE_KEY = "business_analysis"
+CONTENT_GENERATION_FEATURE_KEY = "content_scheduler"
 
 router = APIRouter(prefix="/ai", tags=["ai"])
+
+
+async def _evaluate_feature_access(user: User, feature_key: str) -> dict:
+    plan_key = (getattr(user, "selected_plan_key", None) or "starter").strip() or "starter"
+    async with httpx.AsyncClient(timeout=6.0) as client:
+        response = await client.get(
+            f"{ADMIN_API_URL}/api/features/{feature_key}/evaluate",
+            params={"user_id": user.id, "plan_key": plan_key},
+        )
+        response.raise_for_status()
+        return response.json()
+
+
+async def _record_feature_usage(user: User, feature_key: str, path: str, metadata: dict | None = None) -> None:
+    payload = {
+        "feature_key": feature_key,
+        "user_id": user.id,
+        "path": path,
+        "metadata": metadata or {},
+    }
+    try:
+        async with httpx.AsyncClient(timeout=6.0) as client:
+            await client.post(f"{ADMIN_API_URL}/api/admin/analytics/feature-usage/event", json=payload)
+    except Exception as exc:
+        logger.warning("Failed to record %s usage event: %s", feature_key, exc)
 
 
 # Request/Response Models
@@ -331,8 +359,15 @@ async def analyze_business(
 ):
     """Analyze business and provide insights"""
     try:
+        access = await _evaluate_feature_access(current_user, BUSINESS_ANALYSIS_FEATURE_KEY)
+        if not access.get("allowed", True):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=access.get("message") or "You have reached the free usage limit for business analysis.",
+            )
+
         # AI logic here - for now returning mock data
-        return BusinessAnalysisResponse(
+        response = BusinessAnalysisResponse(
             success=True,
             strengths=[
                 "Strong local presence with 4.8★ rating",
@@ -368,6 +403,23 @@ async def analyze_business(
                 },
             },
         )
+
+        try:
+            await _record_feature_usage(
+                current_user,
+                BUSINESS_ANALYSIS_FEATURE_KEY,
+                "/ai/business-analysis",
+                {
+                    "business_type": request.business_type,
+                    "location": request.location,
+                },
+            )
+        except Exception as exc:
+            logger.warning("Business analysis usage tracking failed: %s", exc)
+
+        return response
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Business analysis error: {e}")
         raise HTTPException(status_code=500, detail="Unable to process your request right now")
@@ -381,10 +433,33 @@ async def generate_content(
 ):
     """Generate AI content"""
     try:
+        access = await _evaluate_feature_access(current_user, CONTENT_GENERATION_FEATURE_KEY)
+        if not access.get("allowed", True):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=access.get("message") or "You have reached the free usage limit for content generation.",
+            )
+
         # AI logic here
         content = f"✨ {request.prompt}\n\nGenerated in {request.language} with {request.tone} tone.\n\n#AI #Content #SaadhyamAI"
 
+        try:
+            await _record_feature_usage(
+                current_user,
+                CONTENT_GENERATION_FEATURE_KEY,
+                "/ai/generate-content",
+                {
+                    "content_type": request.content_type,
+                    "tone": request.tone,
+                    "language": request.language,
+                },
+            )
+        except Exception as exc:
+            logger.warning("Content generation usage tracking failed: %s", exc)
+
         return ContentGenerateResponse(success=True, content=content)
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Content generation error: {e}")
         raise HTTPException(status_code=500, detail="Content generation failed")

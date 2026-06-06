@@ -1,422 +1,210 @@
 <!doctype html>
 <html lang="en">
-
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ data.business_name }} | Parallax Scroll Layout</title>
+    <title>{{ data.business_name }} | Parallax Space</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Outfit:wght@800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/website-ai/static/theme-adapter.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        :root {
+            --bg-color: #0b0c10;
+            --text-color: #c5c6c7;
+            --text-title: #ffffff;
+            --primary: #66fcf1;
+            --primary-dim: #45f3e5;
+            --primary-glow: rgba(102, 252, 241, 0.2);
+            --border-color: rgba(102, 252, 241, 0.15);
+            --card-bg: #1f2833;
         }
-
         body {
-            font-family: 'Montserrat', sans-serif;
-            background: #0a0a0a;
-            color: #ffffff;
+            font-family: 'Space Grotesk', sans-serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.8;
             overflow-x: hidden;
         }
+        h1, h2, h3 { font-family: 'Outfit', sans-serif; color: var(--text-title); letter-spacing: -0.5px; }
 
-        /* Fixed header */
-        .fixed-header {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 1000;
-            background: rgba(10, 10, 10, 0.9);
+        /* Floating Nav */
+        .navbar {
+            background: rgba(11, 12, 16, 0.85);
             backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            border-bottom: 1px solid var(--border-color);
+            position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
         }
-
-        .header-inner {
-            max-width: 1600px;
-            margin: 0 auto;
-            padding: 24px 60px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        .nav-container {
+            max-width: 1200px; margin: 0 auto; padding: 20px; display: flex; justify-content: space-between; align-items: center;
         }
-
-        .logo {
-            font-size: 24px;
-            font-weight: 800;
-            background: linear-gradient(135deg, #00f5a0, #00d9f5);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+        .nav-logo { font-size: 24px; font-weight: 800; text-decoration: none; color: var(--text-title); }
+        .nav-logo span { color: var(--primary); }
+        .nav-links { list-style: none; display: flex; gap: 28px; }
+        .nav-links a { color: var(--text-color); text-decoration: none; font-size: 13px; font-weight: 500; text-transform: uppercase; letter-spacing: 1px; transition: color 0.2s; }
+        .nav-links a:hover { color: var(--primary); }
+        .nav-cta {
+            border: 1.5px solid var(--primary); color: var(--primary); padding: 10px 20px; border-radius: 4px; text-decoration: none; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; transition: all 0.3s;
         }
+        .nav-cta:hover { background: var(--primary-glow); transform: translateY(-1px); }
 
-        .nav-menu {
-            display: flex;
-            gap: 48px;
-            list-style: none;
-        }
-
-        .nav-menu a {
-            color: rgba(255, 255, 255, 0.7);
-            text-decoration: none;
-            font-size: 14px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            transition: all 0.3s;
-            position: relative;
-        }
-
-        .nav-menu a::after {
-            content: '';
-            position: absolute;
-            bottom: -4px;
-            left: 0;
-            width: 0;
-            height: 2px;
-            background: linear-gradient(90deg, #00f5a0, #00d9f5);
-            transition: width 0.3s;
-        }
-
-        .nav-menu a:hover {
-            color: #00f5a0;
-        }
-
-        .nav-menu a:hover::after {
-            width: 100%;
-        }
-
-        /* Parallax hero */
+        /* Hero Parallax */
         .parallax-hero {
-            height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            overflow: hidden;
+            height: 100vh; min-height: 700px; display: flex; align-items: center; justify-content: center; position: relative; text-align: center; overflow: hidden;
+            background: radial-gradient(circle at 50% 50%, #1f2833 0%, #0b0c10 80%);
+        }
+        .hero-glow { position: absolute; width: 300px; height: 300px; background: var(--primary-glow); filter: blur(100px); top: 30%; left: 50%; transform: translate(-50%, -50%); pointer-events: none; }
+        .hero-content { position: relative; max-width: 800px; padding: 0 24px; z-index: 2; }
+        .hero-badge { display: inline-block; border: 1px solid var(--primary); color: var(--primary); font-size: 12px; font-weight: 600; padding: 6px 14px; border-radius: 50px; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 24px; }
+        .parallax-hero h1 { font-size: clamp(38px, 6vw, 68px); line-height: 1.1; margin-bottom: 24px; }
+        .parallax-hero h1 em { font-style: italic; color: var(--primary-dim); }
+        .parallax-hero p { font-size: 18px; color: var(--text-color); margin-bottom: 40px; }
+
+        /* Scroll progress line */
+        .scroll-down { position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 8px; font-size: 10px; text-transform: uppercase; letter-spacing: 2px; color: var(--primary); }
+        .scroll-line { width: 1px; height: 60px; background: linear-gradient(to bottom, var(--primary), transparent); }
+
+        /* Section Layouts */
+        .section { padding: 120px 24px; border-bottom: 1px solid var(--border-color); }
+        .section-container { max-width: 1100px; margin: 0 auto; }
+        .section-header { text-align: center; margin-bottom: 60px; }
+        .section-label { font-size: 12px; text-transform: uppercase; letter-spacing: 3px; color: var(--primary); font-weight: 600; display: block; margin-bottom: 10px; }
+        .section-title { font-size: 38px; font-weight: 800; }
+
+        /* About Grid */
+        .about-layout { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 50px; align-items: center; }
+        .about-card { background: var(--card-bg); border: 1px solid var(--border-color); padding: 40px; border-radius: 8px; }
+        .about-stats { display: flex; flex-direction: column; gap: 20px; }
+        .stat-card { background: var(--card-bg); border: 1px solid var(--border-color); padding: 20px; text-align: center; border-radius: 8px; }
+        .stat-num { font-size: 36px; font-weight: 800; color: var(--primary); font-family: 'Space Grotesk', sans-serif; }
+        
+        /* Services grid */
+        .services-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+        .service-card { background: var(--card-bg); border: 1px solid var(--border-color); padding: 30px; border-radius: 8px; transition: all 0.3s; }
+        .service-card:hover { border-color: var(--primary); transform: translateY(-4px); box-shadow: 0 10px 25px var(--primary-glow); }
+        .service-icon { font-size: 28px; margin-bottom: 16px; color: var(--primary); }
+        .service-card h4 { font-size: 20px; margin-bottom: 10px; color: var(--text-title); }
+
+        /* FAQ list */
+        .faq-wrap { display: flex; flex-direction: column; gap: 16px; max-width: 800px; margin: 0 auto; }
+        .faq-item { border-bottom: 1px solid var(--border-color); padding-bottom: 16px; }
+        .faq-item summary { font-size: 16px; font-weight: 600; cursor: pointer; display: flex; justify-content: space-between; }
+        .faq-item summary::after { content: '+'; color: var(--primary); font-size: 20px; }
+        .faq-item[open] summary::after { content: '-'; }
+        .faq-item p { color: var(--text-color); font-size: 14px; margin-top: 10px; }
+
+        /* Blog grid */
+        .blog-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+        .blog-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; cursor: pointer; transition: all 0.3s; }
+        .blog-card:hover { border-color: var(--primary); }
+        .blog-img { height: 160px; background: rgba(102, 252, 241, 0.05); display: flex; align-items: center; justify-content: center; font-size: 44px; border-bottom: 1px solid var(--border-color); }
+        .blog-info { padding: 20px; }
+        .blog-info h4 { font-size: 18px; margin-bottom: 8px; color: var(--text-title); }
+        .blog-info p { font-size: 13px; color: var(--text-color); }
+
+        /* Contact cards */
+        .contact-layout { display: grid; grid-template-columns: 1fr 1.2fr; gap: 50px; }
+        .contact-info { display: flex; flex-direction: column; gap: 20px; }
+        .contact-card { background: var(--card-bg); border: 1px solid var(--border-color); padding: 20px; display: flex; align-items: center; gap: 16px; border-radius: 8px; }
+        .contact-card-icon { font-size: 24px; color: var(--primary); }
+        .contact-form { display: flex; flex-direction: column; gap: 16px; }
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+        .form-group label { font-size: 11px; text-transform: uppercase; color: var(--primary); }
+        .form-group input, .form-group textarea { background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 4px; padding: 12px; color: white; font-family: inherit; font-size: 14px; outline: none; }
+        .form-group input:focus, .form-group textarea:focus { border-color: var(--primary); }
+
+        .footer {
+            border-top: 1px solid var(--border-color); max-width: 1100px; margin: 60px auto 0; padding-top: 40px; display: flex; justify-content: space-between; font-size: 13px; color: var(--text-color);
         }
 
-        .parallax-bg {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 120%;
-            background: radial-gradient(circle at 30% 50%, rgba(0, 245, 160, 0.15), transparent 50%),
-                radial-gradient(circle at 70% 50%, rgba(0, 217, 245, 0.15), transparent 50%);
-            animation: float 20s ease-in-out infinite;
-        }
-
-        @keyframes float {
-
-            0%,
-            100% {
-                transform: translateY(0) scale(1);
-            }
-
-            50% {
-                transform: translateY(-30px) scale(1.05);
-            }
-        }
-
-        .hero-content {
-            position: relative;
-            z-index: 10;
-            text-align: center;
-            max-width: 1000px;
-            padding: 0 40px;
-        }
-
-        .hero-label {
-            display: inline-block;
-            padding: 12px 28px;
-            border: 2px solid rgba(0, 245, 160, 0.3);
-            border-radius: 50px;
-            font-size: 13px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 3px;
-            margin-bottom: 40px;
-            background: rgba(0, 245, 160, 0.05);
-            color: #00f5a0;
-        }
-
-        .hero-content h1 {
-            font-size: 96px;
-            font-weight: 900;
-            line-height: 1;
-            margin-bottom: 32px;
-            letter-spacing: -4px;
-            background: linear-gradient(135deg, #ffffff 0%, #00f5a0 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            animation: fadeInUp 1s ease-out;
-        }
-
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .hero-content p {
-            font-size: 24px;
-            color: rgba(255, 255, 255, 0.7);
-            margin-bottom: 48px;
-            line-height: 1.6;
-            animation: fadeInUp 1s ease-out 0.2s both;
-        }
-
-        .hero-cta {
-            display: inline-block;
-            padding: 20px 48px;
-            background: linear-gradient(135deg, #00f5a0, #00d9f5);
-            color: #0a0a0a;
-            text-decoration: none;
-            border-radius: 50px;
-            font-weight: 800;
-            font-size: 16px;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            box-shadow: 0 20px 60px rgba(0, 245, 160, 0.3);
-            transition: all 0.4s;
-            animation: fadeInUp 1s ease-out 0.4s both;
-        }
-
-        .hero-cta:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 30px 80px rgba(0, 245, 160, 0.4);
-        }
-
-        /* Scroll sections */
-        .scroll-section {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            padding: 120px 60px;
-            position: relative;
-        }
-
-        .section-content {
-            max-width: 1400px;
-            margin: 0 auto;
-            width: 100%;
-        }
-
-        .section-title {
-            font-size: 72px;
-            font-weight: 900;
-            margin-bottom: 80px;
-            text-align: center;
-            letter-spacing: -3px;
-            background: linear-gradient(135deg, #ffffff, #00f5a0);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        /* Service cards */
-        .service-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-            gap: 40px;
-        }
-
-        .service-card {
-            background: linear-gradient(135deg, rgba(0, 245, 160, 0.05), rgba(0, 217, 245, 0.05));
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 24px;
-            padding: 48px;
-            transition: all 0.5s;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .service-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(0, 245, 160, 0.1), transparent);
-            transition: left 0.5s;
-        }
-
-        .service-card:hover::before {
-            left: 100%;
-        }
-
-        .service-card:hover {
-            transform: translateY(-12px);
-            border-color: rgba(0, 245, 160, 0.5);
-            box-shadow: 0 30px 80px rgba(0, 245, 160, 0.2);
-        }
-
-        .service-number {
-            font-size: 80px;
-            font-weight: 900;
-            color: rgba(0, 245, 160, 0.2);
-            line-height: 1;
-            margin-bottom: 24px;
-        }
-
-        .service-card h3 {
-            font-size: 32px;
-            margin-bottom: 20px;
-            color: #00f5a0;
-        }
-
-        .service-card p {
-            font-size: 18px;
-            color: rgba(255, 255, 255, 0.7);
-            line-height: 1.8;
-        }
-
-        /* FAQ section */
-        .faq-container {
-            max-width: 1000px;
-            margin: 0 auto;
-        }
-
-        .faq-item {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
-            padding: 36px;
-            margin-bottom: 24px;
-            transition: all 0.3s;
-        }
-
-        .faq-item:hover {
-            background: rgba(0, 245, 160, 0.05);
-            border-color: rgba(0, 245, 160, 0.3);
-        }
-
-        .faq-item summary {
-            font-size: 24px;
-            font-weight: 700;
-            cursor: pointer;
-            list-style: none;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            color: #ffffff;
-        }
-
-        .faq-item summary::after {
-            content: '▼';
-            font-size: 16px;
-            color: #00f5a0;
-            transition: transform 0.3s;
-        }
-
-        .faq-item[open] summary::after {
-            transform: rotate(180deg);
-        }
-
-        .faq-item p {
-            margin-top: 24px;
-            font-size: 18px;
-            color: rgba(255, 255, 255, 0.7);
-            line-height: 1.8;
-        }
-
-        /* Contact section */
-        .contact-section {
-            background: linear-gradient(135deg, rgba(0, 245, 160, 0.1), rgba(0, 217, 245, 0.1));
-            border: 2px solid rgba(0, 245, 160, 0.3);
-            border-radius: 40px;
-            padding: 100px 60px;
-            text-align: center;
-            max-width: 1000px;
-            margin: 0 auto;
-        }
-
-        .contact-section h2 {
-            font-size: 64px;
-            font-weight: 900;
-            margin-bottom: 32px;
-            background: linear-gradient(135deg, #00f5a0, #00d9f5);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .contact-section p {
-            font-size: 22px;
-            color: rgba(255, 255, 255, 0.8);
-            line-height: 1.7;
-        }
-
-        @media (max-width: 1024px) {
-            .hero-content h1 {
-                font-size: 56px;
-            }
-
-            .service-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .section-title {
-                font-size: 48px;
-            }
+        @media (max-width: 992px) {
+            .navbar { padding: 10px 0; }
+            .about-layout { grid-template-columns: 1fr; }
+            .services-grid { grid-template-columns: 1fr; }
+            .blog-grid { grid-template-columns: 1fr; }
+            .contact-layout { grid-template-columns: 1fr; }
         }
     </style>
     <script src="/website-ai/static/editor.js" defer></script>
 </head>
-
 <body data-theme="parallax-scroll">
-    <header class="fixed-header">
-        <div class="header-inner">
-            <div class="logo">{{ data.business_name }}</div>
-            <nav>
-                <ul class="nav-menu">
-                    <li><a href="#services">Services</a></li>
-                    <li><a href="blogs.html">Blog</a></li>
-                    <li><a href="#faq">FAQ</a></li>
-                    <li><a href="#contact">Contact</a></li>
-                </ul>
-            </nav>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="#" class="nav-logo">Space<span>Studio</span></a>
+            <ul class="nav-links">
+                <li><a href="#about">About</a></li>
+                <li><a href="#services">Services</a></li>
+                <li><a href="#faq">FAQ</a></li>
+                <li><a href="#blog">Blog</a></li>
+                <li><a href="#contact">Contact</a></li>
+            </ul>
+            <a href="#contact" class="nav-cta">Initiate consult</a>
+        </div>
+    </nav>
+
+    <header class="parallax-hero">
+        <div class="hero-glow"></div>
+        <div class="hero-content">
+            <span class="hero-badge">Curated Web Engineering</span>
+            <h1>Interactive designs, built <em>futuristically</em></h1>
+            <p>{{ content.about }}</p>
+            <a href="#contact" class="nav-cta" style="padding: 14px 28px;">Start Project today</a>
+        </div>
+        <div class="scroll-down">
+            <span>Scroll</span>
+            <div class="scroll-line"></div>
         </div>
     </header>
 
-    <section class="parallax-hero">
-        <div class="parallax-bg"></div>
-        <div class="hero-content">
-            <span class="hero-label">{{ data.business_type }}</span>
-            <h1>{{ theme_state.headline }}</h1>
-            <p>{{ content.about }}</p>
-            <a href="#services" class="hero-cta">{{ theme_state.cta_line }}</a>
-        </div>
-    </section>
+    <main class="section-container">
+        <!-- ABOUT -->
+        <section id="about" class="section">
+            <div class="section-header">
+                <span class="section-label">Philosophy</span>
+                <h2 class="section-title">Who We Are</h2>
+            </div>
+            <div class="about-layout">
+                <div class="about-card">
+                    <p style="font-size: 18px; color: var(--text-title); margin-bottom: 20px; line-height: 1.8;">{{ content.about }}</p>
+                    <p>{{ theme_state.support_line }} We structure high-end web profiles pairing advanced fonts with glowing layout variables.</p>
+                </div>
+                <div class="about-stats">
+                    <div class="stat-card">
+                        <div class="stat-num">99%</div>
+                        <div style="font-size: 12px; text-transform: uppercase;">Efficiency</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-num">150+</div>
+                        <div style="font-size: 12px; text-transform: uppercase;">Deployments</div>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-    <section id="services" class="scroll-section">
-        <div class="section-content">
-            <h2 class="section-title">Our Services</h2>
-            <div class="service-grid">
+        <!-- SERVICES -->
+        <section id="services" class="section">
+            <div class="section-header">
+                <span class="section-label">Expertise</span>
+                <h2 class="section-title">Specialized Services</h2>
+            </div>
+            <div class="services-grid">
                 {% for service in content.services %}
                 <div class="service-card">
-                    <div class="service-number">{{ '%02d' % loop.index }}</div>
-                    <h3>{{ service.name }}</h3>
+                    <div class="service-icon">⚡</div>
+                    <h4>{{ service.name }}</h4>
                     <p>{{ service.description }}</p>
                 </div>
                 {% endfor %}
             </div>
-        </div>
-    </section>
+        </section>
 
-    <section id="faq" class="scroll-section">
-        <div class="section-content">
-            <h2 class="section-title">FAQ</h2>
-            <div class="faq-container">
+        <!-- FAQ -->
+        <section id="faq" class="section">
+            <div class="section-header">
+                <span class="section-label">FAQ</span>
+                <h2 class="section-title">Common Questions</h2>
+            </div>
+            <div class="faq-wrap">
                 {% for item in content.faq %}
                 <details class="faq-item">
                     <summary>{{ item.question }}</summary>
@@ -424,17 +212,84 @@
                 </details>
                 {% endfor %}
             </div>
-        </div>
-    </section>
+        </section>
 
-    <section id="contact" class="scroll-section">
-        <div class="section-content">
-            <div class="contact-section">
-                <h2>Ready to Start?</h2>
-                <p>{{ content.contact }}</p>
+        <!-- BLOG -->
+        <section id="blog" class="section">
+            <div class="section-header">
+                <span class="section-label">Chronicle</span>
+                <h2 class="section-title">Insights Dispatches</h2>
             </div>
-        </div>
-    </section>
-</body>
+            <div id="blog-posts-container" class="blog-grid">
+                <div style="grid-column: span 3; text-align: center;">Loading dispatches...</div>
+            </div>
+        </section>
 
+        <!-- CONTACT -->
+        <section id="contact" class="section" style="border-bottom: none;">
+            <div class="section-header">
+                <span class="section-label">Connection</span>
+                <h2 class="section-title">Start a Project</h2>
+            </div>
+            <div class="contact-layout">
+                <div class="contact-info">
+                    <p>{{ content.contact }}</p>
+                    <div class="contact-card">
+                        <div class="contact-card-icon">📍</div>
+                        <div>
+                            <strong style="color: white; font-size: 14px;">Address</strong>
+                            <p style="font-size: 13px;">downtown office suite 105, city</p>
+                        </div>
+                    </div>
+                    <div class="contact-card">
+                        <div class="contact-card-icon">✉️</div>
+                        <div>
+                            <strong style="color: white; font-size: 14px;">Email Desk</strong>
+                            <p style="font-size: 13px;">{{ data.contact_email or 'hello@saadhyam.ai' }}</p>
+                        </div>
+                    </div>
+                </div>
+                <form class="contact-form" onsubmit="event.preventDefault(); alert('Request logged!');">
+                    <div class="form-group"><label>Your Name</label><input type="text" placeholder="John Doe" required /></div>
+                    <div class="form-group"><label>Email Address</label><input type="email" placeholder="john@example.com" required /></div>
+                    <div class="form-group"><label>Your Message</label><textarea rows="3" placeholder="Tell us more about your timeline..." required></textarea></div>
+                    <button type="submit" class="nav-cta" style="border: none; cursor: pointer; align-self: flex-start;">Send Request</button>
+                </form>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <span>&copy; 2026 {{ data.business_name }}</span>
+        <span>Parallax Space. All rights reserved.</span>
+    </footer>
+
+    <script>
+        async function loadBlogPosts() {
+            const container = document.getElementById('blog-posts-container');
+            try {
+                const response = await fetch('blogs.json');
+                if (!response.ok) throw new Error('No blogs');
+                const data = await response.json();
+                const blogs = data.blogs || [];
+                if (blogs.length === 0) {
+                    container.innerHTML = '<p style="grid-column: span 3; text-align: center;">No blog posts yet.</p>';
+                    return;
+                }
+                container.innerHTML = blogs.slice(0, 3).map(blog => `
+                    <div class="blog-card" onclick="window.location.href='blog-\${blog.slug}.html'">
+                        <div class="blog-img">\${blog.title.charAt(0)}</div>
+                        <div class="blog-info">
+                            <h4>\${blog.title}</h4>
+                            <p>\${blog.meta_description || 'Click to read full article'}</p>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                container.innerHTML = '<p style="grid-column: span 3; text-align: center;">No blog posts yet.</p>';
+            }
+        }
+        document.addEventListener('DOMContentLoaded', loadBlogPosts);
+    </script>
+</body>
 </html>

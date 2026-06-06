@@ -11,7 +11,7 @@ from config.database import Base
 user_role = Table(
     "user_role",
     Base.metadata,
-    Column("user_id", Integer, ForeignKey("user.id", ondelete="CASCADE"), primary_key=True),
+    Column("user_id", Integer, ForeignKey("users.id", ondelete="CASCADE"), primary_key=True),
     Column("role_id", Integer, ForeignKey("role.id", ondelete="CASCADE"), primary_key=True),
 )
 
@@ -61,6 +61,6 @@ class Role(Base):
         return any(p.name == permission_name for p in self.permissions)
 
 
-# Update User model to include roles
-# This is added to the existing User model in models/user.py
-# Add this relationship: roles = relationship("Role", secondary=user_role, back_populates="users")
+# Update User model dynamically to include roles and avoid circular imports
+from models.user import User
+User.roles = relationship("Role", secondary=user_role, back_populates="users")

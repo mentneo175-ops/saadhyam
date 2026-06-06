@@ -18,5 +18,8 @@ class TemplateService:
             business_name=business_data.get("business_name", ""),
             business_type=business_data.get("business_type", ""),
             theme=theme,
+            contact_email=business_data.get("contact_email"),
+            contact_phone=business_data.get("contact_phone"),
         )
         return render_website(theme, WebsiteContent.model_validate(content), request)
+

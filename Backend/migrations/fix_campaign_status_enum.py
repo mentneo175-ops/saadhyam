@@ -11,10 +11,13 @@ logger = logging.getLogger(__name__)
 
 
 def migrate_fix_campaign_status_enum():
-    """Fix campaign status enum types"""
     try:
         logger.info("🔄 Running migration: fix_campaign_status_enum")
-        
+        # Skip on SQLite since SQLite doesn't support custom PostgreSQL enum types
+        if "sqlite" in sync_engine.dialect.name:
+            logger.info("ℹ️ SQLite detected, skipping fix_campaign_status_enum migration")
+            return
+            
         with sync_engine.begin() as conn:
             # Check if enum types already exist
             result = conn.execute(text("""

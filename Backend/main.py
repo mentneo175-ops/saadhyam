@@ -405,6 +405,14 @@ except Exception as e:
     voice_agent_v2_available = False
 
 try:
+    from routes.voice_command import router as voice_command_router
+    voice_command_available = True
+    logging.info("✅ Voice Command router imported successfully")
+except Exception as e:
+    logging.error(f"❌ Voice Command router not available: {e}")
+    voice_command_available = False
+
+try:
     from routes.webhooks import router as webhooks_router
     webhooks_available = True
     logging.info("✅ Webhooks router imported successfully")
@@ -454,6 +462,7 @@ except Exception as e:
 try:
     from ai_models.website_ai.app.api.v1.routes import generation as website_ai_generation
     from ai_models.website_ai.app.api.v1.routes import jobs as website_ai_jobs
+    from ai_models.website_ai.app.api.v1.routes import websites as website_ai_websites
     from ai_models.website_ai.app.routes import website as website_ai_website
     from ai_models.website_ai.app.routes import api as website_ai_api
     website_ai_available = True
@@ -988,6 +997,9 @@ if voice_agent_available:
 if voice_agent_v2_available:
     app.include_router(voice_agent_v2_router)
     logging.info("✅ Voice Agent V2 router included in app")
+if voice_command_available:
+    app.include_router(voice_command_router, prefix="/api/voice-command")
+    logging.info("✅ Voice Command router included in app")
 if webhooks_available:
     app.include_router(webhooks_router)
     logging.info("✅ Webhooks router included in app")
@@ -1018,6 +1030,11 @@ if website_ai_available:
     )
     app.include_router(
         website_ai_jobs.router,
+        prefix="/api/v1/website-ai",
+        tags=["website-ai"],
+    )
+    app.include_router(
+        website_ai_websites.router,
         prefix="/api/v1/website-ai",
         tags=["website-ai"],
     )

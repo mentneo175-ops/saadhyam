@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 from config.database import get_db_sync
 from utils.dependencies import get_current_user
 from models.user import User
+from utils.feature_gate import check_feature_access
 from templates.website_templates import get_template_by_theme
 
 logger = logging.getLogger(__name__)
@@ -129,12 +130,28 @@ async def generate_website(
     """
     
     try:
+        # Check feature access
+        await check_feature_access(current_user, "website_ai")
+        
         logger.info(f"🌐 Generating website for user: {current_user.email}")
         logger.info(f"   Business: {request.business_name}")
         logger.info(f"   Theme: {theme}")
         
         # Validate theme
-        available_themes = ["hero-split", "minimal", "modern", "classic", "bento-box", "card-masonry", "magazine-grid", "parallax-scroll", "timeline-vertical"]
+        available_themes = [
+            "hero-split",
+            "card-masonry",
+            "timeline-vertical",
+            "magazine-grid",
+            "bento-box",
+            "parallax-scroll",
+            "minimal-modern",
+            "agency-dark",
+            "retro-brutalism",
+            "restaurant-showcase",
+            "saas-dashboard",
+            "creative-portfolio"
+        ]
         if theme not in available_themes:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -361,23 +378,71 @@ async def get_available_themes() -> Dict[str, Any]:
             "preview": "https://preview.saadhyam.ai/themes/hero-split",
             "features": ["Responsive", "Modern", "Image-focused"]
         },
-        "minimal": {
-            "name": "Minimal",
-            "description": "Clean, minimal design",
-            "preview": "https://preview.saadhyam.ai/themes/minimal",
-            "features": ["Clean", "Fast-loading", "Typography-focused"]
+        "card-masonry": {
+            "name": "Card Masonry",
+            "description": "Pinterest-style card layout",
+            "preview": "https://preview.saadhyam.ai/themes/card-masonry",
+            "features": ["Grid", "Masonry", "Visual"]
         },
-        "modern": {
-            "name": "Modern",
-            "description": "Modern gradient design",
-            "preview": "https://preview.saadhyam.ai/themes/modern",
-            "features": ["Gradients", "Animations", "Interactive"]
+        "timeline-vertical": {
+            "name": "Timeline",
+            "description": "Vertical timeline storytelling layout",
+            "preview": "https://preview.saadhyam.ai/themes/timeline-vertical",
+            "features": ["Timeline", "Storytelling", "Clean"]
         },
-        "classic": {
-            "name": "Classic",
-            "description": "Traditional business layout",
-            "preview": "https://preview.saadhyam.ai/themes/classic",
-            "features": ["Professional", "Traditional", "Business-focused"]
+        "magazine-grid": {
+            "name": "Magazine Grid",
+            "description": "Editorial print style layout",
+            "preview": "https://preview.saadhyam.ai/themes/magazine-grid",
+            "features": ["Editorial", "Bold", "Typography"]
+        },
+        "bento-box": {
+            "name": "Bento Box",
+            "description": "Grid-based modern interface layout",
+            "preview": "https://preview.saadhyam.ai/themes/bento-box",
+            "features": ["Bento", "Interactive", "Glassmorphism"]
+        },
+        "parallax-scroll": {
+            "name": "Parallax Scroll",
+            "description": "Dynamic scroll animations theme",
+            "preview": "https://preview.saadhyam.ai/themes/parallax-scroll",
+            "features": ["Parallax", "Animations", "Immersive"]
+        },
+        "minimal-modern": {
+            "name": "Minimal Modern",
+            "description": "Ultra-clean layout with beautiful typography",
+            "preview": "https://preview.saadhyam.ai/themes/minimal-modern",
+            "features": ["Minimal", "Clean", "Whitespace"]
+        },
+        "agency-dark": {
+            "name": "Agency Dark",
+            "description": "Dark glassmorphism digital agency theme",
+            "preview": "https://preview.saadhyam.ai/themes/agency-dark",
+            "features": ["Dark Mode", "Glassmorphism", "Tech"]
+        },
+        "retro-brutalism": {
+            "name": "Retro Brutalism",
+            "description": "Neo-brutalist cyberpunk theme",
+            "preview": "https://preview.saadhyam.ai/themes/retro-brutalism",
+            "features": ["Brutalist", "High Contrast", "Cyberpunk"]
+        },
+        "restaurant-showcase": {
+            "name": "Restaurant Showcase",
+            "description": "Serif typography and culinary showcase",
+            "preview": "https://preview.saadhyam.ai/themes/restaurant-showcase",
+            "features": ["Culinary", "Elegant", "Menu Grid"]
+        },
+        "saas-dashboard": {
+            "name": "SaaS Dashboard",
+            "description": "SaaS product dashboard mock panel theme",
+            "preview": "https://preview.saadhyam.ai/themes/saas-dashboard",
+            "features": ["Dashboard", "Analytics", "Tech"]
+        },
+        "creative-portfolio": {
+            "name": "Creative Portfolio",
+            "description": "Sleek portfolio with visual ornaments",
+            "preview": "https://preview.saadhyam.ai/themes/creative-portfolio",
+            "features": ["Portfolio", "Typography", "Artistic"]
         }
     }
     

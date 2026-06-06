@@ -1,844 +1,362 @@
 <!doctype html>
 <html lang="en">
-
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ data.business_name }} | Card Masonry Layout</title>
+    <title>{{ data.business_name }} | Studio Masonry</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Space+Grotesk:wght@300;400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/website-ai/static/theme-adapter.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        :root {
+            --bg-color: #050508;
+            --card-bg: #0c0d14;
+            --text-color: #ffffff;
+            --text-muted: #8a99ad;
+            --border-color: rgba(255,255,255,0.06);
+            --primary: #8b5cf6;
+            --primary-hover: #a78bfa;
+            --primary-glow: rgba(139, 92, 246, 0.35);
+            --neon-cyan: #06b6d4;
+            --font-headings: 'Outfit', sans-serif;
+            --font-body: 'Space Grotesk', sans-serif;
         }
-
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: #0f172a;
-            color: #e2e8f0;
-            line-height: 1.6;
-        }
-
-        /* Floating header */
-        .floating-header {
-            position: fixed;
-            top: 30px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 1000;
-            background: rgba(15, 23, 42, 0.8);
-            backdrop-filter: blur(20px);
-            padding: 20px 40px;
-            border-radius: 100px;
-            border: 1px solid rgba(148, 163, 184, 0.1);
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-        }
-
-        .header-content {
-            display: flex;
-            align-items: center;
-            gap: 40px;
-        }
-
-        .logo {
-            font-size: 24px;
-            font-weight: 800;
-            background: linear-gradient(135deg, #06b6d4, #3b82f6);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 30px;
-            list-style: none;
-        }
-
-        .nav-links a {
-            color: #94a3b8;
-            text-decoration: none;
-            font-weight: 500;
-            transition: color 0.3s;
-        }
-
-        .nav-links a:hover {
-            color: #06b6d4;
-        }
-
-        /* Hero section */
-        .hero {
-            padding: 180px 40px 100px;
-            text-align: center;
-            max-width: 900px;
-            margin: 0 auto;
-        }
-
-        .hero-tag {
-            display: inline-block;
-            padding: 10px 24px;
-            background: rgba(6, 182, 212, 0.1);
-            border: 1px solid rgba(6, 182, 212, 0.3);
-            border-radius: 50px;
-            color: #06b6d4;
-            font-size: 14px;
-            font-weight: 600;
-            margin-bottom: 30px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .hero h1 {
-            font-size: 72px;
-            font-weight: 900;
-            line-height: 1.1;
-            margin-bottom: 30px;
-            background: linear-gradient(135deg, #ffffff, #94a3b8);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .hero p {
-            font-size: 22px;
-            color: #94a3b8;
-            margin-bottom: 40px;
+            font-family: var(--font-body);
+            background: var(--bg-color);
+            color: var(--text-color);
+            padding: 40px 24px;
             line-height: 1.7;
         }
-
-        .hero-btn {
-            display: inline-block;
-            padding: 18px 40px;
-            background: linear-gradient(135deg, #06b6d4, #3b82f6);
-            color: white;
-            text-decoration: none;
+        
+        /* Navigation (Floating glass panel) */
+        .navbar {
+            background: rgba(12, 13, 20, 0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
             border-radius: 50px;
-            font-weight: 600;
-            font-size: 18px;
-            box-shadow: 0 10px 40px rgba(6, 182, 212, 0.3);
-            transition: all 0.3s;
-        }
-
-        .hero-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 15px 50px rgba(6, 182, 212, 0.4);
-        }
-
-        /* Container */
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 60px 40px;
-        }
-
-        .section-header {
-            text-align: center;
-            margin-bottom: 60px;
-        }
-
-        .section-title {
-            font-size: 48px;
-            font-weight: 900;
-            margin-bottom: 16px;
-            background: linear-gradient(135deg, #ffffff, #06b6d4);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .section-subtitle {
-            font-size: 18px;
-            color: #94a3b8;
-        }
-
-        /* Stats Section */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 30px;
-            margin-bottom: 100px;
-        }
-
-        .stat-card {
-            background: rgba(30, 41, 59, 0.5);
-            border: 1px solid rgba(148, 163, 184, 0.1);
-            border-radius: 24px;
-            padding: 40px;
-            text-align: center;
-            backdrop-filter: blur(10px);
-        }
-
-        .stat-number {
-            font-size: 56px;
-            font-weight: 900;
-            background: linear-gradient(135deg, #06b6d4, #3b82f6);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 8px;
-        }
-
-        .stat-label {
-            color: #94a3b8;
-            font-size: 14px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        /* Masonry grid */
-        .masonry-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 30px;
-            grid-auto-flow: dense;
-            margin-bottom: 100px;
-        }
-
-        .card {
-            background: rgba(30, 41, 59, 0.5);
-            border: 1px solid rgba(148, 163, 184, 0.1);
-            border-radius: 24px;
-            padding: 40px;
-            backdrop-filter: blur(10px);
-            transition: all 0.4s;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, #06b6d4, #3b82f6);
-            transform: scaleX(0);
-            transition: transform 0.4s;
-        }
-
-        .card:hover::before {
-            transform: scaleX(1);
-        }
-
-        .card:hover {
-            transform: translateY(-8px);
-            border-color: rgba(6, 182, 212, 0.3);
-            box-shadow: 0 20px 60px rgba(6, 182, 212, 0.2);
-        }
-
-        .card-icon {
-            width: 60px;
-            height: 60px;
-            background: linear-gradient(135deg, #06b6d4, #3b82f6);
-            border-radius: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 28px;
-            margin-bottom: 24px;
-        }
-
-        .card h3 {
-            font-size: 24px;
-            margin-bottom: 16px;
-            color: #f1f5f9;
-        }
-
-        .card p {
-            color: #94a3b8;
-            line-height: 1.7;
-        }
-
-        .card-large {
-            grid-row: span 2;
-        }
-
-        /* Team Section */
-        .team-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 30px;
-            margin-bottom: 100px;
-        }
-
-        .team-card {
-            background: rgba(30, 41, 59, 0.5);
-            border: 1px solid rgba(148, 163, 184, 0.1);
-            border-radius: 24px;
-            padding: 30px;
-            text-align: center;
-            backdrop-filter: blur(10px);
-            transition: all 0.3s;
-        }
-
-        .team-card:hover {
-            transform: translateY(-8px);
-            border-color: rgba(6, 182, 212, 0.3);
-        }
-
-        .team-avatar {
-            width: 100px;
-            height: 100px;
-            background: linear-gradient(135deg, #06b6d4, #3b82f6);
-            border-radius: 50%;
-            margin: 0 auto 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 40px;
-            font-weight: 700;
-            color: white;
-        }
-
-        .team-card h4 {
-            font-size: 20px;
-            margin-bottom: 8px;
-            color: #f1f5f9;
-        }
-
-        .team-card p {
-            color: #94a3b8;
-            font-size: 14px;
-        }
-
-        /* Testimonials */
-        .testimonials-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 30px;
-            margin-bottom: 100px;
-        }
-
-        .testimonial-card {
-            background: rgba(30, 41, 59, 0.5);
-            border: 1px solid rgba(148, 163, 184, 0.1);
-            border-radius: 24px;
-            padding: 40px;
-            backdrop-filter: blur(10px);
-        }
-
-        .testimonial-text {
-            font-size: 18px;
-            line-height: 1.8;
-            color: #e2e8f0;
-            margin-bottom: 24px;
-            font-style: italic;
-        }
-
-        .testimonial-author {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
-
-        .author-avatar {
-            width: 56px;
-            height: 56px;
-            background: linear-gradient(135deg, #06b6d4, #3b82f6);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            color: white;
-        }
-
-        .author-info strong {
-            display: block;
-            color: #f1f5f9;
-            margin-bottom: 4px;
-        }
-
-        .author-info span {
-            color: #94a3b8;
-            font-size: 14px;
-        }
-
-        /* Pricing */
-        .pricing-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 30px;
-            margin-bottom: 100px;
-        }
-
-        .pricing-card {
-            background: rgba(30, 41, 59, 0.5);
-            border: 1px solid rgba(148, 163, 184, 0.1);
-            border-radius: 24px;
-            padding: 40px;
-            backdrop-filter: blur(10px);
-            transition: all 0.3s;
-        }
-
-        .pricing-card:hover {
-            transform: translateY(-8px);
-            border-color: rgba(6, 182, 212, 0.3);
-        }
-
-        .pricing-card.featured {
-            border-color: #06b6d4;
-            background: rgba(6, 182, 212, 0.1);
-        }
-
-        .pricing-card h3 {
-            font-size: 24px;
-            margin-bottom: 16px;
-            color: #f1f5f9;
-        }
-
-        .price {
-            font-size: 56px;
-            font-weight: 900;
-            background: linear-gradient(135deg, #06b6d4, #3b82f6);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 24px;
-        }
-
-        .price-features {
-            list-style: none;
-            margin-bottom: 30px;
-        }
-
-        .price-features li {
-            padding: 12px 0;
-            color: #94a3b8;
-            border-bottom: 1px solid rgba(148, 163, 184, 0.1);
-        }
-
-        .price-features li::before {
-            content: '✓';
-            color: #06b6d4;
-            font-weight: 700;
-            margin-right: 12px;
-        }
-
-        /* FAQ cards */
-        .faq-grid {
-            display: grid;
-            gap: 20px;
-            margin-bottom: 100px;
-        }
-
-        .faq-card {
-            background: rgba(30, 41, 59, 0.5);
-            border: 1px solid rgba(148, 163, 184, 0.1);
-            border-radius: 20px;
-            padding: 30px;
-            backdrop-filter: blur(10px);
-            transition: all 0.3s;
-        }
-
-        .faq-card:hover {
-            background: rgba(6, 245, 160, 0.05);
-            border-color: rgba(6, 245, 160, 0.3);
-        }
-
-        .faq-card summary {
-            font-size: 20px;
-            font-weight: 600;
-            cursor: pointer;
-            list-style: none;
+            padding: 16px 32px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            color: #f1f5f9;
+            max-width: 1200px;
+            margin: 0 auto 80px;
+            position: sticky;
+            top: 20px;
+            z-index: 1000;
         }
-
-        .faq-card summary::after {
-            content: '→';
-            font-size: 24px;
-            color: #06b6d4;
-            transition: transform 0.3s;
-        }
-
-        .faq-card[open] summary::after {
-            transform: rotate(90deg);
-        }
-
-        .faq-card p {
-            margin-top: 20px;
-            color: #94a3b8;
-            line-height: 1.8;
-        }
-
-        /* CTA Section */
-        .cta-section {
-            background: linear-gradient(135deg, rgba(6, 182, 212, 0.1), rgba(59, 130, 246, 0.1));
-            border: 2px solid rgba(6, 182, 212, 0.3);
-            border-radius: 30px;
-            padding: 80px 60px;
-            text-align: center;
-            margin-bottom: 100px;
-        }
-
-        .cta-section h2 {
-            font-size: 48px;
-            font-weight: 900;
-            margin-bottom: 20px;
-            background: linear-gradient(135deg, #06b6d4, #3b82f6);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .cta-section p {
-            font-size: 20px;
-            color: #94a3b8;
-            margin-bottom: 40px;
-        }
-
-        /* Contact section */
-        .contact-section {
-            background: linear-gradient(135deg, rgba(6, 182, 212, 0.1), rgba(59, 130, 246, 0.1));
-            border: 1px solid rgba(6, 182, 212, 0.2);
-            border-radius: 30px;
-            padding: 60px;
-            text-align: center;
-            margin-bottom: 100px;
-        }
-
-        .contact-section h2 {
-            font-size: 42px;
-            margin-bottom: 20px;
-            background: linear-gradient(135deg, #06b6d4, #3b82f6);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .contact-section p {
-            font-size: 18px;
-            color: #94a3b8;
-            line-height: 1.7;
-        }
-
-        /* Footer */
-        footer {
-            background: rgba(15, 23, 42, 0.8);
-            border-top: 1px solid rgba(148, 163, 184, 0.1);
-            padding: 60px 40px 30px;
-        }
-
-        .footer-grid {
-            max-width: 1400px;
-            margin: 0 auto;
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 40px;
-            margin-bottom: 40px;
-        }
-
-        .footer-section h3 {
-            color: #f1f5f9;
-            margin-bottom: 20px;
-            font-size: 18px;
-        }
-
-        .footer-section ul {
-            list-style: none;
-        }
-
-        .footer-section ul li {
-            margin-bottom: 12px;
-        }
-
-        .footer-section a {
-            color: #94a3b8;
+        .nav-logo {
+            font-family: var(--font-headings);
+            font-weight: 800;
+            font-size: 22px;
             text-decoration: none;
+            color: var(--text-color);
+            letter-spacing: -0.5px;
+        }
+        .nav-logo span { color: var(--primary); }
+        .nav-links { list-style: none; display: flex; gap: 24px; }
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
             transition: color 0.3s;
         }
-
-        .footer-section a:hover {
-            color: #06b6d4;
+        .nav-links a:hover { color: var(--text-color); }
+        .nav-cta {
+            background: var(--primary); color: white; padding: 10px 20px; border-radius: 30px; text-decoration: none; font-size: 13px; font-weight: 600; box-shadow: 0 4px 15px var(--primary-glow); transition: all 0.3s;
         }
-
-        .footer-bottom {
-            max-width: 1400px;
-            margin: 0 auto;
+        .nav-cta:hover { background: var(--primary-hover); transform: translateY(-1px); }
+        
+        /* Hero Section */
+        .hero {
+            max-width: 1000px;
+            margin: 0 auto 100px;
             text-align: center;
-            padding-top: 30px;
-            border-top: 1px solid rgba(148, 163, 184, 0.1);
-            color: #94a3b8;
+            position: relative;
+        }
+        .hero-glow-orb {
+            position: absolute; top: -50px; left: 50%; transform: translateX(-50%); width: 250px; height: 250px; border-radius: 50%; background: var(--primary-glow); filter: blur(80px); pointer-events: none; z-index: 0;
+        }
+        .hero-tag {
+            display: inline-block; background: rgba(139, 92, 246, 0.1); border: 1px solid rgba(139,92,246,0.3); color: var(--primary-hover); font-size: 12px; font-weight: 600; padding: 6px 16px; border-radius: 100px; margin-bottom: 24px; position: relative; z-index: 1;
+        }
+        .hero h1 {
+            font-family: var(--font-headings);
+            font-size: clamp(38px, 6vw, 64px);
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 24px;
+            letter-spacing: -1.5px;
+            position: relative; z-index: 1;
+        }
+        .hero h1 span {
+            background: linear-gradient(135deg, var(--primary-hover) 0%, var(--neon-cyan) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .hero p {
+            font-size: 18px; color: var(--text-muted); max-width: 600px; margin: 0 auto 40px; position: relative; z-index: 1;
         }
 
-        @media (max-width: 768px) {
-            .hero h1 {
-                font-size: 42px;
-            }
+        /* sliding marquee */
+        .marquee-bar { background: var(--card-bg); border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); padding: 14px 0; overflow: hidden; white-space: nowrap; margin-bottom: 80px; }
+        .marquee-track { display: inline-flex; animation: marquee 25s linear infinite; }
+        .marquee-item { font-family: var(--font-headings); font-size: 13px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted); padding: 0 40px; }
+        .marquee-dot { color: var(--primary); padding-right: 15px; }
+        @keyframes marquee { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
+        
+        /* Layout Grid */
+        .section-container { max-width: 1200px; margin: 0 auto 100px; }
+        .grid-layout {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 24px;
+        }
+        
+        /* Bento Cards style */
+        .mason-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 40px;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        .mason-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(139, 92, 246, 0.3);
+            box-shadow: 0 10px 30px rgba(139, 92, 246, 0.05);
+        }
+        
+        /* Card headers */
+        .card-label {
+            font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: var(--primary-hover); font-weight: 600; margin-bottom: 12px; display: block;
+        }
+        .card-title {
+            font-family: var(--font-headings); font-size: 28px; font-weight: 800; margin-bottom: 24px;
+        }
+        
+        /* About panel sizes */
+        .card-about-text { grid-column: span 7; }
+        .card-about-stats { grid-column: span 5; display: flex; flex-direction: column; justify-content: space-between; gap: 20px; }
+        .stat-bar { background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; display: flex; justify-content: space-between; align-items: center; }
+        .stat-val { font-size: 32px; font-weight: 800; color: var(--neon-cyan); font-family: var(--font-headings); }
+        .stat-txt { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1.5px; }
 
-            .masonry-grid,
-            .team-grid,
-            .testimonials-grid,
-            .pricing-grid {
-                grid-template-columns: 1fr;
-            }
+        /* Services Grid */
+        .services-box { grid-column: span 12; }
+        .services-masonry { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+        .service-inner-card {
+            background: rgba(255, 255, 255, 0.01); border: 1px solid var(--border-color); border-radius: 16px; padding: 30px; position: relative;
+        }
+        .service-inner-card:hover { border-color: var(--primary); }
+        .service-icon { font-size: 28px; margin-bottom: 16px; color: var(--primary-hover); }
+        .service-inner-card h4 { font-family: var(--font-headings); font-size: 18px; margin-bottom: 10px; }
+        .service-inner-card p { font-size: 14px; color: var(--text-muted); }
 
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
+        /* FAQ Box */
+        .faq-box { grid-column: span 6; }
+        .faq-wrap { display: flex; flex-direction: column; gap: 16px; }
+        .faq-item { border-bottom: 1px solid var(--border-color); padding-bottom: 16px; }
+        .faq-item summary { font-size: 16px; font-weight: 600; cursor: pointer; list-style: none; display: flex; justify-content: space-between; padding: 12px 0; }
+        .faq-item summary::after { content: '↓'; color: var(--primary-hover); transition: transform 0.3s; }
+        .faq-item[open] summary::after { transform: rotate(180deg); }
+        .faq-item p { color: var(--text-muted); font-size: 14px; padding-top: 10px; }
 
-            .footer-grid {
-                grid-template-columns: 1fr;
-            }
+        /* Blog panel */
+        .blog-box { grid-column: span 6; }
+        .blog-feed { display: flex; flex-direction: column; gap: 20px; }
+        .blog-tile { display: grid; grid-template-columns: 80px 1fr; gap: 20px; align-items: center; border: 1px solid var(--border-color); border-radius: 12px; padding: 16px; cursor: pointer; transition: all 0.3s; }
+        .blog-tile:hover { border-color: var(--neon-cyan); background: rgba(255,255,255,0.01); }
+        .blog-tile-img { height: 60px; border-radius: 8px; background: rgba(139, 92, 246, 0.15); display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 800; color: var(--primary-hover); }
+        .blog-tile-info h5 { font-size: 15px; font-family: var(--font-headings); margin-bottom: 4px; }
+        .blog-tile-info p { font-size: 12px; color: var(--text-muted); }
 
-            .floating-header {
-                position: relative;
-                top: 0;
-                transform: none;
-                margin: 20px;
-            }
+        /* Contact card */
+        .contact-box { grid-column: span 12; display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+        .contact-form { display: flex; flex-direction: column; gap: 16px; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+        .form-group label { font-size: 11px; text-transform: uppercase; color: var(--text-muted); }
+        .form-group input, .form-group textarea { background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; color: white; font-family: inherit; font-size: 14px; outline: none; }
+        .form-group input:focus, .form-group textarea:focus { border-color: var(--primary); }
+
+        /* Footer */
+        .footer {
+            border-top: 1px solid var(--border-color); max-width: 1200px; margin: 60px auto 0; padding-top: 40px; display: flex; justify-content: space-between; font-size: 13px; color: var(--text-muted);
+        }
+        
+        @media (max-width: 992px) {
+            .navbar { margin-bottom: 40px; }
+            .grid-layout { grid-template-columns: 1fr; }
+            .card-about-text, .card-about-stats, .services-box, .faq-box, .blog-box, .contact-box { grid-column: span 1; }
+            .services-masonry { grid-template-columns: 1fr; }
+            .contact-box { grid-template-columns: 1fr; }
         }
     </style>
     <script src="/website-ai/static/editor.js" defer></script>
 </head>
-
 <body data-theme="card-masonry">
-    <header class="floating-header">
-        <div class="header-content">
-            <div class="logo">{{ data.business_name }}</div>
-            <nav>
-                <ul class="nav-links">
-                    <li><a href="#services">Services</a></li>
-                    <li><a href="#team">Team</a></li>
-                    <li><a href="#pricing">Pricing</a></li>
-                    <li><a href="#contact">Contact</a></li>
-                </ul>
-            </nav>
-        </div>
+    <nav class="navbar">
+        <a href="#" class="nav-logo">Studio<span>Masonry</span></a>
+        <ul class="nav-links">
+            <li><a href="#about">About</a></li>
+            <li><a href="#services">Services</a></li>
+            <li><a href="#faq">FAQ</a></li>
+            <li><a href="#blog">Blog</a></li>
+            <li><a href="#contact">Contact</a></li>
+        </ul>
+        <a href="#contact" class="nav-cta">Let's Connect</a>
+    </nav>
+
+    <header class="hero">
+        <div class="hero-glow-orb"></div>
+        <span class="hero-tag">✨ Digital Agency</span>
+        <h1>We Build <span>Premium</span> Web Realities</h1>
+        <p>{{ content.about }}</p>
+        <a href="#contact" class="nav-cta" style="padding: 14px 28px;">Initiate Project</a>
     </header>
 
-    <section class="hero">
-        <span class="hero-tag">{{ data.business_type }}</span>
-        <h1>{{ theme_state.headline }}</h1>
-        <p>{{ content.about }}</p>
-        <a href="#services" class="hero-btn">{{ theme_state.cta_line }}</a>
-    </section>
-
-    <div class="container">
-        <!-- Stats Section -->
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-number">1000+</div>
-                <div class="stat-label">Projects Completed</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number">50+</div>
-                <div class="stat-label">Team Members</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number">99%</div>
-                <div class="stat-label">Client Satisfaction</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number">15+</div>
-                <div class="stat-label">Years Experience</div>
-            </div>
-        </div>
-
-        <!-- Services Section -->
-        <div id="services" class="section-header">
-            <h2 class="section-title">Our Services</h2>
-            <p class="section-subtitle">Comprehensive solutions tailored to your needs</p>
-        </div>
-        <div class="masonry-grid">
-            {% for service in content.services %}
-            <div class="card {% if loop.index == 1 %}card-large{% endif %}">
-                <div class="card-icon">{{ loop.index }}</div>
-                <h3>{{ service.name }}</h3>
-                <p>{{ service.description }}</p>
-            </div>
-            {% endfor %}
-        </div>
-
-        <!-- Team Section -->
-        <div id="team" class="section-header">
-            <h2 class="section-title">Meet Our Team</h2>
-            <p class="section-subtitle">Talented professionals dedicated to your success</p>
-        </div>
-        <div class="team-grid">
-            <div class="team-card">
-                <div class="team-avatar">JD</div>
-                <h4>John Doe</h4>
-                <p>CEO & Founder</p>
-            </div>
-            <div class="team-card">
-                <div class="team-avatar">JS</div>
-                <h4>Jane Smith</h4>
-                <p>Creative Director</p>
-            </div>
-            <div class="team-card">
-                <div class="team-avatar">MB</div>
-                <h4>Mike Brown</h4>
-                <p>Lead Developer</p>
-            </div>
-            <div class="team-card">
-                <div class="team-avatar">SD</div>
-                <h4>Sarah Davis</h4>
-                <p>Marketing Head</p>
-            </div>
-        </div>
-
-        <!-- Testimonials Section -->
-        <div class="section-header">
-            <h2 class="section-title">Client Testimonials</h2>
-            <p class="section-subtitle">What our clients say about us</p>
-        </div>
-        <div class="testimonials-grid">
-            <div class="testimonial-card">
-                <p class="testimonial-text">"{{ data.business_name }} transformed our digital presence. Their creativity
-                    and technical expertise are outstanding. Highly recommended!"</p>
-                <div class="testimonial-author">
-                    <div class="author-avatar">AM</div>
-                    <div class="author-info">
-                        <strong>Alex Martinez</strong>
-                        <span>CEO, Tech Innovations</span>
-                    </div>
-                </div>
-            </div>
-            <div class="testimonial-card">
-                <p class="testimonial-text">"Working with this team has been incredible. They delivered beyond our
-                    expectations and on time. True professionals!"</p>
-                <div class="testimonial-author">
-                    <div class="author-avatar">LW</div>
-                    <div class="author-info">
-                        <strong>Lisa Wang</strong>
-                        <span>Founder, Creative Labs</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Pricing Section -->
-        <div id="pricing" class="section-header">
-            <h2 class="section-title">Pricing Plans</h2>
-            <p class="section-subtitle">Choose the perfect plan for your needs</p>
-        </div>
-        <div class="pricing-grid">
-            <div class="pricing-card">
-                <h3>Starter</h3>
-                <div class="price">$99<span style="font-size: 20px; font-weight: 400;">/mo</span></div>
-                <ul class="price-features">
-                    <li>5 Projects</li>
-                    <li>Basic Support</li>
-                    <li>1 GB Storage</li>
-                    <li>Email Support</li>
-                </ul>
-                <a href="#contact" class="hero-btn" style="width: 100%; text-align: center; display: block;">Get
-                    Started</a>
-            </div>
-            <div class="pricing-card featured">
-                <h3>Professional</h3>
-                <div class="price">$299<span style="font-size: 20px; font-weight: 400;">/mo</span></div>
-                <ul class="price-features">
-                    <li>Unlimited Projects</li>
-                    <li>Priority Support</li>
-                    <li>50 GB Storage</li>
-                    <li>24/7 Support</li>
-                </ul>
-                <a href="#contact" class="hero-btn" style="width: 100%; text-align: center; display: block;">Get
-                    Started</a>
-            </div>
-            <div class="pricing-card">
-                <h3>Enterprise</h3>
-                <div class="price">$999<span style="font-size: 20px; font-weight: 400;">/mo</span></div>
-                <ul class="price-features">
-                    <li>Unlimited Everything</li>
-                    <li>Dedicated Support</li>
-                    <li>Unlimited Storage</li>
-                    <li>Custom Solutions</li>
-                </ul>
-                <a href="#contact" class="hero-btn" style="width: 100%; text-align: center; display: block;">Contact
-                    Us</a>
-            </div>
-        </div>
-
-        <!-- CTA Section -->
-        <div class="cta-section">
-            <h2>Ready to Transform Your Business?</h2>
-            <p>Join hundreds of satisfied clients and take your business to the next level</p>
-            <a href="#contact" class="hero-btn">{{ theme_state.cta_line }}</a>
-        </div>
-
-        <!-- FAQ Section -->
-        <div class="section-header">
-            <h2 class="section-title">Frequently Asked Questions</h2>
-            <p class="section-subtitle">Everything you need to know</p>
-        </div>
-        <div class="faq-grid">
-            {% for item in content.faq %}
-            <details class="faq-card">
-                <summary>{{ item.question }}</summary>
-                <p>{{ item.answer }}</p>
-            </details>
-            {% endfor %}
-        </div>
-
-        <!-- Contact Section -->
-        <div id="contact" class="contact-section">
-            <h2>Let's Connect</h2>
-            <p>{{ content.contact }}</p>
-            <p style="margin-top: 20px;">Email: hello@{{ data.business_name|lower|replace(' ', '') }}.com</p>
-            <p>Phone: +1 (555) 987-6543</p>
-        </div>
-        
-        <!-- Blog Section -->
-        <div class="section-header">
-            <h2 class="section-title">Latest from Our Blog</h2>
-            <p class="section-subtitle">Stay updated with our latest insights</p>
-        </div>
-        <div id="blog-posts-container" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 30px; margin-bottom: 60px;">
-            <p style="text-align: center; color: #94a3b8; font-size: 18px; padding: 40px;">Loading blog posts...</p>
-        </div>
-        <div style="text-align: center; margin-bottom: 100px;">
-            <a href="blogs.html" class="hero-btn">View All Posts</a>
+    <div class="marquee-bar">
+        <div class="marquee-track">
+            <span class="marquee-item"><span class="marquee-dot">◆</span>Design Engineering</span>
+            <span class="marquee-item"><span class="marquee-dot">◆</span>Responsive Grids</span>
+            <span class="marquee-item"><span class="marquee-dot">◆</span>Custom Animation</span>
+            <span class="marquee-item"><span class="marquee-dot">◆</span>Premium Aesthetics</span>
+            <span class="marquee-item"><span class="marquee-dot">◆</span>Design Engineering</span>
+            <span class="marquee-item"><span class="marquee-dot">◆</span>Responsive Grids</span>
+            <span class="marquee-item"><span class="marquee-dot">◆</span>Custom Animation</span>
+            <span class="marquee-item"><span class="marquee-dot">◆</span>Premium Aesthetics</span>
         </div>
     </div>
 
-    <!-- Footer -->
-    <footer>
-        <div class="footer-grid">
-            <div class="footer-section">
-                <h3>{{ data.business_name }}</h3>
-                <p style="color: #94a3b8; line-height: 1.7;">
-                    {{ content.about|truncate(120) }}
-                </p>
-            </div>
-            <div class="footer-section">
-                <h3>Services</h3>
-                <ul>
-                    {% for service in content.services[:4] %}
-                    <li><a href="#services">{{ service.name }}</a></li>
-                    {% endfor %}
-                </ul>
-            </div>
-            <div class="footer-section">
-                <h3>Company</h3>
-                <ul>
-                    <li><a href="#team">About Us</a></li>
-                    <li><a href="#team">Team</a></li>
-                    <li><a href="#pricing">Pricing</a></li>
-                    <li><a href="#contact">Contact</a></li>
-                </ul>
-            </div>
-            <div class="footer-section">
-                <h3>Legal</h3>
-                <ul>
-                    <li><a href="#">Privacy Policy</a></li>
-                    <li><a href="#">Terms of Service</a></li>
-                    <li><a href="#">Cookie Policy</a></li>
-                </ul>
-            </div>
+    <main class="section-container grid-layout">
+        <!-- ABOUT -->
+        <div id="about" class="mason-card card-about-text">
+            <span class="card-label">Identity</span>
+            <h3 class="card-title">Who We Are</h3>
+            <p style="font-size: 18px; line-height: 1.8; color: var(--text-muted); margin-bottom: 20px;">{{ content.about }}</p>
+            <p style="font-size: 15px; color: var(--text-muted);">{{ theme_state.support_line }} We merge premium visual pairs with powerful structural grids to elevate products in the digital sphere.</p>
         </div>
-        <div class="footer-bottom">
-            <p>&copy; 2024 {{ data.business_name }}. All rights reserved.</p>
-        </div>
-    </footer>
-    
-    </body>
 
+        <div class="mason-card card-about-stats">
+            <span class="card-label">Key Metrics</span>
+            <div class="stat-bar">
+                <span class="stat-txt">Client Care</span>
+                <span class="stat-val">99%</span>
+            </div>
+            <div class="stat-bar">
+                <span class="stat-txt">Projects Met</span>
+                <span class="stat-val">150+</span>
+            </div>
+            <div class="stat-bar">
+                <span class="stat-txt">Audience Reach</span>
+                <span class="stat-val">24/7</span>
+            </div>
+        </div>
+
+        <!-- SERVICES -->
+        <div id="services" class="mason-card services-box">
+            <span class="card-label">Services</span>
+            <h3 class="card-title">Areas of Expertise</h3>
+            <div class="services-masonry">
+                {% for service in content.services %}
+                <div class="service-inner-card">
+                    <div class="service-icon">✦</div>
+                    <h4>{{ service.name }}</h4>
+                    <p>{{ service.description }}</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- FAQ -->
+        <div id="faq" class="mason-card faq-box">
+            <span class="card-label">FAQ</span>
+            <h3 class="card-title">Inquiries</h3>
+            <div class="faq-wrap">
+                {% for item in content.faq %}
+                <details class="faq-item">
+                    <summary>{{ item.question }}</summary>
+                    <p>{{ item.answer }}</p>
+                </details>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- BLOG -->
+        <div id="blog" class="mason-card blog-box">
+            <span class="card-label">Journal</span>
+            <h3 class="card-title">Recent Updates</h3>
+            <div id="blog-posts-container" class="blog-feed">
+                <div class="blog-tile">
+                    <div class="blog-tile-img">📰</div>
+                    <div class="blog-tile-info">
+                        <h5>Insights Loading</h5>
+                        <p>Fetching recently posted insights...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CONTACT -->
+        <div id="contact" class="mason-card contact-box">
+            <div>
+                <span class="card-label">Connection</span>
+                <h3 class="card-title">Start a Project</h3>
+                <p style="color: var(--text-muted); font-size: 15px; margin-bottom: 24px;">{{ content.contact }}</p>
+                <div style="font-size: 14px; color: var(--text-muted); display: flex; flex-direction: column; gap: 8px;">
+                    <p>📍 address: Downtown Avenue 104, City</p>
+                    <p>📞 phone: {{ data.contact_phone or '+1 (555) 918-0928' }}</p>
+                    <p>✉️ email: {{ data.contact_email or 'hello@saadhyam.ai' }}</p>
+                </div>
+            </div>
+            <form class="contact-form" onsubmit="event.preventDefault(); alert('Enquiry sent!');">
+                <div class="form-row">
+                    <div class="form-group"><label>First Name</label><input type="text" placeholder="John" required /></div>
+                    <div class="form-group"><label>Last Name</label><input type="text" placeholder="Doe" required /></div>
+                </div>
+                <div class="form-group"><label>Email Address</label><input type="email" placeholder="john@example.com" required /></div>
+                <div class="form-group"><label>Project Details</label><textarea rows="3" placeholder="Tell us more about your ideas..." required></textarea></div>
+                <button type="submit" class="nav-cta" style="border: none; cursor: pointer; align-self: flex-start; margin-top: 8px;">Submit Request</button>
+            </form>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <span>&copy; 2026 {{ data.business_name }}</span>
+        <span>Studio Masonry. All rights reserved.</span>
+    </footer>
+
+    <script>
+        async function loadBlogPosts() {
+            const container = document.getElementById('blog-posts-container');
+            try {
+                const response = await fetch('blogs.json');
+                if (!response.ok) throw new Error('No blogs found');
+                const data = await response.json();
+                const blogs = data.blogs || [];
+                if (blogs.length === 0) {
+                    container.innerHTML = '<p style="color: var(--text-muted);">No blog posts yet.</p>';
+                    return;
+                }
+                container.innerHTML = blogs.slice(0, 3).map(blog => `
+                    <div class="blog-tile" onclick="window.location.href='blog-\${blog.slug}.html'">
+                        <div class="blog-tile-img">\${blog.title.charAt(0)}</div>
+                        <div class="blog-tile-info">
+                            <h5>\${blog.title}</h5>
+                            <p>\${blog.meta_description || 'Click to view full insight article'}</p>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                container.innerHTML = '<p style="color: var(--text-muted);">No blog posts yet.</p>';
+            }
+        }
+        document.addEventListener('DOMContentLoaded', loadBlogPosts);
+    </script>
+</body>
 </html>

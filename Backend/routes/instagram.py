@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from config.database import get_db
 from utils.dependencies import get_current_user
 from models.user import User
+from utils.feature_gate import check_feature_access
 from schemas.instagram_schema import (
     InstagramOAuthRequest,
     SocialAccountResponse,
@@ -438,6 +439,9 @@ async def generate_caption(
     Uses Groq API for high-quality, context-aware caption generation.
     """
     try:
+        # Check feature access
+        await check_feature_access(current_user, "instagram_manager")
+        
         from services.smart_content_generator import generate_smart_content
         
         logger.info(f"🤖 Generating AI caption for user {current_user.id}")

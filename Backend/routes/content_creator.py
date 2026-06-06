@@ -5,8 +5,11 @@ API endpoints for generating marketing content
 
 import logging
 from typing import Literal
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel, Field
+from models.user import User
+from utils.dependencies import get_current_user
+from utils.feature_gate import check_feature_access
 
 from services.content_creator_service import generate_content
 
@@ -89,7 +92,10 @@ class ContentGenerationResponse(BaseModel):
 
 
 @router.post("/generate", response_model=ContentGenerationResponse)
-async def generate_content_endpoint(request: ContentGenerationRequest):
+async def generate_content_endpoint(
+    request: ContentGenerationRequest,
+    current_user: User = Depends(get_current_user)
+):
     """
     Generate marketing content for social media using AI
     
@@ -111,6 +117,9 @@ async def generate_content_endpoint(request: ContentGenerationRequest):
     - Uses real business language
     """
     try:
+        # Check feature access
+        await check_feature_access(current_user, "content_scheduler")
+        
         logger.info(f"🚀 Content generation request received")
         logger.info(f"   Business: {request.business_type}")
         logger.info(f"   Platform: {request.platform}")

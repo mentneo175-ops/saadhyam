@@ -8,8 +8,8 @@ from pydantic import BaseModel, Field, field_validator
 class GenerateWebsiteRequest(BaseModel):
     """Request to generate a website"""
 
-    business_name: str = Field(..., min_length=1, max_length=120, description="Business name")
-    business_type: str = Field(..., min_length=1, max_length=80, description="Business type/industry")
+    business_name: Optional[str] = Field(None, max_length=120, description="Business name")
+    business_type: Optional[str] = Field(None, max_length=80, description="Business type/industry")
     description: Optional[str] = Field(None, max_length=500, description="Business description")
     services: Optional[List[str]] = Field(None, description="List of services offered")
     target_audience: Optional[str] = Field(None, max_length=200, description="Target audience")
@@ -22,13 +22,14 @@ class GenerateWebsiteRequest(BaseModel):
     theme: str = Field(..., description="Template theme to use")
     theme_config: Optional[Dict[str, Any]] = Field(None, description="Theme configuration from main app")
 
-    @field_validator("business_name", "business_type")
+    @field_validator("business_name", "business_type", mode="before")
     @classmethod
-    def strip_text(cls, value: str) -> str:
+    def strip_text(cls, value: Optional[str]) -> Optional[str]:
+        if value is None:
+            return None
         cleaned = value.strip()
-        if not cleaned:
-            raise ValueError("Field cannot be empty")
-        return cleaned
+        return cleaned or None
+
 
     class Config:
         json_schema_extra = {

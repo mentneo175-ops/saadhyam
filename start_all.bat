@@ -101,7 +101,7 @@ timeout /t 3 /nobreak >nul
 
 REM Start Frontend Server
 echo ============================================
-echo   Starting Frontend Server (Port 8080)
+echo   Starting Frontend Server (Port 8081)
 echo ============================================
 start "Saadhyam Frontend" cmd /k "cd Frontend && npm run dev"
 echo [SUCCESS] Frontend server starting...
@@ -115,7 +115,7 @@ echo Backend API:      http://localhost:8000
 echo Content Creator:  http://localhost:8001
 echo Celery Worker:    Running (Background Tasks)
 echo Celery Beat:      Running (Task Scheduler)
-echo Frontend:         http://localhost:8080
+echo Frontend:         http://localhost:8081
 echo Redis:            Running (Port 6379)
 echo.
 echo [INFO] 5 terminal windows opened:
@@ -124,13 +124,13 @@ echo   2. Celery Worker (Background Tasks)
 echo   3. Website AI Celery Worker (Website Generation)
 echo   4. Celery Beat (Task Scheduler)
 echo   5. Content Creator AI (Image Generation - Port 8001)
-echo   6. Frontend Server (Vite - Port 8080)
+echo   6. Frontend Server (Vite - Port 8081)
 echo.
 echo Press any key to open the application in browser...
 pause >nul
 
 REM Open browser
-start http://localhost:8080
+start http://localhost:8081
 
 echo.
 echo [INFO] Application opened in browser

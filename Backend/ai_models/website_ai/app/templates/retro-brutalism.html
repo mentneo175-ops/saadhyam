@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ data.business_name }} | Retro Brutalism</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/website-ai/static/theme-adapter.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        :root {
+            --bg-color: #f3f4f6;
+            --brutal-yellow: #fef08a;
+            --brutal-pink: #fbcfe8;
+            --brutal-blue: #bfdbfe;
+            --border-color: #111827;
+            --shadow-flat: 8px 8px 0px #111827;
+            --shadow-flat-sm: 4px 4px 0px #111827;
+            --font-headings: 'Syne', sans-serif;
+            --font-body: 'Space Grotesk', sans-serif;
+        }
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-color);
+            color: #111827;
+            padding: 40px 24px;
+        }
+        h1, h2, h3, h4 { font-family: var(--font-headings); font-weight: 800; text-transform: uppercase; }
+        
+        /* Navigation (Bordered block navbar) */
+        .navbar {
+            background: #ffffff; border: 4px solid var(--border-color); box-shadow: var(--shadow-flat-sm);
+            padding: 16px 32px; display: flex; justify-content: space-between; align-items: center;
+            max-width: 1100px; margin: 0 auto 60px; position: sticky; top: 20px; z-index: 1000;
+        }
+        .nav-logo {
+            font-weight: 800; font-size: 22px; color: #111827; text-decoration: none;
+            border: 3px solid var(--border-color); padding: 4px 12px; background: var(--brutal-yellow); box-shadow: var(--shadow-flat-sm);
+        }
+        .nav-links { list-style: none; display: flex; gap: 20px; }
+        .nav-links a {
+            color: #111827; text-decoration: none; font-size: 14px; font-weight: 700;
+            border: 2px solid var(--border-color); padding: 6px 12px; background: #ffffff; box-shadow: 2px 2px 0 var(--border-color); transition: all 0.1s;
+        }
+        .nav-links a:hover { transform: translate(1px, 1px); box-shadow: 1px 1px 0 var(--border-color); background: var(--brutal-blue); }
+        
+        /* Hero (Offset thick bordered card) */
+        .hero {
+            max-width: 1100px; margin: 0 auto 80px; padding: 60px 40px; background: white;
+            border: 4px solid var(--border-color); box-shadow: var(--shadow-flat); text-align: center;
+        }
+        .hero-tag {
+            display: inline-block; font-size: 13px; font-weight: 700; text-transform: uppercase; color: #111827;
+            background: var(--brutal-pink); border: 3px solid var(--border-color); padding: 6px 16px; box-shadow: var(--shadow-flat-sm); margin-bottom: 24px;
+        }
+        .hero h1 { font-size: clamp(36px, 6vw, 60px); margin-bottom: 24px; }
+        .hero p { font-size: 20px; max-width: 800px; margin: 0 auto 36px; font-weight: 500; }
+        .btn-brutal {
+            display: inline-block; padding: 14px 28px; background: var(--brutal-yellow); color: #111827;
+            text-decoration: none; font-weight: 700; text-transform: uppercase; border: 3px solid var(--border-color); box-shadow: var(--shadow-flat-sm); transition: all 0.1s;
+        }
+        .btn-brutal:hover { transform: translate(2px, 2px); box-shadow: 2px 2px 0 var(--border-color); }
+
+        /* sliding marquee */
+        .marquee-bar { background: var(--brutal-yellow); border-top: 4px solid var(--border-color); border-bottom: 4px solid var(--border-color); padding: 12px 0; overflow: hidden; white-space: nowrap; margin-bottom: 80px; max-width: 1100px; margin-left: auto; margin-right: auto; }
+        .marquee-track { display: inline-flex; animation: marquee 20s linear infinite; }
+        .marquee-item { font-family: var(--font-headings); font-size: 14px; font-weight: 800; text-transform: uppercase; color: #111827; padding: 0 40px; }
+        @keyframes marquee { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
+        
+        /* Sections flow (Bordered blocks) */
+        .sec {
+            max-width: 1100px; margin: 0 auto 80px; padding: 60px 40px; background: white;
+            border: 4px solid var(--border-color); box-shadow: var(--shadow-flat);
+        }
+        .sec-header { margin-bottom: 40px; border-bottom: 4px solid var(--border-color); padding-bottom: 16px; }
+        .sec-label { font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--border-color); letter-spacing: 1px; }
+        .sec-title { font-size: 32px; font-weight: 800; }
+        
+        /* About section layout */
+        .about-wrap { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 40px; }
+        .about-desc { font-size: 18px; font-weight: 500; line-height: 1.7; }
+        .about-support { background: var(--brutal-blue); padding: 16px; border: 3px solid var(--border-color); font-weight: 700; box-shadow: var(--shadow-flat-sm); margin-top: 20px; }
+        .about-stats { display: flex; flex-direction: column; gap: 20px; }
+        .stat-card { border: 3px solid var(--border-color); padding: 20px; background: var(--brutal-pink); box-shadow: var(--shadow-flat-sm); text-align: center; }
+        .stat-num { font-size: 36px; font-weight: 800; }
+        
+        /* Services layout (Grid cards) */
+        .services-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; }
+        .s-card { border: 3px solid var(--border-color); padding: 30px; background: #ffffff; box-shadow: var(--shadow-flat-sm); transition: all 0.1s; }
+        .s-card:hover { transform: translate(-4px, -4px); box-shadow: 8px 8px 0 var(--border-color); border-color: var(--border-color); }
+        .s-card h3 { font-size: 20px; margin-bottom: 12px; }
+        .s-card p { font-size: 14px; font-weight: 500; color: #4b5563; }
+        
+        /* FAQ list */
+        .faq-list { display: flex; flex-direction: column; gap: 16px; }
+        .faq-item { border: 3px solid var(--border-color); }
+        .faq-item[open] { background: var(--brutal-blue); }
+        .faq-item summary { padding: 20px; font-weight: 700; cursor: pointer; display: flex; justify-content: space-between; }
+        .faq-item p { padding: 0 20px 20px; font-size: 15px; font-weight: 500; }
+        
+        /* Blog list */
+        .blog-deck { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+        .blog-card { border: 3px solid var(--border-color); background: white; box-shadow: var(--shadow-flat-sm); cursor: pointer; transition: all 0.1s; overflow: hidden; }
+        .blog-card:hover { transform: translate(-4px, -4px); box-shadow: 8px 8px 0 var(--border-color); }
+        .blog-img { height: 160px; background: var(--brutal-pink); display: flex; align-items: center; justify-content: center; font-size: 48px; border-bottom: 3px solid var(--border-color); }
+        .blog-body { padding: 20px; }
+        
+        /* Contact Block */
+        .contact-layout { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 40px; }
+        .contact-form { display: flex; flex-direction: column; gap: 20px; }
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+        .form-group label { font-size: 13px; font-weight: 700; text-transform: uppercase; }
+        .form-group input, .form-group textarea {
+            padding: 12px; border: 3px solid var(--border-color); font-family: inherit; font-size: 15px; color: #111827; outline: none; background: white;
+        }
+        .form-group input:focus, .form-group textarea:focus { background: var(--brutal-yellow); }
+        
+        .footer {
+            max-width: 1100px; margin: 40px auto 0; padding: 40px 0 0; border-top: 4px solid var(--border-color); display: flex; justify-content: space-between; font-weight: 700; font-size: 14px;
+        }
+        
+        @media (max-width: 992px) {
+            .about-wrap { grid-template-columns: 1fr; }
+            .services-grid { grid-template-columns: 1fr; }
+            .blog-deck { grid-template-columns: 1fr; }
+            .contact-layout { grid-template-columns: 1fr; }
+        }
+    </style>
+    <script src="/website-ai/static/editor.js" defer></script>
+</head>
+<body data-theme="retro-brutalism">
+    <nav class="navbar">
+        <a href="#" class="nav-logo">{{ data.business_name }}</a>
+        <ul class="nav-links">
+            <li><a href="#about">About</a></li>
+            <li><a href="#services">Services</a></li>
+            <li><a href="#faq">FAQ</a></li>
+            <li><a href="#blog">Blog</a></li>
+            <li><a href="#contact">Contact</a></li>
+        </ul>
+    </nav>
+
+    <header class="hero">
+        <span class="hero-tag">✦ Retro Dispatch ✦</span>
+        <h1>We design bold, <em>high-contrast</em> web platforms</h1>
+        <p>{{ content.about }}</p>
+        <a href="#contact" class="btn-brutal">Initiate Project</a>
+    </header>
+
+    <div class="marquee-bar">
+        <div class="marquee-track">
+            <span class="marquee-item">✦ Neo Brutalism Layouts</span>
+            <span class="marquee-item">✦ Flat Solid Shadows</span>
+            <span class="marquee-item">✦ High Contrast Grid System</span>
+            <span class="marquee-item">✦ Neo Brutalism Layouts</span>
+            <span class="marquee-item">✦ Flat Solid Shadows</span>
+        </div>
+    </div>
+
+    <main>
+        <!-- ABOUT -->
+        <section id="about" class="sec">
+            <div class="sec-header">
+                <span class="sec-label">Who We Are</span>
+                <h2 class="sec-title">Our Manifesto</h2>
+            </div>
+            <div class="about-wrap">
+                <div>
+                    <p class="about-desc">{{ content.about }}</p>
+                    <p class="about-support">{{ theme_state.support_line }} We Pair asymmetric layout structures with thick 4px black borders to command proud web presence.</p>
+                </div>
+                <div class="about-stats">
+                    <div class="stat-card">
+                        <div class="stat-num">99%</div>
+                        <div style="font-weight: 700; font-size: 12px; text-transform: uppercase; margin-top: 4px;">Satisfaction</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-num">150+</div>
+                        <div style="font-weight: 700; font-size: 12px; text-transform: uppercase; margin-top: 4px;">Deploys</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SERVICES -->
+        <section id="services" class="sec">
+            <div class="sec-header">
+                <span class="sec-label">What We Do</span>
+                <h2 class="sec-title">Our Departments</h2>
+            </div>
+            <div class="services-grid">
+                {% for service in content.services %}
+                <div class="s-card service-card">
+                    <h3>{{ service.name }}</h3>
+                    <p>{{ service.description }}</p>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+
+        <!-- FAQ -->
+        <section id="faq" class="sec">
+            <div class="sec-header">
+                <span class="sec-label">FAQ</span>
+                <h2 class="sec-title">Common Questions</h2>
+            </div>
+            <div class="faq-list">
+                {% for item in content.faq %}
+                <details class="faq-item">
+                    <summary>{{ item.question }}</summary>
+                    <p>{{ item.answer }}</p>
+                </details>
+                {% endfor %}
+            </div>
+        </section>
+
+        <!-- BLOG -->
+        <section id="blog" class="sec">
+            <div class="sec-header">
+                <span class="sec-label">Journal</span>
+                <h2 class="sec-title">Latest Articles</h2>
+            </div>
+            <div id="blog-posts-container" class="blog-deck">
+                <div class="blog-card">
+                    <div class="blog-img">📰</div>
+                    <div class="blog-body">
+                        <h4>Reading dispatches...</h4>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CONTACT -->
+        <section id="contact" class="sec" style="margin-bottom: 0;">
+            <div class="sec-header">
+                <span class="sec-label">Connect</span>
+                <h2 class="sec-title">Reach Our Desk</h2>
+            </div>
+            <div class="contact-layout">
+                <form class="contact-form" onsubmit="event.preventDefault(); alert('Message sent!');">
+                    <div class="form-group">
+                        <label>Your Name</label>
+                        <input type="text" placeholder="John Doe" required />
+                    </div>
+                    <div class="form-group">
+                        <label>Email Address</label>
+                        <input type="email" placeholder="john@example.com" required />
+                    </div>
+                    <div class="form-group">
+                        <label>Your Project Brief</label>
+                        <textarea rows="4" placeholder="Briefly describe your objectives..." required></textarea>
+                    </div>
+                    <button type="submit" class="btn-brutal" style="cursor: pointer; align-self: flex-start;">Send Enquiry</button>
+                </form>
+                <div style="font-size: 15px; font-weight: 500; line-height: 1.8;">
+                    <p>{{ content.contact }}</p>
+                    <p style="margin-top: 32px;">{{ data.contact_email or 'hello@saadhyam.ai' }}<br/>{{ data.contact_phone or '+1 (555) 918-0928' }}</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <span>&copy; 2026 {{ data.business_name }}</span>
+        <span>Brutalist Design.</span>
+    </footer>
+
+    <script>
+        async function loadBlogPosts() {
+            const container = document.getElementById('blog-posts-container');
+            try {
+                const response = await fetch('blogs.json');
+                if (!response.ok) throw new Error('No blogs');
+                const data = await response.json();
+                const blogs = data.blogs || [];
+                if (blogs.length === 0) {
+                    container.innerHTML = '<p>No blog posts yet.</p>';
+                    return;
+                }
+                container.innerHTML = blogs.slice(0, 3).map(blog => `
+                    <div class="blog-card" onclick="window.location.href='blog-\${blog.slug}.html'">
+                        <div class="blog-img">\${blog.title.charAt(0)}</div>
+                        <div class="blog-body">
+                            <h4 style="font-size: 18px; font-weight: 800; margin-bottom: 6px;">\${blog.title}</h4>
+                            <p style="font-size: 13px; color: #4b5563;">\${blog.meta_description || 'Click to view full dispatch'}</p>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                container.innerHTML = '<p>No blog posts yet.</p>';
+            }
+        }
+        document.addEventListener('DOMContentLoaded', loadBlogPosts);
+    </script>
+</body>
+</html>

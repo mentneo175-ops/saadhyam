@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>{{BUSINESS_NAME}} | {{TAGLINE}}</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700;800&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --orange: #E84C1F;
+    --orange-dark: #B33A14;
+    --orange-light: #FFF0EB;
+    --black: #0A0A0A;
+    --dark: #111111;
+    --dark-2: #1A1A1A;
+    --dark-3: #242424;
+    --steel: #2E2E2E;
+    --gray: #6B6B6B;
+    --gray-light: #AAAAAA;
+    --off-white: #F5F3EE;
+    --white: #FFFFFF;
+    --condensed: 'Barlow Condensed', sans-serif;
+    --body: 'Barlow', sans-serif;
+  }
+  html { scroll-behavior: smooth; }
+  body { background: var(--black); color: var(--off-white); font-family: var(--body); font-weight: 300; overflow-x: hidden; }
+
+  /* NAV */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 4rem; height: 70px;
+    background: var(--black);
+    border-bottom: 2px solid var(--orange);
+  }
+  .nav-logo { font-family: var(--condensed); font-size: 1.6rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--white); }
+  .nav-logo span { color: var(--orange); }
+  .nav-links { display: flex; gap: 0; list-style: none; height: 70px; }
+  .nav-links a { font-family: var(--condensed); font-size: 0.9rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gray-light); text-decoration: none; padding: 0 1.3rem; display: flex; align-items: center; height: 100%; border-left: 1px solid var(--steel); transition: all 0.2s; }
+  .nav-links a:hover { color: var(--white); background: var(--dark-2); }
+  .nav-cta { background: var(--orange); font-family: var(--condensed); font-size: 0.85rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--white); padding: 0 2rem; height: 70px; display: flex; align-items: center; text-decoration: none; transition: background 0.2s; margin-right: -4rem; }
+  .nav-cta:hover { background: var(--orange-dark); }
+
+  /* HERO */
+  #hero {
+    position: relative; padding-top: 70px; min-height: 100vh;
+    display: flex; align-items: center;
+    overflow: hidden;
+  }
+  .hero-bg {
+    position: absolute; inset: 0;
+    background: url('https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=1800&q=80') center/cover no-repeat;
+    filter: brightness(0.25) saturate(0.6);
+  }
+  .hero-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(105deg, rgba(10,10,10,0.9) 0%, rgba(10,10,10,0.4) 60%, transparent 100%);
+  }
+  .hero-accent-line { position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 6px; height: 40%; background: var(--orange); }
+  .hero-content { position: relative; padding: 0 4rem 0 5rem; max-width: 900px; }
+  .hero-label { font-family: var(--condensed); font-size: 0.85rem; font-weight: 600; letter-spacing: 0.35em; text-transform: uppercase; color: var(--orange); margin-bottom: 1.5rem; display: flex; align-items: center; gap: 1rem; }
+  .hero-label-line { display: block; width: 40px; height: 2px; background: var(--orange); }
+  .hero-title { font-family: var(--condensed); font-size: clamp(4rem, 9vw, 8rem); font-weight: 800; line-height: 0.92; letter-spacing: 0.02em; text-transform: uppercase; color: var(--white); margin-bottom: 2rem; }
+  .hero-title span { color: var(--orange); display: block; }
+  .hero-desc { font-family: var(--body); font-size: 1.05rem; font-weight: 300; color: var(--gray-light); line-height: 1.8; max-width: 520px; margin-bottom: 3rem; }
+  .hero-actions { display: flex; gap: 1px; }
+  .btn-orange { font-family: var(--condensed); font-size: 0.88rem; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--white); background: var(--orange); padding: 1.1rem 2.5rem; text-decoration: none; transition: background 0.2s; }
+  .btn-orange:hover { background: var(--orange-dark); }
+  .btn-steel { font-family: var(--condensed); font-size: 0.88rem; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--white); background: var(--steel); padding: 1.1rem 2.5rem; text-decoration: none; transition: background 0.2s; }
+  .btn-steel:hover { background: var(--dark-3); }
+  .hero-metrics { position: absolute; bottom: 0; right: 0; display: flex; gap: 1px; }
+  .hero-metric { background: var(--dark-2); padding: 2rem 2.5rem; min-width: 140px; text-align: center; }
+  .hero-metric-num { font-family: var(--condensed); font-size: 2.8rem; font-weight: 800; color: var(--white); line-height: 1; }
+  .hero-metric-num span { color: var(--orange); }
+  .hero-metric-label { font-family: var(--condensed); font-size: 0.68rem; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gray); margin-top: 0.3rem; }
+
+  /* MARQUEE */
+  .marquee-bar { background: var(--orange); padding: 0.85rem 0; overflow: hidden; white-space: nowrap; }
+  .marquee-track { display: inline-flex; animation: marquee 20s linear infinite; }
+  .marquee-item { font-family: var(--condensed); font-size: 0.82rem; font-weight: 700; letter-spacing: 0.25em; text-transform: uppercase; color: var(--white); padding: 0 2.5rem; }
+  .marquee-dot { color: rgba(255,255,255,0.4); padding: 0 1rem; }
+  @keyframes marquee { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
+
+  /* SECTION COMMONS */
+  section { padding: 6rem 4rem; }
+  .section-label { font-family: var(--condensed); font-size: 0.78rem; font-weight: 700; letter-spacing: 0.3em; text-transform: uppercase; color: var(--orange); margin-bottom: 0.8rem; display: flex; align-items: center; gap: 0.8rem; }
+  .section-label::before { content: ''; display: block; width: 24px; height: 3px; background: var(--orange); }
+  .section-title { font-family: var(--condensed); font-size: clamp(2.5rem, 5vw, 4rem); font-weight: 800; line-height: 1; letter-spacing: 0.03em; text-transform: uppercase; color: var(--white); margin-bottom: 1.5rem; }
+  .section-title span { color: var(--orange); }
+  .section-desc { font-family: var(--body); font-size: 0.95rem; font-weight: 300; line-height: 1.9; color: var(--gray-light); max-width: 540px; }
+
+  /* ABOUT */
+  #about { background: var(--dark); }
+  .about-inner { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 5rem; align-items: center; }
+  .about-images { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+  .about-img { width: 100%; object-fit: cover; display: block; }
+  .about-img:first-child { grid-column: span 2; aspect-ratio: 16/7; }
+  .about-img:not(:first-child) { aspect-ratio: 1; }
+  .about-founded { background: var(--orange); padding: 1.5rem; text-align: center; }
+  .about-founded-year { font-family: var(--condensed); font-size: 2.5rem; font-weight: 800; color: var(--white); line-height: 1; }
+  .about-founded-label { font-family: var(--condensed); font-size: 0.65rem; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(255,255,255,0.7); margin-top: 0.2rem; }
+  .about-certifications { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 2rem; }
+  .cert-badge { font-family: var(--condensed); font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--orange); border: 1px solid var(--orange); padding: 0.35rem 0.8rem; }
+
+  /* SERVICES */
+  #services { background: var(--black); }
+  .services-inner { max-width: 1200px; margin: 0 auto; }
+  .services-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 3rem; flex-wrap: wrap; gap: 2rem; }
+  .services-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; }
+  .service-card { background: var(--dark-2); padding: 2.5rem 2rem; border-top: 3px solid transparent; transition: all 0.3s; position: relative; overflow: hidden; }
+  .service-card::after { content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 0; background: var(--orange); opacity: 0.05; transition: height 0.3s; }
+  .service-card:hover { background: var(--dark-3); border-top-color: var(--orange); }
+  .service-card:hover::after { height: 100%; }
+  .service-num { font-family: var(--condensed); font-size: 3.5rem; font-weight: 800; color: rgba(232,76,31,0.12); line-height: 1; position: absolute; top: 1rem; right: 1.5rem; }
+  .service-icon { font-size: 2rem; margin-bottom: 1.5rem; }
+  .service-name { font-family: var(--condensed); font-size: 1.3rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--white); margin-bottom: 0.8rem; }
+  .service-desc { font-family: var(--body); font-size: 0.85rem; font-weight: 300; color: var(--gray-light); line-height: 1.8; margin-bottom: 1.5rem; }
+  .service-link { font-family: var(--condensed); font-size: 0.75rem; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--orange); text-decoration: none; display: flex; align-items: center; gap: 0.5rem; transition: gap 0.2s; }
+  .service-link:hover { gap: 0.8rem; }
+
+  /* PROJECTS */
+  #projects { background: var(--dark); }
+  .projects-inner { max-width: 1200px; margin: 0 auto; }
+  .projects-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2.5rem; flex-wrap: wrap; gap: 1.5rem; }
+  .projects-grid { display: grid; grid-template-columns: repeat(12, 1fr); grid-template-rows: 280px 280px; gap: 4px; }
+  .project-card { position: relative; overflow: hidden; }
+  .project-card img { width: 100%; height: 100%; object-fit: cover; filter: brightness(0.55) saturate(0.7); transition: all 0.5s; display: block; }
+  .project-card:hover img { filter: brightness(0.35) saturate(0.5); transform: scale(1.03); }
+  .project-card:nth-child(1) { grid-column: span 5; }
+  .project-card:nth-child(2) { grid-column: span 7; }
+  .project-card:nth-child(3) { grid-column: span 4; }
+  .project-card:nth-child(4) { grid-column: span 4; }
+  .project-card:nth-child(5) { grid-column: span 4; }
+  .project-info { position: absolute; bottom: 0; left: 0; right: 0; padding: 1.8rem; background: linear-gradient(to top, rgba(10,10,10,0.95) 0%, transparent 100%); transform: translateY(20px); opacity: 0; transition: all 0.3s; }
+  .project-card:hover .project-info { transform: translateY(0); opacity: 1; }
+  .project-type { font-family: var(--condensed); font-size: 0.65rem; font-weight: 700; letter-spacing: 0.3em; text-transform: uppercase; color: var(--orange); margin-bottom: 0.4rem; }
+  .project-name { font-family: var(--condensed); font-size: 1.3rem; font-weight: 700; text-transform: uppercase; color: var(--white); margin-bottom: 0.3rem; }
+  .project-loc { font-family: var(--body); font-size: 0.8rem; color: var(--gray-light); }
+  .project-tag-always { position: absolute; top: 1rem; left: 1rem; background: var(--orange); font-family: var(--condensed); font-size: 0.62rem; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: white; padding: 0.3rem 0.7rem; }
+
+  /* PROCESS */
+  #process { background: var(--black); }
+  .process-inner { max-width: 1200px; margin: 0 auto; }
+  .process-steps { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0; position: relative; margin-top: 4rem; }
+  .process-steps::before { content: ''; position: absolute; top: 32px; left: 5%; right: 5%; height: 2px; background: var(--steel); z-index: 0; }
+  .process-step { text-align: center; position: relative; padding-top: 1rem; }
+  .process-num { width: 64px; height: 64px; background: var(--dark-2); border: 2px solid var(--steel); font-family: var(--condensed); font-size: 1.4rem; font-weight: 800; color: var(--white); display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; position: relative; z-index: 1; transition: all 0.3s; }
+  .process-step:hover .process-num { background: var(--orange); border-color: var(--orange); }
+  .process-step-title { font-family: var(--condensed); font-size: 0.95rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--white); margin-bottom: 0.6rem; }
+  .process-step-desc { font-family: var(--body); font-size: 0.78rem; color: var(--gray); line-height: 1.7; padding: 0 0.5rem; }
+
+  /* TEAM */
+  #team { background: var(--dark); }
+  .team-inner { max-width: 1200px; margin: 0 auto; }
+  .team-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 3rem; flex-wrap: wrap; gap: 2rem; }
+  .team-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; }
+  .team-card { position: relative; overflow: hidden; }
+  .team-card img { width: 100%; aspect-ratio: 3/4; object-fit: cover; filter: brightness(0.75) saturate(0.6) grayscale(0.3); transition: all 0.4s; display: block; }
+  .team-card:hover img { filter: brightness(0.45) saturate(0.4); }
+  .team-card-info { position: absolute; bottom: 0; left: 0; right: 0; padding: 1.5rem; background: linear-gradient(to top, rgba(10,10,10,0.95), transparent); }
+  .team-card-name { font-family: var(--condensed); font-size: 1.1rem; font-weight: 700; text-transform: uppercase; color: var(--white); }
+  .team-card-role { font-family: var(--condensed); font-size: 0.72rem; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; color: var(--orange); margin-top: 0.2rem; }
+  .team-card-exp { font-family: var(--body); font-size: 0.78rem; color: var(--gray-light); margin-top: 0.5rem; opacity: 0; transition: opacity 0.3s; }
+  .team-card:hover .team-card-exp { opacity: 1; }
+
+  /* TESTIMONIALS */
+  #testimonials { background: var(--black); }
+  .testi-inner { max-width: 1200px; margin: 0 auto; }
+  .testi-layout { display: grid; grid-template-columns: 1fr 2fr; gap: 4rem; align-items: flex-start; margin-top: 3rem; }
+  .testi-featured { background: var(--orange); padding: 3rem 2.5rem; }
+  .testi-featured-quote { font-family: var(--body); font-size: 1.1rem; font-style: italic; color: white; line-height: 1.8; margin-bottom: 2rem; }
+  .testi-featured-author { font-family: var(--condensed); font-size: 0.85rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.8); }
+  .testi-featured-company { font-family: var(--condensed); font-size: 0.7rem; letter-spacing: 0.15em; text-transform: uppercase; color: rgba(255,255,255,0.6); margin-top: 0.2rem; }
+  .testi-list { display: flex; flex-direction: column; gap: 2px; }
+  .testi-item { background: var(--dark-2); padding: 2rem; border-left: 3px solid transparent; transition: border-color 0.2s; cursor: pointer; }
+  .testi-item:hover { border-left-color: var(--orange); }
+  .testi-item-text { font-family: var(--body); font-size: 0.88rem; color: var(--gray-light); line-height: 1.8; margin-bottom: 1rem; font-style: italic; }
+  .testi-item-author { font-family: var(--condensed); font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--white); }
+  .testi-item-co { font-family: var(--condensed); font-size: 0.68rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--orange); }
+
+  /* CTA BAND */
+  .cta-band { background: var(--orange); padding: 4rem; display: flex; align-items: center; justify-content: space-between; gap: 2rem; flex-wrap: wrap; }
+  .cta-band-title { font-family: var(--condensed); font-size: clamp(1.8rem, 3vw, 2.6rem); font-weight: 800; text-transform: uppercase; color: var(--white); }
+  .cta-band-desc { font-family: var(--body); font-size: 0.9rem; font-weight: 300; color: rgba(255,255,255,0.8); margin-top: 0.5rem; }
+  .btn-white { font-family: var(--condensed); font-size: 0.88rem; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--orange); background: var(--white); padding: 1.1rem 2.5rem; text-decoration: none; transition: all 0.2s; white-space: nowrap; }
+  .btn-white:hover { background: var(--off-white); transform: translateY(-1px); }
+
+  /* CONTACT */
+  #contact { background: var(--dark); }
+  .contact-inner { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1.5fr; gap: 5rem; }
+  .contact-info { display: flex; flex-direction: column; gap: 2rem; margin-top: 2.5rem; }
+  .contact-item { display: flex; gap: 1.2rem; align-items: flex-start; }
+  .contact-item-num { font-family: var(--condensed); font-size: 0.7rem; font-weight: 700; letter-spacing: 0.2em; color: var(--orange); min-width: 24px; margin-top: 3px; }
+  .contact-item-label { font-family: var(--condensed); font-size: 0.68rem; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gray); margin-bottom: 0.3rem; }
+  .contact-item-val { font-family: var(--body); font-size: 0.92rem; color: var(--off-white); line-height: 1.7; }
+  .contact-form { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; }
+  .contact-field { background: var(--dark-2); }
+  .contact-field.full { grid-column: span 2; }
+  .contact-field input, .contact-field select, .contact-field textarea { width: 100%; background: none; border: none; outline: none; font-family: var(--body); font-size: 0.9rem; font-weight: 300; color: var(--off-white); padding: 1.4rem 1.5rem; }
+  .contact-field input::placeholder, .contact-field textarea::placeholder { color: var(--gray); }
+  .contact-field select option { background: var(--dark-2); }
+  .contact-field textarea { resize: none; height: 130px; }
+  .contact-submit { grid-column: span 2; background: var(--orange); border: none; font-family: var(--condensed); font-size: 0.88rem; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--white); padding: 1.4rem; cursor: pointer; transition: background 0.2s; }
+  .contact-submit:hover { background: var(--orange-dark); }
+
+  /* FOOTER */
+  footer { background: var(--black); border-top: 2px solid var(--orange); padding: 4rem; }
+  .footer-inner { max-width: 1200px; margin: 0 auto; }
+  .footer-top { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr; gap: 3rem; padding-bottom: 3rem; border-bottom: 1px solid var(--steel); }
+  .footer-logo { font-family: var(--condensed); font-size: 1.8rem; font-weight: 800; text-transform: uppercase; color: var(--white); margin-bottom: 1rem; }
+  .footer-logo span { color: var(--orange); }
+  .footer-tagline { font-family: var(--body); font-size: 0.82rem; font-weight: 300; color: var(--gray); line-height: 1.8; max-width: 240px; }
+  .footer-col-title { font-family: var(--condensed); font-size: 0.65rem; font-weight: 700; letter-spacing: 0.3em; text-transform: uppercase; color: var(--orange); margin-bottom: 1.2rem; }
+  .footer-links { list-style: none; display: flex; flex-direction: column; gap: 0.65rem; }
+  .footer-links a { font-family: var(--body); font-size: 0.83rem; font-weight: 300; color: var(--gray); text-decoration: none; transition: color 0.2s; }
+  .footer-links a:hover { color: var(--white); }
+  .footer-bottom { display: flex; justify-content: space-between; align-items: center; padding-top: 2rem; flex-wrap: wrap; gap: 1rem; }
+  .footer-copy { font-family: var(--body); font-size: 0.72rem; font-weight: 300; color: var(--steel); }
+  .footer-social { display: flex; gap: 1rem; }
+  .footer-social a { font-family: var(--condensed); font-size: 0.68rem; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gray); text-decoration: none; transition: color 0.2s; }
+  .footer-social a:hover { color: var(--orange); }
+
+  /* RESPONSIVE */
+  @media (max-width: 1024px) {
+    nav { padding: 0 2rem; }
+    section { padding: 4rem 2rem; }
+    .hero-content { padding: 0 2rem 0 2.5rem; }
+    .about-inner { grid-template-columns: 1fr; }
+    .services-grid { grid-template-columns: 1fr 1fr; }
+    .projects-grid { grid-template-columns: 1fr 1fr; grid-template-rows: auto; }
+    .project-card:nth-child(n) { grid-column: span 1; }
+    .process-steps { grid-template-columns: repeat(3, 1fr); gap: 2rem; }
+    .process-steps::before { display: none; }
+    .team-grid { grid-template-columns: repeat(2, 1fr); }
+    .testi-layout { grid-template-columns: 1fr; }
+    .contact-inner { grid-template-columns: 1fr; }
+    .footer-top { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 768px) {
+    .nav-links { display: none; }
+    .nav-cta { margin-right: -2rem; }
+    .hero-metrics { position: relative; display: grid; grid-template-columns: repeat(2, 1fr); width: 100%; margin-top: 2rem; }
+    .services-grid, .process-steps, .team-grid { grid-template-columns: 1fr; }
+    .contact-form { grid-template-columns: 1fr; }
+    .contact-field.full, .contact-submit { grid-column: span 1; }
+    .footer-top { grid-template-columns: 1fr; }
+    .cta-band { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">{{BUSINESS_NAME}}<span>.</span></div>
+  <ul class="nav-links">
+    <li><a href="#about">About</a></li>
+    <li><a href="#services">Services</a></li>
+    <li><a href="#projects">Projects</a></li>
+    <li><a href="#process">Process</a></li>
+    <li><a href="#team">Team</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+  <a href="#contact" class="nav-cta">Get a Quote</a>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-overlay"></div>
+  <div class="hero-accent-line"></div>
+  <div class="hero-content">
+    <div class="hero-label"><span class="hero-label-line"></span>{{HERO_LABEL_TEXT}}</div>
+    <h1 class="hero-title">We<br/>Build<br/><span>Excellence</span></h1>
+    <p class="hero-desc">{{HERO_TAGLINE}}</p>
+    <div class="hero-actions">
+      <a href="#projects" class="btn-orange">View Our Work</a>
+      <a href="#contact" class="btn-steel">Get a Free Quote</a>
+    </div>
+  </div>
+  <div class="hero-metrics">
+    <div class="hero-metric">
+      <div class="hero-metric-num">{{STAT_1_VALUE}}<span>+</span></div>
+      <div class="hero-metric-label">{{STAT_1_LABEL}}</div>
+    </div>
+    <div class="hero-metric">
+      <div class="hero-metric-num">{{STAT_2_VALUE}}<span>+</span></div>
+      <div class="hero-metric-label">{{STAT_2_LABEL}}</div>
+    </div>
+    <div class="hero-metric">
+      <div class="hero-metric-num">{{STAT_3_VALUE}}<span>%</span></div>
+      <div class="hero-metric-label">{{STAT_3_LABEL}}</div>
+    </div>
+    <div class="hero-metric">
+      <div class="hero-metric-num">{{STAT_4_VALUE}}<span>+</span></div>
+      <div class="hero-metric-label">{{STAT_4_LABEL}}</div>
+    </div>
+  </div>
+</section>
+
+<!-- MARQUEE -->
+<div class="marquee-bar">
+  <div class="marquee-track">
+    <span class="marquee-item">Commercial Construction</span><span class="marquee-dot">◆</span>
+    <span class="marquee-item">Residential Projects</span><span class="marquee-dot">◆</span>
+    <span class="marquee-item">Industrial Builds</span><span class="marquee-dot">◆</span>
+    <span class="marquee-item">Renovation & Remodeling</span><span class="marquee-dot">◆</span>
+    <span class="marquee-item">Project Management</span><span class="marquee-dot">◆</span>
+    <span class="marquee-item">Structural Engineering</span><span class="marquee-dot">◆</span>
+    <span class="marquee-item">Commercial Construction</span><span class="marquee-dot">◆</span>
+    <span class="marquee-item">Residential Projects</span><span class="marquee-dot">◆</span>
+    <span class="marquee-item">Industrial Builds</span><span class="marquee-dot">◆</span>
+    <span class="marquee-item">Renovation & Remodeling</span><span class="marquee-dot">◆</span>
+    <span class="marquee-item">Project Management</span><span class="marquee-dot">◆</span>
+    <span class="marquee-item">Structural Engineering</span><span class="marquee-dot">◆</span>
+  </div>
+</div>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="about-inner">
+    <div class="about-images">
+      <img src="https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=900&q=80" alt="Construction Site" class="about-img" />
+      <img src="https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=400&q=80" alt="Team" class="about-img" />
+      <div class="about-founded">
+        <div class="about-founded-year">{{FOUNDED_YEAR}}</div>
+        <div class="about-founded-label">Est.</div>
+      </div>
+    </div>
+    <div>
+      <div class="section-label">Who We Are</div>
+      <h2 class="section-title">Built on <span>Trust</span><br/>Driven by Results</h2>
+      <p class="section-desc">{{ABOUT_PARAGRAPH_1}}</p>
+      <br/>
+      <p class="section-desc">{{ABOUT_PARAGRAPH_2}}</p>
+      <div class="about-certifications">
+        <div class="cert-badge">{{CERT_1}}</div>
+        <div class="cert-badge">{{CERT_2}}</div>
+        <div class="cert-badge">{{CERT_3}}</div>
+        <div class="cert-badge">{{CERT_4}}</div>
+      </div>
+      <br/><br/>
+      <a href="#projects" class="btn-orange">See Our Projects</a>
+    </div>
+  </div>
+</section>
+
+<!-- SERVICES -->
+<section id="services">
+  <div class="services-inner">
+    <div class="services-header">
+      <div>
+        <div class="section-label">What We Do</div>
+        <h2 class="section-title">Our <span>Services</span></h2>
+      </div>
+      <p class="section-desc" style="max-width:360px;">{{SERVICES_INTRO_TEXT}}</p>
+    </div>
+    <div class="services-grid">
+      <div class="service-card">
+        <div class="service-num">01</div>
+        <div class="service-icon">🏗️</div>
+        <div class="service-name">{{SERVICE_1_NAME}}</div>
+        <div class="service-desc">{{SERVICE_1_DESC}}</div>
+        <a href="#contact" class="service-link">Enquire Now →</a>
+      </div>
+      <div class="service-card">
+        <div class="service-num">02</div>
+        <div class="service-icon">🏠</div>
+        <div class="service-name">{{SERVICE_2_NAME}}</div>
+        <div class="service-desc">{{SERVICE_2_DESC}}</div>
+        <a href="#contact" class="service-link">Enquire Now →</a>
+      </div>
+      <div class="service-card">
+        <div class="service-num">03</div>
+        <div class="service-icon">🔧</div>
+        <div class="service-name">{{SERVICE_3_NAME}}</div>
+        <div class="service-desc">{{SERVICE_3_DESC}}</div>
+        <a href="#contact" class="service-link">Enquire Now →</a>
+      </div>
+      <div class="service-card">
+        <div class="service-num">04</div>
+        <div class="service-icon">📐</div>
+        <div class="service-name">{{SERVICE_4_NAME}}</div>
+        <div class="service-desc">{{SERVICE_4_DESC}}</div>
+        <a href="#contact" class="service-link">Enquire Now →</a>
+      </div>
+      <div class="service-card">
+        <div class="service-num">05</div>
+        <div class="service-icon">🏢</div>
+        <div class="service-name">{{SERVICE_5_NAME}}</div>
+        <div class="service-desc">{{SERVICE_5_DESC}}</div>
+        <a href="#contact" class="service-link">Enquire Now →</a>
+      </div>
+      <div class="service-card">
+        <div class="service-num">06</div>
+        <div class="service-icon">⚙️</div>
+        <div class="service-name">{{SERVICE_6_NAME}}</div>
+        <div class="service-desc">{{SERVICE_6_DESC}}</div>
+        <a href="#contact" class="service-link">Enquire Now →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROJECTS -->
+<section id="projects">
+  <div class="projects-inner">
+    <div class="projects-header">
+      <div>
+        <div class="section-label">Portfolio</div>
+        <h2 class="section-title">Featured <span>Projects</span></h2>
+      </div>
+      <a href="#contact" class="btn-orange">Start Your Project</a>
+    </div>
+    <div class="projects-grid">
+      <div class="project-card">
+        <div class="project-tag-always">Commercial</div>
+        <img src="https://images.unsplash.com/photo-1486325212027-8081e485255e?w=600&q=80" alt="Project 1" />
+        <div class="project-info">
+          <div class="project-type">{{PROJECT_1_TYPE}}</div>
+          <div class="project-name">{{PROJECT_1_NAME}}</div>
+          <div class="project-loc">{{PROJECT_1_LOCATION}} · {{PROJECT_1_YEAR}}</div>
+        </div>
+      </div>
+      <div class="project-card">
+        <div class="project-tag-always">Residential</div>
+        <img src="https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800&q=80" alt="Project 2" />
+        <div class="project-info">
+          <div class="project-type">{{PROJECT_2_TYPE}}</div>
+          <div class="project-name">{{PROJECT_2_NAME}}</div>
+          <div class="project-loc">{{PROJECT_2_LOCATION}} · {{PROJECT_2_YEAR}}</div>
+        </div>
+      </div>
+      <div class="project-card">
+        <div class="project-tag-always">Industrial</div>
+        <img src="https://images.unsplash.com/photo-1565043589221-1a6fd9ae45c7?w=500&q=80" alt="Project 3" />
+        <div class="project-info">
+          <div class="project-type">{{PROJECT_3_TYPE}}</div>
+          <div class="project-name">{{PROJECT_3_NAME}}</div>
+          <div class="project-loc">{{PROJECT_3_LOCATION}} · {{PROJECT_3_YEAR}}</div>
+        </div>
+      </div>
+      <div class="project-card">
+        <div class="project-tag-always">Renovation</div>
+        <img src="https://images.unsplash.com/photo-1558036117-15d82a90b9b1?w=500&q=80" alt="Project 4" />
+        <div class="project-info">
+          <div class="project-type">{{PROJECT_4_TYPE}}</div>
+          <div class="project-name">{{PROJECT_4_NAME}}</div>
+          <div class="project-loc">{{PROJECT_4_LOCATION}} · {{PROJECT_4_YEAR}}</div>
+        </div>
+      </div>
+      <div class="project-card">
+        <div class="project-tag-always">Infrastructure</div>
+        <img src="https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=500&q=80" alt="Project 5" />
+        <div class="project-info">
+          <div class="project-type">{{PROJECT_5_TYPE}}</div>
+          <div class="project-name">{{PROJECT_5_NAME}}</div>
+          <div class="project-loc">{{PROJECT_5_LOCATION}} · {{PROJECT_5_YEAR}}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROCESS -->
+<section id="process">
+  <div class="process-inner">
+    <div class="section-label">How We Work</div>
+    <h2 class="section-title">Our <span>Process</span></h2>
+    <div class="process-steps">
+      <div class="process-step">
+        <div class="process-num">01</div>
+        <div class="process-step-title">{{PROCESS_1_TITLE}}</div>
+        <div class="process-step-desc">{{PROCESS_1_DESC}}</div>
+      </div>
+      <div class="process-step">
+        <div class="process-num">02</div>
+        <div class="process-step-title">{{PROCESS_2_TITLE}}</div>
+        <div class="process-step-desc">{{PROCESS_2_DESC}}</div>
+      </div>
+      <div class="process-step">
+        <div class="process-num">03</div>
+        <div class="process-step-title">{{PROCESS_3_TITLE}}</div>
+        <div class="process-step-desc">{{PROCESS_3_DESC}}</div>
+      </div>
+      <div class="process-step">
+        <div class="process-num">04</div>
+        <div class="process-step-title">{{PROCESS_4_TITLE}}</div>
+        <div class="process-step-desc">{{PROCESS_4_DESC}}</div>
+      </div>
+      <div class="process-step">
+        <div class="process-num">05</div>
+        <div class="process-step-title">{{PROCESS_5_TITLE}}</div>
+        <div class="process-step-desc">{{PROCESS_5_DESC}}</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TEAM -->
+<section id="team">
+  <div class="team-inner">
+    <div class="team-header">
+      <div>
+        <div class="section-label">Our People</div>
+        <h2 class="section-title">The <span>Team</span></h2>
+      </div>
+      <p class="section-desc" style="max-width:320px;">{{TEAM_INTRO_TEXT}}</p>
+    </div>
+    <div class="team-grid">
+      <div class="team-card">
+        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=80" alt="Team Member" />
+        <div class="team-card-info">
+          <div class="team-card-name">{{TEAM_1_NAME}}</div>
+          <div class="team-card-role">{{TEAM_1_ROLE}}</div>
+          <div class="team-card-exp">{{TEAM_1_EXP}} experience</div>
+        </div>
+      </div>
+      <div class="team-card">
+        <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&q=80" alt="Team Member" />
+        <div class="team-card-info">
+          <div class="team-card-name">{{TEAM_2_NAME}}</div>
+          <div class="team-card-role">{{TEAM_2_ROLE}}</div>
+          <div class="team-card-exp">{{TEAM_2_EXP}} experience</div>
+        </div>
+      </div>
+      <div class="team-card">
+        <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&q=80" alt="Team Member" />
+        <div class="team-card-info">
+          <div class="team-card-name">{{TEAM_3_NAME}}</div>
+          <div class="team-card-role">{{TEAM_3_ROLE}}</div>
+          <div class="team-card-exp">{{TEAM_3_EXP}} experience</div>
+        </div>
+      </div>
+      <div class="team-card">
+        <img src="https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=400&q=80" alt="Team Member" />
+        <div class="team-card-info">
+          <div class="team-card-name">{{TEAM_4_NAME}}</div>
+          <div class="team-card-role">{{TEAM_4_ROLE}}</div>
+          <div class="team-card-exp">{{TEAM_4_EXP}} experience</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section id="testimonials">
+  <div class="testi-inner">
+    <div class="section-label">Client Feedback</div>
+    <h2 class="section-title">What Clients <span>Say</span></h2>
+    <div class="testi-layout">
+      <div class="testi-featured">
+        <div style="font-family:var(--condensed);font-size:5rem;font-weight:800;color:rgba(255,255,255,0.2);line-height:1;margin-bottom:1rem;">"</div>
+        <div class="testi-featured-quote">{{TESTIMONIAL_1_TEXT}}</div>
+        <div class="testi-featured-author">{{TESTIMONIAL_1_NAME}}</div>
+        <div class="testi-featured-company">{{TESTIMONIAL_1_COMPANY}}</div>
+      </div>
+      <div class="testi-list">
+        <div class="testi-item">
+          <div class="testi-item-text">"{{TESTIMONIAL_2_TEXT}}"</div>
+          <div class="testi-item-author">{{TESTIMONIAL_2_NAME}}</div>
+          <div class="testi-item-co">{{TESTIMONIAL_2_COMPANY}}</div>
+        </div>
+        <div class="testi-item">
+          <div class="testi-item-text">"{{TESTIMONIAL_3_TEXT}}"</div>
+          <div class="testi-item-author">{{TESTIMONIAL_3_NAME}}</div>
+          <div class="testi-item-co">{{TESTIMONIAL_3_COMPANY}}</div>
+        </div>
+        <div class="testi-item">
+          <div class="testi-item-text">"{{TESTIMONIAL_4_TEXT}}"</div>
+          <div class="testi-item-author">{{TESTIMONIAL_4_NAME}}</div>
+          <div class="testi-item-co">{{TESTIMONIAL_4_COMPANY}}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA BAND -->
+<div class="cta-band">
+  <div>
+    <div class="cta-band-title">Ready to Start Building?</div>
+    <div class="cta-band-desc">{{CTA_DESCRIPTION}}</div>
+  </div>
+  <a href="#contact" class="btn-white">Get a Free Quote Today</a>
+</div>
+
+<!-- CONTACT -->
+<section id="contact">
+  <div class="contact-inner">
+    <div>
+      <div class="section-label">Get In Touch</div>
+      <h2 class="section-title">Let's <span>Talk</span></h2>
+      <p class="section-desc">{{CONTACT_INTRO_TEXT}}</p>
+      <div class="contact-info">
+        <div class="contact-item">
+          <div class="contact-item-num">01</div>
+          <div>
+            <div class="contact-item-label">Address</div>
+            <div class="contact-item-val">{{ADDRESS_LINE_1}}<br/>{{ADDRESS_LINE_2}}</div>
+          </div>
+        </div>
+        <div class="contact-item">
+          <div class="contact-item-num">02</div>
+          <div>
+            <div class="contact-item-label">Phone</div>
+            <div class="contact-item-val">{{PHONE_NUMBER}}</div>
+          </div>
+        </div>
+        <div class="contact-item">
+          <div class="contact-item-num">03</div>
+          <div>
+            <div class="contact-item-label">Email</div>
+            <div class="contact-item-val">{{EMAIL_ADDRESS}}</div>
+          </div>
+        </div>
+        <div class="contact-item">
+          <div class="contact-item-num">04</div>
+          <div>
+            <div class="contact-item-label">Office Hours</div>
+            <div class="contact-item-val">{{WORKING_HOURS}}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="contact-form">
+        <div class="contact-field"><input type="text" placeholder="Your Full Name" /></div>
+        <div class="contact-field"><input type="text" placeholder="Company Name" /></div>
+        <div class="contact-field"><input type="tel" placeholder="Phone Number" /></div>
+        <div class="contact-field"><input type="email" placeholder="Email Address" /></div>
+        <div class="contact-field">
+          <select><option value="">Service Required</option><option>{{SERVICE_1_NAME}}</option><option>{{SERVICE_2_NAME}}</option><option>{{SERVICE_3_NAME}}</option><option>{{SERVICE_4_NAME}}</option></select>
+        </div>
+        <div class="contact-field"><input type="text" placeholder="Project Budget Range" /></div>
+        <div class="contact-field full"><textarea placeholder="Describe your project..."></textarea></div>
+        <button class="contact-submit">Send Enquiry →</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div>
+        <div class="footer-logo">{{BUSINESS_NAME}}<span>.</span></div>
+        <p class="footer-tagline">{{FOOTER_TAGLINE}}</p>
+      </div>
+      <div>
+        <div class="footer-col-title">Services</div>
+        <ul class="footer-links">
+          <li><a href="#services">{{SERVICE_1_NAME}}</a></li>
+          <li><a href="#services">{{SERVICE_2_NAME}}</a></li>
+          <li><a href="#services">{{SERVICE_3_NAME}}</a></li>
+          <li><a href="#services">{{SERVICE_4_NAME}}</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="footer-col-title">Company</div>
+        <ul class="footer-links">
+          <li><a href="#about">About Us</a></li>
+          <li><a href="#projects">Projects</a></li>
+          <li><a href="#team">Our Team</a></li>
+          <li><a href="#contact">Contact</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="footer-col-title">Legal</div>
+        <ul class="footer-links">
+          <li><a href="#">Privacy Policy</a></li>
+          <li><a href="#">Terms of Service</a></li>
+          <li><a href="#">Safety Policy</a></li>
+          <li><a href="#">Licenses & Certs</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span class="footer-copy">© {{CURRENT_YEAR}} {{BUSINESS_NAME}}. All rights reserved. {{LICENSE_NUMBER}}</span>
+      <div class="footer-social">
+        <a href="{{SOCIAL_LINKEDIN}}">LinkedIn</a>
+        <a href="{{SOCIAL_INSTAGRAM}}">Instagram</a>
+        <a href="{{SOCIAL_FACEBOOK}}">Facebook</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

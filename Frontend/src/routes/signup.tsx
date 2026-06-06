@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 import { useAuthContext } from "@/lib/AuthContext";
 import { GoogleIcon } from "@/components/icons/GoogleIcon";
-import { apiClient } from "@/lib/api";
+import { apiClient, ApiError } from "@/lib/api";
 import { useNotificationHelpers } from "@/components/notifications";
 import { PublicRoute } from "@/components/auth/PublicRoute";
 import LogoImage from "@/Icon/Saadhyam_Icon-removebg-preview.png";
@@ -32,6 +32,17 @@ export const Route = createFileRoute("/signup")({
     </PublicRoute>
   ),
 });
+
+function getErrorMessage(err: unknown, fallback: string): string {
+  if (err instanceof ApiError) {
+    if (typeof err.data === "object" && err.data && "detail" in err.data) {
+      const detail = (err.data as { detail?: string }).detail;
+      if (detail) return detail;
+    }
+  }
+  if (err instanceof Error) return err.message;
+  return fallback;
+}
 
 function SignupPage() {
   const navigate = useNavigate();
@@ -120,7 +131,8 @@ function SignupPage() {
       }
     } catch (err) {
       console.error("Email sign-up error:", err);
-      notifyError("Sign up failed", "Unable to create account. Please try again.");
+      const errMsg = getErrorMessage(err, "Unable to create account. Please try again.");
+      notifyError("Sign up failed", errMsg);
     } finally {
       setIsEmailLoading(false);
     }

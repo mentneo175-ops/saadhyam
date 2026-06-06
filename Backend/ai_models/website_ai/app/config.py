@@ -69,7 +69,13 @@ class Settings(BaseSettings):
         "timeline-vertical",
         "magazine-grid",
         "bento-box",
-        "parallax-scroll"
+        "parallax-scroll",
+        "minimal-modern",
+        "agency-dark",
+        "retro-brutalism",
+        "restaurant-showcase",
+        "saas-dashboard",
+        "creative-portfolio"
     ]
 
     # Monitoring

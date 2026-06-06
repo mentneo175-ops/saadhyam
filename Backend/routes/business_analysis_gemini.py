@@ -14,6 +14,7 @@ from utils.dependencies import get_current_user
 from models.user import User
 from services.gemini_business_analysis_service import generate_realtime_business_analysis
 from services.business_pinecone_service import store_business_analysis_in_pinecone
+from utils.feature_gate import check_feature_access
 
 logger = logging.getLogger(__name__)
 
@@ -83,6 +84,9 @@ async def get_realtime_business_analysis(
     
     try:
         logger.info(f"[BusinessAnalysis] Real-time analysis requested by: {current_user.email}")
+        
+        # Check feature access
+        await check_feature_access(current_user, "business_analysis")
         
         # Check if user has business profile
         if not current_user.business_name or not current_user.business_type or not current_user.business_location:

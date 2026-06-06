@@ -1,411 +1,275 @@
 <!doctype html>
 <html lang="en">
-
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ data.business_name }} | Bento Box Layout</title>
+    <title>{{ data.business_name }} | Bento Style</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/website-ai/static/theme-adapter.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        :root {
+            --bg-main: #09090b;
+            --grid-bg: #18181b;
+            --text-main: #fafafa;
+            --text-muted: #a1a1aa;
+            --primary: #3b82f6;
+            --primary-glow: rgba(59, 130, 246, 0.15);
+            --border-color: rgba(255,255,255,0.08);
+            --card-glass: rgba(24, 24, 27, 0.65);
         }
-
         body {
-            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: #f5f5f7;
-            color: #1d1d1f;
-            line-height: 1.6;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: var(--bg-main);
+            color: var(--text-main);
+            padding: 40px 24px;
+            line-height: 1.7;
         }
-
-        /* Navigation */
-        .nav {
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: saturate(180%) blur(20px);
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-        }
-
-        .nav-content {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 20px 40px;
+        
+        /* Floating blurred Navbar */
+        .navbar {
+            background: rgba(9, 9, 11, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 16px 24px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            max-width: 1100px;
+            margin: 0 auto 60px;
+            position: sticky;
+            top: 20px;
+            z-index: 1000;
         }
+        .nav-logo { font-size: 20px; font-weight: 800; color: white; text-decoration: none; }
+        .nav-links { list-style: none; display: flex; gap: 24px; }
+        .nav-links a { color: var(--text-muted); text-decoration: none; font-size: 13px; font-weight: 500; transition: color 0.2s; }
+        .nav-links a:hover { color: white; }
+        .nav-cta { background: white; color: black; padding: 8px 16px; border-radius: 8px; text-decoration: none; font-size: 12px; font-weight: 600; transition: opacity 0.2s; }
+        .nav-cta:hover { opacity: 0.9; }
 
-        .nav-logo {
-            font-size: 22px;
-            font-weight: 600;
-            color: #1d1d1f;
-        }
+        /* Hero area */
+        .hero { max-width: 800px; margin: 0 auto 80px; text-align: center; }
+        .hero-badge { display: inline-block; background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); color: white; font-size: 12px; font-weight: 600; padding: 6px 14px; border-radius: 50px; margin-bottom: 20px; }
+        .hero h1 { font-size: clamp(36px, 6vw, 58px); font-weight: 800; letter-spacing: -1.5px; line-height: 1.1; margin-bottom: 20px; }
+        .hero p { font-size: 17px; color: var(--text-muted); margin-bottom: 30px; }
 
-        .nav-links {
-            display: flex;
-            gap: 40px;
-            list-style: none;
-        }
-
-        .nav-links a {
-            color: #1d1d1f;
-            text-decoration: none;
-            font-size: 14px;
-            font-weight: 500;
-            transition: opacity 0.3s;
-        }
-
-        .nav-links a:hover {
-            opacity: 0.6;
-        }
-
-        /* Hero */
-        .hero {
-            max-width: 1400px;
-            margin: 60px auto;
-            padding: 100px 40px;
-            text-align: center;
-        }
-
-        .hero-tag {
-            display: inline-block;
-            padding: 6px 16px;
-            background: #007aff;
-            color: white;
-            border-radius: 20px;
-            font-size: 13px;
-            font-weight: 600;
-            margin-bottom: 24px;
-        }
-
-        .hero h1 {
-            font-size: 80px;
-            font-weight: 700;
-            line-height: 1.05;
-            margin-bottom: 24px;
-            letter-spacing: -2px;
-            background: linear-gradient(135deg, #1d1d1f 0%, #86868b 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .hero p {
-            font-size: 28px;
-            color: #86868b;
-            max-width: 800px;
-            margin: 0 auto 40px;
-            font-weight: 400;
-        }
-
-        .hero-cta {
-            display: inline-block;
-            padding: 16px 32px;
-            background: #007aff;
-            color: white;
-            text-decoration: none;
-            border-radius: 980px;
-            font-size: 17px;
-            font-weight: 500;
-            transition: all 0.3s;
-        }
-
-        .hero-cta:hover {
-            background: #0051d5;
-            transform: scale(1.02);
-        }
-
-        /* Bento grid */
-        .bento-container {
-            max-width: 1400px;
-            margin: 80px auto;
-            padding: 0 40px;
-        }
-
+        /* Bento Grid */
         .bento-grid {
+            max-width: 1100px;
+            margin: 0 auto;
             display: grid;
-            grid-template-columns: repeat(12, 1fr);
+            grid-template-columns: repeat(3, 1fr);
+            grid-auto-rows: minmax(180px, auto);
             gap: 20px;
         }
-
-        .bento-item {
-            background: white;
-            border-radius: 28px;
-            padding: 48px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        .bento-card {
+            background: var(--card-glass);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            padding: 32px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            transition: all 0.4s;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
             position: relative;
             overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        .bento-card:hover {
+            transform: scale(1.01);
+            border-color: rgba(255,255,255,0.15);
+            box-shadow: 0 15px 40px rgba(59, 130, 246, 0.05);
+        }
+        .bento-card h3 { font-size: 20px; font-weight: 700; margin-bottom: 12px; }
+        .bento-card p { font-size: 14px; color: var(--text-muted); }
+
+        /* Card sizes */
+        .card-large { grid-column: span 2; grid-row: span 2; }
+        .card-wide { grid-column: span 2; }
+        .card-tall { grid-row: span 2; }
+        .card-full { grid-column: span 3; }
+
+        /* stats inside bento */
+        .bento-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 24px; }
+        .bento-stat-box { background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); padding: 16px; border-radius: 16px; text-align: center; }
+        .bento-stat-num { font-size: 28px; font-weight: 800; color: var(--primary); }
+        .bento-stat-lbl { font-size: 11px; color: var(--text-muted); text-transform: uppercase; margin-top: 4px; }
+
+        /* services list */
+        .service-bento-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 20px; }
+        .service-mini-card { background: rgba(255,255,255,0.01); border: 1px solid var(--border-color); border-radius: 16px; padding: 20px; }
+        .service-mini-card h5 { font-size: 16px; margin-bottom: 6px; color: white; }
+
+        /* faq accordion style */
+        .faq-accordion { display: flex; flex-direction: column; gap: 12px; margin-top: 20px; }
+        .faq-box { border-bottom: 1px solid var(--border-color); padding-bottom: 12px; }
+        .faq-box summary { font-size: 15px; font-weight: 600; cursor: pointer; display: flex; justify-content: space-between; }
+        .faq-box p { font-size: 13px; color: var(--text-muted); margin-top: 8px; }
+
+        /* Blog bento list */
+        .blog-list { display: flex; flex-direction: column; gap: 16px; margin-top: 20px; }
+        .blog-tile { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; cursor: pointer; }
+        .blog-tile h5 { font-size: 15px; color: white; }
+        .blog-tile span { font-size: 12px; color: var(--text-muted); }
+
+        /* contact fields */
+        .contact-layout { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 30px; margin-top: 20px; }
+        .contact-form { display: flex; flex-direction: column; gap: 12px; }
+        .contact-form input, .contact-form textarea { background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: 12px; padding: 12px; color: white; font-family: inherit; font-size: 14px; outline: none; }
+        .contact-form input:focus, .contact-form textarea:focus { border-color: var(--primary); }
+
+        .footer {
+            border-top: 1px solid var(--border-color); max-width: 1100px; margin: 60px auto 0; padding-top: 40px; display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted);
         }
 
-        .bento-item::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(135deg, rgba(0, 122, 255, 0.05), rgba(88, 86, 214, 0.05));
-            opacity: 0;
-            transition: opacity 0.4s;
-        }
-
-        .bento-item:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
-        }
-
-        .bento-item:hover::before {
-            opacity: 1;
-        }
-
-        .bento-large {
-            grid-column: span 8;
-            grid-row: span 2;
-            background: linear-gradient(135deg, #007aff 0%, #5856d6 100%);
-            color: white;
-        }
-
-        .bento-medium {
-            grid-column: span 4;
-            grid-row: span 2;
-        }
-
-        .bento-small {
-            grid-column: span 4;
-        }
-
-        .bento-wide {
-            grid-column: span 6;
-        }
-
-        .bento-icon {
-            width: 56px;
-            height: 56px;
-            background: rgba(0, 122, 255, 0.1);
-            border-radius: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 28px;
-            margin-bottom: 24px;
-        }
-
-        .bento-large .bento-icon {
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        .bento-item h3 {
-            font-size: 32px;
-            font-weight: 600;
-            margin-bottom: 16px;
-            line-height: 1.2;
-            position: relative;
-            z-index: 1;
-        }
-
-        .bento-item p {
-            font-size: 17px;
-            line-height: 1.6;
-            color: #86868b;
-            position: relative;
-            z-index: 1;
-        }
-
-        .bento-large p {
-            color: rgba(255, 255, 255, 0.9);
-            font-size: 21px;
-        }
-
-        /* FAQ section */
-        .faq-section {
-            max-width: 1000px;
-            margin: 120px auto;
-            padding: 0 40px;
-        }
-
-        .faq-title {
-            font-size: 56px;
-            font-weight: 700;
-            text-align: center;
-            margin-bottom: 60px;
-            letter-spacing: -1px;
-        }
-
-        .faq-item {
-            background: white;
-            border-radius: 20px;
-            padding: 32px;
-            margin-bottom: 16px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
-        }
-
-        .faq-item summary {
-            font-size: 21px;
-            font-weight: 600;
-            cursor: pointer;
-            list-style: none;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .faq-item summary::after {
-            content: '+';
-            font-size: 32px;
-            color: #007aff;
-            font-weight: 300;
-            transition: transform 0.3s;
-        }
-
-        .faq-item[open] summary::after {
-            transform: rotate(45deg);
-        }
-
-        .faq-item p {
-            margin-top: 20px;
-            font-size: 17px;
-            color: #86868b;
-            line-height: 1.7;
-        }
-
-        /* Contact section */
-        .contact-section {
-            max-width: 1000px;
-            margin: 120px auto;
-            padding: 80px 60px;
-            background: linear-gradient(135deg, #007aff 0%, #5856d6 100%);
-            border-radius: 40px;
-            text-align: center;
-            color: white;
-        }
-
-        .contact-section h2 {
-            font-size: 56px;
-            font-weight: 700;
-            margin-bottom: 24px;
-            letter-spacing: -1px;
-        }
-
-        .contact-section p {
-            font-size: 21px;
-            opacity: 0.95;
-            line-height: 1.6;
-        }
-
-        @media (max-width: 1024px) {
-            .hero h1 {
-                font-size: 48px;
-            }
-
-            .bento-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .bento-large,
-            .bento-medium,
-            .bento-small,
-            .bento-wide {
-                grid-column: span 1;
-                grid-row: span 1;
-            }
+        @media (max-width: 992px) {
+            .bento-grid { grid-template-columns: 1fr; }
+            .card-large, .card-wide, .card-tall, .card-full { grid-column: span 1; grid-row: span 1; }
+            .service-bento-grid { grid-template-columns: 1fr; }
+            .contact-layout { grid-template-columns: 1fr; }
         }
     </style>
     <script src="/website-ai/static/editor.js" defer></script>
 </head>
-
 <body data-theme="bento-box">
-    <nav class="nav">
-        <div class="nav-content">
-            <div class="nav-logo">{{ data.business_name }}</div>
-            <ul class="nav-links">
-                <li><a href="#services">Services</a></li>
-                <li><a href="#faq">FAQ</a></li>
-                <li><a href="#contact">Contact</a></li>
-            </ul>
-        </div>
+    <nav class="navbar">
+        <a href="#" class="nav-logo">Bento<span>Grid</span></a>
+        <ul class="nav-links">
+            <li><a href="#about">Philosophy</a></li>
+            <li><a href="#services">Services</a></li>
+            <li><a href="#faq">FAQ</a></li>
+            <li><a href="#blog">Blog</a></li>
+            <li><a href="#contact">Contact</a></li>
+        </ul>
+        <a href="#contact" class="nav-cta">Enquire</a>
     </nav>
 
-    <section class="hero">
-        <span class="hero-tag">{{ data.business_type }}</span>
-        <h1>{{ theme_state.headline }}</h1>
+    <header class="hero">
+        <span class="hero-badge">Apple-inspired bento grid</span>
+        <h1>Polished layouts, built symmetrically.</h1>
         <p>{{ content.about }}</p>
-        <a href="#services" class="hero-cta">{{ theme_state.cta_line }}</a>
-    </section>
+        <a href="#contact" class="nav-cta" style="padding: 12px 24px;">Get Started</a>
+    </header>
 
-    <div id="services" class="bento-container">
-        <div class="bento-grid">
-            {% for service in content.services %}
-            {% if loop.index == 1 %}
-            <div class="bento-item bento-large">
-                <div>
-                    <div class="bento-icon">{{ loop.index }}</div>
-                    <h3>{{ service.name }}</h3>
-                    <p>{{ service.description }}</p>
-                </div>
-            </div>
-            {% elif loop.index == 2 %}
-            <div class="bento-item bento-medium">
-                <div>
-                    <div class="bento-icon">{{ loop.index }}</div>
-                    <h3>{{ service.name }}</h3>
-                    <p>{{ service.description }}</p>
-                </div>
-            </div>
-            {% elif loop.index <= 4 %} <div class="bento-item bento-wide">
-                <div>
-                    <div class="bento-icon">{{ loop.index }}</div>
-                    <h3>{{ service.name }}</h3>
-                    <p>{{ service.description }}</p>
-                </div>
-        </div>
-        {% else %}
-        <div class="bento-item bento-small">
+    <main class="bento-grid">
+        <!-- ABOUT -->
+        <div id="about" class="bento-card card-large">
             <div>
-                <div class="bento-icon">{{ loop.index }}</div>
-                <h3>{{ service.name }}</h3>
-                <p>{{ service.description }}</p>
+                <h3>Our Vision</h3>
+                <p style="font-size: 16px; margin-bottom: 20px;">{{ content.about }}</p>
+                <p>{{ theme_state.support_line }} We break from generic single templates to construct distinct user journeys inside Apple-style glassmorphic grids.</p>
+            </div>
+            <div class="bento-stats">
+                <div class="bento-stat-box">
+                    <div class="bento-stat-num">99%</div>
+                    <div class="bento-stat-lbl">Satisfaction</div>
+                </div>
+                <div class="bento-stat-box">
+                    <div class="bento-stat-num">150+</div>
+                    <div class="bento-stat-lbl">Projects</div>
+                </div>
+                <div class="bento-stat-box">
+                    <div class="bento-stat-num">24/7</div>
+                    <div class="bento-stat-lbl">Access</div>
+                </div>
             </div>
         </div>
-        {% endif %}
-        {% endfor %}
-    </div>
-    </div>
 
-    <section id="faq" class="faq-section">
-        <h2 class="faq-title">Frequently Asked Questions</h2>
-        {% for item in content.faq %}
-        <details class="faq-item">
-            <summary>{{ item.question }}</summary>
-            <p>{{ item.answer }}</p>
-        </details>
-        {% endfor %}
-    </section>
-
-    <section id="contact" class="contact-section">
-        <h2>Get in Touch</h2>
-        <p>{{ content.contact }}</p>
-    </section>
-    
-    <section id="blog" style="max-width: 1200px; margin: 120px auto; padding: 0 40px;">
-        <h2 style="font-size: 56px; font-weight: 700; text-align: center; margin-bottom: 60px; letter-spacing: -1px;">Latest from Our Blog</h2>
-        
-        <div id="blog-posts-container" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 30px; margin-bottom: 60px;">
-            <p style="text-align: center; color: #86868b; font-size: 18px; padding: 40px;">Loading blog posts...</p>
+        <!-- SERVICES -->
+        <div id="services" class="bento-card card-tall">
+            <div>
+                <h3>Offerings</h3>
+                <p>Tailored custom structures and components.</p>
+            </div>
+            <div class="faq-accordion" style="margin-top: 16px;">
+                {% for service in content.services %}
+                <div style="border-bottom: 1px solid var(--border-color); padding-bottom: 8px; margin-bottom: 8px;">
+                    <strong style="font-size: 14px; color: white;">{{ service.name }}</strong>
+                    <p style="font-size: 12px; color: var(--text-muted);">{{ service.description }}</p>
+                </div>
+                {% endfor %}
+            </div>
         </div>
-        
-        <div style="text-align: center;">
-            <a href="blogs.html" style="display: inline-block; padding: 16px 40px; background: linear-gradient(135deg, #007aff 0%, #5856d6 100%); color: white; text-decoration: none; border-radius: 980px; font-size: 17px; font-weight: 500; transition: all 0.3s;">View All Posts</a>
-        </div>
-    </section>
-    
-    </body>
 
+        <!-- FAQ -->
+        <div id="faq" class="bento-card card-wide">
+            <div>
+                <h3>Common Inquiries</h3>
+            </div>
+            <div class="faq-accordion">
+                {% for item in content.faq %}
+                <details class="faq-box">
+                    <summary>{{ item.question }}</summary>
+                    <p>{{ item.answer }}</p>
+                </details>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- BLOG -->
+        <div id="blog" class="bento-card card-tall">
+            <div>
+                <h3>Dispatches</h3>
+                <p>Read the latest insights.</p>
+            </div>
+            <div id="blog-posts-container" class="blog-list">
+                <p style="font-size: 13px; color: var(--text-muted);">Loading dispatches...</p>
+            </div>
+        </div>
+
+        <!-- CONTACT -->
+        <div id="contact" class="bento-card card-large">
+            <div>
+                <h3>Connect With Us</h3>
+                <p>{{ content.contact }}</p>
+            </div>
+            <div class="contact-layout">
+                <form class="contact-form" onsubmit="event.preventDefault(); alert('Request sent!');">
+                    <input type="text" placeholder="Your Name" required />
+                    <input type="email" placeholder="Email Address" required />
+                    <textarea rows="2" placeholder="Project Description..." required></textarea>
+                    <button type="submit" class="nav-cta" style="border: none; cursor: pointer; align-self: flex-start;">Send request</button>
+                </form>
+                <div style="font-size: 13px; color: var(--text-muted); display: flex; flex-direction: column; gap: 8px; justify-content: center;">
+                    <p>📍 downtown suite 10, city</p>
+                    <p>📞 {{ data.contact_phone or '+1 (555) 918-0928' }}</p>
+                    <p>✉️ {{ data.contact_email or 'hello@saadhyam.ai' }}</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <span>&copy; 2026 {{ data.business_name }}</span>
+        <span>Bento Box. All rights reserved.</span>
+    </footer>
+
+    <script>
+        async function loadBlogPosts() {
+            const container = document.getElementById('blog-posts-container');
+            try {
+                const response = await fetch('blogs.json');
+                if (!response.ok) throw new Error('No blogs');
+                const data = await response.json();
+                const blogs = data.blogs || [];
+                if (blogs.length === 0) {
+                    container.innerHTML = '<p style="font-size: 13px; color: var(--text-muted);">No blog posts yet.</p>';
+                    return;
+                }
+                container.innerHTML = blogs.slice(0, 3).map(blog => `
+                    <div class="blog-tile" onclick="window.location.href='blog-\${blog.slug}.html'">
+                        <h5>\${blog.title}</h5>
+                        <span>→</span>
+                    </div>
+                `).join('');
+            } catch (error) {
+                container.innerHTML = '<p style="font-size: 13px; color: var(--text-muted);">No blog posts yet.</p>';
+            }
+        }
+        document.addEventListener('DOMContentLoaded', loadBlogPosts);
+    </script>
+</body>
 </html>

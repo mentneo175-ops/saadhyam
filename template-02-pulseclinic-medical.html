@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>{{BUSINESS_NAME}} | {{TAGLINE}}</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --blue: #0A4FA8;
+    --blue-mid: #1A6DD8;
+    --blue-light: #E8F0FB;
+    --blue-xlight: #F4F7FD;
+    --teal: #00A896;
+    --teal-light: #E0F4F2;
+    --white: #FFFFFF;
+    --off-white: #F8F9FC;
+    --gray-1: #F2F4F8;
+    --gray-2: #E4E8F0;
+    --gray-3: #B0BAC8;
+    --gray-4: #6B7A90;
+    --dark: #0D1B2A;
+    --text: #1A2C42;
+    --serif: 'DM Serif Display', Georgia, serif;
+    --sans: 'DM Sans', sans-serif;
+  }
+  html { scroll-behavior: smooth; }
+  body { background: var(--white); color: var(--text); font-family: var(--sans); overflow-x: hidden; }
+
+  /* NAV */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1.2rem 4rem;
+    background: rgba(255,255,255,0.97);
+    border-bottom: 1px solid var(--gray-2);
+    backdrop-filter: blur(10px);
+  }
+  .nav-left { display: flex; align-items: center; gap: 0.7rem; }
+  .nav-logo-mark { width: 38px; height: 38px; background: var(--blue); border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+  .nav-logo-mark svg { width: 20px; height: 20px; fill: white; }
+  .nav-logo-text { font-family: var(--sans); font-weight: 600; font-size: 1.15rem; color: var(--dark); }
+  .nav-logo-text span { color: var(--blue); }
+  .nav-links { display: flex; gap: 0.3rem; list-style: none; }
+  .nav-links a { font-size: 0.88rem; font-weight: 400; color: var(--gray-4); text-decoration: none; padding: 0.5rem 0.9rem; border-radius: 8px; transition: all 0.2s; }
+  .nav-links a:hover { color: var(--blue); background: var(--blue-xlight); }
+  .nav-right { display: flex; align-items: center; gap: 1rem; }
+  .nav-phone { font-size: 0.85rem; font-weight: 500; color: var(--blue); }
+  .nav-cta { background: var(--blue); color: white; font-size: 0.82rem; font-weight: 500; padding: 0.65rem 1.4rem; border-radius: 8px; text-decoration: none; transition: background 0.2s; }
+  .nav-cta:hover { background: var(--blue-mid); }
+
+  /* HERO */
+  #hero {
+    padding-top: 90px; min-height: 100vh;
+    background: var(--blue-xlight);
+    display: flex; align-items: center;
+    position: relative; overflow: hidden;
+  }
+  .hero-bg-shape {
+    position: absolute; right: -100px; top: -100px;
+    width: 700px; height: 700px; border-radius: 50%;
+    background: linear-gradient(135deg, rgba(10,79,168,0.06), rgba(0,168,150,0.06));
+    pointer-events: none;
+  }
+  .hero-bg-shape-2 {
+    position: absolute; right: 200px; bottom: -150px;
+    width: 400px; height: 400px; border-radius: 50%;
+    background: rgba(0,168,150,0.05);
+    pointer-events: none;
+  }
+  .hero-inner { max-width: 1280px; margin: 0 auto; padding: 4rem 4rem; display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center; width: 100%; }
+  .hero-badge { display: inline-flex; align-items: center; gap: 0.5rem; background: var(--teal-light); color: var(--teal); font-size: 0.75rem; font-weight: 500; padding: 0.4rem 1rem; border-radius: 100px; margin-bottom: 1.5rem; }
+  .hero-badge-dot { width: 6px; height: 6px; background: var(--teal); border-radius: 50%; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.8)} }
+  .hero-title { font-family: var(--serif); font-size: clamp(2.4rem, 4.5vw, 3.6rem); line-height: 1.15; color: var(--dark); margin-bottom: 1.2rem; }
+  .hero-title em { font-style: italic; color: var(--blue); }
+  .hero-desc { font-size: 1rem; font-weight: 300; color: var(--gray-4); line-height: 1.8; margin-bottom: 2.5rem; max-width: 460px; }
+  .hero-actions { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 3rem; }
+  .btn-primary { background: var(--blue); color: white; font-size: 0.88rem; font-weight: 500; padding: 0.9rem 2rem; border-radius: 10px; text-decoration: none; transition: all 0.2s; display: inline-block; }
+  .btn-primary:hover { background: var(--blue-mid); transform: translateY(-1px); box-shadow: 0 8px 25px rgba(10,79,168,0.25); }
+  .btn-secondary { background: white; color: var(--blue); font-size: 0.88rem; font-weight: 500; padding: 0.9rem 2rem; border-radius: 10px; border: 1.5px solid var(--blue); text-decoration: none; transition: all 0.2s; display: inline-block; }
+  .btn-secondary:hover { background: var(--blue-xlight); }
+  .hero-trust { display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap; }
+  .hero-trust-item { display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; font-weight: 400; color: var(--gray-4); }
+  .hero-trust-icon { width: 20px; height: 20px; background: var(--blue-light); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; }
+  .hero-image-wrap { position: relative; }
+  .hero-image { width: 100%; border-radius: 20px; aspect-ratio: 4/5; object-fit: cover; }
+  .hero-card-float { position: absolute; bottom: -1rem; left: -2rem; background: white; border-radius: 14px; padding: 1.2rem 1.5rem; box-shadow: 0 20px 60px rgba(13,27,42,0.12); min-width: 200px; }
+  .hero-card-float-label { font-size: 0.68rem; font-weight: 500; color: var(--gray-3); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.3rem; }
+  .hero-card-float-val { font-size: 1.4rem; font-weight: 600; color: var(--blue); }
+  .hero-card-float-sub { font-size: 0.75rem; color: var(--gray-4); }
+  .hero-card-float-2 { position: absolute; top: 1.5rem; right: -1.5rem; background: var(--teal); border-radius: 14px; padding: 1rem 1.4rem; box-shadow: 0 10px 30px rgba(0,168,150,0.3); }
+  .hero-card-float-2 div { font-size: 1.4rem; font-weight: 600; color: white; }
+  .hero-card-float-2 span { font-size: 0.72rem; color: rgba(255,255,255,0.8); }
+
+  /* STATS BAR */
+  .stats-bar { background: var(--blue); padding: 2.5rem 4rem; }
+  .stats-inner { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem; }
+  .stat-item { text-align: center; }
+  .stat-num { font-family: var(--serif); font-size: 2.4rem; color: white; line-height: 1; }
+  .stat-label { font-size: 0.78rem; color: rgba(255,255,255,0.7); margin-top: 0.3rem; }
+
+  /* SECTION COMMONS */
+  section { padding: 6rem 4rem; }
+  .section-tag { display: inline-block; background: var(--blue-light); color: var(--blue); font-size: 0.72rem; font-weight: 500; padding: 0.35rem 0.9rem; border-radius: 100px; margin-bottom: 0.8rem; text-transform: uppercase; letter-spacing: 0.1em; }
+  .section-title { font-family: var(--serif); font-size: clamp(1.8rem, 3vw, 2.6rem); line-height: 1.2; color: var(--dark); margin-bottom: 1rem; }
+  .section-title em { font-style: italic; color: var(--blue); }
+  .section-desc { font-size: 0.95rem; color: var(--gray-4); line-height: 1.9; max-width: 540px; }
+
+  /* SERVICES */
+  #services { background: var(--off-white); }
+  .services-inner { max-width: 1200px; margin: 0 auto; }
+  .services-header { text-align: center; margin-bottom: 4rem; }
+  .services-header .section-desc { margin: 0 auto; }
+  .services-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+  .service-card { background: white; border-radius: 16px; padding: 2.2rem; border: 1px solid var(--gray-2); transition: all 0.3s; position: relative; overflow: hidden; }
+  .service-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--blue); transform: scaleX(0); transition: transform 0.3s; transform-origin: left; }
+  .service-card:hover { box-shadow: 0 12px 40px rgba(10,79,168,0.1); transform: translateY(-3px); }
+  .service-card:hover::before { transform: scaleX(1); }
+  .service-icon { width: 50px; height: 50px; background: var(--blue-light); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 1.4rem; font-size: 22px; }
+  .service-name { font-family: var(--sans); font-size: 1.05rem; font-weight: 600; color: var(--dark); margin-bottom: 0.6rem; }
+  .service-desc { font-size: 0.85rem; color: var(--gray-4); line-height: 1.8; margin-bottom: 1.2rem; }
+  .service-link { font-size: 0.82rem; font-weight: 500; color: var(--blue); text-decoration: none; display: inline-flex; align-items: center; gap: 0.3rem; }
+  .service-link:hover { gap: 0.5rem; }
+
+  /* ABOUT */
+  #about { background: white; }
+  .about-inner { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 5rem; align-items: center; }
+  .about-img-wrap { position: relative; }
+  .about-img { width: 100%; border-radius: 20px; aspect-ratio: 1; object-fit: cover; }
+  .about-badge { position: absolute; bottom: 2rem; right: -1.5rem; background: white; border-radius: 14px; padding: 1.5rem; box-shadow: 0 15px 50px rgba(0,0,0,0.1); }
+  .about-badge-icon { width: 40px; height: 40px; background: var(--teal-light); border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-bottom: 0.5rem; }
+  .about-badge-text { font-size: 1.3rem; font-weight: 600; color: var(--teal); }
+  .about-badge-sub { font-size: 0.72rem; color: var(--gray-4); }
+  .about-checks { margin-top: 2rem; display: flex; flex-direction: column; gap: 0.9rem; }
+  .about-check { display: flex; align-items: flex-start; gap: 0.8rem; font-size: 0.9rem; color: var(--text); }
+  .about-check-icon { width: 22px; height: 22px; background: var(--teal-light); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; color: var(--teal); font-size: 11px; font-weight: 700; }
+
+  /* DOCTORS / TEAM */
+  #team { background: var(--off-white); }
+  .team-inner { max-width: 1200px; margin: 0 auto; }
+  .team-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 3.5rem; flex-wrap: wrap; gap: 1.5rem; }
+  .team-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; }
+  .doctor-card { background: white; border-radius: 16px; overflow: hidden; border: 1px solid var(--gray-2); transition: box-shadow 0.3s; }
+  .doctor-card:hover { box-shadow: 0 12px 40px rgba(0,0,0,0.08); }
+  .doctor-img { width: 100%; aspect-ratio: 3/4; object-fit: cover; object-position: top; }
+  .doctor-info { padding: 1.4rem; }
+  .doctor-name { font-size: 1rem; font-weight: 600; color: var(--dark); margin-bottom: 0.2rem; }
+  .doctor-spec { font-size: 0.78rem; color: var(--blue); font-weight: 500; margin-bottom: 0.8rem; }
+  .doctor-qual { font-size: 0.75rem; color: var(--gray-4); line-height: 1.6; }
+
+  /* PROCESS / WHY US */
+  #why-us { background: white; }
+  .why-inner { max-width: 1200px; margin: 0 auto; }
+  .why-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center; }
+  .why-steps { display: flex; flex-direction: column; gap: 0; }
+  .why-step { display: flex; gap: 1.5rem; padding: 1.8rem 0; border-bottom: 1px solid var(--gray-2); position: relative; }
+  .why-step:last-child { border-bottom: none; }
+  .why-step-num { width: 44px; height: 44px; background: var(--blue-light); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 600; color: var(--blue); flex-shrink: 0; }
+  .why-step-title { font-size: 1rem; font-weight: 600; color: var(--dark); margin-bottom: 0.4rem; }
+  .why-step-desc { font-size: 0.85rem; color: var(--gray-4); line-height: 1.7; }
+
+  /* APPOINTMENT FORM */
+  #appointment { background: var(--blue); }
+  .appt-inner { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 5rem; align-items: center; }
+  .appt-left .section-title { color: white; }
+  .appt-left .section-tag { background: rgba(255,255,255,0.15); color: rgba(255,255,255,0.9); }
+  .appt-left .section-desc { color: rgba(255,255,255,0.7); }
+  .appt-list { margin-top: 2rem; display: flex; flex-direction: column; gap: 0.8rem; }
+  .appt-list-item { display: flex; align-items: center; gap: 0.8rem; font-size: 0.88rem; color: rgba(255,255,255,0.85); }
+  .appt-list-dot { width: 8px; height: 8px; background: var(--teal); border-radius: 50%; flex-shrink: 0; }
+  .appt-form { background: white; border-radius: 20px; padding: 2.5rem; }
+  .appt-form-title { font-size: 1.1rem; font-weight: 600; color: var(--dark); margin-bottom: 1.5rem; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+  .form-group { display: flex; flex-direction: column; gap: 0.4rem; }
+  .form-group label { font-size: 0.75rem; font-weight: 500; color: var(--gray-4); text-transform: uppercase; letter-spacing: 0.05em; }
+  .form-group input, .form-group select, .form-group textarea { border: 1.5px solid var(--gray-2); border-radius: 8px; padding: 0.75rem 1rem; font-family: var(--sans); font-size: 0.88rem; color: var(--text); background: var(--off-white); transition: border-color 0.2s; outline: none; }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--blue); background: white; }
+  .form-group textarea { resize: none; height: 90px; }
+  .form-submit { width: 100%; background: var(--blue); color: white; border: none; border-radius: 10px; padding: 1rem; font-family: var(--sans); font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: background 0.2s; margin-top: 0.5rem; }
+  .form-submit:hover { background: var(--blue-mid); }
+
+  /* TESTIMONIALS */
+  #testimonials { background: var(--off-white); }
+  .testi-inner { max-width: 1200px; margin: 0 auto; }
+  .testi-header { text-align: center; margin-bottom: 3.5rem; }
+  .testi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+  .testi-card { background: white; border-radius: 16px; padding: 2rem; border: 1px solid var(--gray-2); }
+  .testi-stars { color: #F5A623; font-size: 0.9rem; margin-bottom: 1rem; letter-spacing: 0.1em; }
+  .testi-text { font-size: 0.9rem; color: var(--text); line-height: 1.8; margin-bottom: 1.5rem; font-style: italic; }
+  .testi-author { display: flex; align-items: center; gap: 0.8rem; }
+  .testi-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--blue-light); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.85rem; color: var(--blue); flex-shrink: 0; }
+  .testi-name { font-size: 0.88rem; font-weight: 600; color: var(--dark); }
+  .testi-sub { font-size: 0.75rem; color: var(--gray-4); }
+
+  /* FAQ */
+  #faq { background: white; }
+  .faq-inner { max-width: 800px; margin: 0 auto; }
+  .faq-header { text-align: center; margin-bottom: 3rem; }
+  .faq-list { display: flex; flex-direction: column; gap: 1rem; }
+  .faq-item { border: 1px solid var(--gray-2); border-radius: 12px; overflow: hidden; }
+  .faq-q { padding: 1.2rem 1.5rem; font-size: 0.95rem; font-weight: 500; color: var(--dark); cursor: pointer; display: flex; justify-content: space-between; align-items: center; background: white; user-select: none; }
+  .faq-q:hover { background: var(--blue-xlight); }
+  .faq-q-icon { color: var(--blue); font-size: 1.2rem; transition: transform 0.3s; }
+  .faq-item.open .faq-q-icon { transform: rotate(45deg); }
+  .faq-a { padding: 0 1.5rem; max-height: 0; overflow: hidden; transition: all 0.3s; font-size: 0.88rem; color: var(--gray-4); line-height: 1.8; background: var(--blue-xlight); }
+  .faq-item.open .faq-a { max-height: 200px; padding: 1rem 1.5rem 1.5rem; }
+
+  /* CONTACT */
+  #contact { background: var(--off-white); }
+  .contact-inner { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; }
+  .contact-cards { display: flex; flex-direction: column; gap: 1rem; margin-top: 2rem; }
+  .contact-card { background: white; border-radius: 14px; padding: 1.5rem; border: 1px solid var(--gray-2); display: flex; align-items: flex-start; gap: 1rem; }
+  .contact-card-icon { width: 44px; height: 44px; background: var(--blue-light); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 18px; }
+  .contact-card-label { font-size: 0.72rem; font-weight: 600; color: var(--blue); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.3rem; }
+  .contact-card-val { font-size: 0.9rem; color: var(--text); font-weight: 500; }
+  .contact-card-sub { font-size: 0.78rem; color: var(--gray-4); margin-top: 0.2rem; }
+  .map-placeholder { background: var(--gray-1); border-radius: 16px; height: 300px; display: flex; align-items: center; justify-content: center; margin-top: 1rem; border: 1px solid var(--gray-2); overflow: hidden; }
+  .map-placeholder span { font-size: 0.85rem; color: var(--gray-3); }
+
+  /* FOOTER */
+  footer { background: var(--dark); padding: 4rem; }
+  .footer-inner { max-width: 1200px; margin: 0 auto; }
+  .footer-top { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr; gap: 3rem; padding-bottom: 3rem; border-bottom: 1px solid rgba(255,255,255,0.08); }
+  .footer-brand { font-family: var(--sans); font-weight: 600; font-size: 1.2rem; color: white; margin-bottom: 0.8rem; }
+  .footer-brand span { color: var(--teal); }
+  .footer-tagline { font-size: 0.82rem; color: rgba(255,255,255,0.45); line-height: 1.8; max-width: 220px; }
+  .footer-col-title { font-size: 0.68rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.15em; color: rgba(255,255,255,0.4); margin-bottom: 1.2rem; }
+  .footer-links { list-style: none; display: flex; flex-direction: column; gap: 0.65rem; }
+  .footer-links a { font-size: 0.83rem; color: rgba(255,255,255,0.55); text-decoration: none; transition: color 0.2s; }
+  .footer-links a:hover { color: white; }
+  .footer-bottom { display: flex; justify-content: space-between; align-items: center; padding-top: 2rem; flex-wrap: wrap; gap: 1rem; }
+  .footer-copy { font-size: 0.75rem; color: rgba(255,255,255,0.3); }
+  .footer-social { display: flex; gap: 1rem; }
+  .footer-social a { width: 34px; height: 34px; background: rgba(255,255,255,0.08); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.5); text-decoration: none; font-size: 0.7rem; transition: all 0.2s; font-weight: 600; }
+  .footer-social a:hover { background: var(--blue); color: white; }
+
+  /* RESPONSIVE */
+  @media (max-width: 1024px) {
+    nav { padding: 1rem 2rem; }
+    section { padding: 4rem 2rem; }
+    .stats-bar { padding: 2rem; }
+    .hero-inner { grid-template-columns: 1fr; gap: 2.5rem; padding: 3rem 2rem; }
+    .hero-image-wrap { order: -1; max-width: 480px; margin: 0 auto; }
+    .about-inner, .why-grid, .appt-inner, .contact-inner { grid-template-columns: 1fr; }
+    .team-grid { grid-template-columns: repeat(2, 1fr); }
+    .services-grid { grid-template-columns: 1fr 1fr; }
+    .stats-inner { grid-template-columns: repeat(2, 1fr); }
+    .footer-top { grid-template-columns: 1fr 1fr; }
+    .testi-grid { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 768px) {
+    .nav-links { display: none; }
+    .services-grid, .testi-grid, .team-grid { grid-template-columns: 1fr; }
+    .footer-top { grid-template-columns: 1fr; }
+    .form-row { grid-template-columns: 1fr; }
+    .hero-card-float, .hero-card-float-2 { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAVIGATION -->
+<nav>
+  <div class="nav-left">
+    <div class="nav-logo-mark">
+      <svg viewBox="0 0 20 20"><path d="M10 2a8 8 0 100 16A8 8 0 0010 2zm0 3a1.5 1.5 0 110 3 1.5 1.5 0 010-3zm-2 5.5h4v5H8v-5z"/></svg>
+    </div>
+    <div class="nav-logo-text">{{BUSINESS_NAME}}</div>
+  </div>
+  <ul class="nav-links">
+    <li><a href="#services">Services</a></li>
+    <li><a href="#about">About</a></li>
+    <li><a href="#team">Our Doctors</a></li>
+    <li><a href="#why-us">Why Us</a></li>
+    <li><a href="#testimonials">Reviews</a></li>
+    <li><a href="#faq">FAQ</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+  <div class="nav-right">
+    <span class="nav-phone">{{PHONE_NUMBER}}</span>
+    <a href="#appointment" class="nav-cta">Book Appointment</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-bg-shape"></div>
+  <div class="hero-bg-shape-2"></div>
+  <div class="hero-inner">
+    <div>
+      <div class="hero-badge"><div class="hero-badge-dot"></div>{{HERO_BADGE_TEXT}}</div>
+      <h1 class="hero-title">Your Health,<br/>Our <em>Priority</em></h1>
+      <p class="hero-desc">{{HERO_TAGLINE}}</p>
+      <div class="hero-actions">
+        <a href="#appointment" class="btn-primary">Book an Appointment</a>
+        <a href="#services" class="btn-secondary">Our Services</a>
+      </div>
+      <div class="hero-trust">
+        <div class="hero-trust-item"><div class="hero-trust-icon">✓</div>{{TRUST_POINT_1}}</div>
+        <div class="hero-trust-item"><div class="hero-trust-icon">✓</div>{{TRUST_POINT_2}}</div>
+        <div class="hero-trust-item"><div class="hero-trust-icon">✓</div>{{TRUST_POINT_3}}</div>
+      </div>
+    </div>
+    <div class="hero-image-wrap">
+      <img src="https://images.unsplash.com/photo-1551601651-2a8555f1a136?w=700&q=80" alt="Medical Team" class="hero-image" />
+      <div class="hero-card-float">
+        <div class="hero-card-float-label">Happy Patients</div>
+        <div class="hero-card-float-val">{{TOTAL_PATIENTS}}</div>
+        <div class="hero-card-float-sub">and counting</div>
+      </div>
+      <div class="hero-card-float-2">
+        <div>{{YEARS_EXPERIENCE}}+</div>
+        <span>Years of Care</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS BAR -->
+<div class="stats-bar">
+  <div class="stats-inner">
+    <div class="stat-item"><div class="stat-num">{{STAT_1_VALUE}}</div><div class="stat-label">{{STAT_1_LABEL}}</div></div>
+    <div class="stat-item"><div class="stat-num">{{STAT_2_VALUE}}</div><div class="stat-label">{{STAT_2_LABEL}}</div></div>
+    <div class="stat-item"><div class="stat-num">{{STAT_3_VALUE}}</div><div class="stat-label">{{STAT_3_LABEL}}</div></div>
+    <div class="stat-item"><div class="stat-num">{{STAT_4_VALUE}}</div><div class="stat-label">{{STAT_4_LABEL}}</div></div>
+  </div>
+</div>
+
+<!-- SERVICES -->
+<section id="services">
+  <div class="services-inner">
+    <div class="services-header">
+      <div class="section-tag">What We Offer</div>
+      <h2 class="section-title">Our Medical <em>Services</em></h2>
+      <p class="section-desc">{{SERVICES_INTRO_TEXT}}</p>
+    </div>
+    <div class="services-grid">
+      <div class="service-card">
+        <div class="service-icon">🩺</div>
+        <div class="service-name">{{SERVICE_1_NAME}}</div>
+        <div class="service-desc">{{SERVICE_1_DESC}}</div>
+        <a href="#appointment" class="service-link">Book Now →</a>
+      </div>
+      <div class="service-card">
+        <div class="service-icon">💊</div>
+        <div class="service-name">{{SERVICE_2_NAME}}</div>
+        <div class="service-desc">{{SERVICE_2_DESC}}</div>
+        <a href="#appointment" class="service-link">Book Now →</a>
+      </div>
+      <div class="service-card">
+        <div class="service-icon">🔬</div>
+        <div class="service-name">{{SERVICE_3_NAME}}</div>
+        <div class="service-desc">{{SERVICE_3_DESC}}</div>
+        <a href="#appointment" class="service-link">Book Now →</a>
+      </div>
+      <div class="service-card">
+        <div class="service-icon">🫀</div>
+        <div class="service-name">{{SERVICE_4_NAME}}</div>
+        <div class="service-desc">{{SERVICE_4_DESC}}</div>
+        <a href="#appointment" class="service-link">Book Now →</a>
+      </div>
+      <div class="service-card">
+        <div class="service-icon">🧬</div>
+        <div class="service-name">{{SERVICE_5_NAME}}</div>
+        <div class="service-desc">{{SERVICE_5_DESC}}</div>
+        <a href="#appointment" class="service-link">Book Now →</a>
+      </div>
+      <div class="service-card">
+        <div class="service-icon">🏥</div>
+        <div class="service-name">{{SERVICE_6_NAME}}</div>
+        <div class="service-desc">{{SERVICE_6_DESC}}</div>
+        <a href="#appointment" class="service-link">Book Now →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="about-inner">
+    <div class="about-img-wrap">
+      <img src="https://images.unsplash.com/photo-1586773860418-d37222d8fce3?w=700&q=80" alt="Clinic" class="about-img" />
+      <div class="about-badge">
+        <div class="about-badge-icon">🏆</div>
+        <div class="about-badge-text">{{AWARD_TEXT}}</div>
+        <div class="about-badge-sub">{{AWARD_YEAR}}</div>
+      </div>
+    </div>
+    <div>
+      <div class="section-tag">About Us</div>
+      <h2 class="section-title">Compassionate Care,<br/><em>Advanced</em> Medicine</h2>
+      <p class="section-desc">{{ABOUT_PARAGRAPH_1}}</p>
+      <br/>
+      <p class="section-desc">{{ABOUT_PARAGRAPH_2}}</p>
+      <div class="about-checks">
+        <div class="about-check"><div class="about-check-icon">✓</div>{{ABOUT_CHECK_1}}</div>
+        <div class="about-check"><div class="about-check-icon">✓</div>{{ABOUT_CHECK_2}}</div>
+        <div class="about-check"><div class="about-check-icon">✓</div>{{ABOUT_CHECK_3}}</div>
+        <div class="about-check"><div class="about-check-icon">✓</div>{{ABOUT_CHECK_4}}</div>
+      </div>
+      <br/>
+      <a href="#team" class="btn-primary" style="margin-top:1rem;">Meet Our Doctors</a>
+    </div>
+  </div>
+</section>
+
+<!-- TEAM -->
+<section id="team">
+  <div class="team-inner">
+    <div class="team-header">
+      <div>
+        <div class="section-tag">Our Experts</div>
+        <h2 class="section-title">Meet Our <em>Doctors</em></h2>
+      </div>
+      <a href="#appointment" class="btn-secondary">Book Consultation</a>
+    </div>
+    <div class="team-grid">
+      <div class="doctor-card">
+        <img src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=400&q=80" alt="Doctor" class="doctor-img" />
+        <div class="doctor-info">
+          <div class="doctor-name">{{DOCTOR_1_NAME}}</div>
+          <div class="doctor-spec">{{DOCTOR_1_SPECIALTY}}</div>
+          <div class="doctor-qual">{{DOCTOR_1_QUALIFICATION}}</div>
+        </div>
+      </div>
+      <div class="doctor-card">
+        <img src="https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=400&q=80" alt="Doctor" class="doctor-img" />
+        <div class="doctor-info">
+          <div class="doctor-name">{{DOCTOR_2_NAME}}</div>
+          <div class="doctor-spec">{{DOCTOR_2_SPECIALTY}}</div>
+          <div class="doctor-qual">{{DOCTOR_2_QUALIFICATION}}</div>
+        </div>
+      </div>
+      <div class="doctor-card">
+        <img src="https://images.unsplash.com/photo-1594824476967-48c8b964273f?w=400&q=80" alt="Doctor" class="doctor-img" />
+        <div class="doctor-info">
+          <div class="doctor-name">{{DOCTOR_3_NAME}}</div>
+          <div class="doctor-spec">{{DOCTOR_3_SPECIALTY}}</div>
+          <div class="doctor-qual">{{DOCTOR_3_QUALIFICATION}}</div>
+        </div>
+      </div>
+      <div class="doctor-card">
+        <img src="https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=400&q=80" alt="Doctor" class="doctor-img" />
+        <div class="doctor-info">
+          <div class="doctor-name">{{DOCTOR_4_NAME}}</div>
+          <div class="doctor-spec">{{DOCTOR_4_SPECIALTY}}</div>
+          <div class="doctor-qual">{{DOCTOR_4_QUALIFICATION}}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- WHY US -->
+<section id="why-us">
+  <div class="why-inner">
+    <div class="why-grid">
+      <div>
+        <div class="section-tag">Why Choose Us</div>
+        <h2 class="section-title">Healthcare You Can<br/><em>Trust</em></h2>
+        <p class="section-desc">{{WHY_US_INTRO_TEXT}}</p>
+        <br/><br/>
+        <a href="#appointment" class="btn-primary">Get Started Today</a>
+      </div>
+      <div class="why-steps">
+        <div class="why-step">
+          <div class="why-step-num">01</div>
+          <div>
+            <div class="why-step-title">{{WHY_1_TITLE}}</div>
+            <div class="why-step-desc">{{WHY_1_DESC}}</div>
+          </div>
+        </div>
+        <div class="why-step">
+          <div class="why-step-num">02</div>
+          <div>
+            <div class="why-step-title">{{WHY_2_TITLE}}</div>
+            <div class="why-step-desc">{{WHY_2_DESC}}</div>
+          </div>
+        </div>
+        <div class="why-step">
+          <div class="why-step-num">03</div>
+          <div>
+            <div class="why-step-title">{{WHY_3_TITLE}}</div>
+            <div class="why-step-desc">{{WHY_3_DESC}}</div>
+          </div>
+        </div>
+        <div class="why-step">
+          <div class="why-step-num">04</div>
+          <div>
+            <div class="why-step-title">{{WHY_4_TITLE}}</div>
+            <div class="why-step-desc">{{WHY_4_DESC}}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- APPOINTMENT -->
+<section id="appointment">
+  <div class="appt-inner">
+    <div class="appt-left">
+      <div class="section-tag">Book Appointment</div>
+      <h2 class="section-title" style="color:white;">Ready to Take<br/><em>Care of Your Health?</em></h2>
+      <p class="section-desc">{{APPOINTMENT_INTRO_TEXT}}</p>
+      <div class="appt-list">
+        <div class="appt-list-item"><div class="appt-list-dot"></div>{{APPT_BENEFIT_1}}</div>
+        <div class="appt-list-item"><div class="appt-list-dot"></div>{{APPT_BENEFIT_2}}</div>
+        <div class="appt-list-item"><div class="appt-list-dot"></div>{{APPT_BENEFIT_3}}</div>
+      </div>
+    </div>
+    <div class="appt-form">
+      <div class="appt-form-title">Schedule Your Visit</div>
+      <div class="form-row">
+        <div class="form-group"><label>First Name</label><input type="text" placeholder="John" /></div>
+        <div class="form-group"><label>Last Name</label><input type="text" placeholder="Doe" /></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Phone</label><input type="tel" placeholder="+91 XXXXXXXXXX" /></div>
+        <div class="form-group"><label>Email</label><input type="email" placeholder="email@example.com" /></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Department</label>
+          <select>
+            <option>Select Department</option>
+            <option>{{SERVICE_1_NAME}}</option>
+            <option>{{SERVICE_2_NAME}}</option>
+            <option>{{SERVICE_3_NAME}}</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Preferred Date</label><input type="date" /></div>
+      </div>
+      <div class="form-group" style="margin-bottom:1rem;"><label>Message (Optional)</label><textarea placeholder="Describe your concern..."></textarea></div>
+      <button class="form-submit">Confirm Appointment</button>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section id="testimonials">
+  <div class="testi-inner">
+    <div class="testi-header">
+      <div class="section-tag">Patient Reviews</div>
+      <h2 class="section-title">What Our Patients <em>Say</em></h2>
+    </div>
+    <div class="testi-grid">
+      <div class="testi-card">
+        <div class="testi-stars">★★★★★</div>
+        <div class="testi-text">"{{TESTIMONIAL_1_TEXT}}"</div>
+        <div class="testi-author">
+          <div class="testi-avatar">{{TESTIMONIAL_1_INITIALS}}</div>
+          <div><div class="testi-name">{{TESTIMONIAL_1_NAME}}</div><div class="testi-sub">{{TESTIMONIAL_1_TREATMENT}}</div></div>
+        </div>
+      </div>
+      <div class="testi-card">
+        <div class="testi-stars">★★★★★</div>
+        <div class="testi-text">"{{TESTIMONIAL_2_TEXT}}"</div>
+        <div class="testi-author">
+          <div class="testi-avatar">{{TESTIMONIAL_2_INITIALS}}</div>
+          <div><div class="testi-name">{{TESTIMONIAL_2_NAME}}</div><div class="testi-sub">{{TESTIMONIAL_2_TREATMENT}}</div></div>
+        </div>
+      </div>
+      <div class="testi-card">
+        <div class="testi-stars">★★★★★</div>
+        <div class="testi-text">"{{TESTIMONIAL_3_TEXT}}"</div>
+        <div class="testi-author">
+          <div class="testi-avatar">{{TESTIMONIAL_3_INITIALS}}</div>
+          <div><div class="testi-name">{{TESTIMONIAL_3_NAME}}</div><div class="testi-sub">{{TESTIMONIAL_3_TREATMENT}}</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section id="faq">
+  <div class="faq-inner">
+    <div class="faq-header">
+      <div class="section-tag">FAQ</div>
+      <h2 class="section-title">Frequently Asked <em>Questions</em></h2>
+    </div>
+    <div class="faq-list">
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)">{{FAQ_1_Q}}<span class="faq-q-icon">+</span></div>
+        <div class="faq-a">{{FAQ_1_A}}</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)">{{FAQ_2_Q}}<span class="faq-q-icon">+</span></div>
+        <div class="faq-a">{{FAQ_2_A}}</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)">{{FAQ_3_Q}}<span class="faq-q-icon">+</span></div>
+        <div class="faq-a">{{FAQ_3_A}}</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)">{{FAQ_4_Q}}<span class="faq-q-icon">+</span></div>
+        <div class="faq-a">{{FAQ_4_A}}</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)">{{FAQ_5_Q}}<span class="faq-q-icon">+</span></div>
+        <div class="faq-a">{{FAQ_5_A}}</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact">
+  <div class="contact-inner">
+    <div>
+      <div class="section-tag">Find Us</div>
+      <h2 class="section-title">Visit Our <em>Clinic</em></h2>
+      <p class="section-desc">{{CONTACT_INTRO_TEXT}}</p>
+      <div class="contact-cards">
+        <div class="contact-card">
+          <div class="contact-card-icon">📍</div>
+          <div>
+            <div class="contact-card-label">Address</div>
+            <div class="contact-card-val">{{ADDRESS_LINE_1}}</div>
+            <div class="contact-card-sub">{{ADDRESS_LINE_2}}</div>
+          </div>
+        </div>
+        <div class="contact-card">
+          <div class="contact-card-icon">📞</div>
+          <div>
+            <div class="contact-card-label">Phone</div>
+            <div class="contact-card-val">{{PHONE_NUMBER}}</div>
+            <div class="contact-card-sub">Emergency: {{EMERGENCY_NUMBER}}</div>
+          </div>
+        </div>
+        <div class="contact-card">
+          <div class="contact-card-icon">🕐</div>
+          <div>
+            <div class="contact-card-label">Hours</div>
+            <div class="contact-card-val">{{WORKING_HOURS_WEEKDAY}}</div>
+            <div class="contact-card-sub">{{WORKING_HOURS_WEEKEND}}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="map-placeholder">
+        <span>{{GOOGLE_MAPS_EMBED_URL}}</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div>
+        <div class="footer-brand">{{BUSINESS_NAME}}</div>
+        <p class="footer-tagline">{{FOOTER_TAGLINE}}</p>
+      </div>
+      <div>
+        <div class="footer-col-title">Services</div>
+        <ul class="footer-links">
+          <li><a href="#services">{{SERVICE_1_NAME}}</a></li>
+          <li><a href="#services">{{SERVICE_2_NAME}}</a></li>
+          <li><a href="#services">{{SERVICE_3_NAME}}</a></li>
+          <li><a href="#services">{{SERVICE_4_NAME}}</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="footer-col-title">Quick Links</div>
+        <ul class="footer-links">
+          <li><a href="#about">About Us</a></li>
+          <li><a href="#team">Our Doctors</a></li>
+          <li><a href="#appointment">Appointments</a></li>
+          <li><a href="#contact">Contact</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="footer-col-title">Legal</div>
+        <ul class="footer-links">
+          <li><a href="#">Privacy Policy</a></li>
+          <li><a href="#">Terms of Use</a></li>
+          <li><a href="#">Patient Rights</a></li>
+          <li><a href="#">Accessibility</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span class="footer-copy">© {{CURRENT_YEAR}} {{BUSINESS_NAME}}. All rights reserved.</span>
+      <div class="footer-social">
+        <a href="{{SOCIAL_FACEBOOK}}">Fb</a>
+        <a href="{{SOCIAL_INSTAGRAM}}">Ig</a>
+        <a href="{{SOCIAL_TWITTER}}">Tw</a>
+        <a href="{{SOCIAL_LINKEDIN}}">In</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+  function toggleFaq(el) {
+    const item = el.parentElement;
+    item.classList.toggle('open');
+  }
+</script>
+</body>
+</html>

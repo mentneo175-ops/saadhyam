@@ -22,6 +22,7 @@ from services.voice_integration_service import voice_integration_service
 from services.script_generator import script_generator
 from services.voice_agent_service import voice_agent_service
 from models.user import User
+from utils.feature_gate import check_feature_access
 from models.voice_agent import VoiceCampaign, VoiceContact, VoiceCall, VoiceLead, CallStatus
 
 logger = logging.getLogger(__name__)
@@ -372,6 +373,8 @@ async def create_campaign(
 ):
     """Create a new voice campaign"""
     try:
+        # Check feature access
+        await check_feature_access(current_user, "voice_agent")
         # Create campaign
         campaign = voice_agent_service.create_campaign(
             db=db,
@@ -511,6 +514,8 @@ async def generate_script(
 ):
     """Generate AI sales script"""
     try:
+        # Check feature access
+        await check_feature_access(current_user, "voice_agent")
         campaign_details = {
             "campaign_name": request.campaign_name,
             "campaign_goal": request.campaign_goal,

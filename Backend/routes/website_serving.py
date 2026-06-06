@@ -132,6 +132,116 @@ def get_content_type(file_path: str) -> str:
     return content_types.get(extension, 'text/plain')
 
 
+from html.parser import HTMLParser
+
+class _WebsiteHTMLParser(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.headline = ""
+        self.about = ""
+        self.contact = ""
+        self.services = []
+        self.faq = []
+        
+        # State tracking
+        self.in_h1 = False
+        self.in_details = False
+        self.in_summary = False
+        self.in_details_p = False
+        self.in_hero_p = False
+        self.in_contact_box = False
+        self.in_contact_p = False
+        
+        # Service tracking
+        self.in_service_card = False
+        self.in_service_h3 = False
+        self.in_service_p = False
+        
+        # Temp variables
+        self.temp_question = ""
+        self.temp_answer = ""
+        self.current_service_name = ""
+        self.current_service_desc = ""
+
+    def handle_starttag(self, tag, attrs):
+        attrs_dict = dict(attrs)
+        class_name = attrs_dict.get("class", "")
+        
+        if tag == "h1":
+            self.in_h1 = True
+        elif tag == "details":
+            self.in_details = True
+            self.temp_question = ""
+            self.temp_answer = ""
+        elif tag == "summary" and self.in_details:
+            self.in_summary = True
+        elif tag == "p" and self.in_details:
+            self.in_details_p = True
+        elif any(c in class_name for c in ["service-card", "service-item", "menu-item", "bento-item", "work-card", "card"]):
+            self.in_service_card = True
+            self.current_service_name = ""
+            self.current_service_desc = ""
+        elif tag == "h3" and self.in_service_card:
+            self.in_service_h3 = True
+        elif tag == "p" and self.in_service_card:
+            self.in_service_p = True
+        elif any(c in class_name for c in ["contact-box", "contact-card", "contact-section"]):
+            self.in_contact_box = True
+        elif tag == "p" and self.in_contact_box:
+            self.in_contact_p = True
+        elif tag == "p" and not self.about:
+            self.in_hero_p = True
+
+    def handle_endtag(self, tag):
+        if tag == "h1":
+            self.in_h1 = False
+        elif tag == "details":
+            self.in_details = False
+            if self.temp_question.strip() and self.temp_answer.strip():
+                self.faq.append({
+                    "question": self.temp_question.strip(),
+                    "answer": self.temp_answer.strip()
+                })
+        elif tag == "summary":
+            self.in_summary = False
+        elif tag == "p" and self.in_details:
+            self.in_details_p = False
+        elif tag == "h3" and self.in_service_card:
+            self.in_service_h3 = False
+        elif tag == "p" and self.in_service_card:
+            self.in_service_p = False
+        elif tag == "p" and self.in_contact_box:
+            self.in_contact_p = False
+        elif tag in ["div", "section"] and self.in_contact_box:
+            self.in_contact_box = False
+        elif tag == "p" and self.in_hero_p:
+            self.in_hero_p = False
+            
+        if tag in ["div", "article"] and self.in_service_card:
+            if self.current_service_name.strip():
+                self.services.append({
+                    "name": self.current_service_name.strip(),
+                    "description": self.current_service_desc.strip()
+                })
+            self.in_service_card = False
+
+    def handle_data(self, data):
+        if self.in_h1:
+            self.headline += data
+        elif self.in_summary:
+            self.temp_question += data
+        elif self.in_details_p:
+            self.temp_answer += data
+        elif self.in_service_h3:
+            self.current_service_name += data
+        elif self.in_service_p:
+            self.current_service_desc += data
+        elif self.in_contact_p:
+            self.contact += data
+        elif self.in_hero_p:
+            self.about += data
+
+
 @router.get(
     "/{website_id}",
     response_class=HTMLResponse,
@@ -141,6 +251,7 @@ def get_content_type(file_path: str) -> str:
 async def serve_website(
     website_id: str,
     request: Request,
+    theme: Optional[str] = None,
     db: Session = Depends(get_db_sync)
 ):
     """
@@ -158,6 +269,7 @@ async def serve_website(
     Args:
         website_id: Slug, UUID string, or business name of the website
         request: FastAPI request object (for future domain mapping)
+        theme: Optional theme to dynamically switch template
         db: Database session
     
     Returns:
@@ -186,6 +298,95 @@ async def serve_website(
         # Get website file path
         index_path = get_website_file_path(actual_website_id, "index.html")
         
+        # Support dynamic theme switching from URL parameter
+        if theme:
+            try:
+                from ai_models.website_ai.app.services.template_service import list_themes, render_website
+                from ai_models.website_ai.app.models.schema import WebsiteContent, WebsiteRequest
+                from ai_models.website_ai.app.core.services.storage_service import StorageService
+                
+                available_themes = list_themes()
+                if theme in available_themes and theme != website.theme:
+                    logger.info(f"🔄 Dynamic theme switch requested: {website.theme} -> {theme} for website: {actual_website_id}")
+                    
+                    # 1. Try to extract edited content from existing index.html
+                    extracted = {}
+                    if index_path.exists():
+                        try:
+                            parser = _WebsiteHTMLParser()
+                            with open(index_path, "r", encoding="utf-8") as f:
+                                parser.feed(f.read())
+                            extracted = {
+                                "headline": parser.headline.strip(),
+                                "about": parser.about.strip(),
+                                "contact": parser.contact.strip(),
+                                "services": parser.services,
+                                "faq": parser.faq
+                            }
+                            logger.info(f"✨ Extracted content from existing index.html for {actual_website_id}")
+                        except Exception as parse_err:
+                            logger.warning(f"⚠️ Failed to parse existing index.html: {parse_err}")
+                    
+                    # 2. Construct content object, preferring extracted edits over default DB values
+                    about_text = (extracted.get("about") or website.description or 
+                                  f"{website.business_name} provides professional services.")
+                    
+                    services_list = (extracted.get("services") or website.services or [])
+                    
+                    faq_list = (extracted.get("faq") or [])
+                    if not faq_list:
+                        # Fallback default FAQs
+                        faq_list = [
+                            {"question": "What services do you offer?", "answer": f"We offer a wide range of professional services tailored to your needs. Please see our services section for details."},
+                            {"question": "How can I contact you?", "answer": f"You can reach us via email at {website.contact_email or 'info@' + website.business_name.lower().replace(' ', '') + '.com'} or by calling {website.contact_phone or 'our office'}."},
+                            {"question": "Where are you located?", "answer": f"We serve clients globally. You can find more contact options in our contact section."}
+                        ]
+                        
+                    contact_text = (extracted.get("contact") or website.description or 
+                                    f"Contact {website.business_name} for more information.")
+                                    
+                    demo_content = WebsiteContent(
+                        about=about_text,
+                        services=services_list,
+                        faq=faq_list,
+                        contact=contact_text,
+                        audience=website.target_audience or "general customers",
+                        tone=website.tone or "friendly and professional",
+                        branding_style=website.branding_style or "clean and modern",
+                    )
+                    
+                    demo_request = WebsiteRequest(
+                        business_name=website.business_name,
+                        business_type=website.business_type,
+                        theme=theme
+                    )
+                    
+                    # 3. Render new template
+                    new_html = render_website(theme, demo_content, demo_request)
+                    
+                    # 4. Save files using storage system
+                    storage_service = StorageService()
+                    file_path, s3_key = storage_service.save_website_files(
+                        website_id=actual_website_id,
+                        html=new_html
+                    )
+                    
+                    # 5. Update website record in database
+                    website.theme = theme
+                    if file_path:
+                        website.html_file_path = file_path
+                    if s3_key:
+                        website.s3_key = s3_key
+                    db.commit()
+                    db.refresh(website)
+                    
+                    logger.info(f"✅ Website {actual_website_id} theme switched and saved to database successfully")
+                    
+                    # Update index_path to point to the new file path
+                    index_path = get_website_file_path(actual_website_id, "index.html")
+            except Exception as e:
+                logger.error(f"❌ Failed to switch theme dynamically: {e}", exc_info=True)
+
         if not index_path.exists():
             logger.error(f"❌ Website files not found: {index_path}")
             raise HTTPException(

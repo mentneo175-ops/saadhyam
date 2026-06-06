@@ -155,20 +155,8 @@ def get_user_by_id(db: Session, user_id: int) -> User:
     """
     try:
         user = db.query(User).filter(User.id == user_id).first()
+        return user  # Returns None if not found; caller handles auth errors
 
-        if not user:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="User not found",
-            )
-
-        return user
-
-    except HTTPException:
-        raise
     except Exception as e:
         logger.error(f"Error fetching user: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Internal server error",
-        )
+        return None

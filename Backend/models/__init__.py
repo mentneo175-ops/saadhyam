@@ -63,6 +63,9 @@ from models.google_business import (
     GoogleBusinessPost,
 )
 
+# Voice Command Logs Model
+from models.voice_command import VoiceCommandLog
+
 __all__ = [
     "User",
     "SocialAccount",
@@ -101,4 +104,5 @@ __all__ = [
     "GoogleBusinessLocation",
     "GoogleBusinessReview",
     "GoogleBusinessPost",
+    "VoiceCommandLog",
 ]

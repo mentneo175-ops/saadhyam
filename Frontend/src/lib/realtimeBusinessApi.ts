@@ -103,7 +103,7 @@ function normalizeBusinessProfile(profile: Record<string, any> | null | undefine
 /**
  * Check if cached data is still valid
  */
-function isCacheValid<T>(cached: CachedData<T> | null): boolean {
+function isCacheValid<T>(cached: CachedData<T> | null): cached is CachedData<T> {
   if (!cached) return false;
   const now = Date.now();
   return now - cached.timestamp < CACHE_DURATION;

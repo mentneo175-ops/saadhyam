@@ -50,6 +50,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       setThemeState(stored);
       applyTheme(stored);
     } else {
+      setThemeState("dark");
       applyTheme("dark");
     }
   }, []);

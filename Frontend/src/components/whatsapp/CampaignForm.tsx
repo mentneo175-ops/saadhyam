@@ -12,8 +12,8 @@ interface Campaign {
   id: number;
   title: string;
   description?: string;
-  message_content: string;
-  recipient_list: string[];
+  message_content?: string;
+  recipient_list?: string[];
   scheduled_time?: string;
   status: string;
 }
@@ -38,7 +38,7 @@ export function CampaignForm({ campaign, onClose, onSuccess }: CampaignFormProps
     if (campaign) {
       setTitle(campaign.title);
       setDescription(campaign.description || "");
-      setMessageContent(campaign.message_content);
+      setMessageContent(campaign.message_content || "");
       setRecipients(campaign.recipient_list || []);
       if (campaign.scheduled_time) {
         // Convert ISO to datetime-local format
@@ -177,7 +177,7 @@ export function CampaignForm({ campaign, onClose, onSuccess }: CampaignFormProps
     }
   };
 
-  const isViewOnly = campaign && !["draft", "scheduled"].includes(campaign.status);
+  const isViewOnly = !!(campaign && !["draft", "scheduled"].includes(campaign.status));
 
   return (
     <div className="space-y-6">

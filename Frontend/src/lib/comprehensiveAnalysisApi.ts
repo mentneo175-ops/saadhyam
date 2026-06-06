@@ -213,7 +213,7 @@ export async function getDailySuggestionsData(token: string): Promise<DailySugge
 }
 
 /**
- * Get SEO & Google Maps Tips (instant, from database)
+ * Get Google Hub Data (instant, from database)
  * Shows: keywords, ranking tips, local visibility ideas
  */
 export async function getSEOGoogleMapsData(token: string): Promise<SEOGoogleMapsData> {
@@ -226,7 +226,7 @@ export async function getSEOGoogleMapsData(token: string): Promise<SEOGoogleMaps
 
   if (!response.ok) {
     const error = await response.json();
-    throw new Error(error.detail || 'Failed to get SEO & Google Maps data');
+    throw new Error(error.detail || 'Failed to get Google Hub data');
   }
 
   return response.json();

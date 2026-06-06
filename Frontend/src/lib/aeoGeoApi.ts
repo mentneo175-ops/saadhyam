@@ -390,3 +390,341 @@ export async function publishBlogPost(token: string, blogPost: any, websiteUrl: 
 
   return response.json();
 }
+
+/**
+ * Get Opportunity Radar
+ */
+export async function getOpportunityRadar(token: string): Promise<{ status: string; opportunities: any[] }> {
+  const response = await fetch(`${API_BASE_URL}/api/aeo-geo/opportunity-radar`, {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || 'Failed to get Opportunity Radar');
+  }
+
+  return response.json();
+}
+
+/**
+ * Get Customer Demand Intelligence
+ */
+export async function getCustomerDemand(token: string): Promise<{ status: string; data: any }> {
+  const response = await fetch(`${API_BASE_URL}/api/aeo-geo/customer-demand`, {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || 'Failed to get Customer Demand Insights');
+  }
+
+  return response.json();
+}
+
+/**
+ * Get Daily Business Health Report
+ */
+export async function getDailyReport(token: string): Promise<{ status: string; date: string; scores: any; opportunities: any[]; competitor_updates: string[]; recommended_actions: string[] }> {
+  const response = await fetch(`${API_BASE_URL}/api/aeo-geo/daily-report`, {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || 'Failed to get Daily Business Report');
+  }
+
+  return response.json();
+}
+
+/**
+ * Generate Auto Content Package
+ */
+export async function generateAutoContent(token: string, opportunityTitle?: string): Promise<{ status: string; data: any }> {
+  const response = await fetch(`${API_BASE_URL}/api/aeo-geo/auto-content/generate`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ opportunity_title: opportunityTitle }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || 'Failed to generate auto content package');
+  }
+
+  return response.json();
+}
+
+/**
+ * Run Growth Autopilot Mode
+ */
+export async function runGrowthAutopilot(token: string): Promise<{ status: string; data: any }> {
+  const response = await fetch(`${API_BASE_URL}/api/aeo-geo/autopilot/run`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || 'Failed to run growth autopilot mode');
+  }
+
+  return response.json();
+}
+
+/**
+ * Direct Publish Content to Social / Website platforms
+ */
+export async function publishContentToPlatform(
+  token: string,
+  platform: string,
+  content: string,
+  title?: string,
+  mediaUrl?: string
+): Promise<{ status: string; platform: string; live_url: string; message: string }> {
+  const response = await fetch(`${API_BASE_URL}/api/aeo-geo/publish/platform`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      platform,
+      content,
+      title,
+      media_url: mediaUrl,
+    }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || 'Direct publishing failed');
+  }
+
+  return response.json();
+}
+
+export interface IntegrationInfo {
+  connected: boolean;
+  detail: string;
+  link: string;
+}
+
+export interface IntegrationsStatusResponse {
+  status: string;
+  integrations: {
+    instagram: IntegrationInfo;
+    facebook: IntegrationInfo;
+    youtube: IntegrationInfo;
+    google: IntegrationInfo;
+    website: IntegrationInfo;
+  };
+}
+
+export interface AutopilotSettings {
+  auto_publish_instagram: boolean;
+  auto_publish_facebook: boolean;
+  auto_publish_youtube: boolean;
+  auto_publish_google: boolean;
+  auto_publish_website: boolean;
+  google_connected?: boolean;
+}
+
+export interface AutopilotSettingsResponse {
+  status: string;
+  settings: AutopilotSettings;
+}
+
+/**
+ * Get linked status of social channels and website
+ */
+export async function getIntegrationsStatus(token: string): Promise<IntegrationsStatusResponse> {
+  const response = await fetch(`${API_BASE_URL}/api/aeo-geo/integrations/status`, {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || 'Failed to fetch integrations status');
+  }
+
+  return response.json();
+}
+
+/**
+ * Get Growth Autopilot switches/settings
+ */
+export async function getAutopilotSettings(token: string): Promise<AutopilotSettingsResponse> {
+  const response = await fetch(`${API_BASE_URL}/api/aeo-geo/autopilot/settings`, {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || 'Failed to fetch autopilot settings');
+  }
+
+  return response.json();
+}
+
+/**
+ * Update Growth Autopilot switches/settings
+ */
+export async function updateAutopilotSettings(
+  token: string,
+  settings: AutopilotSettings
+): Promise<AutopilotSettingsResponse> {
+  const response = await fetch(`${API_BASE_URL}/api/aeo-geo/autopilot/settings`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(settings),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || 'Failed to update autopilot settings');
+  }
+
+  return response.json();
+}
+
+/**
+ * Get Google API metrics (Search Console, Analytics, Business Profile)
+ */
+export async function getGoogleApiMetrics(token: string): Promise<any> {
+  const response = await fetch(`${API_BASE_URL}/api/aeo-geo/google-api/metrics`, {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || 'Failed to fetch Google API metrics');
+  }
+
+  return response.json();
+}
+
+/**
+ * Get Installed Plugin IDs
+ */
+export async function getInstalledPlugins(token: string): Promise<{ status: string; installed: string[] }> {
+  const response = await fetch(`${API_BASE_URL}/api/aeo-geo/plugins/installed`, {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || 'Failed to fetch installed plugins');
+  }
+
+  return response.json();
+}
+
+/**
+ * Install a Plugin
+ */
+export async function installPlugin(token: string, pluginId: string): Promise<{ status: string; installed: string[] }> {
+  const response = await fetch(`${API_BASE_URL}/api/aeo-geo/plugins/install`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ plugin_id: pluginId }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || 'Failed to install plugin');
+  }
+
+  return response.json();
+}
+
+/**
+ * Uninstall a Plugin
+ */
+export async function uninstallPlugin(token: string, pluginId: string): Promise<{ status: string; installed: string[] }> {
+  const response = await fetch(`${API_BASE_URL}/api/aeo-geo/plugins/uninstall`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ plugin_id: pluginId }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || 'Failed to uninstall plugin');
+  }
+
+  return response.json();
+}
+
+export interface AutomationLog {
+  timestamp: string;
+  step: string;
+  message: string;
+}
+
+export async function runPluginFlow(
+  token: string, 
+  steps?: string[] | null, 
+  prompt?: string
+): Promise<{ status: string; logs: AutomationLog[] }> {
+  const response = await fetch(`${API_BASE_URL}/api/aeo-geo/plugins/run-flow`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ 
+      steps: steps || undefined, 
+      prompt: prompt || undefined 
+    }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || 'Failed to run automation flow');
+  }
+
+  return response.json();
+}
+
+
+
+

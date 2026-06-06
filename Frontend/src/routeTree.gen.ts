@@ -31,7 +31,9 @@ import { Route as DashboardSeoGoogleMapsRouteImport } from './routes/dashboard.s
 import { Route as DashboardSeoRouteImport } from './routes/dashboard.seo'
 import { Route as DashboardReviewReplyRouteImport } from './routes/dashboard.review-reply'
 import { Route as DashboardReportsRouteImport } from './routes/dashboard.reports'
+import { Route as DashboardRadarRouteImport } from './routes/dashboard.radar'
 import { Route as DashboardPricingRouteImport } from './routes/dashboard.pricing'
+import { Route as DashboardPluginsRouteImport } from './routes/dashboard.plugins'
 import { Route as DashboardMetaAdsRouteImport } from './routes/dashboard.meta-ads'
 import { Route as DashboardMessagesRouteImport } from './routes/dashboard.messages'
 import { Route as DashboardInstagramAnalyticsRouteImport } from './routes/dashboard.instagram-analytics'
@@ -171,9 +173,19 @@ const DashboardReportsRoute = DashboardReportsRouteImport.update({
   path: '/reports',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardRadarRoute = DashboardRadarRouteImport.update({
+  id: '/radar',
+  path: '/radar',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardPricingRoute = DashboardPricingRouteImport.update({
   id: '/pricing',
   path: '/pricing',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardPluginsRoute = DashboardPluginsRouteImport.update({
+  id: '/plugins',
+  path: '/plugins',
   getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardMetaAdsRoute = DashboardMetaAdsRouteImport.update({
@@ -353,7 +365,9 @@ export interface FileRoutesByFullPath {
   '/dashboard/instagram-analytics': typeof DashboardInstagramAnalyticsRouteWithChildren
   '/dashboard/messages': typeof DashboardMessagesRoute
   '/dashboard/meta-ads': typeof DashboardMetaAdsRoute
+  '/dashboard/plugins': typeof DashboardPluginsRoute
   '/dashboard/pricing': typeof DashboardPricingRoute
+  '/dashboard/radar': typeof DashboardRadarRoute
   '/dashboard/reports': typeof DashboardReportsRoute
   '/dashboard/review-reply': typeof DashboardReviewReplyRoute
   '/dashboard/seo': typeof DashboardSeoRoute
@@ -403,7 +417,9 @@ export interface FileRoutesByTo {
   '/dashboard/instagram-analytics': typeof DashboardInstagramAnalyticsRouteWithChildren
   '/dashboard/messages': typeof DashboardMessagesRoute
   '/dashboard/meta-ads': typeof DashboardMetaAdsRoute
+  '/dashboard/plugins': typeof DashboardPluginsRoute
   '/dashboard/pricing': typeof DashboardPricingRoute
+  '/dashboard/radar': typeof DashboardRadarRoute
   '/dashboard/reports': typeof DashboardReportsRoute
   '/dashboard/review-reply': typeof DashboardReviewReplyRoute
   '/dashboard/seo': typeof DashboardSeoRoute
@@ -456,7 +472,9 @@ export interface FileRoutesById {
   '/dashboard/instagram-analytics': typeof DashboardInstagramAnalyticsRouteWithChildren
   '/dashboard/messages': typeof DashboardMessagesRoute
   '/dashboard/meta-ads': typeof DashboardMetaAdsRoute
+  '/dashboard/plugins': typeof DashboardPluginsRoute
   '/dashboard/pricing': typeof DashboardPricingRoute
+  '/dashboard/radar': typeof DashboardRadarRoute
   '/dashboard/reports': typeof DashboardReportsRoute
   '/dashboard/review-reply': typeof DashboardReviewReplyRoute
   '/dashboard/seo': typeof DashboardSeoRoute
@@ -510,7 +528,9 @@ export interface FileRouteTypes {
     | '/dashboard/instagram-analytics'
     | '/dashboard/messages'
     | '/dashboard/meta-ads'
+    | '/dashboard/plugins'
     | '/dashboard/pricing'
+    | '/dashboard/radar'
     | '/dashboard/reports'
     | '/dashboard/review-reply'
     | '/dashboard/seo'
@@ -560,7 +580,9 @@ export interface FileRouteTypes {
     | '/dashboard/instagram-analytics'
     | '/dashboard/messages'
     | '/dashboard/meta-ads'
+    | '/dashboard/plugins'
     | '/dashboard/pricing'
+    | '/dashboard/radar'
     | '/dashboard/reports'
     | '/dashboard/review-reply'
     | '/dashboard/seo'
@@ -612,7 +634,9 @@ export interface FileRouteTypes {
     | '/dashboard/instagram-analytics'
     | '/dashboard/messages'
     | '/dashboard/meta-ads'
+    | '/dashboard/plugins'
     | '/dashboard/pricing'
+    | '/dashboard/radar'
     | '/dashboard/reports'
     | '/dashboard/review-reply'
     | '/dashboard/seo'
@@ -802,11 +826,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardReportsRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/radar': {
+      id: '/dashboard/radar'
+      path: '/radar'
+      fullPath: '/dashboard/radar'
+      preLoaderRoute: typeof DashboardRadarRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/pricing': {
       id: '/dashboard/pricing'
       path: '/pricing'
       fullPath: '/dashboard/pricing'
       preLoaderRoute: typeof DashboardPricingRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/plugins': {
+      id: '/dashboard/plugins'
+      path: '/plugins'
+      fullPath: '/dashboard/plugins'
+      preLoaderRoute: typeof DashboardPluginsRouteImport
       parentRoute: typeof DashboardRoute
     }
     '/dashboard/meta-ads': {
@@ -1055,7 +1093,9 @@ interface DashboardRouteChildren {
   DashboardInstagramAnalyticsRoute: typeof DashboardInstagramAnalyticsRouteWithChildren
   DashboardMessagesRoute: typeof DashboardMessagesRoute
   DashboardMetaAdsRoute: typeof DashboardMetaAdsRoute
+  DashboardPluginsRoute: typeof DashboardPluginsRoute
   DashboardPricingRoute: typeof DashboardPricingRoute
+  DashboardRadarRoute: typeof DashboardRadarRoute
   DashboardReportsRoute: typeof DashboardReportsRoute
   DashboardReviewReplyRoute: typeof DashboardReviewReplyRoute
   DashboardSeoRoute: typeof DashboardSeoRoute
@@ -1094,7 +1134,9 @@ const DashboardRouteChildren: DashboardRouteChildren = {
     DashboardInstagramAnalyticsRouteWithChildren,
   DashboardMessagesRoute: DashboardMessagesRoute,
   DashboardMetaAdsRoute: DashboardMetaAdsRoute,
+  DashboardPluginsRoute: DashboardPluginsRoute,
   DashboardPricingRoute: DashboardPricingRoute,
+  DashboardRadarRoute: DashboardRadarRoute,
   DashboardReportsRoute: DashboardReportsRoute,
   DashboardReviewReplyRoute: DashboardReviewReplyRoute,
   DashboardSeoRoute: DashboardSeoRoute,

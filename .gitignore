@@ -126,3 +126,7 @@ coverage/
 Backend/websites/
 Backend/Backend/ai_models/website_ai/websites/
 Backend/celerybeat-schedule.dat
+
+# Custom ignores
+1/
+**/1/

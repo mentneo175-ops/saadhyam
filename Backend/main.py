@@ -385,6 +385,22 @@ except Exception as e:
     task_tracking_available = False
 
 try:
+    from routes.radar import router as radar_router
+    radar_available = True
+    logging.info("✅ Radar AI router imported successfully")
+except Exception as e:
+    logging.warning(f"Radar AI router not available: {e}")
+    radar_available = False
+
+try:
+    from routes.competitor_intelligence import router as competitor_intelligence_router
+    competitor_intelligence_available = True
+    logging.info("✅ Competitor Intelligence AI router imported successfully")
+except Exception as e:
+    logging.warning(f"Competitor Intelligence AI router not available: {e}")
+    competitor_intelligence_available = False
+
+try:
     from routes.voice_agent import router as voice_agent_router
     voice_agent_available = True
     logging.info("✅ Voice Agent router imported successfully")
@@ -910,6 +926,12 @@ if review_reply_available:
 if profile_available:
     app.include_router(profile_router)
     logging.info("✅ Profile router included in app")
+if radar_available:
+    app.include_router(radar_router)
+    logging.info("✅ Radar AI router included in app")
+if competitor_intelligence_available:
+    app.include_router(competitor_intelligence_router)
+    logging.info("✅ Competitor Intelligence AI router included in app")
 if assistant_available:
     app.include_router(assistant_router)
 if content_creator_available:
@@ -1181,5 +1203,6 @@ if __name__ == "__main__":
         "main:sio_asgi_app",  # Use Socket.IO wrapper for WebSocket support
         host="0.0.0.0",
         port=8000,
-        log_level="info"
+        log_level="info",
+        reload=True
     )

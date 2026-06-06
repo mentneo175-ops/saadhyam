@@ -27,10 +27,18 @@ class MetaOAuthService:
         
         # Encryption for tokens
         encryption_key = os.getenv("ENCRYPTION_KEY")
-        if not encryption_key:
-            # Generate a key if not exists (for development)
+        is_valid_fernet = False
+        if encryption_key:
+            try:
+                Fernet(encryption_key.encode() if isinstance(encryption_key, str) else encryption_key)
+                is_valid_fernet = True
+            except Exception:
+                is_valid_fernet = False
+
+        if not encryption_key or not is_valid_fernet:
+            # Generate a key if not exists or is invalid (for development)
             encryption_key = Fernet.generate_key().decode()
-            logger.warning("⚠️  No ENCRYPTION_KEY found, using generated key (not for production!)")
+            logger.warning("⚠️  No valid ENCRYPTION_KEY found in env, using generated key (not for production!)")
         
         self.cipher = Fernet(encryption_key.encode() if isinstance(encryption_key, str) else encryption_key)
     

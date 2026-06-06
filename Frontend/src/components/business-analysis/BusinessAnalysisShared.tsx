@@ -80,7 +80,7 @@ export function HeaderActions({
       <Button
         variant="outline"
         size="lg"
-        className="gap-2.5 rounded-xl border-border/70 bg-card/90 px-5 shadow-sm backdrop-blur-sm transition-all duration-200 hover:border-primary/35 hover:bg-primary/[0.04] hover:shadow-[0_0_28px_-8px_oklch(0.55_0.2_295/0.28)]"
+        className="gap-2.5 rounded-xl border-slate-800 bg-slate-900/60 text-slate-200 px-5 shadow-sm backdrop-blur-md transition-all duration-200 hover:border-purple-500/40 hover:bg-purple-500/10 hover:text-white"
         onClick={onDownload}
       >
         <Download className="h-4.5 w-4.5" />
@@ -127,21 +127,21 @@ export function SectionHeader({
           "flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border shadow-sm transition-shadow duration-300",
           isPremium
             ? "border-primary/20 bg-gradient-to-br from-primary/15 to-secondary/10 text-primary shadow-[0_0_24px_-6px_oklch(0.55_0.24_295/0.35)]"
-            : "border-border/60 bg-muted/30 text-muted-foreground",
+            : "border-slate-800 bg-slate-950/60 text-slate-400",
         )}
       >
         <Icon className="h-[18px] w-[18px]" />
       </div>
       <div>
         <div className="flex flex-wrap items-center gap-2.5">
-          <h3 className="text-[15px] font-semibold tracking-tight text-foreground">{title}</h3>
+          <h3 className="text-[15px] font-semibold tracking-tight text-slate-200">{title}</h3>
           {badge && (
             <span
               className={cn(
                 "rounded-lg px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider",
                 isPremium
                   ? "border border-primary/20 bg-primary/8 text-primary"
-                  : "border border-border/70 bg-background text-muted-foreground",
+                  : "border border-slate-800 bg-slate-950 text-slate-400",
               )}
             >
               {badge}
@@ -178,8 +178,8 @@ export function AnalyzingState({ message }: { message?: string }) {
     <div className="flex flex-col items-center justify-center py-32">
       <Loader text={message ?? "Analyzing your business"} />
       <p className="mt-2 text-xs text-muted-foreground">This may take 2–3 minutes</p>
-      <div className="mt-6 max-w-md bg-slate-50 border border-slate-100 rounded-xl px-5 py-4 text-center">
-        <p className="text-xs leading-relaxed text-muted-foreground">
+      <div className="mt-6 max-w-md bg-slate-900/40 border border-slate-800/80 rounded-xl px-5 py-4 text-center backdrop-blur-md">
+        <p className="text-xs leading-relaxed text-slate-400">
           We&apos;re making one comprehensive API call to gather all your business insights. After
           this, all pages load instantly.
         </p>
@@ -193,13 +193,13 @@ export function NotStartedState({ onAnalyze }: { onAnalyze: () => void }) {
     <motion.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      className="flex flex-col items-center rounded-xl border border-dashed border-border/70 bg-muted/15 px-6 py-20 text-center"
+      className="flex flex-col items-center rounded-2xl border border-dashed border-slate-800 bg-slate-900/30 px-6 py-20 text-center backdrop-blur-md"
     >
-      <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-xl border border-border/60 bg-card">
-        <Sparkles className="h-6 w-6 text-primary" />
+      <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-xl border border-slate-800 bg-slate-950/80">
+        <Sparkles className="h-6 w-6 text-purple-400 animate-pulse" />
       </div>
-      <h2 className="text-lg font-semibold text-foreground">Ready to analyze your business?</h2>
-      <p className="mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
+      <h2 className="text-lg font-semibold text-slate-100">Ready to analyze your business?</h2>
+      <p className="mt-2 max-w-md text-sm leading-relaxed text-slate-400">
         Get comprehensive AI-powered insights including strengths, weaknesses, opportunities, and
         local market analysis.
       </p>

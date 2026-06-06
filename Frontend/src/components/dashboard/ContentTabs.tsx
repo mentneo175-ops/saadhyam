@@ -103,10 +103,11 @@ export function ContentTabs() {
               meta: `AI-generated for ${businessData.business_name} · Optimized for Reels`
             };
           } else {
-            const _tags = Array.isArray(content.hashtags)
-              ? content.hashtags
-              : typeof content.hashtags === "string"
-              ? content.hashtags.split(/\s+/).filter(Boolean)
+            const rawHashtags = content.hashtags as any;
+            const _tags = Array.isArray(rawHashtags)
+              ? rawHashtags
+              : typeof rawHashtags === "string"
+              ? rawHashtags.split(/\s+/).filter(Boolean)
               : [];
             newContent[platform] = {
               title: content.headline,

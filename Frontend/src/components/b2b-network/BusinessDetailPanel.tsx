@@ -97,7 +97,7 @@ export function BusinessDetailPanel({
           message: `Hi! I'd like to connect with ${business.name}.`,
         });
         await checkConnection();
-      } catch (error) {
+      } catch (error: any) {
         console.error("Connection request error:", error);
         const detail = error.data?.detail || error.message;
         

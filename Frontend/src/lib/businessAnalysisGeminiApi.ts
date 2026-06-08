@@ -59,7 +59,7 @@ interface CachedAnalysis {
 /**
  * Check if cached data is valid
  */
-function isCacheValid(cached: CachedAnalysis | null): boolean {
+function isCacheValid(cached: CachedAnalysis | null): cached is CachedAnalysis {
   if (!cached) return false;
   const now = Date.now();
   return now - cached.timestamp < CACHE_DURATION;

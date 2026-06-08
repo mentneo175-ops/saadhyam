@@ -80,7 +80,7 @@ export function useAuth(): UseAuthReturn {
         timeoutPromise
       ])
         .then((freshUser) => {
-          setUser(freshUser);
+          setUser(freshUser as User);
         })
         .catch((error) => {
           console.error("Failed to fetch user data:", error);

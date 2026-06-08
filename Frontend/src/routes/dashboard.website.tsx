@@ -20,6 +20,12 @@ const templates = [
   { key: "magazine-grid", label: "Magazine Grid", desc: "Editorial magazine style" },
   { key: "parallax-scroll", label: "Parallax Scroll", desc: "Engaging parallax effects" },
   { key: "timeline-vertical", label: "Timeline", desc: "Vertical timeline layout" },
+  { key: "minimal-modern", label: "Minimal Modern", desc: "Ultra-clean layout with beautiful typography" },
+  { key: "agency-dark", label: "Agency Dark", desc: "Dark glassmorphism digital agency style" },
+  { key: "retro-brutalism", label: "Retro Brutalism", desc: "Neo-brutalist cyberpunk style" },
+  { key: "restaurant-showcase", label: "Restaurant Showcase", desc: "Serif typography and menu grid" },
+  { key: "saas-dashboard", label: "SaaS Dashboard", desc: "SaaS layout with mock product dashboard" },
+  { key: "creative-portfolio", label: "Creative Portfolio", desc: "Sleek agency/creative portfolio" },
 ];
 
 function WebsiteAIPage() {
@@ -50,7 +56,7 @@ function WebsiteAIPage() {
   const [showConfirmButton, setShowConfirmButton] = useState(false);
   const [showForm, setShowForm] = useState(true);
 
-  // Listen for navigation updates from iframe
+  // Listen for navigation updates and save notifications from iframe
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       console.log('Message received from iframe:', event.data);
@@ -58,6 +64,9 @@ function WebsiteAIPage() {
         const newPath = event.data.path;
         console.log('Updating address bar to:', newPath);
         setCurrentPreviewPath(newPath);
+      } else if (event.data.type === 'contentSaved') {
+        console.log('🎉 Website content saved successfully:', event.data.websiteId);
+        toast.success("Website saved successfully!");
       }
     };
 
@@ -73,14 +82,43 @@ function WebsiteAIPage() {
         const userData = await apiClient.getProfile();
         console.log("👤 User data received:", userData);
         
+        let servicesStr = "";
+        let phoneVal = "";
+
+        // 1. Fetch latest business analysis for services
+        try {
+          const analysisRes = await apiClient.getLatestBusinessAnalysis();
+          console.log("📊 Latest business analysis received:", analysisRes);
+          if (analysisRes && analysisRes.success && analysisRes.data) {
+            const bizDetails = analysisRes.data.business_details || {};
+            const services = bizDetails.services || [];
+            if (Array.isArray(services)) {
+              servicesStr = services.join(", ");
+            }
+          }
+        } catch (e) {
+          console.warn("⚠️ Failed to load business analysis services:", e);
+        }
+
+        // 2. Fetch user settings for phone number
+        try {
+          const settingsRes = await apiClient.getSettings();
+          console.log("⚙️ User settings received:", settingsRes);
+          if (settingsRes && settingsRes.success && settingsRes.settings) {
+            phoneVal = settingsRes.settings.phone || "";
+          }
+        } catch (e) {
+          console.warn("⚠️ Failed to load user settings phone:", e);
+        }
+
         // Auto-fill form with database data from the correct API structure
         const newWebsiteData = {
           business_name: userData.business_profile?.business_name || "",
           business_type: userData.business_profile?.business_type || "",
           description: userData.business_profile?.business_description || "",
-          services: "", // Services not in profile API, keep empty
+          services: servicesStr,
           contact_email: userData.email || "",
-          contact_phone: "", // Phone not in profile API, keep empty
+          contact_phone: phoneVal,
         };
         
         console.log("📝 Setting website data:", newWebsiteData);
@@ -151,6 +189,9 @@ function WebsiteAIPage() {
         setWebsiteStatus("❌ Received empty website content");
         return;
       }
+
+      // Prepend backend apiBaseUrl to any root-relative website-ai assets so they load correctly inside the iframe
+      html = html.replace(/(src|href)\s*=\s*["']\/website-ai\//gi, `$1="${env.apiBaseUrl}/website-ai/`);
         
         // Add base URL for resolving relative links
         const baseUrl = `${env.apiBaseUrl}/website-ai/output/`;

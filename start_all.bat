@@ -110,7 +110,7 @@ timeout /t 3 /nobreak >nul
 
 REM Start Frontend Server
 echo ============================================
-echo   Starting Frontend Server (Port 8080)
+echo   Starting Frontend Server (Port 8081)
 echo ============================================
 start "Saadhyam Frontend" cmd /k "cd Frontend && npm run dev"
 echo [SUCCESS] Frontend server starting...
@@ -141,7 +141,7 @@ echo Press any key to open the application in browser...
 pause >nul
 
 REM Open browser
-start http://localhost:8080
+start http://localhost:8081
 
 echo.
 echo [INFO] Application opened in browser

@@ -13,6 +13,10 @@ from ai_models.website_ai.app.config import settings
 from ai_models.website_ai.app.utils.logger import get_logger
 from ai_models.website_ai.app.utils.uuid_helpers import uuid_to_string
 
+# Import authentication and User models from main app
+from utils.dependencies import get_current_user
+from models.user import User
+
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/generate", tags=["generation"])
@@ -27,20 +31,40 @@ router = APIRouter(prefix="/generate", tags=["generation"])
 )
 async def generate_website(
     request: GenerateWebsiteRequest,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ) -> GenerateWebsiteResponse:
     """
     Generate a new website asynchronously
 
-    - **business_name**: Name of the business
-    - **business_type**: Type/industry of business
+    - **business_name**: Name of the business (falls back to onboarding data)
+    - **business_type**: Type/industry of business (falls back to onboarding data)
     - **theme**: Template theme to use
     - **theme_config**: Optional theme configuration from main app
 
     Returns job_id for tracking generation progress
     """
     try:
-        logger.info(f"Received generation request for: {request.business_name}")
+        # Fallback to current_user onboarding details if fields are empty
+        business_name = request.business_name or current_user.business_name
+        business_type = request.business_type or current_user.business_type
+        description = request.description or current_user.business_description
+        contact_email = request.contact_email or current_user.email
+        contact_phone = request.contact_phone
+        website_url = request.website_url or current_user.website_url
+
+        if not business_name:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Business name is required (not provided in request and missing from user profile)"
+            )
+        if not business_type:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Business type is required (not provided in request and missing from user profile)"
+            )
+
+        logger.info(f"Received generation request for: {business_name}")
 
         # Validate theme
         if request.theme not in settings.AVAILABLE_THEMES:
@@ -49,11 +73,25 @@ async def generate_website(
                 detail=f"Invalid theme. Available themes: {settings.AVAILABLE_THEMES}"
             )
 
+        # Prepare business data dictionary with fallback values
+        business_data = {
+            "business_name": business_name,
+            "business_type": business_type,
+            "description": description,
+            "services": request.services or [],
+            "target_audience": request.target_audience,
+            "tone": request.tone,
+            "branding_style": request.branding_style,
+            "contact_email": contact_email,
+            "contact_phone": contact_phone,
+            "website_url": website_url
+        }
+
         # Create job record with UUID
         job = Job(
             job_type="website_generation",
             status="pending",
-            input_data=request.model_dump(),
+            input_data=business_data,
             progress=0
         )
         db.add(job)
@@ -69,7 +107,7 @@ async def generate_website(
         logger.info(f"📤 Queueing Celery task for job {job_id_str}")
         task = generate_website_task.delay(
             job_id=job_id_str,
-            business_data=request.model_dump(exclude={"theme", "theme_config"}),
+            business_data=business_data,
             theme=request.theme,
             theme_config=request.theme_config
         )
@@ -89,4 +127,5 @@ async def generate_website(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to start website generation"
         )
+
 

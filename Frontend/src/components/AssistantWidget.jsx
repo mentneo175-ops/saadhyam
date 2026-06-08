@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Mic, MicOff, MessageSquare, Volume2 } from "lucide-react";
+import { Mic, MicOff, MessageSquare, Volume2, AlertTriangle } from "lucide-react";
 import { useLocation } from "@tanstack/react-router";
 
 import { sendQuery } from "@/lib/assistantApi";
 import { useAuth } from "@/hooks/useAuth";
+import { voiceCommandApi } from "@/lib/voiceCommandApi";
+import { useVoiceExecutor } from "@/hooks/useVoiceExecutor";
 
 const initialMessages = [
   {
@@ -32,14 +34,44 @@ export default function AssistantWidget() {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [speechSupported, setSpeechSupported] = useState(false);
   const [voiceStatus, setVoiceStatus] = useState("idle"); // idle, listening, processing, speaking
+  const [language, setLanguage] = useState("en-US"); // "te-IN" or "en-US"
+  const [pendingConfirmation, setPendingConfirmation] = useState(null);
+  const [transcript, setTranscript] = useState("");
+  const [replyText, setReplyText] = useState("");
   
   const recognitionRef = useRef(null);
   const synthRef = useRef(null);
   const messagesEndRef = useRef(null);
 
+  // Refs to hold the latest state values to avoid stale closures in listeners
+  const modeRef = useRef(mode);
+  const languageRef = useRef(language);
+  const voiceStatusRef = useRef(voiceStatus);
+  const isListeningRef = useRef(isListening);
+  const isSpeakingRef = useRef(isSpeaking);
+  const isLoadingRef = useRef(isLoading);
+  const queryRef = useRef(query);
+  const isOpenRef = useRef(isOpen);
+  const startListeningRef = useRef(null);
+  const handleVoiceQueryRef = useRef(null);
+  const speakRef = useRef(null);
+
+  // Sync refs on render
+  modeRef.current = mode;
+  languageRef.current = language;
+  voiceStatusRef.current = voiceStatus;
+  isListeningRef.current = isListening;
+  isSpeakingRef.current = isSpeaking;
+  isLoadingRef.current = isLoading;
+  queryRef.current = query;
+  isOpenRef.current = isOpen;
+
   const startListening = useCallback(() => {
     if (recognitionRef.current && !isListening) {
       try {
+        setTranscript("");
+        setReplyText("");
+        recognitionRef.current.lang = languageRef.current;
         recognitionRef.current.start();
         setIsListening(true);
         setVoiceStatus("listening");
@@ -76,6 +108,14 @@ export default function AssistantWidget() {
       utterance.pitch = 1.0;
       utterance.volume = 1.0;
       
+      const voices = window.speechSynthesis.getVoices();
+      const targetVoice = language === "te-IN"
+        ? voices.find(v => v.lang.includes("te") || v.lang.startsWith("te-"))
+        : voices.find(v => v.lang.includes("en") || v.lang.startsWith("en-"));
+      if (targetVoice) {
+        utterance.voice = targetVoice;
+      }
+      
       utterance.onstart = () => {
         console.log('[Speak] Speech started');
         setIsSpeaking(true);
@@ -88,10 +128,12 @@ export default function AssistantWidget() {
         setVoiceStatus("idle");
         
         // In voice mode, automatically start listening again after speaking
-        if (mode === "voice" && isOpen) {
+        if (modeRef.current === "voice" && isOpenRef.current) {
           setTimeout(() => {
             console.log('[Speak] Auto-starting listening after speech');
-            startListening();
+            if (startListeningRef.current) {
+              startListeningRef.current();
+            }
           }, 800);
         }
       };
@@ -105,7 +147,7 @@ export default function AssistantWidget() {
       console.log('[Speak] Calling speak()');
       synthRef.current.speak(utterance);
     }, 100);
-  }, [mode, isOpen, startListening]);
+  }, [language]);
 
   const stopSpeaking = useCallback(() => {
     if (synthRef.current) {
@@ -115,80 +157,211 @@ export default function AssistantWidget() {
     }
   }, []);
 
-  // Handle voice mode query (no chat UI)
-  const handleVoiceQuery = useCallback(async (transcript) => {
-    console.log('[Voice] Processing query:', transcript);
+  const handleCommandSuccess = useCallback((msg) => {
+    setReplyText(msg);
+    speak(msg);
+    // Always append to chat messages so switching to chat mode shows full history
+    setMessages((prev) => [...prev, { role: "assistant", content: msg }]);
+  }, [speak]);
+
+  const handleAskConfirmation = useCallback((command) => {
+    setPendingConfirmation(command);
+    setReplyText(command.reply_te);
+    speak(command.reply_te);
+  }, [speak]);
+
+  const { executeCommand, confirmDangerousAction } = useVoiceExecutor({
+    onAskConfirmation: handleAskConfirmation,
+    onSuccess: handleCommandSuccess
+  });
+
+  const handleConfirm = async () => {
+    if (!pendingConfirmation) return;
+    const cmd = pendingConfirmation;
+    setPendingConfirmation(null);
+    await confirmDangerousAction(cmd);
+    if (modeRef.current === "voice") {
+      setTimeout(() => {
+        if (startListeningRef.current) startListeningRef.current();
+      }, 1500);
+    }
+  };
+
+  const handleCancel = async () => {
+    if (!pendingConfirmation) return;
+    const cmd = pendingConfirmation;
+    setPendingConfirmation(null);
+    try {
+      await voiceCommandApi.logExecution(cmd.log_id, false);
+    } catch (e) {
+      console.error(e);
+    }
+    const cancelMsg = language === "te-IN" ? "చర్య రద్దు చేయబడింది." : "Action cancelled.";
+    setReplyText(cancelMsg);
+    speak(cancelMsg);
+    if (modeRef.current === "voice") {
+      setTimeout(() => {
+        if (startListeningRef.current) startListeningRef.current();
+      }, 1500);
+    }
+  };
+
+  const handleVoiceQuery = useCallback(async (transcriptText) => {
+    console.log('[Voice] Processing query:', transcriptText);
     setVoiceStatus("processing");
     setIsLoading(true);
+    setReplyText("");
+
+    let parsedCommand = null;
+    let parseError = null;
+    try {
+      // Try to parse as voice command first
+      const langParam = language.split("-")[0];
+      parsedCommand = await voiceCommandApi.parse(transcriptText, location.pathname, langParam);
+      console.log('[Voice] Parsed command:', parsedCommand);
+    } catch (error) {
+      console.error('[Voice] Parser error (falling back to general query):', error);
+      parseError = error;
+    }
 
     try {
-      // Get token - try multiple sources
-      const token = user?.token || localStorage.getItem('saadhyam_token') || localStorage.getItem('token');
-      console.log('[Voice] Token available:', !!token);
-      
-      const responseText = await sendQuery(transcript, token);
-      console.log('[Voice] Response received:', responseText);
-      
-      // Speak the response immediately
-      console.log('[Voice] Calling speak function...');
-      speak(responseText);
+      if (parsedCommand && parsedCommand.intent !== "UNKNOWN" && parsedCommand.action !== "NO_ACTION") {
+        setReplyText(parsedCommand.reply_te);
+        // Save to messages history (in case they switch to chat mode)
+        setMessages((prev) => [
+          ...prev, 
+          { role: "user", content: transcriptText }, 
+          { role: "assistant", content: parsedCommand.reply_te }
+        ]);
+
+        const executed = await executeCommand(parsedCommand);
+        if (!executed) {
+          setIsLoading(false);
+          return;
+        }
+      } else {
+        // Fallback to general AI query
+        const token = localStorage.getItem('saadhyam_token') || localStorage.getItem('token');
+        console.log('[Voice] Token available:', !!token);
+        
+        if (!token) {
+          const noAuthMsg = language === "te-IN" 
+            ? "దయచేసి మళ్ళీ లాగిన్ చేయండి." 
+            : "Please log in again to use the assistant.";
+          setReplyText(noAuthMsg);
+          speak(noAuthMsg);
+          setMessages((prev) => [
+            ...prev, 
+            { role: "user", content: transcriptText }, 
+            { role: "assistant", content: noAuthMsg }
+          ]);
+          setVoiceStatus("idle");
+          setIsLoading(false);
+          return;
+        }
+
+        const responseText = await sendQuery(transcriptText, token);
+        console.log('[Voice] Response received:', responseText);
+        setReplyText(responseText);
+
+        // Save to messages history
+        setMessages((prev) => [
+          ...prev, 
+          { role: "user", content: transcriptText }, 
+          { role: "assistant", content: responseText }
+        ]);
+        
+        // Speak the response immediately
+        console.log('[Voice] Calling speak function...');
+        speak(responseText);
+      }
     } catch (error) {
       console.error('[Voice] Error:', error);
-      const errorMsg = "Sorry, I encountered an error. Please try again.";
+      // Show user-friendly error instead of raw backend messages like "User not found"
+      let errorMsg;
+      const rawMsg = error?.message || "";
+      if (rawMsg.includes("User not found") || rawMsg.includes("not found") || rawMsg.includes("401") || rawMsg.includes("Authentication")) {
+        errorMsg = language === "te-IN"
+          ? "దయచేసి మళ్ళీ లాగిన్ చేయండి."
+          : "Your session may have expired. Please log in again.";
+      } else if (rawMsg.includes("Failed to fetch") || rawMsg.includes("Network")) {
+        errorMsg = language === "te-IN"
+          ? "సర్వర్‌కు కనెక్ట్ కాలేదు. దయచేసి మళ్ళీ ప్రయత్నించండి."
+          : "Could not connect to the server. Please try again.";
+      } else {
+        errorMsg = language === "te-IN"
+          ? "క్షమించండి, ఎర్రర్ వచ్చింది. మళ్ళీ ప్రయత్నించండి."
+          : "Sorry, I encountered an error. Please try again.";
+      }
+      setReplyText(errorMsg);
       speak(errorMsg);
       setVoiceStatus("idle");
     } finally {
       setIsLoading(false);
     }
-  }, [user, speak]);
+  }, [speak, language, location.pathname, executeCommand]);
+
+  // Assign function refs to be referenced in the event handlers
+  startListeningRef.current = startListening;
+  handleVoiceQueryRef.current = handleVoiceQuery;
+  speakRef.current = speak;
 
   // Initialize speech recognition and synthesis
   useEffect(() => {
     // Check for speech recognition support
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (SpeechRecognition) {
-      recognitionRef.current = new SpeechRecognition();
-      recognitionRef.current.continuous = false;
-      recognitionRef.current.interimResults = false;
-      recognitionRef.current.lang = 'en-US';
+      const recognition = new SpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = false;
 
-      recognitionRef.current.onresult = (event) => {
-        const transcript = event.results[0][0].transcript;
-        console.log('Speech recognized:', transcript);
+      recognition.onresult = (event) => {
+        const transcriptText = event.results[0][0].transcript;
+        console.log('Speech recognized:', transcriptText);
+        setTranscript(transcriptText);
         
-        if (mode === "voice") {
+        if (modeRef.current === "voice") {
           // In voice mode, automatically process the query
-          handleVoiceQuery(transcript);
+          if (handleVoiceQueryRef.current) {
+            handleVoiceQueryRef.current(transcriptText);
+          }
         } else {
           // In chat mode, just fill the input
-          setQuery(transcript);
+          setQuery(transcriptText);
         }
         setIsListening(false);
       };
 
-      recognitionRef.current.onerror = (event) => {
+      recognition.onerror = (event) => {
         console.error('Speech recognition error:', event.error);
         setIsListening(false);
         
         // Only set to idle if not already processing or speaking
-        if (voiceStatus === "listening") {
+        if (voiceStatusRef.current === "listening") {
           setVoiceStatus("idle");
         }
         
-        // Don't speak error in voice mode if we're already processing
-        if (mode === "voice" && voiceStatus === "listening") {
+        // Don't speak error in voice mode if we're already listening
+        if (modeRef.current === "voice" && voiceStatusRef.current === "listening") {
           setTimeout(() => {
-            if (!isSpeaking && !isLoading) {
-              speak("Sorry, I couldn't hear you clearly. Please try again.");
+            if (!isSpeakingRef.current && !isLoadingRef.current) {
+              const speakErr = languageRef.current === "te-IN"
+                ? "క్షమించండి, మీ వాయిస్ వినబడలేదు. మళ్ళీ ప్రయత్నించండి."
+                : "Sorry, I couldn't hear you clearly. Please try again.";
+              if (speakRef.current) {
+                speakRef.current(speakErr);
+              }
             }
           }, 500);
         }
       };
 
-      recognitionRef.current.onend = () => {
+      recognition.onend = () => {
         console.log('Speech recognition ended');
         setIsListening(false);
       };
+
+      recognitionRef.current = recognition;
     }
 
     // Check for speech synthesis support
@@ -205,7 +378,14 @@ export default function AssistantWidget() {
         synthRef.current.cancel();
       }
     };
-  }, [mode, handleVoiceQuery, speak]);
+  }, []); // Run ONCE on mount!
+
+  // Sync SpeechRecognition language configuration when language state changes
+  useEffect(() => {
+    if (recognitionRef.current) {
+      recognitionRef.current.lang = language;
+    }
+  }, [language]);
 
   // Auto-scroll to bottom in chat mode
   useEffect(() => {
@@ -221,7 +401,9 @@ export default function AssistantWidget() {
       setVoiceStatus("idle");
       
       // Give a brief welcome message
-      const welcomeMsg = "Voice assistant ready. Ask me anything about your business.";
+      const welcomeMsg = language === "te-IN"
+        ? "వాయిస్ అసిస్టెంట్ సిద్ధంగా ఉంది. మీ వ్యాపారం గురించి ఏదైనా అడగండి."
+        : "Voice assistant ready. Ask me anything about your business.";
       speak(welcomeMsg);
     } else if (mode === "chat") {
       // Stop any ongoing speech when switching to chat
@@ -242,17 +424,31 @@ export default function AssistantWidget() {
     setIsLoading(true);
 
     try {
-      // Get token - try multiple sources
-      const token = user?.token || localStorage.getItem('saadhyam_token') || localStorage.getItem('token');
-      console.log('[Chat] Token available:', !!token);
+      // Try to parse as command first
+      const isTelugu = /[\u0c00-\u0c7f]/.test(trimmed);
+      const lang = isTelugu ? "te" : "en";
       
-      const responseText = await sendQuery(trimmed, token);
-      console.log('[Chat] Response received:', responseText);
+      const parsedCommand = await voiceCommandApi.parse(trimmed, location.pathname, lang);
+      console.log('[Chat] Parsed command:', parsedCommand);
       
-      setMessages((prev) => [...prev, { role: "assistant", content: responseText }]);
+      if (parsedCommand && parsedCommand.intent !== "UNKNOWN" && parsedCommand.action !== "NO_ACTION") {
+        const executed = await executeCommand(parsedCommand);
+        if (executed) {
+          setMessages((prev) => [...prev, { role: "assistant", content: parsedCommand.reply_te }]);
+        }
+      } else {
+        // Fallback to general query
+        const token = localStorage.getItem('saadhyam_token') || localStorage.getItem('token');
+        console.log('[Chat] Token available:', !!token);
+        
+        const responseText = await sendQuery(trimmed, token);
+        console.log('[Chat] Response received:', responseText);
+        
+        setMessages((prev) => [...prev, { role: "assistant", content: responseText }]);
+      }
     } catch (error) {
       console.error('[Chat] Error:', error);
-      const errorMsg = "Sorry, I could not fetch an answer right now. Please try again.";
+      const errorMsg = error?.message || "Sorry, I could not fetch an answer right now. Please try again.";
       setMessages((prev) => [
         ...prev,
         {
@@ -267,6 +463,8 @@ export default function AssistantWidget() {
 
   const switchMode = (newMode) => {
     setMode(newMode);
+    setTranscript("");
+    setReplyText("");
     if (newMode === "chat") {
       stopSpeaking();
       stopListening();
@@ -304,18 +502,46 @@ export default function AssistantWidget() {
                       : "Voice not supported"}
                 </p>
               </div>
-              <button
-                type="button"
-                onClick={() => {
-                  setIsOpen(false);
-                  stopSpeaking();
-                  stopListening();
-                  setVoiceStatus("idle");
-                }}
-                className="rounded-full border border-border px-2 py-1 text-xs text-foreground transition hover:bg-muted"
-              >
-                Close
-              </button>
+              <div className="flex items-center space-x-1.5">
+                {speechSupported && (
+                  <div className="flex items-center space-x-0.5 bg-muted rounded-lg p-0.5 border border-border">
+                    <button
+                      type="button"
+                      onClick={() => setLanguage("te-IN")}
+                      className={`px-1.5 py-0.5 text-[10px] font-bold rounded-md transition-all ${
+                        language === "te-IN"
+                          ? "bg-card text-purple-600 dark:text-purple-400 shadow-xs"
+                          : "text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      తెలుగు
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setLanguage("en-US")}
+                      className={`px-1.5 py-0.5 text-[10px] font-bold rounded-md transition-all ${
+                        language === "en-US"
+                          ? "bg-card text-purple-600 dark:text-purple-400 shadow-xs"
+                          : "text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      EN
+                    </button>
+                  </div>
+                )}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsOpen(false);
+                    stopSpeaking();
+                    stopListening();
+                    setVoiceStatus("idle");
+                  }}
+                  className="rounded-full border border-border px-2 py-1 text-xs text-foreground transition hover:bg-muted"
+                >
+                  Close
+                </button>
+              </div>
             </div>
             
             {/* Mode Toggle Buttons */}
@@ -480,6 +706,25 @@ export default function AssistantWidget() {
                 </p>
               </div>
 
+              {/* Recognized transcript */}
+              {(transcript || voiceStatus === "listening") && (
+                <div className="w-full mt-4 bg-muted border border-border rounded-xl p-3 text-center">
+                  <p className="text-sm italic font-medium text-foreground">
+                    "{transcript || (language === "te-IN" ? "మాట్లాడండి..." : "Speak now...")}"
+                  </p>
+                </div>
+              )}
+
+              {/* Assistant replies */}
+              {replyText && voiceStatus !== "listening" && (
+                <div className="w-full mt-4 flex items-start space-x-2.5 bg-purple-500/10 dark:bg-purple-400/10 border border-purple-500/20 dark:border-purple-400/20 rounded-xl p-3">
+                  <span className="text-lg">🤖</span>
+                  <p className="text-sm font-medium text-foreground leading-relaxed text-left flex-1">
+                    {replyText}
+                  </p>
+                </div>
+              )}
+
               {/* Control Buttons */}
               <div className="mt-8 flex gap-3">
                 {voiceStatus === "idle" && (
@@ -536,6 +781,55 @@ export default function AssistantWidget() {
           {mode === "voice" && isListening ? "🎤" : mode === "voice" && isSpeaking ? "🔊" : "AI"}
         </button>
       </div>
+
+      {/* Dangerous Action Confirmation Dialog */}
+      {pendingConfirmation && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="w-full max-w-md overflow-hidden rounded-2xl border border-amber-100 dark:border-amber-950/50 bg-card p-6 shadow-2xl">
+            <div className="flex items-center space-x-3 text-amber-600 dark:text-amber-500">
+              <AlertTriangle size={28} />
+              <h3 className="text-xl font-bold">
+                {language === "te-IN" ? "ఈ చర్యకు కన్ఫర్మేషన్ అవసరం" : "Confirmation Required"}
+              </h3>
+            </div>
+
+            <div className="my-4 space-y-3">
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                {language === "te-IN" 
+                  ? "మీరు క్రింది చర్యను ఎగ్జిక్యూట్ చేయాలనుకుంటున్నారా? ఇది ప్రమాదకరమైన చర్య కావచ్చు." 
+                  : "Are you sure you want to execute this action? It might be dangerous."}
+              </p>
+
+              <div className="bg-amber-50/50 dark:bg-amber-950/10 border border-amber-200/40 dark:border-amber-900/30 rounded-xl p-3.5">
+                <p className="text-xs text-amber-800 dark:text-amber-400 font-semibold uppercase tracking-wider">
+                  {language === "te-IN" ? "ఖరారు చేయవలసిన కమాండ్:" : "Command to execute:"}
+                </p>
+                <p className="text-sm font-bold text-foreground mt-1 italic">
+                  "{pendingConfirmation.reply_te}"
+                </p>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 mt-6 border-t border-border pt-4">
+              <button
+                type="button"
+                onClick={handleCancel}
+                className="border border-border hover:bg-muted text-foreground rounded-xl px-4 py-2 text-sm font-semibold transition"
+              >
+                {language === "te-IN" ? "రద్దు చేయి (Cancel)" : "Cancel"}
+              </button>
+              
+              <button
+                type="button"
+                onClick={handleConfirm}
+                className="rounded-xl px-4 py-2 text-sm font-semibold bg-amber-500 hover:bg-amber-600 text-white shadow-lg shadow-amber-500/20 transition"
+              >
+                {language === "te-IN" ? "నిర్ధారించు (Confirm)" : "Confirm"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

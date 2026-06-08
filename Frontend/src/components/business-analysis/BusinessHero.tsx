@@ -151,7 +151,7 @@ function AmbientParticles() {
   );
 }
 
-function HealthScoreWidget({ score }: { score: number }) {
+export function HealthScoreWidget({ score }: { score: number }) {
   const ringGrad = useId().replace(/:/g, "") + "-ring";
   const ringGlow = useId().replace(/:/g, "") + "-glow";
   const circumference = 2 * Math.PI * 44;

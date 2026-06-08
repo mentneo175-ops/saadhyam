@@ -652,16 +652,24 @@ function B2BChatPage() {
             {/* Connection Status Indicator */}
             <div className="mr-2">
               {connectionStatus === "connected" && !usePolling && (
-                <Wifi className="h-4 w-4 text-green-500 hover:text-green-600 cursor-pointer" title="Connected in real-time" />
+                <span title="Connected in real-time">
+                  <Wifi className="h-4 w-4 text-green-500 hover:text-green-600 cursor-pointer" />
+                </span>
               )}
               {connectionStatus === "connecting" && (
-                <Loader2 className="h-4 w-4 animate-spin text-yellow-500" title="Connecting to real-time..." />
+                <span title="Connecting to real-time...">
+                  <Loader2 className="h-4 w-4 animate-spin text-yellow-500" />
+                </span>
               )}
               {connectionStatus === "disconnected" && (
-                <WifiOff className="h-4 w-4 text-orange-500 hover:text-orange-600 cursor-pointer animate-pulse" title="Disconnected, reconnecting..." onClick={retryConnection} />
+                <span title="Disconnected, reconnecting..." onClick={retryConnection} className="cursor-pointer">
+                  <WifiOff className="h-4 w-4 text-orange-500 hover:text-orange-600 animate-pulse" />
+                </span>
               )}
               {(connectionStatus === "error" || usePolling) && (
-                <Clock className="h-4 w-4 text-blue-500 hover:text-blue-600 cursor-pointer" title="Polling Mode enabled" onClick={retryConnection} />
+                <span title="Polling Mode enabled" onClick={retryConnection} className="cursor-pointer">
+                  <Clock className="h-4 w-4 text-blue-500 hover:text-blue-600" />
+                </span>
               )}
             </div>
             

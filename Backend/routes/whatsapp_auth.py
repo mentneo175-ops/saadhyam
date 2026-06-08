@@ -53,14 +53,33 @@ async def whatsapp_embedded_signup(
         config_id = os.getenv("WHATSAPP_CONFIG_ID")
         redirect_uri = os.getenv("WHATSAPP_REDIRECT_URI", "http://localhost:8000/api/whatsapp/callback")
         
-        if not app_id or not config_id:
-            raise HTTPException(
-                status_code=500,
-                detail="WhatsApp configuration not set. Please configure META_APP_ID and WHATSAPP_CONFIG_ID"
-            )
+        # Check if we should use mock fallback simulation mode
+        is_mock_mode = (
+            not app_id 
+            or not config_id 
+            or app_id == "mock_meta_app_id" 
+            or config_id == "mock_whatsapp_config_id"
+            or str(app_id).startswith("mock_")
+        )
         
-        # Generate state for CSRF protection
         state = secrets.token_urlsafe(32)
+        
+        if is_mock_mode:
+            logger.info("⚠️ META_APP_ID or WHATSAPP_CONFIG_ID not configured. Returning simulated OAuth URL.")
+            # Set up mock redirect URL that points to our local callback
+            signup_url = (
+                f"{redirect_uri}?"
+                f"code=mock_code_saadhyam&"
+                f"state={state}"
+            )
+            return {
+                "success": True,
+                "signup_url": signup_url,
+                "state": state,
+                "scopes": ["business_management", "whatsapp_business_management", "whatsapp_business_messaging"],
+                "scope_string": "business_management,whatsapp_business_management,whatsapp_business_messaging",
+                "is_mock": True
+            }
         
         # CORRECT WhatsApp Embedded Signup URL with proper scopes
         # Using Facebook's embedded signup flow for WhatsApp Business
@@ -121,6 +140,103 @@ async def whatsapp_callback(
     This is called after user completes the signup flow
     """
     try:
+        # Check for simulated mock code
+        if code == "mock_code_saadhyam":
+            logger.info("ℹ️ Handled simulated/bypass WhatsApp callback.")
+            waba_id = "mock_waba_id_12345"
+            phone_number_id = "mock_phone_id_67890"
+            phone_number = "+15550199"
+            waba_name = "Saadhyam AI Demo"
+            access_token = "mock_token_abcdef123456"
+            
+            return HTMLResponse(
+                content=f"""
+                <html>
+                    <head>
+                        <title>WhatsApp Connected (Simulation)</title>
+                        <style>
+                            body {{
+                                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                min-height: 100vh;
+                                margin: 0;
+                                background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+                            }}
+                            .container {{
+                                background: white;
+                                padding: 2rem;
+                                border-radius: 1rem;
+                                box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+                                text-align: center;
+                                max-width: 500px;
+                            }}
+                            .success-icon {{
+                                width: 64px;
+                                height: 64px;
+                                background: #10b981;
+                                border-radius: 50%;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                margin: 0 auto 1rem;
+                            }}
+                            .checkmark {{
+                                color: white;
+                                font-size: 32px;
+                            }}
+                            h2 {{
+                                color: #1f2937;
+                                margin: 0 0 0.5rem;
+                            }}
+                            p {{
+                                color: #6b7280;
+                                margin: 0 0 1rem;
+                            }}
+                            .details {{
+                                background: #f3f4f6;
+                                padding: 1rem;
+                                border-radius: 0.5rem;
+                                font-size: 0.875rem;
+                                color: #4b5563;
+                                text-align: left;
+                                margin-bottom: 1rem;
+                            }}
+                        </style>
+                    </head>
+                    <body>
+                        <div class="container">
+                            <div class="success-icon">
+                                <span class="checkmark">✓</span>
+                            </div>
+                            <h2>WhatsApp Connected! (Simulation)</h2>
+                            <p>Your WhatsApp Business account has been simulated/connected successfully.</p>
+                            <div class="details">
+                                <strong>Business:</strong> {waba_name}<br>
+                                <strong>Phone:</strong> {phone_number}<br>
+                                <strong>WABA ID:</strong> {waba_id}
+                            </div>
+                            <p style="font-size: 0.875rem;">Saving mock account details...</p>
+                        </div>
+                        <script>
+                            window.opener.postMessage({{
+                                type: 'WHATSAPP_OAUTH_SUCCESS',
+                                data: {{
+                                    waba_id: '{waba_id}',
+                                    phone_number_id: '{phone_number_id}',
+                                    phone_number: '{phone_number}',
+                                    business_name: '{waba_name}',
+                                    access_token: '{access_token}'
+                                }}
+                            }}, '*');
+                            setTimeout(() => window.close(), 3000);
+                        </script>
+                    </body>
+                </html>
+                """
+            )
+
         if error:
             logger.error(f"❌ WhatsApp OAuth error: {error} - {error_description}")
             return HTMLResponse(

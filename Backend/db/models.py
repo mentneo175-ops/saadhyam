@@ -109,6 +109,70 @@ class BusinessAnalysis(Base):
         return f"<BusinessAnalysis(id={self.id}, user_id={self.user_id}, business_name={self.business_name}, health_score={self.health_score})>"
 
 
+class RadarOpportunity(Base):
+    """
+    Store proactive growth opportunities for the user's business.
+    """
+    __tablename__ = "radar_opportunities"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True, index=True)
+    
+    title = Column(String(255), nullable=False)
+    description = Column(Text, nullable=True)
+    category = Column(String(100), nullable=False)  # 'nearby', 'seasonal', 'b2b', 'trend'
+    estimated_value = Column(String(100), nullable=True)
+    urgency = Column(String(50), default="medium")  # 'high', 'medium', 'low'
+    distance = Column(String(100), nullable=True)
+    action_label = Column(String(100), default="Action")
+    action_link = Column(String(500), nullable=True)
+    status = Column(String(50), default="active")  # 'active', 'contacted', 'dismissed'
+    
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    def __repr__(self):
+        return f"<RadarOpportunity(id={self.id}, user_id={self.user_id}, title='{self.title}', category='{self.category}', status='{self.status}')>"
+
+
+class CompetitorIntelligence(Base):
+    """
+    Store competitor monitoring details and AI intelligence.
+    """
+    __tablename__ = "competitor_intelligence"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True, index=True)
+
+    name = Column(String(255), nullable=False)
+    location = Column(String(255), nullable=True)
+    website_or_social = Column(String(500), nullable=True)
+
+    # Competitor Snapshot Metrics
+    activity_score = Column(Integer, default=50)  # Activity level 0-100
+    trending_offers = Column(Text, nullable=True)  # JSON array
+    review_sentiment = Column(String(100), nullable=True)  # e.g., "75% Positive" or JSON
+    pricing_trend = Column(String(255), nullable=True)  # e.g., "Stable", "Decreased recently"
+
+    # Detailed Monitored Modules (stored as JSON string)
+    ads_data = Column(Text, nullable=True)  # JSON object containing: Facebook, Instagram, Google, local promotions
+    offers_data = Column(Text, nullable=True)  # JSON object containing: discount campaigns, bundle offers, deals
+    reviews_data = Column(Text, nullable=True)  # JSON object containing: Google, social platforms, patterns
+    social_data = Column(Text, nullable=True)  # JSON object containing: Instagram posts, updates, engagement
+    pricing_data = Column(Text, nullable=True)  # JSON object containing: product pricing, price changes
+    demand_data = Column(Text, nullable=True)  # JSON object comparing: search trends, buying behavior
+
+    # Actionable AI Recommendation Cards (stored as JSON string)
+    recommendations = Column(Text, nullable=True)  # JSON array of recommendation objects
+
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    def __repr__(self):
+        return f"<CompetitorIntelligence(id={self.id}, user_id={self.user_id}, name='{self.name}', activity_score={self.activity_score})>"
+
+
+
 # Website AI models (optional)
 try:
     from ai_models.website_ai.app.db.models.job import Job
@@ -117,3 +181,4 @@ try:
     from ai_models.website_ai.app.db.models.theme_config import ThemeConfig
 except Exception:
     pass
+

@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ data.business_name }} | Agency Dark</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/website-ai/static/theme-adapter.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        :root {
+            --bg-main: #07070a;
+            --bg-alt: #0e0e13;
+            --text-main: #ffffff;
+            --text-muted: #80809b;
+            --primary: #8b5cf6;
+            --primary-hover: #a78bfa;
+            --primary-glow: rgba(139, 92, 246, 0.25);
+            --card-bg: rgba(14, 14, 19, 0.7);
+            --border-color: rgba(255,255,255,0.06);
+            --font-headings: 'Plus Jakarta Sans', sans-serif;
+            --font-body: 'Plus Jakarta Sans', sans-serif;
+            --nav-bg: rgba(7, 7, 10, 0.85);
+        }
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-main);
+            color: var(--text-main);
+            line-height: 1.7;
+            overflow-x: hidden;
+        }
+        h1, h2, h3 { font-family: var(--font-headings); font-weight: 800; color: white; letter-spacing: -1px; }
+
+        /* Floating glowing Navbar */
+        .navbar {
+            background: var(--nav-bg);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-color);
+            position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+        }
+        .nav-container {
+            max-width: 1200px; margin: 0 auto; padding: 20px 24px; display: flex; justify-content: space-between; align-items: center;
+        }
+        .nav-logo { font-size: 24px; font-weight: 800; text-decoration: none; color: white; }
+        .nav-logo span { color: var(--primary); }
+        .nav-links { list-style: none; display: flex; gap: 28px; }
+        .nav-links a { color: var(--text-muted); text-decoration: none; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; transition: color 0.3s; }
+        .nav-links a:hover { color: white; }
+        .nav-cta {
+            background: var(--primary); color: white; padding: 10px 20px; border-radius: 4px; text-decoration: none; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; transition: all 0.3s; box-shadow: 0 4px 14px var(--primary-glow);
+        }
+        .nav-cta:hover { background: var(--primary-hover); transform: translateY(-1px); }
+
+        /* Hero */
+        .hero {
+            padding: 180px 24px 100px; text-align: center; max-width: 900px; margin: 0 auto; position: relative;
+        }
+        .hero-glow { position: absolute; top: 100px; left: 50%; transform: translateX(-50%); width: 300px; height: 300px; background: var(--primary-glow); filter: blur(80px); pointer-events: none; }
+        .hero-badge { display: inline-block; background: rgba(139, 92, 246, 0.1); border: 1px solid rgba(139,92,246,0.3); color: var(--primary-hover); font-size: 12px; font-weight: 600; padding: 6px 14px; border-radius: 50px; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 24px; }
+        .hero h1 { font-size: clamp(38px, 6vw, 68px); line-height: 1.1; margin-bottom: 24px; }
+        .hero h1 em { font-style: italic; color: var(--primary-hover); }
+        .hero p { font-size: 18px; color: var(--text-muted); margin-bottom: 40px; }
+
+        /* Center Rotating graphic */
+        .rotating-visual-wrapper { display: flex; justify-content: center; margin-bottom: 80px; position: relative; }
+        .glowing-orb { width: 140px; height: 140px; border-radius: 50%; background: linear-gradient(135deg, var(--primary) 0%, #3b82f6 100%); filter: blur(40px); opacity: 0.6; position: absolute; top: 10px; }
+        .orbital-core {
+            width: 160px; height: 160px; border-radius: 50%; border: 1.5px dashed var(--primary); animation: spin 20s linear infinite; display: flex; align-items: center; justify-content: center; z-index: 2;
+        }
+        .orbital-inner {
+            width: 110px; height: 110px; border-radius: 50%; border: 1.5px dashed rgba(255,255,255,0.2); animation: spin-reverse 15s linear infinite; display: flex; align-items: center; justify-content: center;
+        }
+        .orbital-center { width: 60px; height: 60px; border-radius: 50%; background: var(--primary); box-shadow: 0 0 30px var(--primary-glow); }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes spin-reverse { 0% { transform: rotate(360deg); } 100% { transform: rotate(0deg); } }
+
+        /* General layout */
+        .section { padding: 120px 24px; border-bottom: 1px solid var(--border-color); }
+        .sec-container { max-width: 1100px; margin: 0 auto; }
+        .sec-header { text-align: center; margin-bottom: 60px; }
+        .sec-label { font-size: 12px; text-transform: uppercase; letter-spacing: 3px; color: var(--primary-hover); font-weight: 600; display: block; margin-bottom: 10px; }
+        .sec-title { font-size: 38px; font-weight: 800; }
+
+        /* About layout */
+        .about-grid { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 50px; align-items: center; }
+        .about-card { background: var(--card-bg); border: 1px solid var(--border-color); padding: 40px; border-radius: 12px; backdrop-filter: blur(8px); }
+        .about-stats { display: flex; flex-direction: column; gap: 20px; }
+        .stat-card { background: var(--card-bg); border: 1px solid var(--border-color); padding: 24px; border-radius: 12px; text-align: center; }
+        .stat-num { font-size: 36px; font-weight: 800; color: var(--primary-hover); }
+
+        /* Services layout */
+        .services-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+        .service-card { background: var(--card-bg); border: 1px solid var(--border-color); padding: 30px; border-radius: 12px; position: relative; transition: all 0.3s; }
+        .service-card:hover { border-color: var(--primary); transform: translateY(-4px); }
+        .service-icon { font-size: 28px; margin-bottom: 16px; color: var(--primary-hover); }
+        .service-card h4 { font-size: 20px; margin-bottom: 10px; }
+
+        /* FAQ columns */
+        .faq-wrap { display: flex; flex-direction: column; gap: 16px; max-width: 800px; margin: 0 auto; }
+        .faq-item { border-bottom: 1px solid var(--border-color); padding-bottom: 16px; }
+        .faq-item summary { font-size: 16px; font-weight: 600; cursor: pointer; display: flex; justify-content: space-between; }
+        .faq-item summary::after { content: '+'; color: var(--primary); }
+        .faq-item p { color: var(--text-muted); font-size: 14px; margin-top: 10px; }
+
+        /* Blog grid */
+        .blog-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+        .blog-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden; cursor: pointer; transition: all 0.3s; }
+        .blog-card:hover { border-color: var(--primary); }
+        .blog-img { height: 160px; background: rgba(139, 92, 246, 0.05); display: flex; align-items: center; justify-content: center; font-size: 40px; font-weight: 800; color: var(--primary-hover); border-bottom: 1px solid var(--border-color); }
+        .blog-info { padding: 20px; }
+        .blog-info h4 { font-size: 18px; margin-bottom: 8px; }
+        .blog-info p { font-size: 13px; color: var(--text-muted); }
+
+        /* Contact Details */
+        .contact-layout { display: grid; grid-template-columns: 1fr 1.2fr; gap: 50px; }
+        .contact-form { display: flex; flex-direction: column; gap: 16px; }
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+        .form-group label { font-size: 11px; text-transform: uppercase; color: var(--primary-hover); }
+        .form-group input, .form-group textarea { background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: 6px; padding: 12px; color: white; font-family: inherit; font-size: 14px; outline: none; }
+        .form-group input:focus, .form-group textarea:focus { border-color: var(--primary); }
+
+        .footer {
+            border-top: 1px solid var(--border-color); max-width: 1100px; margin: 60px auto 0; padding-top: 40px; display: flex; justify-content: space-between; font-size: 13px; color: var(--text-muted);
+        }
+
+        @media (max-width: 992px) {
+            .about-grid { grid-template-columns: 1fr; }
+            .services-grid { grid-template-columns: 1fr; }
+            .blog-grid { grid-template-columns: 1fr; }
+            .contact-layout { grid-template-columns: 1fr; }
+        }
+    </style>
+    <script src="/website-ai/static/editor.js" defer></script>
+</head>
+<body data-theme="agency-dark">
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="#" class="nav-logo">Agency<span>Dark</span></a>
+            <ul class="nav-links">
+                <li><a href="#about">About</a></li>
+                <li><a href="#services">Services</a></li>
+                <li><a href="#faq">FAQ</a></li>
+                <li><a href="#blog">Blog</a></li>
+                <li><a href="#contact">Contact</a></li>
+            </ul>
+            <a href="#contact" class="nav-cta">Let's Talk</a>
+        </div>
+    </nav>
+
+    <header class="hero">
+        <div class="hero-glow"></div>
+        <span class="hero-badge">✦ Software studio</span>
+        <h1>We design premium <em>digital</em> futures</h1>
+        <p>{{ content.about }}</p>
+        <a href="#contact" class="nav-cta" style="padding: 14px 28px;">Initiate Project</a>
+    </header>
+
+    <div class="rotating-visual-wrapper">
+        <div class="glowing-orb"></div>
+        <div class="orbital-core">
+            <div class="orbital-inner">
+                <div class="orbital-center"></div>
+            </div>
+        </div>
+    </div>
+
+    <main class="sec-container">
+        <!-- ABOUT -->
+        <section id="about" class="section">
+            <div class="sec-header">
+                <span class="sec-label">Manifesto</span>
+                <h2 class="sec-title">Our Philosophy</h2>
+            </div>
+            <div class="about-grid">
+                <div class="about-card">
+                    <p style="font-size: 18px; color: white; margin-bottom: 20px; line-height: 1.8;">{{ content.about }}</p>
+                    <p>{{ theme_state.support_line }} We merge responsive styling variables inside glassmorphic layout elements to command attention.</p>
+                </div>
+                <div class="about-stats">
+                    <div class="stat-card">
+                        <div class="stat-num">99%</div>
+                        <div style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); margin-top: 4px;">Success rate</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-num">150+</div>
+                        <div style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); margin-top: 4px;">Sites live</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SERVICES -->
+        <section id="services" class="section">
+            <div class="sec-header">
+                <span class="sec-label">Areas</span>
+                <h2 class="sec-title">What We Offer</h2>
+            </div>
+            <div class="services-grid">
+                {% for service in content.services %}
+                <div class="service-card">
+                    <div class="service-icon">✦</div>
+                    <h4>{{ service.name }}</h4>
+                    <p style="font-size: 14px; color: var(--text-muted); margin-top: 8px;">{{ service.description }}</p>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+
+        <!-- FAQ -->
+        <section id="faq" class="section">
+            <div class="sec-header">
+                <span class="sec-label">FAQ</span>
+                <h2 class="section-title">Common Questions</h2>
+            </div>
+            <div class="faq-wrap">
+                {% for item in content.faq %}
+                <details class="faq-item">
+                    <summary>{{ item.question }}</summary>
+                    <p>{{ item.answer }}</p>
+                </details>
+                {% endfor %}
+            </div>
+        </section>
+
+        <!-- BLOG -->
+        <section id="blog" class="section">
+            <div class="sec-header">
+                <span class="sec-label">Journal</span>
+                <h2 class="section-title">Recent Dispatches</h2>
+            </div>
+            <div id="blog-posts-container" class="blog-grid">
+                <div style="grid-column: span 3; text-align: center;">Loading chronicle feed...</div>
+            </div>
+        </section>
+
+        <!-- CONTACT -->
+        <section id="contact" class="section" style="border-bottom: none;">
+            <div class="sec-header">
+                <span class="sec-label">Connection</span>
+                <h2 class="sec-title">Start a Project</h2>
+            </div>
+            <div class="contact-layout">
+                <div>
+                    <p style="font-size: 18px; margin-bottom: 24px;">{{ content.contact }}</p>
+                    <div style="font-size: 13px; color: var(--text-muted); display: flex; flex-direction: column; gap: 12px;">
+                        <p>📍 downtown suite 405, city</p>
+                        <p>📞 concierge: {{ data.contact_phone or '+1 (555) 918-0928' }}</p>
+                        <p>✉️ email: {{ data.contact_email or 'hello@saadhyam.ai' }}</p>
+                    </div>
+                </div>
+                <form class="contact-form" onsubmit="event.preventDefault(); alert('Enquiry Sent!');">
+                    <div class="form-group"><label>First Name</label><input type="text" placeholder="John" required /></div>
+                    <div class="form-group"><label>Email Address</label><input type="email" placeholder="john@example.com" required /></div>
+                    <div class="form-group"><label>Your Message</label><textarea rows="3" placeholder="Tell us more about your ideas..." required></textarea></div>
+                    <button type="submit" class="nav-cta" style="border: none; cursor: pointer; align-self: flex-start;">Submit request</button>
+                </form>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <span>&copy; 2026 {{ data.business_name }}</span>
+        <span>Agency Dark. All rights reserved.</span>
+    </footer>
+
+    <script>
+        async function loadBlogPosts() {
+            const container = document.getElementById('blog-posts-container');
+            try {
+                const response = await fetch('blogs.json');
+                if (!response.ok) throw new Error('No blogs');
+                const data = await response.json();
+                const blogs = data.blogs || [];
+                if (blogs.length === 0) {
+                    container.innerHTML = '<p style="grid-column: span 3; text-align: center;">No blog posts yet.</p>';
+                    return;
+                }
+                container.innerHTML = blogs.slice(0, 3).map(blog => `
+                    <div class="blog-card" onclick="window.location.href='blog-\${blog.slug}.html'">
+                        <div class="blog-img">\${blog.title.charAt(0)}</div>
+                        <div class="blog-info">
+                            <h4>\${blog.title}</h4>
+                            <p>\${blog.meta_description || 'Click to view full insight'}</p>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                container.innerHTML = '<p style="grid-column: span 3; text-align: center;">No blog posts yet.</p>';
+            }
+        }
+        document.addEventListener('DOMContentLoaded', loadBlogPosts);
+    </script>
+</body>
+</html>

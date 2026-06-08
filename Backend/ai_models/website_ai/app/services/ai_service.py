@@ -45,6 +45,7 @@ Generate 3 to 6 services. Keep the services specific to the business type.
 
 def _build_content_prompt(profile: WebsiteProfile) -> str:
     services = ", ".join(profile.services)
+    description_line = f"- Description: {profile.description}\n" if getattr(profile, "description", None) else ""
     return f"""
 You are a professional website copywriter.
 Return only valid JSON. Do not include markdown, commentary, or code fences.
@@ -52,7 +53,7 @@ Return only valid JSON. Do not include markdown, commentary, or code fences.
 Create website content for:
 - Business name: {profile.business_name}
 - Business type: {profile.business_type}
-- Services: {services}
+{description_line}- Services: {services}
 - Target audience: {profile.target_audience}
 - Tone: {profile.tone}
 - Branding style: {profile.branding_style}

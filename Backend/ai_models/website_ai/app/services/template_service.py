@@ -9,8 +9,21 @@ from ai_models.website_ai.app.models.schema import WebsiteContent, WebsiteReques
 
 BASE_DIR = Path(__file__).resolve().parents[1]
 TEMPLATE_DIR = BASE_DIR / "templates"
-OUTPUT_DIR = BASE_DIR.parent / "output"
-THEMES = ("hero-split", "card-masonry", "timeline-vertical", "magazine-grid", "bento-box", "parallax-scroll")
+OUTPUT_DIR = Path(__file__).resolve().parents[4] / "website_ai_output"
+THEMES = (
+    "hero-split",
+    "card-masonry",
+    "timeline-vertical",
+    "magazine-grid",
+    "bento-box",
+    "parallax-scroll",
+    "minimal-modern",
+    "agency-dark",
+    "retro-brutalism",
+    "restaurant-showcase",
+    "saas-dashboard",
+    "creative-portfolio"
+)
 
 
 def select_random_theme() -> str:

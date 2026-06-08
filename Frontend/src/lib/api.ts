@@ -1142,14 +1142,14 @@ class ApiClient {
   /**
    * GET request with automatic cancellation support
    */
-  async get(endpoint: string, requestKey?: string): Promise<any> {
+  async get<T = any>(endpoint: string, requestKey?: string): Promise<T> {
     return this.fetchJson(endpoint, { method: "GET" }, requestKey);
   }
 
   /**
    * POST request with automatic cancellation support
    */
-  async post(endpoint: string, data?: any, requestKey?: string): Promise<any> {
+  async post<T = any>(endpoint: string, data?: any, requestKey?: string): Promise<T> {
     return this.fetchJson(
       endpoint,
       {
@@ -1163,7 +1163,7 @@ class ApiClient {
   /**
    * PUT request with automatic cancellation support
    */
-  async put(endpoint: string, data?: any, requestKey?: string): Promise<any> {
+  async put<T = any>(endpoint: string, data?: any, requestKey?: string): Promise<T> {
     return this.fetchJson(
       endpoint,
       {
@@ -1177,7 +1177,7 @@ class ApiClient {
   /**
    * DELETE request with automatic cancellation support
    */
-  async delete(endpoint: string, requestKey?: string): Promise<any> {
+  async delete<T = any>(endpoint: string, requestKey?: string): Promise<T> {
     return this.fetchJson(endpoint, { method: "DELETE" }, requestKey);
   }
 }

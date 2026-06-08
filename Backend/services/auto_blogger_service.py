@@ -1020,12 +1020,13 @@ async def publish_blog_to_website(
         from jinja2 import Environment, FileSystemLoader
         import json
         
-        # Define paths
-        website_output_dir = Path("ai_models/website_ai/output")
+        # Define paths relative to the file's directory for robust path resolution
+        base_backend_dir = Path(__file__).resolve().parent.parent
+        website_output_dir = base_backend_dir / "ai_models" / "website_ai" / "output"
         website_output_dir.mkdir(parents=True, exist_ok=True)
         
         # Create blog post HTML file
-        template_dir = Path("ai_models/website_ai/app/templates")
+        template_dir = base_backend_dir / "ai_models" / "website_ai" / "app" / "templates"
         env = Environment(loader=FileSystemLoader(str(template_dir)))
         template = env.get_template("blog-post.html")
         

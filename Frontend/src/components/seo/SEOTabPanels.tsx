@@ -30,7 +30,6 @@ import {
   EmptyInsightsState,
 } from "./SEOShared";
 import {
-  SEOScoreGauge,
   SearchPerformanceChart,
   WebsiteAuditPanel,
   KeywordRankingList,
@@ -99,11 +98,7 @@ export function SEOTabPanel({ data }: SEOTabPanelProps) {
           />
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-1">
-          <div className="lg:col-span-1">
-            <SEOScoreGauge score={score} label="SEO health score" />
-          </div>
-        </div>
+
 
         <div className="grid gap-6 lg:grid-cols-2">
           {keywords.length > 0 && (
@@ -459,12 +454,6 @@ export function MapsTabPanel({ data }: SEOTabPanelProps) {
           />
         </div>
 
-        {/* Local presence gauge */}
-        <div className="grid gap-6 lg:grid-cols-1">
-          <div className="lg:col-span-1">
-            <SEOScoreGauge score={mapsScore} label="Local presence score" />
-          </div>
-        </div>
 
         {/* Connection Block: Integrated & Premium */}
         {isLoadingAccount ? (

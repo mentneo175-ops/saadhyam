@@ -14,6 +14,7 @@ import { useRoutePreservation } from "@/hooks/useRoutePreservation";
 import { formatCacheAge } from "@/lib/realtimeBusinessApi";
 import { getGrowthPlanData, type GrowthPlanData } from "@/lib/comprehensiveAnalysisApi";
 import { useDashboardContext } from "@/contexts/DashboardContext";
+import { getMonitoredCompetitors, getCompetitorSuggestions, addCompetitor, type CompetitorIntelligence } from "@/lib/competitorIntelligenceApi";
 import {
   Activity,
   Eye,
@@ -33,6 +34,9 @@ import {
   Clock,
   CheckCircle2,
   Calendar,
+  MapPin,
+  Plus,
+  Search,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -90,6 +94,80 @@ function Overview() {
   // 30-Day Growth Plan state
   const [growthPlan, setGrowthPlan] = useState<GrowthPlanData | null>(null);
   const [growthPlanLoading, setGrowthPlanLoading] = useState(false);
+
+  // Competitor Watch state
+  const [competitors, setCompetitors] = useState<CompetitorIntelligence[]>([]);
+  const [competitorsLoading, setCompetitorsLoading] = useState(false);
+
+  // Competitor quick-add widget state
+  const [quickAddName, setQuickAddName] = useState("");
+  const [quickAddSuggestions, setQuickAddSuggestions] = useState<string[]>([]);
+  const [allQuickAddSuggestions, setAllQuickAddSuggestions] = useState<string[]>([]);
+  const [showQuickSuggestions, setShowQuickSuggestions] = useState(false);
+  const [isQuickAdding, setIsQuickAdding] = useState(false);
+
+  // Load tracked competitors list
+  useEffect(() => {
+    const loadComps = async () => {
+      setCompetitorsLoading(true);
+      try {
+        const token = localStorage.getItem("saadhyam_token");
+        if (token) {
+          const res = await getMonitoredCompetitors(token);
+          setCompetitors(res.competitors);
+          // Load suggestions in parallel
+          try {
+            const sugRes = await getCompetitorSuggestions(token);
+            setAllQuickAddSuggestions(sugRes.suggestions);
+            setQuickAddSuggestions(sugRes.suggestions);
+          } catch (_) {}
+        }
+      } catch (err) {
+        console.error("Failed to load monitored competitors for dashboard:", err);
+      } finally {
+        setCompetitorsLoading(false);
+      }
+    };
+    loadComps();
+  }, []);
+
+  const handleQuickAddNameChange = (value: string) => {
+    setQuickAddName(value);
+    if (value.trim().length === 0) {
+      setQuickAddSuggestions(allQuickAddSuggestions);
+    } else {
+      setQuickAddSuggestions(
+        allQuickAddSuggestions.filter((s) => s.toLowerCase().includes(value.toLowerCase()))
+      );
+    }
+    setShowQuickSuggestions(true);
+  };
+
+  const selectQuickSuggestion = (name: string) => {
+    setQuickAddName(name);
+    setShowQuickSuggestions(false);
+  };
+
+  const handleQuickAdd = async (nameOverride?: string) => {
+    const name = (nameOverride || quickAddName).trim();
+    if (!name) return;
+    setIsQuickAdding(true);
+    try {
+      const token = localStorage.getItem("saadhyam_token");
+      if (token) {
+        await addCompetitor(token, { name });
+        setQuickAddName("");
+        setShowQuickSuggestions(false);
+        // Reload competitors
+        const res = await getMonitoredCompetitors(token);
+        setCompetitors(res.competitors);
+      }
+    } catch (err) {
+      console.error("Quick-add competitor failed:", err);
+    } finally {
+      setIsQuickAdding(false);
+    }
+  };
 
   // Listen to refresh trigger from context
   useEffect(() => {
@@ -479,10 +557,193 @@ function Overview() {
                 ))}
               </div>
 
-              {/* Instagram Analytics Preview Card */}
+              {/* Saadhyam AI Visibility Engine™ Dashboard Card */}
+              <div className="bg-slate-900 border border-purple-500/20 rounded-2xl p-6 shadow-[0_4px_30px_rgba(139,92,246,0.1)] relative overflow-hidden group hover:border-purple-500/40 transition-all duration-300">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <Sparkles size={16} className="text-purple-400" />
+                      <h3 className="text-base font-extrabold text-slate-100 tracking-tight">Saadhyam AI Visibility Engine™</h3>
+                      <span className="bg-purple-500/15 text-purple-300 border border-purple-500/30 text-[9px] uppercase font-extrabold tracking-wider px-2 py-0.5 rounded-full">Active</span>
+                    </div>
+                    <p className="text-xs text-slate-400">
+                      Optimize your business authority for Gemini, ChatGPT, Siri, and voice search assistants.
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-6">
+                    <div className="text-right">
+                      <div className="text-xs text-slate-500 font-bold uppercase tracking-wider">Visibility Score</div>
+                      <div className="text-2xl font-black bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">{visibilityScore}%</div>
+                    </div>
+                    <Button
+                      onClick={() => navigate({ to: "/dashboard/aeo-geo" })}
+                      className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs px-4 py-2 rounded-xl shadow-md shadow-purple-600/20 transition-all flex items-center gap-1"
+                    >
+                      Open Command Center <ArrowRight size={12} />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Instagram Analytics & Competitor Watch */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-                <div className="lg:col-span-1">
-                  <SocialMediaCenterCard />
+                <div className="lg:col-span-1 space-y-5 flex flex-col">
+                  <div className="flex-1">
+                    <SocialMediaCenterCard />
+                  </div>
+                  
+                  {/* Competitor Watch Card */}
+                  <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 shadow-xl shadow-gray-200/50 p-6 hover:shadow-2xl hover:shadow-gray-300/50 transition-all duration-300 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="font-bold text-base text-gray-900 flex items-center gap-1.5">
+                          <Users size={18} className="text-purple-500" />
+                          Competitor Watch
+                        </h3>
+                        <p className="text-xs text-gray-500">Real-time competitor analysis</p>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => navigate({ to: "/dashboard/competitor-analysis" })}
+                        className="text-purple-600 hover:text-purple-700 hover:bg-purple-50 text-[11px] font-bold p-1 h-auto flex items-center gap-0.5"
+                      >
+                        Details <ArrowRight size={11} />
+                      </Button>
+                    </div>
+
+                    {competitorsLoading ? (
+                      <div className="space-y-2 py-2">
+                        <div className="h-10 bg-gray-100 rounded-xl animate-pulse" />
+                        <div className="h-10 bg-gray-100 rounded-xl animate-pulse" />
+                      </div>
+                    ) : competitors.length === 0 ? (
+                      <div className="space-y-3">
+                        <p className="text-[10px] text-gray-500 font-medium text-center">No competitors monitored yet. Start tracking:</p>
+                        <div className="relative">
+                          <div className="flex gap-1.5">
+                            <div className="relative flex-1">
+                              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" size={11} />
+                              <input
+                                type="text"
+                                placeholder="Type competitor name..."
+                                value={quickAddName}
+                                onChange={(e) => handleQuickAddNameChange(e.target.value)}
+                                onFocus={() => setShowQuickSuggestions(true)}
+                                onBlur={() => setTimeout(() => setShowQuickSuggestions(false), 180)}
+                                onKeyDown={(e) => e.key === 'Enter' && handleQuickAdd()}
+                                className="w-full text-[10px] bg-white border border-gray-200 rounded-lg pl-7 pr-2 py-2 outline-none focus:border-purple-400 focus:ring-1 focus:ring-purple-100"
+                              />
+                            </div>
+                            <button
+                              onClick={() => handleQuickAdd()}
+                              disabled={isQuickAdding || !quickAddName.trim()}
+                              className="px-2.5 py-1.5 bg-purple-600 hover:bg-purple-700 text-white text-[10px] font-bold rounded-lg disabled:opacity-50 flex items-center gap-1 transition-colors"
+                            >
+                              {isQuickAdding ? <span className="animate-spin">↻</span> : <Plus size={11} />}
+                            </button>
+                          </div>
+                          {showQuickSuggestions && quickAddSuggestions.length > 0 && (
+                            <div className="absolute z-50 top-full mt-1 left-0 right-0 bg-white border border-gray-200 rounded-xl shadow-xl overflow-hidden">
+                              <p className="text-[8px] font-bold uppercase tracking-widest text-gray-400 px-3 pt-2 pb-0.5">Suggestions</p>
+                              <div className="max-h-36 overflow-y-auto">
+                                {quickAddSuggestions.slice(0, 6).map((sug, i) => (
+                                  <button
+                                    key={i}
+                                    type="button"
+                                    onMouseDown={() => { selectQuickSuggestion(sug); setTimeout(() => handleQuickAdd(sug), 100); }}
+                                    className="w-full text-left px-3 py-1.5 text-[10px] font-semibold text-gray-700 hover:bg-purple-50 flex items-center gap-2 transition-colors"
+                                  >
+                                    <span className="h-1.5 w-1.5 rounded-full bg-purple-400 shrink-0" />
+                                    {sug}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                        <Button
+                          size="sm"
+                          onClick={() => navigate({ to: "/dashboard/competitor-analysis" })}
+                          className="w-full bg-white border border-dashed border-gray-300 text-gray-500 hover:border-purple-300 hover:text-purple-600 font-bold text-[10px] py-1 px-3 rounded-lg h-auto"
+                          variant="ghost"
+                        >
+                          Open Full Competitor AI →
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="space-y-2.5">
+                        {competitors.slice(0, 3).map((comp) => (
+                          <div
+                            key={comp.id}
+                            onClick={() => navigate({ to: "/dashboard/competitor-analysis" })}
+                            className="flex items-center justify-between p-3 rounded-xl border border-gray-100 hover:border-purple-200 hover:bg-purple-50/20 transition-all cursor-pointer"
+                          >
+                            <div className="space-y-0.5 truncate pr-2">
+                              <h4 className="text-xs font-bold text-gray-800 truncate">{comp.name}</h4>
+                              {comp.location && (
+                                <p className="text-[10px] text-gray-400 font-medium flex items-center gap-0.5">
+                                  <MapPin size={9} />
+                                  {comp.location}
+                                </p>
+                              )}
+                            </div>
+                            
+                            <div className="shrink-0 flex items-center">
+                              <span className="text-[10px] font-bold bg-purple-500/10 text-purple-600 px-2 py-0.5 rounded-lg">
+                                Act: {comp.activity_score}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+
+                        {/* Quick add more — inline autocomplete at the bottom */}
+                        <div className="relative pt-1">
+                          <div className="flex gap-1.5">
+                            <div className="relative flex-1">
+                              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" size={11} />
+                              <input
+                                type="text"
+                                placeholder="Monitor another competitor..."
+                                value={quickAddName}
+                                onChange={(e) => handleQuickAddNameChange(e.target.value)}
+                                onFocus={() => setShowQuickSuggestions(true)}
+                                onBlur={() => setTimeout(() => setShowQuickSuggestions(false), 180)}
+                                onKeyDown={(e) => e.key === 'Enter' && handleQuickAdd()}
+                                className="w-full text-[10px] bg-white border border-gray-200 rounded-lg pl-7 pr-2 py-2 outline-none focus:border-purple-400 focus:ring-1 focus:ring-purple-100"
+                              />
+                            </div>
+                            <button
+                              onClick={() => handleQuickAdd()}
+                              disabled={isQuickAdding || !quickAddName.trim()}
+                              className="px-2.5 py-1.5 bg-purple-600 hover:bg-purple-700 text-white text-[10px] font-bold rounded-lg disabled:opacity-50 flex items-center gap-1 transition-colors"
+                            >
+                              {isQuickAdding ? <span className="animate-spin">↻</span> : <Plus size={11} />}
+                            </button>
+                          </div>
+                          {showQuickSuggestions && quickAddSuggestions.length > 0 && (
+                            <div className="absolute z-50 top-full mt-1 left-0 right-0 bg-white border border-gray-200 rounded-xl shadow-xl overflow-hidden">
+                              <p className="text-[8px] font-bold uppercase tracking-widest text-gray-400 px-3 pt-2 pb-0.5">Suggestions</p>
+                              <div className="max-h-36 overflow-y-auto">
+                                {quickAddSuggestions.slice(0, 6).map((sug, i) => (
+                                  <button
+                                    key={i}
+                                    type="button"
+                                    onMouseDown={() => { selectQuickSuggestion(sug); setTimeout(() => handleQuickAdd(sug), 100); }}
+                                    className="w-full text-left px-3 py-1.5 text-[10px] font-semibold text-gray-700 hover:bg-purple-50 flex items-center gap-2 transition-colors"
+                                  >
+                                    <span className="h-1.5 w-1.5 rounded-full bg-purple-400 shrink-0" />
+                                    {sug}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 {/* Growth journey with integrated daily task */}

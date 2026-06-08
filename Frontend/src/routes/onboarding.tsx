@@ -380,7 +380,7 @@ function OnboardingPage() {
       "Analyzing business strengths & weaknesses",
       "Researching competitor landscape",
       "Generating growth recommendations",
-      "Creating SEO & Google Maps tips",
+      "Creating Google Hub insights",
       "Finalizing your custom marketing blueprints"
     ];
 

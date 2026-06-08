@@ -15,17 +15,13 @@ def migrate_add_meta_ads_tables():
     try:
         logger.info("🔄 Running migration: add_meta_ads_tables")
         
+        from sqlalchemy import inspect
+        inspector = inspect(sync_engine)
+        if inspector.has_table("meta_accounts"):
+            logger.info("✅ Meta Ads tables already exist, skipping migration")
+            return
+            
         with sync_engine.begin() as conn:
-            # Check if tables already exist
-            result = conn.execute(text("""
-                SELECT table_name FROM information_schema.tables 
-                WHERE table_schema = 'public' AND table_name = 'meta_accounts'
-            """))
-            
-            if result.fetchone():
-                logger.info("✅ Meta Ads tables already exist, skipping migration")
-                return
-            
             # Create meta_accounts table
             conn.execute(text("""
                 CREATE TABLE IF NOT EXISTS meta_accounts (

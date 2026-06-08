@@ -279,7 +279,7 @@ function PricingPlansPage() {
                   className="mt-5 w-full"
                   variant={isCurrentPlan ? "hero" : isDowngrade ? "outline" : plan.key === "education" || plan.key === "business" ? "hero" : "outline"}
                   disabled={isCurrentPlan || isDowngrade}
-                  onClick={() => navigate({ to: "/dashboard/checkout", search: { plan: plan.key } })}
+                  onClick={() => navigate({ to: "/dashboard/checkout", search: { plan: plan.key, upgrade_from: currentKey || undefined } })}
                 >
                   {isCurrentPlan ? "Your chosen pack" : isDowngrade ? "Downgrade unavailable" : plan.cta}
                 </Button>

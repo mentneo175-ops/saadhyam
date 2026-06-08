@@ -35,6 +35,8 @@ interface Campaign {
   start_time?: string;
   end_time?: string;
   created_at: string;
+  message_content?: string;
+  recipient_list?: string[];
 }
 
 export function CampaignManager() {

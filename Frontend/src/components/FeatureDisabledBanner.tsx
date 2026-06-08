@@ -52,7 +52,7 @@ export function FeatureDisabledBanner() {
     website_ai: "Website AI",
     content_scheduler: "Content creator",
     voice_agent: "AI Voice Agent",
-    aeo_geo: "SEO & Google Maps",
+    aeo_geo: "Google Hub",
   }[String(blocked.feature_key || "").toLowerCase()] || featureName;
 
   const upgradePlans = isMaintenance ? [] : getUpgradePlansForFeature(featureRowName, currentPlanKey);

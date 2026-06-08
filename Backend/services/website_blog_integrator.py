@@ -38,8 +38,19 @@ async def integrate_blog_into_website(
         # Import here to avoid circular imports
         from ai_models.website_ai.app.db.models.website import Website
         
-        # Get website from database
-        website = db.query(Website).filter(Website.id == website_id).first()
+        # Get website from database - safely check if website_id is a valid UUID first
+        import uuid
+        is_uuid = False
+        try:
+            uuid.UUID(str(website_id))
+            is_uuid = True
+        except ValueError:
+            pass
+
+        if is_uuid:
+            website = db.query(Website).filter(Website.id == website_id).first()
+        else:
+            website = db.query(Website).filter(Website.slug == website_id).first()
         
         if not website:
             logger.error(f"[BlogIntegrator] Website {website_id} not found")

@@ -117,7 +117,7 @@ function MetricCard({
       whileHover={{ y: -6 }}
       transition={{ type: "spring", stiffness: 380, damping: 28 }}
       className={cn(
-        "group relative overflow-hidden rounded-3xl border border-border/50 bg-card/95 p-6 shadow-soft backdrop-blur-sm transition-shadow duration-300 hover:shadow-[0_16px_48px_-20px_oklch(0.45_0.15_295/0.18)] hover:ring-1 hover:ring-primary/10 md:p-7",
+        "group relative overflow-hidden rounded-3xl border border-slate-800 bg-slate-900/60 p-6 shadow-[0_4px_30px_rgba(0,0,0,0.4)] backdrop-blur-md transition-shadow duration-300 hover:shadow-[0_16px_48px_-20px_rgba(0,0,0,0.5)] hover:ring-1 hover:ring-purple-500/25 md:p-7",
         ringHover,
       )}
     >
@@ -130,7 +130,7 @@ function MetricCard({
       />
       <motion.div
         aria-hidden
-        className="pointer-events-none absolute -right-8 -top-8 h-28 w-28 rounded-full bg-primary/10 blur-2xl opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+        className="pointer-events-none absolute -right-8 -top-8 h-28 w-28 rounded-full bg-purple-500/10 blur-2xl opacity-0 transition-opacity duration-500 group-hover:opacity-100"
       />
 
       <div className="relative flex items-start justify-between gap-3">
@@ -150,16 +150,16 @@ function MetricCard({
       </div>
 
       <div className="relative mt-5">
-        <h3 className="text-sm font-semibold text-foreground">{label}</h3>
-        <p className="mt-0.5 text-[13px] leading-relaxed text-muted-foreground">{subtitle}</p>
+        <h3 className="text-sm font-semibold text-slate-100">{label}</h3>
+        <p className="mt-0.5 text-[13px] leading-relaxed text-slate-400">{subtitle}</p>
       </div>
 
       <div className="relative mt-5">
-        <div className="mb-1.5 flex justify-between text-[10px] font-medium text-muted-foreground">
+        <div className="mb-1.5 flex justify-between text-[10px] font-medium text-slate-400">
           <span>Insight depth</span>
-          <span className="font-semibold text-foreground/80">{Math.round(progress)}%</span>
+          <span className="font-semibold text-slate-200">{Math.round(progress)}%</span>
         </div>
-        <div className="h-2 overflow-hidden rounded-lg bg-muted/80 ring-1 ring-inset ring-border/30">
+        <div className="h-2 overflow-hidden rounded-lg bg-slate-950 ring-1 ring-inset ring-slate-800/80">
           <motion.div
             className={cn("h-full rounded-lg bg-gradient-to-r", barGradient)}
             initial={{ width: 0 }}

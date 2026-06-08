@@ -1,5 +1,6 @@
 import logging
 import asyncio
+import json
 from typing import Optional
 
 import httpx
@@ -22,6 +23,17 @@ FALLBACK_MODEL = "llama-3.1-8b-instant"  # Faster fallback model
 MAX_RETRIES = 3
 RETRY_DELAY_SECONDS = 2.0
 FALLBACK_MESSAGE = "I could not find enough information right now. Please try again with more details."
+
+
+def _safe_json_loads(value, default):
+    if value is None or value == "":
+        return default
+    if isinstance(value, (dict, list)):
+        return value
+    try:
+        return json.loads(value)
+    except Exception:
+        return default
 
 
 def get_business_context(db: Session, user: User) -> str:
@@ -47,13 +59,14 @@ def get_business_context(db: Session, user: User) -> str:
         if analysis.location:
             context_parts.append(f"Location: {analysis.location}")
         
-        import json
-        
         # SWOT Analysis (handle JSON string parsing safely)
         def parse_json_list(field):
-            if not field: return []
-            try: return json.loads(field) if isinstance(field, str) else field
-            except: return [field]
+            parsed = _safe_json_loads(field, [])
+            if isinstance(parsed, list):
+                return parsed
+            if parsed:
+                return [parsed]
+            return []
 
         strengths = parse_json_list(analysis.strengths)
         if strengths:
@@ -69,16 +82,50 @@ def get_business_context(db: Session, user: User) -> str:
         
         # Target audience
         if analysis.target_audience:
-            try:
-                ta = json.loads(analysis.target_audience)
-                context_parts.append(f"Target Audience: {ta.get('description', 'Not specified') if isinstance(ta, dict) else ta}")
-            except:
-                context_parts.append(f"Target Audience: {analysis.target_audience}")
+            ta = _safe_json_loads(analysis.target_audience, analysis.target_audience)
+            context_parts.append(
+                f"Target Audience: {ta.get('description', 'Not specified') if isinstance(ta, dict) else ta}"
+            )
         
         # USPs
         if hasattr(analysis, 'unique_selling_points') and getattr(analysis, 'unique_selling_points'):
             usps = parse_json_list(getattr(analysis, 'unique_selling_points'))
             context_parts.append(f"USPs: {', '.join(usps[:2])}")
+
+        # Full business/project summary and planning context
+        if getattr(analysis, 'business_summary', None):
+            context_parts.append(f"Business Summary: {analysis.business_summary}")
+        if getattr(analysis, 'services', None):
+            services = parse_json_list(getattr(analysis, 'services'))
+            if services:
+                context_parts.append(f"Services: {', '.join(str(item) for item in services[:5])}")
+        if getattr(analysis, 'goals', None):
+            goals = parse_json_list(getattr(analysis, 'goals'))
+            if goals:
+                context_parts.append(f"Goals: {', '.join(str(item) for item in goals[:5])}")
+        if getattr(analysis, 'website_or_instagram', None):
+            context_parts.append(f"Website or Instagram: {analysis.website_or_instagram}")
+
+        if getattr(analysis, 'competitor_analysis', None):
+            competitor_analysis = _safe_json_loads(getattr(analysis, 'competitor_analysis'), None)
+            if competitor_analysis:
+                context_parts.append(f"Competitor Analysis: {competitor_analysis}")
+        if getattr(analysis, 'local_market_insights', None):
+            local_market_insights = _safe_json_loads(getattr(analysis, 'local_market_insights'), None)
+            if local_market_insights:
+                context_parts.append(f"Local Market Insights: {local_market_insights}")
+        if getattr(analysis, 'thirty_day_growth_plan', None):
+            growth_plan = _safe_json_loads(getattr(analysis, 'thirty_day_growth_plan'), None)
+            if growth_plan:
+                context_parts.append(f"30 Day Growth Plan: {growth_plan}")
+        if getattr(analysis, 'seo_google_maps_tips', None):
+            seo_tips = _safe_json_loads(getattr(analysis, 'seo_google_maps_tips'), None)
+            if seo_tips:
+                context_parts.append(f"SEO and Google Maps Tips: {seo_tips}")
+        if getattr(analysis, 'daily_suggestions', None):
+            suggestions = _safe_json_loads(getattr(analysis, 'daily_suggestions'), [])
+            if suggestions:
+                context_parts.append(f"Daily Suggestions: {', '.join(str(item) for item in suggestions[:5])}")
         
         return "\n".join(context_parts)
         
@@ -233,17 +280,17 @@ async def generate_response(query: str, db: Session, user: User) -> str:
         return FALLBACK_MESSAGE
 
     # Build context-aware prompt with Pinecone data
-    system_prompt = """You are a smart business AI assistant with voice interaction capabilities.
+    system_prompt = """You are the user's business and project AI assistant.
 
 IMPORTANT RULES:
-1. Keep responses CONCISE and CONVERSATIONAL (2-3 sentences max for voice)
-2. Use the user's business context to personalize responses
-3. Use related questions to provide more relevant answers
-4. Provide actionable insights and recommendations
-5. Be friendly and professional
-6. If asked about business details, use the provided business context
-7. For market/general queries, use the live search data
-8. Always relate answers back to the user's business when relevant
+1. Answer both text and voice users with the same knowledge and accuracy
+2. Keep responses concise and conversational by default, but include all directly relevant details when the user asks for business or project details
+3. Use the user's business context, project context, and related questions to personalize responses
+4. If asked about the business, project, plans, services, goals, website, competitors, analytics, or strategy, use the provided context first
+5. If the answer is missing from context, say what is missing clearly instead of inventing it
+6. Use live search data for market or general questions only when it adds value
+7. Always relate answers back to the user's business or project when relevant
+8. Be friendly, professional, and easy to understand when spoken aloud
 
 Response style: Direct, helpful, and easy to understand when spoken aloud."""
 

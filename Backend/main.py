@@ -386,6 +386,22 @@ except Exception as e:
     task_tracking_available = False
 
 try:
+    from routes.radar import router as radar_router
+    radar_available = True
+    logging.info("✅ Radar AI router imported successfully")
+except Exception as e:
+    logging.warning(f"Radar AI router not available: {e}")
+    radar_available = False
+
+try:
+    from routes.competitor_intelligence import router as competitor_intelligence_router
+    competitor_intelligence_available = True
+    logging.info("✅ Competitor Intelligence AI router imported successfully")
+except Exception as e:
+    logging.warning(f"Competitor Intelligence AI router not available: {e}")
+    competitor_intelligence_available = False
+
+try:
     from routes.voice_agent import router as voice_agent_router
     voice_agent_available = True
     logging.info("✅ Voice Agent router imported successfully")
@@ -399,6 +415,14 @@ try:
     voice_agent_v2_available = False
 except Exception as e:
     voice_agent_v2_available = False
+
+try:
+    from routes.voice_command import router as voice_command_router
+    voice_command_available = True
+    logging.info("✅ Voice Command router imported successfully")
+except Exception as e:
+    logging.error(f"❌ Voice Command router not available: {e}")
+    voice_command_available = False
 
 try:
     from routes.webhooks import router as webhooks_router
@@ -450,6 +474,7 @@ except Exception as e:
 try:
     from ai_models.website_ai.app.api.v1.routes import generation as website_ai_generation
     from ai_models.website_ai.app.api.v1.routes import jobs as website_ai_jobs
+    from ai_models.website_ai.app.api.v1.routes import websites as website_ai_websites
     from ai_models.website_ai.app.routes import website as website_ai_website
     from ai_models.website_ai.app.routes import api as website_ai_api
     website_ai_available = True
@@ -926,6 +951,12 @@ if review_reply_available:
 if profile_available:
     app.include_router(profile_router)
     logging.info("✅ Profile router included in app")
+if radar_available:
+    app.include_router(radar_router)
+    logging.info("✅ Radar AI router included in app")
+if competitor_intelligence_available:
+    app.include_router(competitor_intelligence_router)
+    logging.info("✅ Competitor Intelligence AI router included in app")
 if assistant_available:
     app.include_router(assistant_router)
 if content_creator_available:
@@ -995,9 +1026,14 @@ if task_tracking_available:
     app.include_router(task_tracking_router)
     logging.info("✅ Task Tracking router included in app")
 if voice_agent_available:
-    app.include_router(voice_agent_router, prefix="/api")
-    app.include_router(voice_agent_router, prefix="/api/voice-agent")
-    logging.info("✅ Voice Agent router included in app under prefixes /api and /api/voice-agent")
+    app.include_router(voice_agent_router)
+    logging.info("✅ Voice Agent router included in app")
+if voice_agent_v2_available:
+    app.include_router(voice_agent_v2_router)
+    logging.info("✅ Voice Agent V2 router included in app")
+if voice_command_available:
+    app.include_router(voice_command_router, prefix="/api/voice-command")
+    logging.info("✅ Voice Command router included in app")
 if webhooks_available:
     app.include_router(webhooks_router)
     logging.info("✅ Webhooks router included in app")
@@ -1028,6 +1064,11 @@ if website_ai_available:
     )
     app.include_router(
         website_ai_jobs.router,
+        prefix="/api/v1/website-ai",
+        tags=["website-ai"],
+    )
+    app.include_router(
+        website_ai_websites.router,
         prefix="/api/v1/website-ai",
         tags=["website-ai"],
     )
@@ -1204,5 +1245,6 @@ if __name__ == "__main__":
         "main:sio_asgi_app",  # Use Socket.IO wrapper for WebSocket support
         host="0.0.0.0",
         port=8000,
-        log_level="info"
+        log_level="info",
+        reload=True
     )

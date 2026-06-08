@@ -13,21 +13,15 @@ def migrate_add_session_tracking():
     """Add session tracking fields to users table"""
     
     try:
+        from sqlalchemy import inspect
+        inspector = inspect(sync_engine)
+        existing_columns = [col["name"] for col in inspector.get_columns("users")]
+        
+        if all(col in existing_columns for col in ('active_session_token', 'session_created_at', 'session_ip_address', 'session_user_agent')):
+            logger.info("✅ Session tracking columns already exist")
+            return
+            
         with sync_engine.connect() as conn:
-            # Check if columns already exist
-            check_query = text("""
-                SELECT column_name 
-                FROM information_schema.columns 
-                WHERE table_name = 'users' 
-                AND column_name IN ('active_session_token', 'session_created_at', 'session_ip_address', 'session_user_agent')
-            """)
-            
-            result = conn.execute(check_query)
-            existing_columns = [row[0] for row in result]
-            
-            if len(existing_columns) == 4:
-                logger.info("✅ Session tracking columns already exist")
-                return
             
             logger.info("🔄 Adding session tracking columns to users table...")
             

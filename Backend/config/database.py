@@ -57,9 +57,15 @@ else:
         else:
             ASYNC_DATABASE_URL = DATABASE_URL
         
-        # Remove sslmode from URL as asyncpg handles SSL differently
-        if "?sslmode=require" in ASYNC_DATABASE_URL:
-            ASYNC_DATABASE_URL = ASYNC_DATABASE_URL.replace("?sslmode=require", "")
+        # Remove sslmode and channel_binding from URL query string if present, as asyncpg handles SSL differently
+        from urllib.parse import urlparse, parse_qs, urlunparse, urlencode
+        parsed_url = urlparse(ASYNC_DATABASE_URL)
+        query_params = parse_qs(parsed_url.query)
+        query_params.pop("sslmode", None)
+        query_params.pop("channel_binding", None)
+        new_query = urlencode(query_params, doseq=True)
+        parsed_url = parsed_url._replace(query=new_query)
+        ASYNC_DATABASE_URL = urlunparse(parsed_url)
         
         # Create async engine with asyncpg
         async_engine = create_async_engine(

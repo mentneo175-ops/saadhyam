@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import { apiClient } from "@/lib/api";
 import { Loader2, CheckCircle2, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export const InstagramOAuthCallback = () => {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const searchParams = new URLSearchParams(typeof window !== "undefined" ? window.location.search : "");
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
   const [message, setMessage] = useState("");
 

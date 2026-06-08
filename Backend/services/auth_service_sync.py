@@ -157,23 +157,11 @@ def get_user_by_id(db: Session, user_id: int) -> User:
     for attempt in range(max_retries):
         try:
             user = db.query(User).filter(User.id == user_id).first()
+            return user  # Returns None if not found; caller handles auth errors
 
-            if not user:
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail="User not found",
-                )
-
-            return user
-
-        except HTTPException:
-            raise
         except Exception as e:
             logger.warning(f"Error fetching user (attempt {attempt + 1}): {e}")
             if attempt == max_retries - 1:
                 logger.error(f"Failed to fetch user after all attempts: {e}")
-                raise HTTPException(
-                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    detail="Internal server error",
-                )
+                return None
             db.rollback()

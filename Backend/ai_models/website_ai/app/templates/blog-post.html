@@ -6,6 +6,9 @@
     <title>{{ title }} - {{ business_name }}</title>
     <meta name="description" content="{{ meta_description }}">
     <meta name="keywords" content="{{ keywords }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -13,138 +16,208 @@
             box-sizing: border-box;
         }
         
+        :root {
+            --bg-color: #faf9f6;
+            --text-dark: #0f172a;
+            --text-muted: #475569;
+            --accent-color: #4f46e5;
+            --border-color: rgba(226, 232, 240, 0.8);
+            --transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: var(--bg-color);
+            color: var(--text-dark);
             line-height: 1.8;
-            color: #2c3e50;
-            background: #f8f9fa;
+            padding-bottom: 80px;
         }
         
         .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #0e1227 0%, #03040c 100%);
             color: white;
-            padding: 80px 40px 60px;
+            padding: 120px 24px 100px;
             text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(79, 70, 229, 0.15) 0%, transparent 60%);
+            pointer-events: none;
         }
         
         .header-category {
             display: inline-block;
-            padding: 8px 16px;
-            background: rgba(255, 255, 255, 0.2);
+            padding: 6px 16px;
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: 20px;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 600;
             margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            backdrop-filter: blur(10px);
         }
         
         .header h1 {
-            font-size: 56px;
+            font-family: 'Outfit', sans-serif;
+            font-size: clamp(32px, 5vw, 56px);
             font-weight: 800;
-            margin-bottom: 20px;
-            line-height: 1.2;
+            line-height: 1.15;
+            margin-bottom: 24px;
+            letter-spacing: -0.02em;
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
         }
         
         .header-meta {
-            font-size: 16px;
-            opacity: 0.9;
+            font-size: 14px;
+            opacity: 0.8;
             display: flex;
             justify-content: center;
-            gap: 30px;
+            gap: 24px;
             flex-wrap: wrap;
+            font-weight: 300;
         }
         
         .article-container {
-            max-width: 800px;
-            margin: -40px auto 80px;
+            max-width: 840px;
+            margin: -60px auto 80px;
             background: white;
-            border-radius: 20px;
-            padding: 60px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            border-radius: 28px;
+            padding: 60px 80px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.03);
+            border: 1px solid var(--border-color);
+            position: relative;
+            z-index: 10;
+        }
+        
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 40px;
+            color: var(--accent-color);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 15px;
+            transition: var(--transition);
+        }
+        
+        .back-link:hover {
+            transform: translateX(-4px);
         }
         
         .introduction {
-            font-size: 20px;
-            color: #4a5568;
+            font-size: 19px;
+            color: #334155;
             margin-bottom: 40px;
             line-height: 1.8;
+            font-weight: 300;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            padding-bottom: 30px;
         }
         
         .main-content h2 {
-            font-size: 32px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 28px;
             font-weight: 700;
-            margin: 50px 0 20px;
-            color: #2c3e50;
+            margin: 40px 0 20px;
+            color: var(--text-dark);
+            letter-spacing: -0.01em;
         }
         
         .main-content h3 {
-            font-size: 24px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 20px;
             font-weight: 600;
             margin: 30px 0 15px;
-            color: #4a5568;
+            color: #334155;
         }
         
         .main-content p {
-            font-size: 18px;
-            margin-bottom: 20px;
-            line-height: 1.8;
+            font-size: 16px;
+            margin-bottom: 24px;
+            color: var(--text-muted);
+            font-weight: 300;
         }
         
         .main-content ul, .main-content ol {
-            margin: 20px 0 20px 30px;
+            margin: 20px 0 20px 24px;
+            font-size: 16px;
+            color: var(--text-muted);
+            font-weight: 300;
         }
         
         .main-content li {
-            font-size: 18px;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
         
         .conclusion {
-            font-size: 18px;
+            font-size: 16px;
             margin: 40px 0;
             padding: 30px;
-            background: #f8f9fa;
-            border-left: 4px solid #667eea;
-            border-radius: 8px;
+            background: rgba(79, 70, 229, 0.03);
+            border-left: 4px solid var(--accent-color);
+            border-radius: 12px;
+            color: var(--text-muted);
+            font-weight: 300;
         }
         
         .faq-section {
             margin: 60px 0;
             padding: 40px;
-            background: #f8f9fa;
-            border-radius: 16px;
+            background: var(--bg-color);
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
         }
         
         .faq-section h2 {
-            font-size: 32px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 26px;
             font-weight: 700;
             margin-bottom: 30px;
-            color: #2c3e50;
+            color: var(--text-dark);
         }
         
         .faq-item {
             background: white;
-            padding: 24px;
+            padding: 20px 24px;
             border-radius: 12px;
             margin-bottom: 16px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border-color);
         }
         
         .faq-item summary {
+            font-family: 'Outfit', sans-serif;
             font-weight: 600;
             cursor: pointer;
-            color: #2c3e50;
-            font-size: 18px;
+            color: var(--text-dark);
+            font-size: 17px;
             list-style: none;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
         
+        .faq-item summary::-webkit-details-marker {
+            display: none;
+        }
+        
         .faq-item summary::after {
             content: '+';
-            font-size: 24px;
-            color: #667eea;
-            transition: transform 0.3s;
+            font-size: 20px;
+            color: var(--accent-color);
+            transition: var(--transition);
         }
         
         .faq-item[open] summary::after {
@@ -153,96 +226,88 @@
         
         .faq-item p {
             margin-top: 16px;
-            color: #6c757d;
-            line-height: 1.7;
+            color: var(--text-muted);
+            font-size: 14px;
+            font-weight: 300;
         }
         
         .cta-section {
             margin: 60px 0;
-            padding: 50px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 60px 40px;
+            background: linear-gradient(135deg, #0e1227 0%, #03040c 100%);
             color: white;
-            border-radius: 20px;
+            border-radius: 24px;
             text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .cta-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 50% -20%, rgba(79, 70, 229, 0.15) 0%, transparent 60%);
+            pointer-events: none;
         }
         
         .cta-section h2 {
-            font-size: 36px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 30px;
             margin-bottom: 16px;
         }
         
         .cta-section p {
-            font-size: 18px;
+            font-size: 16px;
             margin-bottom: 30px;
-            opacity: 0.95;
+            opacity: 0.9;
+            font-weight: 300;
         }
         
         .cta-button {
             display: inline-block;
-            padding: 16px 40px;
+            padding: 14px 32px;
             background: white;
-            color: #667eea;
+            color: #03040c;
             text-decoration: none;
             border-radius: 50px;
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 600;
-            transition: all 0.3s;
+            transition: var(--transition);
         }
         
         .cta-button:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 10px 25px rgba(255, 255, 255, 0.1);
         }
         
         .tags {
-            margin: 40px 0;
+            margin: 40px 0 0;
             display: flex;
             flex-wrap: wrap;
             gap: 10px;
         }
         
         .tag {
-            padding: 8px 16px;
-            background: #e9ecef;
-            color: #667eea;
+            padding: 6px 14px;
+            background: rgba(79, 70, 229, 0.06);
+            color: var(--accent-color);
             border-radius: 20px;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 600;
-        }
-        
-        .back-link {
-            display: inline-block;
-            margin-bottom: 40px;
-            color: #667eea;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 16px;
-        }
-        
-        .back-link:hover {
-            text-decoration: underline;
         }
         
         @media (max-width: 768px) {
-            .header h1 {
-                font-size: 36px;
+            .header {
+                padding: 100px 24px 80px;
             }
             
             .article-container {
-                padding: 30px 20px;
-                margin: -20px 20px 40px;
-            }
-            
-            .main-content h2 {
-                font-size: 24px;
-            }
-            
-            .main-content h3 {
-                font-size: 20px;
-            }
-            
-            .main-content p, .main-content li {
-                font-size: 16px;
+                padding: 40px 24px;
+                margin: -40px 20px 40px;
+                border-radius: 20px;
             }
         }
     </style>
@@ -259,7 +324,13 @@
     </header>
     
     <article class="article-container">
-        <a href="blogs.html" class="back-link">← Back to Blog</a>
+        <a href="blogs.html" class="back-link">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="19" y1="12" x2="5" y2="12"></line>
+                <polyline points="12 19 5 12 12 5"></polyline>
+            </svg>
+            Back to Blog
+        </a>
         
         <div class="introduction">
             {{ introduction }}

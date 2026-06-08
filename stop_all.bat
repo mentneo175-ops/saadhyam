@@ -38,6 +38,8 @@ for /f "tokens=5" %%a in ('netstat -aon ^| findstr :8000') do taskkill /F /PID %
 for /f "tokens=5" %%a in ('netstat -aon ^| findstr :9000') do taskkill /F /PID %%a >nul 2>&1
 for /f "tokens=5" %%a in ('netstat -aon ^| findstr :5173') do taskkill /F /PID %%a >nul 2>&1
 for /f "tokens=5" %%a in ('netstat -aon ^| findstr :8080') do taskkill /F /PID %%a >nul 2>&1
+for /f "tokens=5" %%a in ('netstat -aon ^| findstr :8081') do taskkill /F /PID %%a >nul 2>&1
+for /f "tokens=5" %%a in ('netstat -aon ^| findstr :8082') do taskkill /F /PID %%a >nul 2>&1
 echo [SUCCESS] Ports cleaned
 echo.
 

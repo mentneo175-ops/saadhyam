@@ -5,8 +5,11 @@ API endpoints for generating marketing content
 
 import logging
 from typing import Literal
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel, Field
+from models.user import User
+from utils.dependencies import get_current_user
+from utils.feature_gate import check_feature_access
 
 from services.content_creator_service import generate_content
 
@@ -20,16 +23,20 @@ router = APIRouter(
 
 class ContentGenerationRequest(BaseModel):
     """Request model for content generation"""
-    business_type: str = Field(..., min_length=1, description="Type of business (e.g., Salon, Restaurant)")
-    platform: str = Field(..., description="Social media platform")
-    goal: str = Field(..., description="Content goal")
-    tone: str = Field(..., description="Content tone")
-    language: str = Field(..., description="Content language (english, hindi, telugu)")
+    business_type: str = Field(default="General Business", description="Type of business (e.g., Salon, Restaurant)")
+    platform: str = Field(default="instagram", description="Social media platform")
+    goal: str = Field(default="engagement", description="Content goal")
+    tone: str = Field(default="friendly", description="Content tone")
+    language: str = Field(default="english", description="Content language (english, hindi, telugu)")
     user_input: str = Field(default="", description="Optional raw user description of what they want")
     
     def __init__(self, **data):
+        # Normalize business_type
+        if 'business_type' not in data or not data['business_type']:
+            data['business_type'] = 'General Business'
+
         # Normalize platform
-        if 'platform' in data:
+        if 'platform' in data and isinstance(data['platform'], str):
             platform = data['platform'].lower()
             platform_map = {
                 'instagram': 'instagram',
@@ -39,9 +46,11 @@ class ContentGenerationRequest(BaseModel):
                 'fb': 'facebook'
             }
             data['platform'] = platform_map.get(platform, 'instagram')
+        else:
+            data['platform'] = 'instagram'
         
         # Normalize goal
-        if 'goal' in data:
+        if 'goal' in data and isinstance(data['goal'], str):
             goal = data['goal'].lower()
             goal_map = {
                 'promotion': 'promotion',
@@ -51,9 +60,11 @@ class ContentGenerationRequest(BaseModel):
                 'brand': 'branding'
             }
             data['goal'] = goal_map.get(goal, 'promotion')
+        else:
+            data['goal'] = 'engagement'
         
         # Normalize language to lowercase and map variants
-        if 'language' in data:
+        if 'language' in data and isinstance(data['language'], str):
             lang = data['language'].lower()
             # Map common variants
             lang_map = {
@@ -63,9 +74,11 @@ class ContentGenerationRequest(BaseModel):
                 'tamil': 'english'  # Fallback Tamil to English for now
             }
             data['language'] = lang_map.get(lang, 'english')
+        else:
+            data['language'] = 'english'
         
         # Normalize tone to lowercase
-        if 'tone' in data:
+        if 'tone' in data and isinstance(data['tone'], str):
             tone = data['tone'].lower()
             tone_map = {
                 'professional': 'professional',
@@ -77,6 +90,8 @@ class ContentGenerationRequest(BaseModel):
                 'formal': 'professional'
             }
             data['tone'] = tone_map.get(tone, 'friendly')
+        else:
+            data['tone'] = 'friendly'
             
         super().__init__(**data)
 
@@ -89,7 +104,10 @@ class ContentGenerationResponse(BaseModel):
 
 
 @router.post("/generate", response_model=ContentGenerationResponse)
-def generate_content_endpoint(request: ContentGenerationRequest):
+async def generate_content_endpoint(
+    request: ContentGenerationRequest,
+    current_user: User = Depends(get_current_user)
+):
     """
     Generate marketing content for social media using AI
     
@@ -111,6 +129,9 @@ def generate_content_endpoint(request: ContentGenerationRequest):
     - Uses real business language
     """
     try:
+        # Check feature access
+        await check_feature_access(current_user, "content_scheduler")
+        
         logger.info(f"🚀 Content generation request received")
         logger.info(f"   Business: {request.business_type}")
         logger.info(f"   Platform: {request.platform}")

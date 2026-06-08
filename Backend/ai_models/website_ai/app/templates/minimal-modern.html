@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ data.business_name }} | Minimal Modern</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/website-ai/static/theme-adapter.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        :root {
+            --bg-color: #faf9f6;
+            --text-color: #18181b;
+            --text-muted: #71717a;
+            --border-color: #e4e4e7;
+            --font-headings: 'Outfit', sans-serif;
+            --font-body: 'Plus Jakarta Sans', sans-serif;
+        }
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-color);
+            color: var(--text-color);
+            padding: 60px 40px;
+            line-height: 1.8;
+        }
+        h1, h2, h3 { font-family: var(--font-headings); font-weight: 500; letter-spacing: -0.03em; }
+        
+        /* Minimal Top Navigation */
+        .navbar {
+            max-width: 1000px; margin: 0 auto 80px; display: flex; justify-content: space-between; align-items: center;
+        }
+        .nav-logo { font-size: 20px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--text-color); text-decoration: none; }
+        .nav-links { list-style: none; display: flex; gap: 32px; }
+        .nav-links a { color: var(--text-muted); text-decoration: none; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.5px; transition: color 0.2s; }
+        .nav-links a:hover { color: var(--text-color); }
+        
+        /* Off-center Hero */
+        .hero {
+            max-width: 800px; margin: 0 auto 120px 10%; padding-right: 40px;
+        }
+        .hero-tag { font-size: 11px; text-transform: uppercase; letter-spacing: 3px; color: var(--text-muted); margin-bottom: 24px; display: block; }
+        .hero h1 { font-size: clamp(38px, 6vw, 64px); line-height: 1.1; margin-bottom: 32px; font-weight: 600; }
+        .hero p { font-size: 20px; font-weight: 300; color: var(--text-muted); margin-bottom: 40px; }
+        .btn-minimal {
+            display: inline-block; padding: 14px 28px; border: 1.5px solid var(--text-color); color: var(--text-color); text-decoration: none; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.5px; transition: all 0.3s;
+        }
+        .btn-minimal:hover { background: var(--text-color); color: white; }
+        
+        /* Section layouts (Asymmetric whitespace) */
+        .sec {
+            max-width: 1000px; margin: 0 auto 140px; display: grid; grid-template-columns: 300px 1fr; gap: 60px;
+        }
+        .sec-header h2 { font-size: 32px; font-weight: 500; }
+        
+        /* About layout (Simple list) */
+        .about-text { font-size: 18px; font-weight: 300; color: var(--text-muted); }
+        .about-support { margin-top: 24px; font-size: 14px; color: var(--text-color); font-weight: 600; border-left: 2px solid var(--text-color); padding-left: 16px; }
+        
+        /* Services layout (Linear list with divides) */
+        .services-list { display: flex; flex-direction: column; }
+        .service-row { border-top: 1.5px solid var(--border-color); padding: 32px 0; display: grid; grid-template-columns: 1.5fr 2fr; gap: 40px; }
+        .service-row:last-child { border-bottom: 1.5px solid var(--border-color); }
+        .service-row h3 { font-size: 20px; font-weight: 600; }
+        .service-row p { color: var(--text-muted); font-size: 14px; }
+        
+        /* FAQ layout (Clean hairline lines) */
+        .faq-accordion { display: flex; flex-direction: column; }
+        .faq-item { border-top: 1px solid var(--border-color); }
+        .faq-item:last-child { border-bottom: 1px solid var(--border-color); }
+        .faq-item summary { padding: 24px 0; font-weight: 600; cursor: pointer; list-style: none; display: flex; justify-content: space-between; }
+        .faq-item summary::after { content: '↓'; font-weight: 300; }
+        .faq-item[open] summary::after { content: '↑'; }
+        .faq-item p { padding: 0 0 24px; color: var(--text-muted); font-size: 15px; }
+        
+        /* Blog grid */
+        .blog-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+        .blog-card { cursor: pointer; border-top: 1.5px solid var(--border-color); padding-top: 24px; }
+        .blog-card:hover h4 { color: var(--text-muted); }
+        .blog-card h4 { font-family: var(--font-headings); font-size: 18px; font-weight: 600; margin-bottom: 8px; }
+        .blog-card p { font-size: 13px; color: var(--text-muted); }
+        .blog-loading { color: var(--text-muted); }
+        
+        /* Contact Block */
+        .contact-layout { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 40px; }
+        .contact-form { display: flex; flex-direction: column; gap: 24px; }
+        .form-group { display: flex; flex-direction: column; gap: 8px; }
+        .form-group input, .form-group textarea {
+            padding: 12px 0; border: none; border-bottom: 1.5px solid var(--border-color); background: transparent; font-family: inherit; font-size: 15px; color: var(--text-color);
+        }
+        .form-group input:focus, .form-group textarea:focus { outline: none; border-bottom-color: var(--text-color); }
+        
+        .footer { max-width: 1000px; margin: 80px auto 0; padding-top: 40px; border-top: 1.5px solid var(--border-color); display: flex; justify-content: space-between; font-size: 13px; color: var(--text-muted); }
+        
+        @media (max-width: 992px) {
+            .sec { grid-template-columns: 1fr; gap: 24px; }
+            .hero { margin-left: 0; }
+            .service-row { grid-template-columns: 1fr; gap: 12px; }
+            .blog-grid { grid-template-columns: 1fr; }
+            .contact-layout { grid-template-columns: 1fr; }
+        }
+    </style>
+    <script src="/website-ai/static/editor.js" defer></script>
+</head>
+<body data-theme="minimal-modern">
+    <nav class="navbar">
+        <a href="#" class="nav-logo">{{ data.business_name }}</a>
+        <ul class="nav-links">
+            <li><a href="#about">About</a></li>
+            <li><a href="#services">Services</a></li>
+            <li><a href="#faq">FAQ</a></li>
+            <li><a href="#blog">Blog</a></li>
+            <li><a href="#contact">Contact</a></li>
+        </ul>
+    </nav>
+
+    <header class="hero">
+        <span class="hero-tag">✨ Manifesto</span>
+        <h1>Minimal designs, built with spacious elegance.</h1>
+        <p>{{ content.about }}</p>
+        <a href="#contact" class="btn-minimal">Start Your Project</a>
+    </header>
+
+    <main>
+        <!-- ABOUT -->
+        <section id="about" class="sec">
+            <div class="sec-header">
+                <h2>Manifesto</h2>
+            </div>
+            <div class="about-text">
+                <p class="lede" style="font-size: 20px; line-height: 1.8; color: var(--text-color); margin-bottom: 24px;">{{ content.about }}</p>
+                <p class="about-support">{{ theme_state.support_line }} We Pair asymmetric layout spacing with fine hairline borders to establish premium digital profiles.</p>
+            </div>
+        </section>
+
+        <!-- SERVICES -->
+        <section id="services" class="sec">
+            <div class="sec-header">
+                <h2>Services</h2>
+            </div>
+            <div class="services-list">
+                {% for service in content.services %}
+                <div class="service-row service-card">
+                    <h3>{{ service.name }}</h3>
+                    <p>{{ service.description }}</p>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+
+        <!-- FAQ -->
+        <section id="faq" class="sec">
+            <div class="sec-header">
+                <h2>Inquiries</h2>
+            </div>
+            <div class="faq-accordion">
+                {% for item in content.faq %}
+                <details class="faq-item">
+                    <summary>{{ item.question }}</summary>
+                    <p>{{ item.answer }}</p>
+                </details>
+                {% endfor %}
+            </div>
+        </section>
+
+        <!-- BLOG -->
+        <section id="blog" class="sec">
+            <div class="sec-header">
+                <h2>Chronicle</h2>
+            </div>
+            <div id="blog-posts-container" class="blog-grid">
+                <div class="blog-loading">Reading insights feed...</div>
+            </div>
+        </section>
+
+        <!-- CONTACT -->
+        <section id="contact" class="sec" style="margin-bottom: 0;">
+            <div class="sec-header">
+                <h2>Connect</h2>
+            </div>
+            <div class="contact-layout">
+                <form class="contact-form" onsubmit="event.preventDefault(); alert('Message sent!');">
+                    <div class="form-group">
+                        <input type="text" placeholder="Name" required />
+                    </div>
+                    <div class="form-group">
+                        <input type="email" placeholder="Email Address" required />
+                    </div>
+                    <div class="form-group">
+                        <textarea rows="4" placeholder="Briefly describe your objectives..." required></textarea>
+                    </div>
+                    <button type="submit" class="btn-minimal" style="align-self: flex-start; cursor: pointer;">Send Message</button>
+                </form>
+                <div class="lede" style="color: var(--text-muted); font-size: 15px;">
+                    <p>{{ content.contact }}</p>
+                    <p style="margin-top: 32px;">{{ data.contact_email or 'hello@saadhyam.ai' }}<br/>{{ data.contact_phone or '+1 (555) 918-0928' }}</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <span>&copy; 2026 {{ data.business_name }}</span>
+        <span>Minimal Modern. All rights reserved.</span>
+    </footer>
+
+    <script>
+        async function loadBlogPosts() {
+            const container = document.getElementById('blog-posts-container');
+            try {
+                const response = await fetch('blogs.json');
+                if (!response.ok) throw new Error('No blogs');
+                const data = await response.json();
+                const blogs = data.blogs || [];
+                if (blogs.length === 0) {
+                    container.innerHTML = '<p class="blog-loading">No blog posts yet.</p>';
+                    return;
+                }
+                container.innerHTML = blogs.slice(0, 3).map(blog => `
+                    <div class="blog-card" onclick="window.location.href='blog-\${blog.slug}.html'">
+                        <h4>\${blog.title}</h4>
+                        <p>\${blog.meta_description || 'Click to view full insight article'}</p>
+                    </div>
+                `).join('');
+            } catch (error) {
+                container.innerHTML = '<p class="blog-loading">No blog posts yet.</p>';
+            }
+        }
+        document.addEventListener('DOMContentLoaded', loadBlogPosts);
+    </script>
+</body>
+</html>

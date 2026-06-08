@@ -23,22 +23,19 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
 
   // Connect when user is authenticated
   useEffect(() => {
-    if (user?.uid) {
-      console.log('🔌 RealtimeProvider: Connecting for user', user.uid);
+    if (user?.id) {
+      console.log('🔌 RealtimeProvider: Connecting for user', user.id);
       
-      // Use a numeric user ID (you might need to get this from your user profile)
-      // For now, using a hash of the uid
-      const numericUserId = Math.abs(hashCode(user.uid));
-      realtimeService.connect(numericUserId);
+      realtimeService.connect(user.id);
     }
 
     return () => {
-      if (user?.uid) {
+      if (user?.id) {
         console.log('🔌 RealtimeProvider: Disconnecting');
         realtimeService.disconnect();
       }
     };
-  }, [user?.uid]);
+  }, [user?.id]);
 
   // Listen for connection status
   useEffect(() => {
@@ -92,9 +89,8 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const connect = () => {
-    if (user?.uid) {
-      const numericUserId = Math.abs(hashCode(user.uid));
-      realtimeService.connect(numericUserId);
+    if (user?.id) {
+      realtimeService.connect(user.id);
     }
   };
 

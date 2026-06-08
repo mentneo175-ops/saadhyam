@@ -35,6 +35,8 @@ import {
   Youtube,
   Share2,
   LifeBuoy,
+  Radio,
+  Puzzle,
 } from "lucide-react";
 
 type SubNavItem = {
@@ -54,11 +56,12 @@ type NavItem = {
 const items: NavItem[] = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { to: "/dashboard/business-analysis", label: "Business Analysis", icon: Sparkles },
+  { to: "/dashboard/radar", label: "Radar AI", icon: Radio },
   { to: "/dashboard/agents", label: "AI Agents", icon: Bot },
   { to: "/dashboard/competitor-analysis", label: "Competitor Analysis", icon: Users },
   { to: "/dashboard/daily-ask", label: "Daily Suggestions", icon: Calendar },
   { to: "/dashboard/aeo-geo", label: "AEO & GEO", icon: Brain },
-  { to: "/dashboard/seo-google-maps", label: "SEO & Google Maps", icon: Search },
+  { to: "/dashboard/seo-google-maps", label: "Google Hub", icon: Search },
   { to: "/dashboard/b2b-network", label: "B2B Network", icon: Network },
   { to: "/dashboard/b2b-chat", label: "B2B Chat", icon: MessageSquare },
   { to: "/dashboard/content", label: "Content Creator", icon: Wand2 },
@@ -75,6 +78,7 @@ const items: NavItem[] = [
   { to: "/dashboard/voice-agent", label: "AI Voice Agent", icon: Phone },
   { to: "/dashboard/website", label: "Website AI", icon: FileText },
   { to: "/dashboard/review-reply", label: "Review Reply", icon: MessageSquare },
+  { to: "/dashboard/plugins", label: "Plugins Store", icon: Puzzle },
   { to: "/dashboard/pricing", label: "Pricing", icon: DollarSign },
   // { to: "/dashboard/automation", label: "Automation", icon: Workflow },
   { to: "/dashboard/settings", label: "Settings", icon: Settings },

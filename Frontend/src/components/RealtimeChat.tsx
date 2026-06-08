@@ -25,7 +25,7 @@ export function RealtimeChat({ conversationId, onSendMessage }: RealtimeChatProp
   const typingTimeoutRef = useRef<NodeJS.Timeout>();
 
   // Get numeric user ID (you might need to fetch this from your user profile)
-  const numericUserId = user?.uid ? Math.abs(hashCode(user.uid)) : null;
+  const numericUserId = user?.id || null;
 
   const {
     isConnected,

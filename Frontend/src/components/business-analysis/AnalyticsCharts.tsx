@@ -22,11 +22,12 @@ type SwotPoint = { name: string; value: number; color: string };
 
 const tooltipStyle = {
   borderRadius: 10,
-  border: "1px solid oklch(0.92 0.02 295 / 0.8)",
-  boxShadow: "0 8px 24px -8px oklch(0.45 0.15 295 / 0.2)",
+  border: "1px solid oklch(0.28 0.02 260 / 0.8)",
+  boxShadow: "0 8px 24px -8px rgba(0, 0, 0, 0.5)",
   fontSize: 12,
-  background: "oklch(0.99 0.005 300 / 0.95)",
+  background: "oklch(0.18 0.02 260 / 0.95)",
   backdropFilter: "blur(8px)",
+  color: "#f8fafc",
 };
 
 function ChartShell({
@@ -43,7 +44,7 @@ function ChartShell({
       animate="show"
       transition={{ delay }}
       whileHover={{ y: -4 }}
-      className="group relative overflow-hidden rounded-3xl border border-border/50 bg-gradient-to-b from-card via-card to-primary/[0.03] p-7 shadow-soft backdrop-blur-md transition-shadow duration-300 hover:border-primary/15 hover:shadow-[0_24px_56px_-24px_oklch(0.45_0.18_295/0.18)] md:p-8"
+      className="group relative overflow-hidden rounded-3xl border border-slate-800 bg-gradient-to-b from-slate-900/60 to-slate-950/40 p-7 shadow-[0_4px_30px_rgba(0,0,0,0.4)] backdrop-blur-md transition-shadow duration-300 hover:border-purple-500/30 hover:shadow-[0_24px_56px_-24px_rgba(0,0,0,0.5)] md:p-8"
     >
       <div
         aria-hidden
@@ -96,15 +97,15 @@ export function AnalyticsSection({
                   <stop offset="100%" stopColor="oklch(0.65 0.2 330)" />
                 </linearGradient>
               </defs>
-              <PolarGrid stroke="oklch(0.93 0.015 290)" />
+              <PolarGrid stroke="oklch(0.28 0.02 260)" />
               <PolarAngleAxis
                 dataKey="category"
-                tick={{ fill: "oklch(0.42 0.04 280)", fontSize: 11, fontWeight: 500 }}
+                tick={{ fill: "oklch(0.85 0.01 260)", fontSize: 11, fontWeight: 500 }}
               />
               <PolarRadiusAxis
                 angle={90}
                 domain={[0, 10]}
-                tick={{ fill: "oklch(0.55 0.03 280)", fontSize: 10 }}
+                tick={{ fill: "oklch(0.65 0.01 260)", fontSize: 10 }}
                 axisLine={false}
               />
               <Radar
@@ -144,7 +145,7 @@ export function AnalyticsSection({
                 outerRadius={96}
                 paddingAngle={2.5}
                 dataKey="value"
-                stroke="oklch(0.99 0.01 300)"
+                stroke="oklch(0.18 0.02 260)"
                 strokeWidth={2}
               >
                 {swotData.map((entry, index) => (
@@ -164,14 +165,14 @@ export function AnalyticsSection({
           {swotData.map((item, idx) => (
             <div
               key={item.name}
-              className="flex items-center gap-2 rounded-full border border-border/40 bg-muted/20 px-2.5 py-1 text-xs text-muted-foreground"
+              className="flex items-center gap-2 rounded-full border border-slate-800 bg-slate-950/40 px-2.5 py-1 text-xs text-slate-400"
             >
               <span
-                className="h-2.5 w-2.5 rounded-full shadow-sm ring-2 ring-white/50"
+                className="h-2.5 w-2.5 rounded-full shadow-sm ring-2 ring-slate-900/50"
                 style={{ backgroundColor: item.color || CHART_COLORS[idx] }}
               />
               <span>
-                {item.name}: <span className="font-semibold text-foreground">{item.value}</span>
+                {item.name}: <span className="font-semibold text-slate-200">{item.value}</span>
               </span>
             </div>
           ))}

@@ -14,7 +14,7 @@ import {
 import { SEOTabPanel, MapsTabPanel, PostIdeasSection } from "@/components/seo/SEOTabPanels";
 
 export const Route = createFileRoute("/dashboard/seo")({
-  head: () => ({ meta: [{ title: "SEO & Google Maps — Saadhyam AI" }] }),
+  head: () => ({ meta: [{ title: "Google Hub — Saadhyam AI" }] }),
   component: SEOPage,
 });
 
@@ -97,7 +97,7 @@ function SEOPage() {
       <div className="pointer-events-none absolute inset-0 bg-mesh opacity-60" aria-hidden />
       <SEOLayout>
         <SEOPageHeader
-          title="SEO & Google Maps"
+          title="Google Hub"
           subtitle="Boost your local search ranking with AI-powered insights"
         />
 

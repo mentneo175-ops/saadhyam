@@ -23,7 +23,7 @@ import {
   NotStartedState,
   ErrorState,
 } from "@/components/business-analysis/BusinessAnalysisShared";
-import { BusinessHero } from "@/components/business-analysis/BusinessHero";
+import { BusinessHero, HealthScoreWidget } from "@/components/business-analysis/BusinessHero";
 import { MetricsGrid } from "@/components/business-analysis/MetricCards";
 import { AnalyticsSection } from "@/components/business-analysis/AnalyticsCharts";
 import { InsightPanels } from "@/components/business-analysis/InsightPanels";
@@ -75,7 +75,7 @@ export const Route = createFileRoute("/dashboard/business-analysis")({
 
 function PageShell({ children }: { children: ReactNode }) {
   return (
-    <div className="relative w-full min-h-full overflow-hidden bg-background p-4 md:p-6 lg:p-8">
+    <div className="relative w-full min-h-screen overflow-hidden bg-slate-950 text-slate-100 p-4 md:p-6 lg:p-8">
       {/* Layered premium backdrop */}
       <div
         aria-hidden
@@ -297,15 +297,6 @@ function BusinessAnalysisPage() {
       title="Business Analysis"
       subtitle="AI-powered insights from Google Search grounding"
       lastUpdated={analysis?.last_updated}
-      actions={
-        analysis ? (
-          <HeaderActions
-            onDownload={handleDownloadPDF}
-            onReanalyze={handleAnalyze}
-            isAnalyzing={isAnalyzing}
-          />
-        ) : undefined
-      }
     />
   );
 
@@ -329,17 +320,17 @@ function BusinessAnalysisPage() {
 
   if (!analysis && status?.status === "not_started") {
     return (
-      <div className="p-4 md:p-6 space-y-5">
+      <div className="p-4 md:p-6 bg-slate-950 text-slate-100 min-h-screen space-y-6">
         <PageHeader
           title="Business Analysis"
           subtitle="AI-powered insights for your business"
         />
-        <div className="flex flex-col items-center justify-center py-20">
-          <div className="h-20 w-20 rounded-full bg-purple-100 flex items-center justify-center mb-6">
-            <Sparkles size={40} className="text-purple-600" />
+        <div className="flex flex-col items-center justify-center py-20 max-w-2xl mx-auto bg-slate-900/60 border border-slate-800 rounded-2xl p-8 text-center shadow-[0_0_50px_rgba(168,85,247,0.15)] relative overflow-hidden backdrop-blur-md">
+          <div className="h-20 w-20 rounded-full bg-purple-500/10 border border-purple-500/30 flex items-center justify-center mb-6 shadow-[0_0_30px_rgba(168,85,247,0.2)]">
+            <Sparkles size={40} className="text-purple-400 animate-pulse" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Ready to Analyze Your Business?</h2>
-          <p className="text-gray-600 mb-6 text-center max-w-md">
+          <h2 className="text-2xl font-bold text-slate-100 mb-2">Ready to Analyze Your Business?</h2>
+          <p className="text-slate-400 mb-6 text-center max-w-md">
             Get comprehensive AI-powered insights including strengths, weaknesses, opportunities, and local market analysis.
           </p>
           <Button 
@@ -352,13 +343,14 @@ function BusinessAnalysisPage() {
                 ? `Cooldown: ${formatCooldownTime(regenerateCooldown.remainingTime)}`
                 : "Analyze your business"
             }
+            className="shadow-glow"
           >
-            <Sparkles size={20} />
+            <Sparkles size={20} className="mr-2" />
             {!regenerateCooldown.canExecute 
               ? formatCooldownTime(regenerateCooldown.remainingTime).split(' ')[0] 
               : 'Analyze My Business'}
           </Button>
-          <p className="text-xs text-gray-500 mt-4">Takes 2-3 minutes • Powered by Google AI Studio Gemini</p>
+          <p className="text-xs text-slate-500 mt-4">Takes 2-3 minutes • Powered by Google AI Studio Gemini</p>
         </div>
       </div>
     );
@@ -377,32 +369,106 @@ function BusinessAnalysisPage() {
     <PageShell>
       {header}
 
-      {analysis?.business_details && (
-        <BusinessHero
-          details={analysis.business_details}
-          healthScore={analysis.health_score}
-        />
-      )}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start mt-6">
+        {/* Left Column: Health Score & Control Center Panel */}
+        <div className="lg:col-span-1 space-y-6 lg:sticky lg:top-6">
+          {/* Health Score Gauge Card */}
+          {analysis?.health_score !== undefined && (
+            <HealthScoreWidget score={analysis.health_score} />
+          )}
 
-      <MetricsGrid
-        strengths={analysis?.strengths?.length ?? 0}
-        weaknesses={analysis?.weaknesses?.length ?? 0}
-        opportunities={analysis?.growth_opportunities?.length ?? 0}
-        services={analysis?.business_details?.services?.length ?? 0}
-      />
+          {/* Quick Actions Panel */}
+          <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 shadow-[0_4px_30px_rgba(0,0,0,0.4)] backdrop-blur-md relative overflow-hidden">
+            <div className="absolute top-0 right-0 h-32 w-32 bg-purple-500/5 rounded-full blur-2xl pointer-events-none" />
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <Clock className="h-4.5 w-4.5 text-purple-400" />
+                <h3 className="text-xs font-bold text-white uppercase tracking-wider">Analysis Controls</h3>
+              </div>
 
-      <SectionDivider />
+              <Button
+                variant="hero"
+                size="default"
+                onClick={handleAnalyze}
+                disabled={isAnalyzing || !regenerateCooldown.canExecute}
+                title={
+                  !regenerateCooldown.canExecute
+                    ? `Cooldown: ${formatCooldownTime(regenerateCooldown.remainingTime)}`
+                    : "Regenerate analysis"
+                }
+                className="w-full gap-2 justify-center py-2 h-9 text-xs shadow-lg shadow-purple-500/15"
+              >
+                <RefreshCw className={`h-3.5 w-3.5 ${isAnalyzing ? "animate-spin" : ""}`} />
+                {isAnalyzing
+                  ? "Analyzing..."
+                  : !regenerateCooldown.canExecute
+                  ? "On Cooldown"
+                  : "Regenerate"}
+              </Button>
 
-      <AnalyticsSection businessMetricsData={businessMetricsData} swotData={swotData} />
+              <Button
+                variant="outline"
+                size="default"
+                onClick={handleDownloadPDF}
+                disabled={!analysis}
+                className="w-full gap-2 justify-center py-2 h-9 text-xs border-slate-800 hover:bg-slate-900 text-slate-300"
+              >
+                <Download size={14} /> Download PDF
+              </Button>
+            </div>
+          </div>
 
-      <SectionDivider />
+          {/* Cooldown Timer Status */}
+          {!regenerateCooldown.canExecute && (
+            <div className="rounded-2xl border border-slate-800 bg-slate-900/40 p-4 text-[11px] text-slate-400 space-y-1.5">
+              <span className="font-semibold text-purple-400 uppercase tracking-wider block text-[9px]">Cooldown Active</span>
+              <p>Next request available in:</p>
+              <p className="font-bold text-slate-200">{formatCooldownTime(regenerateCooldown.remainingTime)}</p>
+            </div>
+          )}
+          
+          {/* Quick Summary / Engine Stats */}
+          <div className="rounded-2xl border border-slate-800 bg-slate-900/40 p-4 text-[11px] text-slate-400 space-y-2">
+            <div className="flex justify-between">
+              <span>Grounding:</span>
+              <span className="font-semibold text-slate-350">Google Grounded</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Engine Status:</span>
+              <span className="font-semibold text-emerald-450">Stable</span>
+            </div>
+          </div>
+        </div>
 
-      <InsightPanels
-        strengths={analysis?.strengths ?? []}
-        weaknesses={analysis?.weaknesses ?? []}
-        opportunities={analysis?.growth_opportunities ?? []}
-        localMarket={analysis?.local_market_insights}
-      />
+        {/* Right Column: Main Content Area */}
+        <div className="lg:col-span-3 space-y-6">
+          {analysis?.business_details && (
+            <BusinessHero
+              details={analysis.business_details}
+            />
+          )}
+
+          <MetricsGrid
+            strengths={analysis?.strengths?.length ?? 0}
+            weaknesses={analysis?.weaknesses?.length ?? 0}
+            opportunities={analysis?.growth_opportunities?.length ?? 0}
+            services={analysis?.business_details?.services?.length ?? 0}
+          />
+
+          <SectionDivider />
+
+          <AnalyticsSection businessMetricsData={businessMetricsData} swotData={swotData} />
+
+          <SectionDivider />
+
+          <InsightPanels
+            strengths={analysis?.strengths ?? []}
+            weaknesses={analysis?.weaknesses ?? []}
+            opportunities={analysis?.growth_opportunities ?? []}
+            localMarket={analysis?.local_market_insights}
+          />
+        </div>
+      </div>
     </PageShell>
   );
 }

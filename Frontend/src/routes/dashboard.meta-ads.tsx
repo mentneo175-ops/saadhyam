@@ -66,16 +66,16 @@ function MetaAdsPage() {
         getDashboardSummary().catch(err => ({ success: false, error: err.message })),
       ]);
 
-      if (campaignsResult.success) {
+      if (campaignsResult.success && "campaigns" in campaignsResult) {
         setCampaigns(campaignsResult.campaigns);
       } else {
-        console.warn("Failed to load campaigns:", campaignsResult.error);
+        console.warn("Failed to load campaigns:", "error" in campaignsResult ? campaignsResult.error : "Unknown error");
       }
 
-      if (summaryResult.success) {
+      if (summaryResult.success && "summary" in summaryResult) {
         setSummary(summaryResult.summary);
       } else {
-        console.warn("Failed to load summary:", summaryResult.error);
+        console.warn("Failed to load summary:", "error" in summaryResult ? summaryResult.error : "Unknown error");
       }
     } catch (error) {
       console.error("Failed to load data:", error);

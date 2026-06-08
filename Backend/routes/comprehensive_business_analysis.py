@@ -11,6 +11,7 @@ from typing import Optional, Dict, Any
 from utils.dependencies import get_current_user
 from config.database import get_db_sync, SyncSessionLocal
 from models.user import User
+from utils.feature_gate import check_feature_access
 from sqlalchemy.orm import Session
 from services.comprehensive_business_analysis_service import (
     trigger_comprehensive_analysis,
@@ -110,6 +111,8 @@ async def trigger_analysis(
     """
 
     logger.info(f"[TriggerAnalysis] User {current_user.id} triggered comprehensive analysis")
+    # Check feature access
+    await check_feature_access(current_user, "business_analysis")
 
     # Quick validation — no external calls yet
     if not current_user.business_type or not current_user.business_location:

@@ -226,7 +226,9 @@ export function ChatWindow({ customerPhone, onClose }: ChatWindowProps) {
                       <span>{formatTime(msg.timestamp)}</span>
                       {msg.direction === "outgoing" && getStatusIcon(msg.status)}
                       {msg.ai_generated && (
-                        <Sparkles size={12} className="ml-1" title="AI Generated" />
+                        <span title="AI Generated">
+                          <Sparkles size={12} className="ml-1" />
+                        </span>
                       )}
                     </div>
                   </div>

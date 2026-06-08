@@ -14,7 +14,11 @@ def migrate_update_campaign_status_enum():
     """Update campaign status enum to add missing values"""
     try:
         logger.info("🔄 Running migration: update_campaign_status_enum")
-        
+        # Skip on SQLite since SQLite doesn't support custom PostgreSQL enum types
+        if "sqlite" in sync_engine.dialect.name:
+            logger.info("ℹ️ SQLite detected, skipping update_campaign_status_enum migration")
+            return
+            
         with sync_engine.begin() as conn:
             # Check current enum values
             result = conn.execute(text("""

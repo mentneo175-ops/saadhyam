@@ -80,7 +80,7 @@ function WhatsAppPage() {
         }
       } else if (response.status === 404) {
         // Endpoint not available - silently set as not connected
-        setConnectionStatus({ is_connected: false, phone_number: null, business_name: null });
+        setConnectionStatus({ is_connected: false, phone_number: undefined, business_name: undefined });
         setShowOnboarding(true);
       } else {
         console.error("Failed to check connection status");

@@ -44,6 +44,11 @@ if GEMINI_API_KEYS:
     genai.configure(api_key=GEMINI_API_KEYS[0])
 
 
+import time
+
+# Keep track of blocked Gemini keys (cooldown due to 429/quota limits)
+GEMINI_KEYS_BLOCKED = {}
+
 class VoiceAgentService:
     """Service for managing voice campaigns and AI conversations"""
     
@@ -56,9 +61,15 @@ class VoiceAgentService:
     def _generate_with_fallback(self, prompt: str, system_instruction: Optional[str] = None) -> Optional[str]:
         """Try Gemini keys in sequence, fall back to Groq, and return text content"""
         model_name = settings.GEMINI_CONTENT_MODEL
+        now = time.time()
 
-        # Try Gemini keys
+        # Try Gemini keys that are not on cooldown
         for i, key in enumerate(GEMINI_API_KEYS):
+            blocked_until = GEMINI_KEYS_BLOCKED.get(key, 0.0)
+            if now < blocked_until:
+                logger.info(f"⏭️ Skipping Gemini key {i+1} due to active 429 cooldown")
+                continue
+
             try:
                 logger.info(f"🤖 Trying Voice Agent Gemini key {i+1}/{len(GEMINI_API_KEYS)}")
                 genai.configure(api_key=key)
@@ -72,6 +83,10 @@ class VoiceAgentService:
                     return response.text.strip()
             except Exception as e:
                 logger.warning(f"⚠️ Voice Agent Gemini key {i+1} failed: {e}")
+                # If key is rate-limited or quota exceeded, put it on cooldown for 5 minutes (300 seconds)
+                if "429" in str(e) or "quota" in str(e).lower() or "limit" in str(e).lower():
+                    GEMINI_KEYS_BLOCKED[key] = now + 300.0
+                    logger.info(f"🔒 Gemini key {i+1} added to cooldown for 5 minutes.")
         
         # If all Gemini keys fail, try Groq
         from groq import Groq
@@ -479,6 +494,39 @@ Summary:"""
         except Exception as e:
             logger.error(f"❌ Failed to generate summary: {e}")
             return "Conversation completed."
+
+    def extract_call_outcome(self, transcript: str) -> str:
+        """Extract call outcome (interested, callback_requested, follow_up_required, not_interested)"""
+        try:
+            if not self.ai_available or not transcript:
+                return "not_interested"
+            
+            prompt = f"""
+Analyze the conversation transcript below between an AI Voice Agent and a Customer.
+Determine the final call outcome. Respond with ONLY one of these exact values: interested, callback_requested, follow_up_required, not_interested.
+Rules:
+- If the customer shows interest in the services, admissions, or products, return: interested
+- If the customer explicitly requests a callback or asks for someone to call back, return: callback_requested
+- If the customer asks to speak later, asks to be contacted again, or needs follow-up, return: follow_up_required
+- Otherwise, or if the customer is not interested, return: not_interested
+
+Transcript:
+{transcript}
+
+Outcome:"""
+            
+            response_text = self._generate_with_fallback(prompt)
+            if response_text:
+                outcome = response_text.strip().lower()
+                # Clean up punctuation/spacing
+                outcome = "".join([c for c in outcome if c.isalnum() or c == "_"])
+                if outcome in ["interested", "callback_requested", "follow_up_required", "not_interested"]:
+                    return outcome
+            return "not_interested"
+            
+        except Exception as e:
+            logger.error(f"❌ Failed to extract call outcome: {e}")
+            return "not_interested"
     
     def extract_specific_requirements(self, transcript: str) -> str:
         """Extract specific customer requirements, interests, plans, packages, or requests from conversation transcript"""

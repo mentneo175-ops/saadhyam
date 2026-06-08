@@ -277,8 +277,8 @@ function SEOGoogleMapsPage() {
 
   if (isLoading) {
     return (
-      <div className="relative -m-4 min-h-[calc(100vh-4rem)] bg-slate-950 text-slate-100 p-6 md:p-8">
-        {ambientLayers}
+      <div className="relative -m-4 flex-grow flex flex-col min-h-full bg-background p-6 md:p-8">
+        <div className="pointer-events-none absolute inset-0 bg-mesh opacity-60" aria-hidden />
         <SEOLayout>
           {header}
           <LoadingState />
@@ -289,8 +289,8 @@ function SEOGoogleMapsPage() {
 
   if (isAnalyzing || status?.status === "analyzing") {
     return (
-      <div className="relative -m-4 min-h-[calc(100vh-4rem)] bg-slate-950 text-slate-100 p-6 md:p-8">
-        {ambientLayers}
+      <div className="relative -m-4 flex-grow flex flex-col min-h-full bg-background p-6 md:p-8">
+        <div className="pointer-events-none absolute inset-0 bg-mesh opacity-60" aria-hidden />
         <SEOLayout>
           {header}
           <AnalyzingState />
@@ -301,8 +301,8 @@ function SEOGoogleMapsPage() {
 
   if (!analysis && status?.status === "not_started") {
     return (
-      <div className="relative -m-4 min-h-[calc(100vh-4rem)] bg-slate-950 text-slate-100 p-6 md:p-8">
-        {ambientLayers}
+      <div className="relative -m-4 flex-grow flex flex-col min-h-full bg-background p-6 md:p-8">
+        <div className="pointer-events-none absolute inset-0 bg-mesh opacity-60" />
         <SEOLayout>
           {header}
           <NotStartedState onNavigate={() => navigate({ to: "/dashboard/business-analysis" })} />
@@ -313,8 +313,8 @@ function SEOGoogleMapsPage() {
 
   if (error && !analysis) {
     return (
-      <div className="relative -m-4 min-h-[calc(100vh-4rem)] bg-slate-950 text-slate-100 p-6 md:p-8">
-        {ambientLayers}
+      <div className="relative -m-4 flex-grow flex flex-col min-h-full bg-background p-6 md:p-8">
+        <div className="pointer-events-none absolute inset-0 bg-mesh opacity-60" />
         <SEOLayout>
           {header}
           <ErrorState error={error} onRetry={handleAnalyze} />
@@ -325,8 +325,8 @@ function SEOGoogleMapsPage() {
   const mapsScore = tipsData ? computeMapsScore(tipsData) : 0;
 
   return (
-    <div className="relative -m-4 min-h-[calc(100vh-4rem)] bg-slate-950 text-slate-100 p-6 md:p-8">
-      {ambientLayers}
+    <div className="relative -m-4 flex-grow flex flex-col min-h-full bg-background p-6 md:p-8">
+      <div className="pointer-events-none absolute inset-0 bg-mesh opacity-60" />
       <SEOLayout>
         {header}
 

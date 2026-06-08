@@ -30,7 +30,7 @@ connect_args = {}
 if not is_sqlite:
     connect_args = {
         "sslmode": "require",
-        "connect_timeout": 10
+        "connect_timeout": 30
     }
 
 engine = create_engine(

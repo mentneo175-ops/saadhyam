@@ -4,6 +4,7 @@ Stores business analysis data and web-fetched data in Pinecone for fast retrieva
 """
 
 import logging
+import asyncio
 from typing import Dict, Any, List, Optional
 from services.vector_storage_service import vector_storage
 from services.embedding_service import generate_embedding
@@ -161,11 +162,12 @@ async def store_business_analysis_in_pinecone(
         
         # Store all vectors in Pinecone
         if vectors_to_store:
-            success = vector_storage.store_vectors_batch(
+            success = await asyncio.to_thread(
+                vector_storage.store_vectors_batch,
                 vectors_to_store,
-                NAMESPACE_BUSINESS_INSIGHTS
+                NAMESPACE_BUSINESS_INSIGHTS,
             )
-            
+
             if success:
                 logger.info(f"[BusinessPinecone] ✅ Stored {len(vectors_to_store)} business insights in Pinecone")
                 return True
@@ -206,11 +208,12 @@ async def get_business_context_from_pinecone(
         logger.info(f"[BusinessPinecone] Searching business context for: {query}")
         
         # Search Pinecone
-        results = vector_storage.search_similar(
+        results = await asyncio.to_thread(
+            vector_storage.search_similar,
             query_text=query,
             namespace=NAMESPACE_BUSINESS_INSIGHTS,
             top_k=top_k,
-            filter_dict={'user_id': user_id}
+            filter_dict={'user_id': user_id},
         )
         
         logger.info(f"[BusinessPinecone] ✅ Found {len(results)} relevant business insights")
@@ -255,7 +258,8 @@ async def store_web_fetched_data_in_pinecone(
         vector_id = f"user_{user_id}_web_data_{query_hash}"
         
         # Store in Pinecone
-        success = vector_storage.store_vector(
+        success = await asyncio.to_thread(
+            vector_storage.store_vector,
             vector_id=vector_id,
             text=web_data,
             namespace=NAMESPACE_BUSINESS_INSIGHTS,
@@ -264,8 +268,8 @@ async def store_web_fetched_data_in_pinecone(
                 'type': 'web_data',
                 'query': query,
                 'source': source,
-                'category': 'web_fetched'
-            }
+                'category': 'web_fetched',
+            },
         )
         
         if success:

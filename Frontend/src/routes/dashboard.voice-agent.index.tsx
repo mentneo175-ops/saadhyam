@@ -56,6 +56,8 @@ function VoiceAgentDashboard() {
     cold_leads: 0,
     conversion_rate: 0,
   });
+  const [isLoadingDashboard, setIsLoadingDashboard] = useState(true);
+  const [isFallbackData, setIsFallbackData] = useState(false);
 
   // Forms / Modals
   const [newAgent, setNewAgent] = useState({
@@ -72,6 +74,11 @@ function VoiceAgentDashboard() {
     agent_id: "",
     status: "active",
   });
+  const [campaignFilter, setCampaignFilter] = useState<
+    "all" | "active" | "paused" | "completed" | "draft" | "archived" | "trash"
+  >("all");
+  const [trashedCampaigns, setTrashedCampaigns] = useState<any[]>([]);
+  const [archivedCampaigns, setArchivedCampaigns] = useState<any[]>([]);
   const [newLead, setNewLead] = useState({
     name: "",
     phone: "",
@@ -96,6 +103,12 @@ function VoiceAgentDashboard() {
   const [activeCallCampaign, setActiveCallCampaign] = useState<any | null>(null);
   const [postCallReport, setPostCallReport] = useState<any | null>(null);
   const [transcriptExpanded, setTranscriptExpanded] = useState(false);
+  const [isCreatingCampaign, setIsCreatingCampaign] = useState(false);
+  const [isUploadingLeads, setIsUploadingLeads] = useState(false);
+  const [isCreatingLead, setIsCreatingLead] = useState(false);
+  const [actionCampaignId, setActionCampaignId] = useState<number | null>(null);
+  const [deletingLeadId, setDeletingLeadId] = useState<number | null>(null);
+  const [deletingAgentId, setDeletingAgentId] = useState<number | null>(null);
 
   // References
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -112,6 +125,7 @@ function VoiceAgentDashboard() {
   const isPlayingAudioRef = useRef(false);
   const isRecordingRef = useRef(false);
   const isProcessingRef = useRef(false);
+  const isFetchingRef = useRef(false);
 
   const wsRef = useRef<WebSocket | null>(null);
   const audioCtxRef = useRef<AudioContext | null>(null);
@@ -122,7 +136,16 @@ function VoiceAgentDashboard() {
 
   // ================= LIFECYCLE & FETCHING =================
   useEffect(() => {
-    fetchData();
+    console.log("🧩 Voice Agent Studio Mounted");
+    fetchAllOnce();
+    const interval = setInterval(() => {
+      console.log("🧩 Polling fetchAllOnce interval triggered");
+      fetchAllOnce();
+    }, 5000);
+    return () => {
+      console.log("🧩 Voice Agent Studio Unmounted");
+      clearInterval(interval);
+    };
   }, []);
 
   useEffect(() => {
@@ -162,12 +185,68 @@ function VoiceAgentDashboard() {
     return headers;
   };
 
-  const fetchData = () => {
-    fetchAnalytics();
-    fetchAgents();
-    fetchCampaigns();
-    fetchLeads();
-    fetchCallLogs();
+  const LOCALSTORAGE_KEY = "voice_agent_dashboard_last_good";
+
+  const fetchAllOnce = async (showLoader = false) => {
+    if (isFetchingRef.current) {
+      console.log("🧩 fetchAllOnce blocked - already fetching");
+      return;
+    }
+    isFetchingRef.current = true;
+    console.log("🧩 fetchAllOnce starting... showLoader:", showLoader, "isLoadingDashboard:", isLoadingDashboard);
+    if (showLoader) {
+      setIsLoadingDashboard(true);
+    }
+    setIsFallbackData(false);
+    try {
+      const headers = getHeaders();
+      const res = await fetch(`${env.apiBaseUrl}/api/voice-agent/dashboard/overview`, { headers });
+      if (!res.ok) throw new Error(`dashboard overview failed: ${res.status}`);
+      const payload = await res.json();
+
+      setAnalytics(payload.analytics || {});
+      setAgents(payload.agents || []);
+      setCampaigns(payload.campaigns || []);
+      setTrashedCampaigns(payload.trashed_campaigns || []);
+      setArchivedCampaigns(payload.archived_campaigns || []);
+      setLeads(payload.leads || []);
+      setCallLogs(payload.sessions || []);
+
+      console.log("🧩 fetchAllOnce successfully retrieved payload:", payload);
+
+      // persist last-known-good snapshot
+      try {
+        localStorage.setItem(LOCALSTORAGE_KEY, JSON.stringify(payload));
+      } catch (e) {
+        console.warn("Failed to persist dashboard snapshot", e);
+      }
+
+      setIsLoadingDashboard(false);
+      setIsFallbackData(false);
+    } catch (err) {
+      console.error("🧩 fetchAllOnce failed with error:", err);
+      // try to use last-known-good
+      try {
+        const raw = localStorage.getItem(LOCALSTORAGE_KEY);
+        if (raw) {
+          const snap = JSON.parse(raw);
+          setAnalytics(snap.analytics || {});
+          setAgents(snap.agents || []);
+          setCampaigns(snap.campaigns || []);
+          setTrashedCampaigns(snap.trashed_campaigns || []);
+          setArchivedCampaigns(snap.archived_campaigns || []);
+          setLeads(snap.leads || []);
+          setCallLogs(snap.sessions || []);
+          setIsFallbackData(true);
+          console.log("🧩 fetchAllOnce loaded fallback data from localStorage");
+        }
+      } catch (e) {
+        console.warn("Failed to load fallback snapshot", e);
+      }
+      setIsLoadingDashboard(false);
+    } finally {
+      isFetchingRef.current = false;
+    }
   };
 
   const showToast = (type: "success" | "error" | "info", msg: string) => {
@@ -208,12 +287,127 @@ function VoiceAgentDashboard() {
 
   const fetchCampaigns = async () => {
     try {
-      const res = await fetch(`${env.apiBaseUrl}/api/campaigns`, {
-        headers: getHeaders(),
-      });
-      if (res.ok) setCampaigns(await res.json());
+      // Fetch active+paused+draft+completed (non-deleted, non-archived)
+      const [mainRes, trashRes, archRes] = await Promise.all([
+        fetch(`${env.apiBaseUrl}/api/campaigns`, { headers: getHeaders() }),
+        fetch(`${env.apiBaseUrl}/api/campaigns?view=trash`, { headers: getHeaders() }),
+        fetch(`${env.apiBaseUrl}/api/campaigns?status=archived`, { headers: getHeaders() }),
+      ]);
+      if (mainRes.ok) setCampaigns(await mainRes.json());
+      if (trashRes.ok) setTrashedCampaigns(await trashRes.json());
+      if (archRes.ok) setArchivedCampaigns(await archRes.json());
     } catch (err) {
       console.error("Error fetching campaigns:", err);
+    }
+  };
+
+  const patchCampaignStatus = async (id: number, status: string) => {
+    setActionCampaignId(id);
+    try {
+      const res = await fetch(`${env.apiBaseUrl}/api/campaigns/${id}/status`, {
+        method: "PATCH",
+        headers: getHeaders(),
+        body: JSON.stringify({ status }),
+      });
+      if (res.ok) {
+        showToast("success", `Campaign ${status === "active" ? "resumed" : status}`);
+        await fetchCampaigns();
+      }
+    } catch {
+      showToast("error", "Failed to update campaign status");
+    } finally {
+      setActionCampaignId(null);
+    }
+  };
+
+  const archiveCampaign = async (id: number) => {
+    setActionCampaignId(id);
+    try {
+      const res = await fetch(`${env.apiBaseUrl}/api/campaigns/${id}/archive`, {
+        method: "PATCH",
+        headers: getHeaders(),
+      });
+      if (res.ok) {
+        showToast("success", "Campaign archived");
+        await fetchCampaigns();
+      }
+    } catch {
+      showToast("error", "Failed to archive campaign");
+    } finally {
+      setActionCampaignId(null);
+    }
+  };
+
+  const duplicateCampaign = async (id: number) => {
+    setActionCampaignId(id);
+    try {
+      const res = await fetch(`${env.apiBaseUrl}/api/campaigns/${id}/duplicate`, {
+        method: "POST",
+        headers: getHeaders(),
+      });
+      if (res.ok) {
+        showToast("success", "Campaign duplicated!");
+        await fetchCampaigns();
+      }
+    } catch {
+      showToast("error", "Failed to duplicate campaign");
+    } finally {
+      setActionCampaignId(null);
+    }
+  };
+
+  const softDeleteCampaign = async (id: number) => {
+    setActionCampaignId(id);
+    try {
+      const res = await fetch(`${env.apiBaseUrl}/api/campaigns/${id}`, {
+        method: "DELETE",
+        headers: getHeaders(),
+      });
+      if (res.ok) {
+        showToast("info", "Campaign moved to Trash");
+        await fetchCampaigns();
+      }
+    } catch {
+      showToast("error", "Failed to delete campaign");
+    } finally {
+      setActionCampaignId(null);
+    }
+  };
+
+  const permanentDeleteCampaign = async (id: number) => {
+    if (!confirm("Permanently delete this campaign? This cannot be undone.")) return;
+    setActionCampaignId(id);
+    try {
+      const res = await fetch(`${env.apiBaseUrl}/api/campaigns/${id}?permanent=true`, {
+        method: "DELETE",
+        headers: getHeaders(),
+      });
+      if (res.ok) {
+        showToast("success", "Campaign permanently deleted");
+        await fetchCampaigns();
+      }
+    } catch {
+      showToast("error", "Failed to permanently delete");
+    } finally {
+      setActionCampaignId(null);
+    }
+  };
+
+  const restoreCampaign = async (id: number) => {
+    setActionCampaignId(id);
+    try {
+      const res = await fetch(`${env.apiBaseUrl}/api/campaigns/${id}/restore`, {
+        method: "PATCH",
+        headers: getHeaders(),
+      });
+      if (res.ok) {
+        showToast("success", "Campaign restored!");
+        await fetchCampaigns();
+      }
+    } catch {
+      showToast("error", "Failed to restore campaign");
+    } finally {
+      setActionCampaignId(null);
     }
   };
 
@@ -270,6 +464,8 @@ function VoiceAgentDashboard() {
   };
 
   const handleDeleteAgent = async (id: number) => {
+    if (!confirm("Are you sure you want to delete this AI Agent?")) return;
+    setDeletingAgentId(id);
     try {
       const res = await fetch(`${env.apiBaseUrl}/api/agents/${id}`, {
         method: "DELETE",
@@ -277,19 +473,23 @@ function VoiceAgentDashboard() {
       });
       if (res.ok) {
         showToast("success", "Agent deleted.");
-        fetchAgents();
+        await fetchAgents();
       }
     } catch (err) {
       showToast("error", "Error deleting agent.");
+    } finally {
+      setDeletingAgentId(null);
     }
   };
 
   const handleCreateCampaign = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isCreatingCampaign) return;
     if (!newCampaign.name || !newCampaign.agent_id) {
       showToast("error", "Campaign Name and AI Agent are required.");
       return;
     }
+    setIsCreatingCampaign(true);
     try {
       const res = await fetch(`${env.apiBaseUrl}/api/campaigns`, {
         method: "POST",
@@ -300,18 +500,24 @@ function VoiceAgentDashboard() {
         showToast("success", "Campaign created.");
         setNewCampaign({ name: "", objective: "", agent_id: "", status: "active" });
         fetchCampaigns();
+      } else {
+        showToast("error", "Failed to create campaign.");
       }
     } catch (err) {
       showToast("error", "Server connection error.");
+    } finally {
+      setIsCreatingCampaign(false);
     }
   };
 
   const handleCreateLead = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isCreatingLead) return;
     if (!newLead.name || !newLead.phone) {
       showToast("error", "Name and Phone Number are required.");
       return;
     }
+    setIsCreatingLead(true);
     try {
       const res = await fetch(`${env.apiBaseUrl}/api/leads`, {
         method: "POST",
@@ -323,13 +529,19 @@ function VoiceAgentDashboard() {
         setNewLead({ name: "", phone: "", language: "te", campaign_id: "" });
         fetchLeads();
         fetchAnalytics();
+      } else {
+        showToast("error", "Failed to create lead.");
       }
     } catch (err) {
       showToast("error", "Server connection error.");
+    } finally {
+      setIsCreatingLead(false);
     }
   };
 
   const handleDeleteLead = async (id: number) => {
+    if (!confirm("Are you sure you want to delete this lead?")) return;
+    setDeletingLeadId(id);
     try {
       const res = await fetch(`${env.apiBaseUrl}/api/leads/${id}`, {
         method: "DELETE",
@@ -337,20 +549,24 @@ function VoiceAgentDashboard() {
       });
       if (res.ok) {
         showToast("success", "Lead deleted.");
-        fetchLeads();
-        fetchAnalytics();
+        await fetchLeads();
+        await fetchAnalytics();
       }
     } catch (err) {
       showToast("error", "Error deleting lead.");
+    } finally {
+      setDeletingLeadId(null);
     }
   };
 
   const handleCsvUpload = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isUploadingLeads) return;
     if (!csvFile || !selectedCampaignId) {
       showToast("error", "Select a Campaign and choose a CSV file.");
       return;
     }
+    setIsUploadingLeads(true);
     const formData = new FormData();
     formData.append("campaign_id", selectedCampaignId);
     formData.append("file", csvFile);
@@ -372,6 +588,8 @@ function VoiceAgentDashboard() {
       }
     } catch (err) {
       showToast("error", "Error uploading CSV.");
+    } finally {
+      setIsUploadingLeads(false);
     }
   };
 
@@ -483,7 +701,7 @@ function VoiceAgentDashboard() {
 
     const voices = window.speechSynthesis.getVoices();
     const matchVoice = voices.find((v) =>
-      v.lang.toLowerCase().startsWith(utterance.lang.toLowerCase())
+      v.lang.toLowerCase().startsWith(utterance.lang.toLowerCase()),
     );
     if (matchVoice) utterance.voice = matchVoice;
 
@@ -524,7 +742,7 @@ function VoiceAgentDashboard() {
   const playAudio = (
     url: string,
     onEndCallback: (() => void) | null = null,
-    fallbackText: string = ""
+    fallbackText: string = "",
   ) => {
     stopAudio();
     if (!sessionActiveRef.current) {
@@ -633,8 +851,7 @@ function VoiceAgentDashboard() {
           const rec = new SpeechRecognition();
           rec.continuous = true;
           rec.interimResults = true;
-          rec.lang =
-            lead.language === "hi" ? "hi-IN" : lead.language === "en" ? "en-US" : "te-IN";
+          rec.lang = lead.language === "hi" ? "hi-IN" : lead.language === "en" ? "en-US" : "te-IN";
 
           rec.onresult = (e: any) => {
             const result = e.results[e.results.length - 1];
@@ -672,7 +889,7 @@ function VoiceAgentDashboard() {
               wsRef.current.send(
                 JSON.stringify({
                   text: `User joined the call. Please introduce yourself and start the call as Swetha from ${campaign?.name || "our company"}.`,
-                })
+                }),
               );
             }
           }, 800);
@@ -794,7 +1011,7 @@ function VoiceAgentDashboard() {
       if (res.ok) {
         const data = await res.json();
         setPostCallReport(data);
-        fetchData();
+        fetchAllOnce();
       }
     } catch (err) {
       showToast("error", "Error parsing and finalizing call metrics.");
@@ -923,15 +1140,232 @@ function VoiceAgentDashboard() {
   };
 
   // ================= RENDERING MODULES =================
+  const renderCampaignsSkeleton = () => {
+    return (
+      <div className="tab-pane animate-fade-in flex flex-col flex-1">
+        <div className="tab-header flex flex-col md:flex-row md:items-center md:justify-between gap-4 animate-pulse">
+          <div>
+            <div className="h-8 w-64 bg-white/5 rounded-lg mb-2" />
+            <div className="h-4 w-96 bg-white/5 rounded" />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6 flex-1">
+          <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="glass-card p-5 space-y-4 animate-pulse">
+                <div className="flex justify-between items-center">
+                  <div className="h-4 w-24 bg-white/5 rounded" />
+                  <div className="h-5 w-16 bg-white/5 rounded-full" />
+                </div>
+                <div className="h-3 w-48 bg-white/5 rounded" />
+                <div className="border-t border-white/5 pt-3 flex justify-between">
+                  <div className="h-3 w-16 bg-white/5 rounded" />
+                  <div className="h-3 w-12 bg-white/5 rounded" />
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="glass-card p-6 lg:col-span-1 h-fit animate-pulse space-y-4">
+            <div className="h-5 w-36 bg-white/5 rounded" />
+            <div className="space-y-4 mt-4">
+              <div className="h-10 bg-white/5 rounded" />
+              <div className="h-10 bg-white/5 rounded" />
+              <div className="h-10 bg-white/5 rounded" />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderCRMSkeleton = () => {
+    return (
+      <div className="tab-pane animate-fade-in flex flex-col flex-1">
+        <div className="tab-header animate-pulse">
+          <div>
+            <div className="h-8 w-64 bg-white/5 rounded-lg mb-2" />
+            <div className="h-4 w-96 bg-white/5 rounded" />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mt-6 flex-1">
+          <div className="glass-card p-6 lg:col-span-1 h-fit animate-pulse space-y-4">
+            <div className="h-5 w-32 bg-white/5 rounded" />
+            <div className="space-y-4 mt-4">
+              <div className="h-10 bg-white/5 rounded" />
+              <div className="h-10 bg-white/5 rounded" />
+              <div className="h-10 bg-white/5 rounded" />
+            </div>
+          </div>
+          <div className="glass-card p-6 lg:col-span-3 space-y-4 animate-pulse flex-1">
+            <div className="flex justify-between items-center">
+              <div className="h-5 w-24 bg-white/5 rounded" />
+              <div className="h-8 w-36 bg-white/5 rounded" />
+            </div>
+            <div className="space-y-3 mt-4">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <div key={i} className="flex justify-between items-center py-3 border-b border-white/5">
+                  <div className="space-y-2">
+                    <div className="h-4 w-32 bg-white/5 rounded" />
+                    <div className="h-3 w-24 bg-white/5 rounded" />
+                  </div>
+                  <div className="h-4 w-16 bg-white/5 rounded" />
+                  <div className="h-6 w-16 bg-white/5 rounded" />
+                  <div className="h-6 w-8 bg-white/5 rounded" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderCallLogsSkeleton = () => {
+    return (
+      <div className="tab-pane animate-fade-in flex flex-col flex-1">
+        <div className="tab-header animate-pulse">
+          <div>
+            <div className="h-8 w-64 bg-white/5 rounded-lg mb-2" />
+            <div className="h-4 w-96 bg-white/5 rounded" />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6 flex-1">
+          <div className="glass-card p-6 lg:col-span-2 space-y-4 animate-pulse">
+            <div className="h-5 w-32 bg-white/5 rounded" />
+            <div className="space-y-3 mt-4">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="flex justify-between items-center py-3 border-b border-white/5">
+                  <div className="space-y-2">
+                    <div className="h-4 w-36 bg-white/5 rounded" />
+                    <div className="h-3 w-20 bg-white/5 rounded" />
+                  </div>
+                  <div className="h-4 w-12 bg-white/5 rounded" />
+                  <div className="h-4 w-16 bg-white/5 rounded" />
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="glass-card p-6 lg:col-span-1 space-y-4 animate-pulse">
+            <div className="h-5 w-24 bg-white/5 rounded" />
+            <div className="h-32 bg-white/5 rounded mt-4" />
+            <div className="space-y-2 mt-4">
+              <div className="h-3 w-full bg-white/5 rounded" />
+              <div className="h-3 w-5/6 bg-white/5 rounded" />
+              <div className="h-3 w-4/5 bg-white/5 rounded" />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderAgentsSkeleton = () => {
+    return (
+      <div className="tab-pane animate-fade-in flex flex-col flex-1">
+        <div className="tab-header animate-pulse">
+          <div>
+            <div className="h-8 w-64 bg-white/5 rounded-lg mb-2" />
+            <div className="h-4 w-96 bg-white/5 rounded" />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6 flex-1">
+          <div className="glass-card p-6 lg:col-span-1 h-fit animate-pulse space-y-4">
+            <div className="h-5 w-36 bg-white/5 rounded" />
+            <div className="space-y-4 mt-4">
+              <div className="h-10 bg-white/5 rounded" />
+              <div className="h-10 bg-white/5 rounded" />
+              <div className="h-24 bg-white/5 rounded" />
+            </div>
+          </div>
+          <div className="glass-card p-6 lg:col-span-2 space-y-4 animate-pulse">
+            <div className="h-5 w-48 bg-white/5 rounded" />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+              {[1, 2].map((i) => (
+                <div key={i} className="p-4 bg-white/5 rounded-lg border border-white/5 space-y-4">
+                  <div className="flex justify-between">
+                    <div className="h-4 w-24 bg-white/5 rounded" />
+                    <div className="h-4 w-12 bg-white/5 rounded" />
+                  </div>
+                  <div className="h-16 bg-white/5 rounded" />
+                  <div className="h-4 w-20 bg-white/5 rounded" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   const renderDashboard = () => {
+    if (isLoadingDashboard) {
+      return (
+        <div className="tab-pane animate-fade-in flex flex-col flex-1">
+          {/* Overview Cards Skeleton */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mt-6">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="glass-card p-6 flex flex-col justify-between min-h-[140px] animate-pulse">
+                <div className="flex justify-between items-start">
+                  <div className="h-4 w-24 bg-white/5 rounded" />
+                  <div className="h-5 w-5 bg-white/5 rounded-full" />
+                </div>
+                <div className="mt-6 space-y-2">
+                  <div className="h-8 w-16 bg-white/5 rounded-lg" />
+                  <div className="h-3 w-32 bg-white/5 rounded" />
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Pipeline & Integrations Grid Skeleton */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6 flex-1">
+            {/* Lead Pipeline Skeleton */}
+            <div className="glass-card p-6 lg:col-span-2 space-y-6 animate-pulse">
+              <div className="h-5 w-48 bg-white/5 rounded" />
+              <div className="space-y-5 mt-4">
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className="space-y-2">
+                    <div className="flex justify-between">
+                      <div className="h-4 w-36 bg-white/5 rounded" />
+                      <div className="h-4 w-8 bg-white/5 rounded" />
+                    </div>
+                    <div className="w-full bg-white/5 h-2 rounded-full" />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Integrations Skeleton */}
+            <div className="glass-card p-6 space-y-4 animate-pulse">
+              <div className="h-5 w-40 bg-white/5 rounded" />
+              <div className="space-y-3 mt-4">
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+                    <div className="h-4 w-32 bg-white/10 rounded" />
+                    <div className="h-5 w-16 bg-white/10 rounded-full" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="tab-pane animate-fade-in">
         <div className="tab-header">
           <div>
             <h1 className="gradient-text text-3xl font-bold">Analytics Dashboard</h1>
-            <p className="text-secondary text-sm">Real-time telecalling metrics and campaign tracking</p>
+            <p className="text-secondary text-sm">
+              Real-time telecalling metrics and campaign tracking
+            </p>
           </div>
-          <button className="btn btn-primary" onClick={fetchData}>
+          <button className="btn btn-primary" onClick={() => fetchAllOnce(true)}>
             <Sparkles size={16} />
             <span>Sync Data</span>
           </button>
@@ -978,7 +1412,9 @@ function VoiceAgentDashboard() {
               <Zap size={18} />
             </div>
             <div className="mt-4">
-              <span className="text-3xl font-bold text-accent-purple">{analytics.conversion_rate}%</span>
+              <span className="text-3xl font-bold text-accent-purple">
+                {analytics.conversion_rate}%
+              </span>
               <p className="text-xs text-muted mt-1">Hot leads ratio</p>
             </div>
           </div>
@@ -1018,7 +1454,9 @@ function VoiceAgentDashboard() {
 
               <div>
                 <div className="flex justify-between text-sm mb-1">
-                  <span className="text-accent-purple font-semibold">Nurture Leads (Score 40-69)</span>
+                  <span className="text-accent-purple font-semibold">
+                    Nurture Leads (Score 40-69)
+                  </span>
                   <span className="text-primary font-bold">{analytics.nurture_leads}</span>
                 </div>
                 <div className="w-full bg-surface h-2 rounded-full overflow-hidden">
@@ -1080,16 +1518,166 @@ function VoiceAgentDashboard() {
   };
 
   const renderCampaigns = () => {
+    // Status badge config
+    const statusBadge: Record<string, { bg: string; text: string; label: string }> = {
+      active: { bg: "bg-emerald-500/20", text: "text-emerald-400", label: "● Active" },
+      paused: { bg: "bg-orange-500/20", text: "text-orange-400", label: "⏸ Paused" },
+      completed: { bg: "bg-sky-500/20", text: "text-sky-400", label: "✓ Done" },
+      draft: { bg: "bg-purple-500/20", text: "text-purple-400", label: "◦ Draft" },
+      archived: { bg: "bg-zinc-500/20", text: "text-zinc-400", label: "🗃 Archived" },
+      deleted: { bg: "bg-red-500/20", text: "text-red-400", label: "🗑 Trash" },
+    };
+
+    const tabs: { key: typeof campaignFilter; label: string }[] = [
+      { key: "all", label: "All" },
+      { key: "active", label: "Active" },
+      { key: "paused", label: "Paused" },
+      { key: "completed", label: "Completed" },
+      { key: "draft", label: "Draft" },
+      { key: "archived", label: "Archived" },
+      { key: "trash", label: "🗑 Trash" },
+    ];
+
+    // Pick dataset based on active tab
+    let displayCampaigns: any[] = [];
+    if (campaignFilter === "trash") {
+      displayCampaigns = trashedCampaigns;
+    } else if (campaignFilter === "archived") {
+      displayCampaigns = archivedCampaigns;
+    } else if (campaignFilter === "all") {
+      displayCampaigns = campaigns;
+    } else {
+      displayCampaigns = campaigns.filter((c) => c.status === campaignFilter);
+    }
+
+    const renderCampaignCard = (c: any) => {
+      const isTrash = c.is_deleted;
+      const isArchived = c.is_archived && !c.is_deleted;
+      const badge = isTrash
+        ? statusBadge.deleted
+        : isArchived
+          ? statusBadge.archived
+          : (statusBadge[c.status] ?? statusBadge.draft);
+      return (
+        <div key={c.id} className="p-4 bg-surface rounded-xl border border-border-color flex flex-col gap-2 hover:border-primary/40 transition-all">
+          {/* Header row */}
+          <div className="flex justify-between items-start">
+            <span className="font-bold text-primary text-sm leading-tight">{c.name}</span>
+            <span
+              className={`text-xs font-medium px-2 py-0.5 rounded-full ${badge.bg} ${badge.text}`}
+            >
+              {badge.label}
+            </span>
+          </div>
+
+          {/* Objective */}
+          {c.objective && <p className="text-secondary text-xs line-clamp-2">{c.objective}</p>}
+
+          {/* Meta row */}
+          <div className="flex items-center justify-between text-xs text-muted border-t border-border-color pt-2">
+            <span>Agent: {c.agent_name ?? "—"}</span>
+            <span>{leads.filter((l) => l.campaign_id === c.id).length} leads</span>
+          </div>
+
+          {/* Action buttons */}
+          <div className="flex flex-wrap gap-1.5 pt-1 min-h-[28px] items-center">
+            {actionCampaignId === c.id ? (
+              <div className="flex items-center gap-1.5 text-xs text-muted font-medium py-0.5">
+                <span className="animate-spin inline-block w-3.5 h-3.5 border-2 border-primary border-t-transparent rounded-full" />
+                <span>Processing...</span>
+              </div>
+            ) : isTrash ? (
+              <>
+                <button
+                  onClick={() => restoreCampaign(c.id)}
+                  className="flex items-center gap-1 text-xs px-2 py-1 rounded-lg bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/30 transition-colors"
+                >
+                  ♻ Restore
+                </button>
+                <button
+                  onClick={() => permanentDeleteCampaign(c.id)}
+                  className="flex items-center gap-1 text-xs px-2 py-1 rounded-lg bg-red-500/15 text-red-400 hover:bg-red-500/30 transition-colors"
+                >
+                  ✕ Delete Forever
+                </button>
+              </>
+            ) : isArchived ? (
+              <>
+                <button
+                  onClick={() => archiveCampaign(c.id)}
+                  className="flex items-center gap-1 text-xs px-2 py-1 rounded-lg bg-purple-500/15 text-purple-400 hover:bg-purple-500/30 transition-colors"
+                >
+                  ♻ Unarchive
+                </button>
+                <button
+                  onClick={() => softDeleteCampaign(c.id)}
+                  className="flex items-center gap-1 text-xs px-2 py-1 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors"
+                >
+                  🗑 Delete
+                </button>
+              </>
+            ) : (
+              <>
+                {/* Pause / Resume toggle */}
+                {c.status === "active" || c.status === "completed" ? (
+                  <button
+                    onClick={() => patchCampaignStatus(c.id, "paused")}
+                    className="flex items-center gap-1 text-xs px-2 py-1 rounded-lg bg-orange-500/15 text-orange-400 hover:bg-orange-500/30 transition-colors"
+                  >
+                    ⏸ Pause
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => patchCampaignStatus(c.id, "active")}
+                    className="flex items-center gap-1 text-xs px-2 py-1 rounded-lg bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/30 transition-colors"
+                  >
+                    ▶ Resume
+                  </button>
+                )}
+
+                {/* Duplicate */}
+                <button
+                  onClick={() => duplicateCampaign(c.id)}
+                  className="flex items-center gap-1 text-xs px-2 py-1 rounded-lg bg-sky-500/15 text-sky-400 hover:bg-sky-500/30 transition-colors"
+                >
+                  📋 Copy
+                </button>
+
+                {/* Archive */}
+                <button
+                  onClick={() => archiveCampaign(c.id)}
+                  className="flex items-center gap-1 text-xs px-2 py-1 rounded-lg bg-zinc-500/15 text-zinc-400 hover:bg-zinc-500/25 transition-colors"
+                >
+                  🗃 Archive
+                </button>
+
+                {/* Soft delete */}
+                <button
+                  onClick={() => softDeleteCampaign(c.id)}
+                  className="flex items-center gap-1 text-xs px-2 py-1 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors"
+                >
+                  🗑 Delete
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      );
+    };
+
     return (
       <div className="tab-pane animate-fade-in">
         <div className="tab-header">
           <div>
             <h1 className="gradient-text text-3xl font-bold">Campaigns Control</h1>
-            <p className="text-secondary text-sm">Create telecalling targets and import CSV contact sheets</p>
+            <p className="text-secondary text-sm">
+              Create telecalling targets and import CSV contact sheets
+            </p>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+        {/* TOP ROW — create + import */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
           {/* Create Campaign */}
           <div className="glass-card p-6">
             <h3 className="text-lg font-bold text-primary mb-4">Create New Campaign</h3>
@@ -1102,6 +1690,7 @@ function VoiceAgentDashboard() {
                   placeholder="e.g. EdTech Telugu Enrollment"
                   value={newCampaign.name}
                   onChange={(e) => setNewCampaign({ ...newCampaign, name: e.target.value })}
+                  disabled={isCreatingCampaign}
                 />
               </div>
 
@@ -1112,6 +1701,7 @@ function VoiceAgentDashboard() {
                   placeholder="Introduce program benefits, qualify budget, schedule counseling callbacks."
                   value={newCampaign.objective}
                   onChange={(e) => setNewCampaign({ ...newCampaign, objective: e.target.value })}
+                  disabled={isCreatingCampaign}
                 />
               </div>
 
@@ -1121,6 +1711,7 @@ function VoiceAgentDashboard() {
                   className="form-input bg-surface"
                   value={newCampaign.agent_id}
                   onChange={(e) => setNewCampaign({ ...newCampaign, agent_id: e.target.value })}
+                  disabled={isCreatingCampaign}
                 >
                   <option value="">Select AI Agent</option>
                   {agents.map((a) => (
@@ -1131,9 +1722,22 @@ function VoiceAgentDashboard() {
                 </select>
               </div>
 
-              <button type="submit" className="btn btn-primary w-full mt-2">
-                <Plus size={16} />
-                <span>Add Campaign</span>
+              <button
+                type="submit"
+                className="btn btn-primary w-full mt-2"
+                disabled={isCreatingCampaign}
+              >
+                {isCreatingCampaign ? (
+                  <>
+                    <span className="animate-spin inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full mr-2" />
+                    <span>Creating...</span>
+                  </>
+                ) : (
+                  <>
+                    <Plus size={16} />
+                    <span>Add Campaign</span>
+                  </>
+                )}
               </button>
             </form>
           </div>
@@ -1148,6 +1752,7 @@ function VoiceAgentDashboard() {
                   className="form-input bg-surface"
                   value={selectedCampaignId}
                   onChange={(e) => setSelectedCampaignId(e.target.value)}
+                  disabled={isUploadingLeads}
                 >
                   <option value="">Select Campaign</option>
                   {campaigns.map((c) => (
@@ -1165,44 +1770,87 @@ function VoiceAgentDashboard() {
                   accept=".csv"
                   className="form-input bg-surface border border-dashed border-muted p-4 h-auto cursor-pointer"
                   onChange={(e) => setCsvFile(e.target.files ? e.target.files[0] : null)}
+                  disabled={isUploadingLeads}
                 />
-                <p className="text-xs text-muted mt-1">Requires headers containing 'name' & 'phone'</p>
+                <p className="text-xs text-muted mt-1">
+                  Requires headers containing 'name' &amp; 'phone'
+                </p>
               </div>
 
-              <button type="submit" className="btn btn-secondary w-full mt-2">
-                <Upload size={16} />
-                <span>Upload Leads</span>
+              <button
+                type="submit"
+                className="btn btn-secondary w-full mt-2"
+                disabled={isUploadingLeads}
+              >
+                {isUploadingLeads ? (
+                  <>
+                    <span className="animate-spin inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full mr-2" />
+                    <span>Uploading...</span>
+                  </>
+                ) : (
+                  <>
+                    <Upload size={16} />
+                    <span>Upload Leads</span>
+                  </>
+                )}
               </button>
             </form>
           </div>
+        </div>
 
-          {/* Active Campaigns */}
-          <div className="glass-card p-6">
-            <h3 className="text-lg font-bold text-primary mb-4">Active Campaigns</h3>
-            <div className="space-y-4 max-h-[380px] overflow-y-auto">
-              {campaigns.length === 0 ? (
-                <p className="text-muted text-sm text-center py-8">No campaigns created yet.</p>
-              ) : (
-                campaigns.map((c) => (
-                  <div key={c.id} className="p-4 bg-surface rounded-lg border border-border-color">
-                    <div className="flex justify-between items-start mb-2">
-                      <span className="font-bold text-primary text-sm">{c.name}</span>
-                      <span
-                        className={`status-pill px-2 py-0.5 rounded text-xs ${c.status === "active" ? "bg-accent-green/20 text-accent-green" : "bg-muted/20 text-secondary"}`}
-                      >
-                        {c.status}
-                      </span>
-                    </div>
-                    <p className="text-secondary text-xs line-clamp-2 mb-2">{c.objective}</p>
-                    <div className="flex items-center justify-between text-xs text-muted border-t border-border-color pt-2 mt-2">
-                      <span>Agent: {c.agent_name}</span>
-                      <span>Target: {leads.filter((l) => l.campaign_id === c.id).length} Leads</span>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
+        {/* CAMPAIGN LIST with filter tabs */}
+        <div className="glass-card p-6 mt-6">
+          {/* Filter tabs */}
+          <div className="flex flex-wrap gap-2 mb-5">
+            {tabs.map((t) => {
+              const count =
+                t.key === "trash"
+                  ? trashedCampaigns.length
+                  : t.key === "archived"
+                    ? archivedCampaigns.length
+                    : t.key === "all"
+                      ? campaigns.length
+                      : campaigns.filter((c) => c.status === t.key).length;
+              return (
+                <button
+                  key={t.key}
+                  onClick={() => setCampaignFilter(t.key)}
+                  className={`text-xs px-3 py-1.5 rounded-full font-medium transition-all ${
+                    campaignFilter === t.key
+                      ? "bg-primary text-white shadow-sm"
+                      : "bg-surface text-secondary border border-border-color hover:border-primary/40"
+                  }`}
+                >
+                  {t.label}
+                  <span
+                    className={`ml-1.5 px-1.5 py-0.5 rounded-full text-[10px] ${
+                      campaignFilter === t.key ? "bg-white/20" : "bg-muted/20"
+                    }`}
+                  >
+                    {count}
+                  </span>
+                </button>
+              );
+            })}
           </div>
+
+          {/* Campaign cards grid */}
+          {displayCampaigns.length === 0 ? (
+            <div className="text-center py-12 text-muted">
+              <p className="text-4xl mb-3">{campaignFilter === "trash" ? "🗑" : "📋"}</p>
+              <p className="text-sm">
+                {campaignFilter === "trash"
+                  ? "Trash is empty"
+                  : campaignFilter === "archived"
+                    ? "No archived campaigns"
+                    : "No campaigns yet — create your first one above"}
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {displayCampaigns.map((c) => renderCampaignCard(c))}
+            </div>
+          )}
         </div>
       </div>
     );
@@ -1214,7 +1862,9 @@ function VoiceAgentDashboard() {
         <div className="tab-header">
           <div>
             <h1 className="gradient-text text-3xl font-bold">CRM Leads & Telecalling</h1>
-            <p className="text-secondary text-sm">Dial leads directly in the browser and review urgency scoring metrics</p>
+            <p className="text-secondary text-sm">
+              Dial leads directly in the browser and review urgency scoring metrics
+            </p>
           </div>
         </div>
 
@@ -1231,6 +1881,7 @@ function VoiceAgentDashboard() {
                   placeholder="e.g. Kiran Kumar"
                   value={newLead.name}
                   onChange={(e) => setNewLead({ ...newLead, name: e.target.value })}
+                  disabled={isCreatingLead}
                 />
               </div>
 
@@ -1242,6 +1893,7 @@ function VoiceAgentDashboard() {
                   placeholder="e.g. +91 98765 43210"
                   value={newLead.phone}
                   onChange={(e) => setNewLead({ ...newLead, phone: e.target.value })}
+                  disabled={isCreatingLead}
                 />
               </div>
 
@@ -1251,6 +1903,7 @@ function VoiceAgentDashboard() {
                   className="form-input bg-surface"
                   value={newLead.language}
                   onChange={(e) => setNewLead({ ...newLead, language: e.target.value })}
+                  disabled={isCreatingLead}
                 >
                   <option value="te">Telugu (తెలుగు)</option>
                   <option value="hi">Hindi (हिन्दी)</option>
@@ -1264,6 +1917,7 @@ function VoiceAgentDashboard() {
                   className="form-input bg-surface"
                   value={newLead.campaign_id}
                   onChange={(e) => setNewLead({ ...newLead, campaign_id: e.target.value })}
+                  disabled={isCreatingLead}
                 >
                   <option value="">No Campaign</option>
                   {campaigns.map((c) => (
@@ -1274,9 +1928,22 @@ function VoiceAgentDashboard() {
                 </select>
               </div>
 
-              <button type="submit" className="btn btn-primary w-full mt-2">
-                <Plus size={16} />
-                <span>Add Contact</span>
+              <button
+                type="submit"
+                className="btn btn-primary w-full mt-2"
+                disabled={isCreatingLead}
+              >
+                {isCreatingLead ? (
+                  <>
+                    <span className="animate-spin inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full mr-2" />
+                    <span>Creating Lead...</span>
+                  </>
+                ) : (
+                  <>
+                    <Plus size={16} />
+                    <span>Add Contact</span>
+                  </>
+                )}
               </button>
             </form>
           </div>
@@ -1309,13 +1976,20 @@ function VoiceAgentDashboard() {
                     </tr>
                   ) : (
                     leads.map((l) => (
-                      <tr key={l.id} className="border-b border-border-color/30 hover:bg-surface/20">
+                      <tr
+                        key={l.id}
+                        className="border-b border-border-color/30 hover:bg-surface/20"
+                      >
                         <td className="py-3 px-4">
                           <div className="font-semibold text-primary">{l.name}</div>
                           <div className="text-xs text-muted mt-0.5">{l.phone}</div>
                         </td>
                         <td className="py-3 px-4 font-medium text-secondary">
-                          {l.language === "te" ? "Telugu" : l.language === "hi" ? "Hindi" : "English"}
+                          {l.language === "te"
+                            ? "Telugu"
+                            : l.language === "hi"
+                              ? "Hindi"
+                              : "English"}
                         </td>
                         <td className="py-3 px-4">
                           <span
@@ -1352,6 +2026,7 @@ function VoiceAgentDashboard() {
                               className="btn btn-secondary p-2 rounded-full h-auto text-accent-green hover:bg-accent-green/20"
                               onClick={() => handleStartBrowserCall(l)}
                               title="Call in Browser"
+                              disabled={deletingLeadId !== null}
                             >
                               <Phone size={14} />
                             </button>
@@ -1359,14 +2034,21 @@ function VoiceAgentDashboard() {
                               className="btn btn-secondary p-2 rounded-full h-auto text-accent-purple hover:bg-accent-purple/20"
                               onClick={() => handleStartRealCall(l)}
                               title="Real Outbound Call"
+                              disabled={deletingLeadId !== null}
                             >
                               <Zap size={14} />
                             </button>
                             <button
                               className="btn btn-secondary p-2 rounded-full h-auto text-accent-red hover:bg-accent-red/20"
                               onClick={() => handleDeleteLead(l.id)}
+                              disabled={deletingLeadId !== null}
+                              title="Delete Lead"
                             >
-                              <Trash size={14} />
+                              {deletingLeadId === l.id ? (
+                                <span className="animate-spin inline-block w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full" />
+                              ) : (
+                                <Trash size={14} />
+                              )}
                             </button>
                           </div>
                         </td>
@@ -1388,7 +2070,9 @@ function VoiceAgentDashboard() {
         <div className="tab-header">
           <div>
             <h1 className="gradient-text text-3xl font-bold">Call History & Transcripts</h1>
-            <p className="text-secondary text-sm">Review call recordings, objection mappings, and full conversation transcripts</p>
+            <p className="text-secondary text-sm">
+              Review call recordings, objection mappings, and full conversation transcripts
+            </p>
           </div>
         </div>
 
@@ -1440,12 +2124,16 @@ function VoiceAgentDashboard() {
                             {l.lead_category}
                           </span>
                         </td>
-                        <td className="py-3 px-4 font-semibold text-primary">{l.interest_score}%</td>
+                        <td className="py-3 px-4 font-semibold text-primary">
+                          {l.interest_score}%
+                        </td>
                         <td className="py-3 px-4 text-xs text-secondary max-w-[120px] truncate">
                           {l.objections || "None"}
                         </td>
                         <td className="py-3 px-4">
-                          <button className="btn btn-secondary text-xs py-1 px-2 h-auto">View</button>
+                          <button className="btn btn-secondary text-xs py-1 px-2 h-auto">
+                            View
+                          </button>
                         </td>
                       </tr>
                     ))
@@ -1483,7 +2171,9 @@ function VoiceAgentDashboard() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="p-3 bg-surface rounded-lg">
                     <span className="text-xs text-muted block">Buying Intent</span>
-                    <span className="text-lg font-bold text-primary">{selectedCallLog.buying_intent}%</span>
+                    <span className="text-lg font-bold text-primary">
+                      {selectedCallLog.buying_intent}%
+                    </span>
                   </div>
                   <div className="p-3 bg-surface rounded-lg">
                     <span className="text-xs text-muted block">WhatsApp Follow-up</span>
@@ -1505,7 +2195,9 @@ function VoiceAgentDashboard() {
 
                 {/* Objections */}
                 <div>
-                  <span className="text-xs text-muted font-semibold block mb-1">Customer Objections</span>
+                  <span className="text-xs text-muted font-semibold block mb-1">
+                    Customer Objections
+                  </span>
                   <div className="p-3 bg-surface rounded-lg text-secondary text-xs">
                     {selectedCallLog.objections || "None identified during call."}
                   </div>
@@ -1514,7 +2206,9 @@ function VoiceAgentDashboard() {
                 {/* Callback Time */}
                 {selectedCallLog.callback_time && (
                   <div>
-                    <span className="text-xs text-muted font-semibold block mb-1">Requested Callback</span>
+                    <span className="text-xs text-muted font-semibold block mb-1">
+                      Requested Callback
+                    </span>
                     <div className="p-3 bg-accent-purple/10 border border-accent-purple/30 rounded-lg text-accent-purple text-xs font-bold flex items-center gap-2">
                       <Calendar size={12} />
                       <span>{selectedCallLog.callback_time}</span>
@@ -1525,7 +2219,9 @@ function VoiceAgentDashboard() {
             ) : (
               <div className="flex flex-col items-center justify-center py-20 text-muted space-y-2">
                 <FileText size={40} className="text-muted" />
-                <p className="text-sm">Select a call log to view detailed transcripts and post-call analyses.</p>
+                <p className="text-sm">
+                  Select a call log to view detailed transcripts and post-call analyses.
+                </p>
               </div>
             )}
           </div>
@@ -1540,7 +2236,9 @@ function VoiceAgentDashboard() {
         <div className="tab-header">
           <div>
             <h1 className="gradient-text text-3xl font-bold">AI Agents Workspace</h1>
-            <p className="text-secondary text-sm">Configure speech instructions, assigned voice IDs, and automation rules</p>
+            <p className="text-secondary text-sm">
+              Configure speech instructions, assigned voice IDs, and automation rules
+            </p>
           </div>
         </div>
 
@@ -1655,8 +2353,13 @@ function VoiceAgentDashboard() {
                       <button
                         className="btn btn-secondary text-accent-red p-1 h-auto hover:bg-accent-red/20 rounded"
                         onClick={() => handleDeleteAgent(a.id)}
+                        disabled={deletingAgentId !== null}
                       >
-                        <Trash size={12} />
+                        {deletingAgentId === a.id ? (
+                          <span className="animate-spin inline-block w-3 h-3 border-2 border-current border-t-transparent rounded-full" />
+                        ) : (
+                          <Trash size={12} />
+                        )}
                       </button>
                     </div>
                   </div>
@@ -1715,7 +2418,9 @@ function VoiceAgentDashboard() {
 
                 <h2 className="text-lg font-bold text-primary mt-3">{activeCallLead?.name}</h2>
                 <p className="text-[11px] text-muted mt-0.5">{activeCallLead?.phone}</p>
-                <p className="text-[11px] text-secondary mt-2 font-mono font-medium">{statusText}</p>
+                <p className="text-[11px] text-secondary mt-2 font-mono font-medium">
+                  {statusText}
+                </p>
 
                 {isPlayingAudio && (
                   <div className="wave-container mt-3">
@@ -1764,7 +2469,9 @@ function VoiceAgentDashboard() {
                 </h3>
                 <div className="flex-1 space-y-3 overflow-hidden flex flex-col justify-center">
                   {chatLog.length === 0 ? (
-                    <p className="text-muted text-[11px] text-center py-4">Waiting for conversation...</p>
+                    <p className="text-muted text-[11px] text-center py-4">
+                      Waiting for conversation...
+                    </p>
                   ) : (
                     chatLog.slice(-2).map((chat, idx) => (
                       <div
@@ -1794,7 +2501,9 @@ function VoiceAgentDashboard() {
             <div className="flex justify-between items-start border-b border-border-color pb-4">
               <div>
                 <h2 className="text-xl font-bold text-primary">Sales Evaluation & Summary</h2>
-                <p className="text-xs text-muted mt-0.5">Automated lead categorization and scoring</p>
+                <p className="text-xs text-muted mt-0.5">
+                  Automated lead categorization and scoring
+                </p>
               </div>
               <button
                 className="btn btn-secondary p-1 h-auto rounded"
@@ -1856,7 +2565,7 @@ function VoiceAgentDashboard() {
   };
 
   return (
-    <div className="voice-agent-studio flex flex-col min-h-[calc(100vh-64px)] w-full text-primary bg-bg-main relative">
+    <div className="voice-agent-studio flex-1 flex flex-col min-h-full w-full text-primary bg-bg-main relative">
       {/* Toast Alerts */}
       {errorMsg && (
         <div className="toast toast-error fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 bg-accent-red/20 border border-accent-red/40 px-4 py-2.5 rounded-full text-xs font-semibold shadow-lg">
@@ -1887,8 +2596,8 @@ function VoiceAgentDashboard() {
           <nav className="flex flex-wrap items-center gap-2">
             <button
               className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-medium transition-all ${
-                activeTab === "dashboard" 
-                  ? "bg-accent/15 text-accent border border-accent/30" 
+                activeTab === "dashboard"
+                  ? "bg-accent/15 text-accent border border-accent/30"
                   : "text-secondary hover:bg-white/5 border border-transparent"
               }`}
               onClick={() => setActiveTab("dashboard")}
@@ -1898,8 +2607,8 @@ function VoiceAgentDashboard() {
             </button>
             <button
               className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-medium transition-all ${
-                activeTab === "campaigns" 
-                  ? "bg-accent/15 text-accent border border-accent/30" 
+                activeTab === "campaigns"
+                  ? "bg-accent/15 text-accent border border-accent/30"
                   : "text-secondary hover:bg-white/5 border border-transparent"
               }`}
               onClick={() => setActiveTab("campaigns")}
@@ -1909,8 +2618,8 @@ function VoiceAgentDashboard() {
             </button>
             <button
               className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-medium transition-all ${
-                activeTab === "crm" 
-                  ? "bg-accent/15 text-accent border border-accent/30" 
+                activeTab === "crm"
+                  ? "bg-accent/15 text-accent border border-accent/30"
                   : "text-secondary hover:bg-white/5 border border-transparent"
               }`}
               onClick={() => setActiveTab("crm")}
@@ -1920,8 +2629,8 @@ function VoiceAgentDashboard() {
             </button>
             <button
               className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-medium transition-all ${
-                activeTab === "calls" 
-                  ? "bg-accent/15 text-accent border border-accent/30" 
+                activeTab === "calls"
+                  ? "bg-accent/15 text-accent border border-accent/30"
                   : "text-secondary hover:bg-white/5 border border-transparent"
               }`}
               onClick={() => setActiveTab("calls")}
@@ -1931,8 +2640,8 @@ function VoiceAgentDashboard() {
             </button>
             <button
               className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-medium transition-all ${
-                activeTab === "agents" 
-                  ? "bg-accent/15 text-accent border border-accent/30" 
+                activeTab === "agents"
+                  ? "bg-accent/15 text-accent border border-accent/30"
                   : "text-secondary hover:bg-white/5 border border-transparent"
               }`}
               onClick={() => setActiveTab("agents")}
@@ -1945,12 +2654,12 @@ function VoiceAgentDashboard() {
       </div>
 
       {/* Main content pane */}
-      <main className="flex-1 p-8">
+      <main className="flex-1 p-8 flex flex-col">
         {activeTab === "dashboard" && renderDashboard()}
-        {activeTab === "campaigns" && renderCampaigns()}
-        {activeTab === "crm" && renderCRM()}
-        {activeTab === "calls" && renderCallLogs()}
-        {activeTab === "agents" && renderAgents()}
+        {activeTab === "campaigns" && (isLoadingDashboard ? renderCampaignsSkeleton() : renderCampaigns())}
+        {activeTab === "crm" && (isLoadingDashboard ? renderCRMSkeleton() : renderCRM())}
+        {activeTab === "calls" && (isLoadingDashboard ? renderCallLogsSkeleton() : renderCallLogs())}
+        {activeTab === "agents" && (isLoadingDashboard ? renderAgentsSkeleton() : renderAgents())}
       </main>
 
       {/* Dialer monitor overlay */}

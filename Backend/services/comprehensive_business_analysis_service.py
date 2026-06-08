@@ -1,19 +1,6 @@
-"""
-Comprehensive Business Analysis Service
-ONE Gemini API call to populate ALL features:
-- Business Analysis (strengths, weaknesses, opportunities, local insights)
-- Competitor Analysis
-- Dashboard (30-day growth plan)
-- Daily Ask (daily suggestions)
-- SEO/Google Maps Feature
-
-This avoids rate limit issues by making only ONE API call and storing everything in database
-PLUS: Automatically stores in Pinecone for fast semantic retrieval
-PLUS: Redis caching for ultra-fast retrieval
-"""
-
 import logging
 import json
+import asyncio
 from typing import Dict, Any, Optional
 from datetime import datetime
 from sqlalchemy.orm import Session
@@ -30,9 +17,157 @@ from services.comprehensive_cache_service import (
     CACHE_PREFIX,
     CACHE_TTL
 )
-import asyncio
 
 logger = logging.getLogger(__name__)
+
+
+async def run_analysis_background_task(user_snapshot: Dict[str, Any], analysis_id: int) -> None:
+    """
+    Background coroutine that runs the full analysis pipeline for a given analysis_id.
+    Opens its own DB session (thread-safe) and wraps ALL blocking I/O in
+    asyncio.to_thread so the FastAPI event loop is never stalled.
+
+    Args:
+        user_snapshot: Dict with user fields (id, business_name, business_type,
+                       business_location, business_description).
+        analysis_id: ID of the pre-created BusinessAnalysis record.
+    """
+    from config.database import SyncSessionLocal
+
+    logger.info(f"[BG Analysis] Starting background analysis_id={analysis_id} for user {user_snapshot['id']}")
+    db = SyncSessionLocal()
+    try:
+        user_id = user_snapshot["id"]
+        business_type = user_snapshot.get("business_type", "")
+        location = user_snapshot.get("business_location", "")
+
+        # Build profile dict
+        business_profile = {
+            "business_name": user_snapshot.get("business_name", ""),
+            "business_type": business_type,
+            "location": location,
+            "services": [],
+            "target_audience": "",
+            "goals": "",
+            "website_or_instagram": "",
+        }
+        if user_snapshot.get("business_description"):
+            business_profile["description"] = user_snapshot["business_description"]
+
+        # ── Step 1: Competitor search (blocking network I/O → off-loop thread) ──
+        competitors_data = []
+        try:
+            if business_type and location:
+                competitors_data = await asyncio.to_thread(
+                    search_competitors_combined,
+                    business_type=business_type,
+                    location=location,
+                )
+                logger.info(f"[BG Analysis] Found {len(competitors_data)} competitors")
+        except Exception as search_err:
+            logger.warning(f"[BG Analysis] Competitor search failed (non-fatal): {search_err}")
+
+        business_profile["competitors_found"] = competitors_data
+
+        # ── Step 2: Gemini API call (already async-native via httpx) ──
+        analysis_result = await generate_realtime_business_analysis(business_profile)
+
+        if analysis_result.get("status") == "error":
+            analysis = db.query(BusinessAnalysis).filter(BusinessAnalysis.id == analysis_id).first()
+            if analysis:
+                analysis.analysis_status = "error"
+                analysis.last_analyzed_at = datetime.utcnow()
+                db.commit()
+            logger.error(f"[BG Analysis] Gemini returned error for analysis_id={analysis_id}")
+            return
+
+        # ── Step 3: Persist results to DB ──
+        analysis = db.query(BusinessAnalysis).filter(BusinessAnalysis.id == analysis_id).first()
+        if not analysis:
+            logger.error(f"[BG Analysis] analysis_id={analysis_id} not found in DB!")
+            return
+
+        analysis.business_name = business_profile["business_name"]
+        analysis.business_type = business_profile["business_type"]
+        analysis.location = business_profile["location"]
+        analysis.services = json.dumps(business_profile["services"])
+        analysis.target_audience = business_profile["target_audience"]
+        analysis.goals = business_profile["goals"]
+        analysis.website_or_instagram = business_profile["website_or_instagram"]
+        analysis.business_summary = analysis_result.get("business_details", {}).get("summary", "")
+
+        analysis.strengths_data = json.dumps(analysis_result.get("strengths", []))
+        analysis.weaknesses_data = json.dumps(analysis_result.get("weaknesses", []))
+        analysis.growth_opportunities_data = json.dumps(analysis_result.get("growth_opportunities", []))
+        analysis.local_market_insights = json.dumps(analysis_result.get("local_market_insights", {}))
+        analysis.competitor_analysis = json.dumps(analysis_result.get("competitor_analysis", {}))
+        analysis.seo_google_maps_tips = json.dumps(analysis_result.get("seo_google_maps_tips", {}))
+        analysis.thirty_day_growth_plan = json.dumps(analysis_result.get("thirty_day_growth_plan", {}))
+        analysis.daily_suggestions = json.dumps(analysis_result.get("daily_suggestions", []))
+        analysis.health_score = analysis_result.get("health_score", 0)
+        analysis.analysis_source = analysis_result.get("source", "google_ai_studio_gemini_search_grounding")
+        analysis.last_analyzed_at = datetime.utcnow()
+        analysis.analysis_status = "completed"
+
+        db.commit()
+        logger.info(f"[BG Analysis] ✅ Committed results to DB for analysis_id={analysis_id}")
+
+        # ── Step 4: Store in Pinecone (blocking SDK → off-loop thread) ──
+        try:
+            pinecone_success = await pinecone_business_store.store_business_analysis(
+                user_id=user_id,
+                analysis_data={
+                    "id": analysis.id,
+                    "business_name": analysis.business_name,
+                    "business_type": analysis.business_type,
+                    "location": analysis.location,
+                    "business_summary": analysis.business_summary,
+                    "strengths_data": analysis.strengths_data,
+                    "weaknesses_data": analysis.weaknesses_data,
+                    "growth_opportunities_data": analysis.growth_opportunities_data,
+                    "local_market_insights": analysis.local_market_insights,
+                    "competitor_analysis": analysis.competitor_analysis,
+                    "seo_google_maps_tips": analysis.seo_google_maps_tips,
+                    "thirty_day_growth_plan": analysis.thirty_day_growth_plan,
+                    "daily_suggestions": analysis.daily_suggestions,
+                    "health_score": analysis.health_score,
+                    "last_analyzed_at": analysis.last_analyzed_at.isoformat() if analysis.last_analyzed_at else None,
+                },
+            )
+            if pinecone_success:
+                logger.info(f"[BG Analysis] ✅ Pinecone storage complete for analysis_id={analysis_id}")
+        except Exception as pinecone_err:
+            logger.error(f"[BG Analysis] Pinecone storage failed (non-fatal): {pinecone_err}")
+
+        # ── Step 5: Invalidate Redis cache ──
+        try:
+            for prefix_key, sub_key in [
+                (CACHE_PREFIX["competitor"], "analysis_data"),
+                (CACHE_PREFIX["content"], "daily_suggestions"),
+                (CACHE_PREFIX["business_analysis"], "analysis_data"),
+                (CACHE_PREFIX["seo"], "google_maps_data"),
+            ]:
+                cache_key = generate_cache_key(prefix_key, sub_key, user_id=user_id)
+                await delete_pattern(cache_key)
+            logger.info(f"[BG Analysis] ✅ Cache invalidated for user {user_id}")
+        except Exception as cache_err:
+            logger.warning(f"[BG Analysis] Cache invalidation error (non-fatal): {cache_err}")
+
+    except Exception as e:
+        logger.error(f"[BG Analysis] ❌ Unexpected error for analysis_id={analysis_id}: {e}", exc_info=True)
+        try:
+            analysis = db.query(BusinessAnalysis).filter(BusinessAnalysis.id == analysis_id).first()
+            if analysis:
+                analysis.analysis_status = "error"
+                analysis.last_analyzed_at = datetime.utcnow()
+                db.commit()
+        except Exception:
+            pass
+    finally:
+        db.close()
+
+
+
 
 
 async def trigger_comprehensive_analysis(

@@ -6,6 +6,7 @@ Only authentication data stays in PostgreSQL/NeonDB
 
 import logging
 import json
+import asyncio
 from typing import Dict, Any, List, Optional
 from datetime import datetime
 from services.vector_storage_service import vector_storage
@@ -125,7 +126,9 @@ class PineconeBusinessStore:
                 })
             
             if vectors:
-                success = vector_storage.store_vectors_batch(vectors, NAMESPACE_BUSINESS_PROFILE)
+                success = await asyncio.to_thread(
+                    vector_storage.store_vectors_batch, vectors, NAMESPACE_BUSINESS_PROFILE
+                )
                 if success:
                     logger.info(f"✅ Stored {len(vectors)} business profile vectors")
                 return success
@@ -149,14 +152,14 @@ class PineconeBusinessStore:
         try:
             if query:
                 # Semantic search
-                results = vector_storage.search_similar(
+                results = await asyncio.to_thread(
+                    vector_storage.search_similar,
                     query_text=query,
                     namespace=NAMESPACE_BUSINESS_PROFILE,
                     top_k=top_k,
                     filter_dict={'user_id': user_id}
                 )
             else:
-                # Get all profile data (would need custom implementation)
                 results = []
             
             return results
@@ -370,7 +373,9 @@ class PineconeBusinessStore:
                         })
             
             if vectors:
-                success = vector_storage.store_vectors_batch(vectors, NAMESPACE_BUSINESS_ANALYSIS)
+                success = await asyncio.to_thread(
+                    vector_storage.store_vectors_batch, vectors, NAMESPACE_BUSINESS_ANALYSIS
+                )
                 if success:
                     logger.info(f"✅ Stored {len(vectors)} business analysis vectors")
                 return success
@@ -392,7 +397,8 @@ class PineconeBusinessStore:
             return []
         
         try:
-            results = vector_storage.search_similar(
+            results = await asyncio.to_thread(
+                vector_storage.search_similar,
                 query_text=query,
                 namespace=NAMESPACE_BUSINESS_ANALYSIS,
                 top_k=top_k,
@@ -422,7 +428,8 @@ class PineconeBusinessStore:
             # Store review + reply as single vector for context
             combined_text = f"Review ({review_data.get('rating', 0)} stars): {review_data.get('review', '')} | Reply: {review_data.get('reply', '')}"
             
-            success = vector_storage.store_vector(
+            success = await asyncio.to_thread(
+                vector_storage.store_vector,
                 vector_id=f"user_{user_id}_review_{review_id}",
                 text=combined_text,
                 namespace=NAMESPACE_REVIEW_HISTORY,
@@ -457,7 +464,8 @@ class PineconeBusinessStore:
             return []
         
         try:
-            results = vector_storage.search_similar(
+            results = await asyncio.to_thread(
+                vector_storage.search_similar,
                 query_text=review_text,
                 namespace=NAMESPACE_REVIEW_HISTORY,
                 top_k=top_k,
@@ -484,7 +492,8 @@ class PineconeBusinessStore:
         try:
             task_id = task_data.get('id', 'default')
             
-            success = vector_storage.store_vector(
+            success = await asyncio.to_thread(
+                vector_storage.store_vector,
                 vector_id=f"user_{user_id}_task_{task_id}",
                 text=f"Task: {task_data.get('task_text', '')} | Category: {task_data.get('category', '')}",
                 namespace=NAMESPACE_TASK_TRACKING,
@@ -527,7 +536,8 @@ Direct Answer: {content_data.get('direct_answer', '')}
 Detailed Explanation: {content_data.get('detailed_explanation', '')}
 """
             
-            success = vector_storage.store_vector(
+            success = await asyncio.to_thread(
+                vector_storage.store_vector,
                 vector_id=f"user_{user_id}_aeo_content_{content_id}",
                 text=full_content,
                 namespace=NAMESPACE_AEO_CONTENT,

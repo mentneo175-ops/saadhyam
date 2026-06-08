@@ -93,7 +93,7 @@ function SEOPage() {
   };
 
   return (
-    <div className="relative -m-4 min-h-[calc(100vh-4rem)] bg-background p-6 md:p-8">
+    <div className="relative -m-4 flex-grow flex flex-col min-h-full bg-background p-6 md:p-8">
       <div className="pointer-events-none absolute inset-0 bg-mesh opacity-60" aria-hidden />
       <SEOLayout>
         <SEOPageHeader

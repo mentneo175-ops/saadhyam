@@ -49,7 +49,7 @@ echo   Starting Cloudflare Tunnel
 echo ============================================
 start "Saadhyam Tunnel" cmd /k "cd Backend && call venv\Scripts\activate.bat && python start_tunnel.py"
 echo [INFO] Waiting for Cloudflare Tunnel to initialize and update .env...
-timeout /t 5 /nobreak >nul
+Backend\venv\Scripts\python.exe Backend\wait_for_tunnel.py
 echo.
 
 REM Start Backend Server

@@ -4,16 +4,18 @@ ONE API call populates ALL features - no rate limit issues
 """
 
 import logging
+import asyncio
 from fastapi import APIRouter, HTTPException, status, Depends
 from pydantic import BaseModel
 from typing import Optional, Dict, Any
 from utils.dependencies import get_current_user
-from config.database import get_db_sync
+from config.database import get_db_sync, SyncSessionLocal
 from models.user import User
 from utils.feature_gate import check_feature_access
 from sqlalchemy.orm import Session
 from services.comprehensive_business_analysis_service import (
     trigger_comprehensive_analysis,
+    run_analysis_background_task,
     get_business_analysis_data,
     get_competitor_analysis_data,
     get_growth_plan_data,
@@ -101,33 +103,77 @@ async def trigger_analysis(
     db: Session = Depends(get_db_sync)
 ) -> TriggerAnalysisResponse:
     """
-    Trigger comprehensive business analysis
-    
-    This makes ONE Gemini API call with Google Search grounding and stores:
-    - Business Analysis data (strengths, weaknesses, opportunities, local insights)
-    - Competitor Analysis data
-    - 30-Day Growth Plan (for Dashboard)
-    - Daily Suggestions (for Daily Ask)
-    - SEO & Google Maps Tips
-    
-    Takes 2-3 minutes but avoids all rate limit issues
+    Trigger comprehensive business analysis — RETURNS INSTANTLY.
+
+    Sets status to 'analyzing' in DB immediately, then runs the actual Gemini
+    + competitor search + Pinecone storage in a background asyncio task so that
+    other requests (including voice call webhooks) are never blocked.
     """
-    
+
     logger.info(f"[TriggerAnalysis] User {current_user.id} triggered comprehensive analysis")
-    
     # Check feature access
     await check_feature_access(current_user, "business_analysis")
-    
-    # Call async function (with await)
-    result = await trigger_comprehensive_analysis(current_user, db)
-    
-    if result["status"] == "error":
+
+    # Quick validation — no external calls yet
+    if not current_user.business_type or not current_user.business_location:
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=result["message"]
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Please complete your business profile before analyzing"
         )
-    
-    return TriggerAnalysisResponse(**result)
+
+    # Check for already-running analysis (fast DB query only)
+    from db.models import BusinessAnalysis
+    existing = db.query(BusinessAnalysis).filter(
+        BusinessAnalysis.user_id == current_user.id
+    ).order_by(BusinessAnalysis.last_analyzed_at.desc()).first()
+
+    if existing and existing.analysis_status == "analyzing":
+        return TriggerAnalysisResponse(
+            status="analyzing",
+            message="Analysis is already in progress. Please wait...",
+            analysis_id=existing.id
+        )
+
+    # Create / update the record and commit immediately so the UI sees it
+    from datetime import datetime
+    if existing:
+        existing.analysis_status = "analyzing"
+        db.commit()
+        analysis_id = existing.id
+    else:
+        new_analysis = BusinessAnalysis(
+            user_id=current_user.id,
+            analysis_status="analyzing",
+            business_name=current_user.business_name or "",
+            business_type=current_user.business_type or "",
+            location=current_user.business_location or "",
+            description=current_user.business_description or ""
+        )
+        db.add(new_analysis)
+        db.commit()
+        db.refresh(new_analysis)
+        analysis_id = new_analysis.id
+
+    # Snapshot user data so the background task doesn't touch the
+    # request-scoped SQLAlchemy session which will be closed after this request.
+    user_snapshot = {
+        "id": current_user.id,
+        "business_name": current_user.business_name,
+        "business_type": current_user.business_type,
+        "business_location": current_user.business_location,
+        "business_description": current_user.business_description,
+    }
+
+    # Spawn the real work as a background task — never blocks the caller
+    asyncio.create_task(run_analysis_background_task(user_snapshot, analysis_id))
+
+    logger.info(f"[TriggerAnalysis] Spawned background task for analysis_id={analysis_id}")
+
+    return TriggerAnalysisResponse(
+        status="analyzing",
+        message="Analysis started! Results will be ready in 1–2 minutes. You can continue using the app.",
+        analysis_id=analysis_id
+    )
 
 
 @router.get(

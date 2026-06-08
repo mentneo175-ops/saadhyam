@@ -153,10 +153,15 @@ def get_user_by_id(db: Session, user_id: int) -> User:
     Raises:
         HTTPException: If user not found
     """
-    try:
-        user = db.query(User).filter(User.id == user_id).first()
-        return user  # Returns None if not found; caller handles auth errors
+    max_retries = 2
+    for attempt in range(max_retries):
+        try:
+            user = db.query(User).filter(User.id == user_id).first()
+            return user  # Returns None if not found; caller handles auth errors
 
-    except Exception as e:
-        logger.error(f"Error fetching user: {e}")
-        return None
+        except Exception as e:
+            logger.warning(f"Error fetching user (attempt {attempt + 1}): {e}")
+            if attempt == max_retries - 1:
+                logger.error(f"Failed to fetch user after all attempts: {e}")
+                return None
+            db.rollback()

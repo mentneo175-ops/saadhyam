@@ -13,6 +13,8 @@ from config.database import get_db_sync
 from utils.dependencies import get_current_user
 from models.user import User
 from services.gemini_business_analysis_service import generate_realtime_business_analysis
+from tasks.ai_tasks import generate_business_analysis_task
+from config.settings import settings
 from services.business_pinecone_service import store_business_analysis_in_pinecone
 from utils.feature_gate import check_feature_access
 
@@ -60,7 +62,8 @@ class BusinessAnalysisResponse(BaseModel):
 )
 async def get_realtime_business_analysis(
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db_sync)
+    db: Session = Depends(get_db_sync),
+    background: bool = False
 ) -> BusinessAnalysisResponse:
     """
     Get real-time business analysis for logged-in user
@@ -115,7 +118,17 @@ async def get_realtime_business_analysis(
         logger.info(f"[BusinessAnalysis] Analyzing: {business_profile['business_name']} ({business_profile['business_type']}) in {business_profile['location']}")
         logger.info("[BusinessAnalysis] Using Google AI Studio Gemini Search Grounding")
         
-        # Generate analysis using Gemini
+        # Optionally offload to Celery background worker to avoid blocking the request
+        if background or getattr(settings, "USE_CELERY_FOR_AI", False):
+            logger.info("[BusinessAnalysis] Queuing analysis task in Celery")
+            task = generate_business_analysis_task.delay(current_user.id, business_profile)
+            return BusinessAnalysisResponse(
+                status="queued",
+                source="celery",
+                message=f"Analysis queued as task {task.id}"
+            )
+
+        # Generate analysis using Gemini (synchronous path)
         result = await generate_realtime_business_analysis(business_profile)
         
         if result.get("status") == "error":

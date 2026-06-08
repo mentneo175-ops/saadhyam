@@ -238,6 +238,16 @@ class Settings(BaseSettings):
     # Speech-to-Text, Text-to-Speech, & Telephony
     DEEPGRAM_API_KEY: str = ""
     ELEVENLABS_API_KEY: str = ""
+    ELEVENLABS_VOICE_ID: str = "TX3LPaxmHKxFdv7VOQHJ"
+    ELEVENLABS_TELUGU_VOICE_ID: str = "EMxdghWQV7gqV33j4J3F"
+    ELEVENLABS_HINDI_VOICE_ID: str = "uavKGt8JpB2lo1bcty9J"
+    ELEVENLABS_TELUGU_VOICE_GENDER: str = "male"
+    SARVAM_API_KEY: str = ""
+
+    SARVAM_SPEAKER: str = "shubh"
+    SARVAM_MODEL: str = "bulbul:v3"
+    SARVAM_PACE: float = 1.1
+    TTS_PROVIDER: str = "sarvam"
     EXOTEL_SID: str = ""
     EXOTEL_API_KEY: str = ""
     EXOTEL_API_TOKEN: str = ""

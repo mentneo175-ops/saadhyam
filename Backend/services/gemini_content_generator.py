@@ -10,6 +10,8 @@ from typing import Dict, Any
 import google.generativeai as genai
 from dotenv import load_dotenv
 from config.settings import settings
+from services.ai_parsing_utils import parse_json_with_retries
+import asyncio
 
 load_dotenv()
 
@@ -178,9 +180,14 @@ If language is not English, translate the content appropriately while keeping ha
                     end = content.rfind("}") + 1
                     if start != -1 and end > start:
                         json_content = content[start:end]
-                
-                # Parse JSON
-                result = json.loads(json_content)
+
+                # Robust parse (async helper run synchronously)
+                result = asyncio.run(parse_json_with_retries(json_content, max_attempts=3, metadata={
+                    "service": "content_generator",
+                    "model": model_name
+                }))
+                if not result:
+                    raise ValueError("Failed to parse Gemini JSON response")
                 
                 # Validate required fields
                 required_fields = ["headline", "caption", "subtext", "cta", "hashtags"]

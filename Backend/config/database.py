@@ -93,7 +93,7 @@ else:
             pool_recycle=280,
             connect_args={
                 "sslmode": "require",
-                "connect_timeout": 10
+                "connect_timeout": 30
             }
         )
         

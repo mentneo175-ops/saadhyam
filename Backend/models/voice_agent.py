@@ -43,6 +43,11 @@ class Campaign(Base):
     objective = Column(Text, nullable=True)
     agent_id = Column(Integer, nullable=True)
     status = Column(String(50), default="active")
+    # Lifecycle columns
+    is_archived = Column(Boolean, default=False, index=True)
+    archived_at = Column(DateTime, nullable=True)
+    is_deleted = Column(Boolean, default=False, index=True)
+    deleted_at = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
 

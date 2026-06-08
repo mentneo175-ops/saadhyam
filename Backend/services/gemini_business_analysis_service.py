@@ -16,6 +16,7 @@ import httpx
 from google import genai
 from config.settings import settings
 from services.redis_service import get_redis_client
+from services.ai_parsing_utils import parse_json_with_retries, extract_balanced_json
 
 logger = logging.getLogger(__name__)
 
@@ -84,6 +85,9 @@ def _get_gemini_client(api_key: str = None):
     return _gemini_clients[api_key]
 
 
+# parsing helpers are provided by services.ai_parsing_utils
+
+
 async def _make_gemini_request_with_rotation(prompt: str, max_retries: int = None) -> Dict[str, Any]:
     """Make Gemini API request with automatic key rotation on rate limit"""
     
@@ -101,16 +105,19 @@ async def _make_gemini_request_with_rotation(prompt: str, max_retries: int = Non
                 continue
             
             logger.info(f"🚀 Making Gemini API request (attempt {attempt + 1}/{max_retries})")
-            
-            # Make the API call
-            response = client.models.generate_content(
+
+            # The Gemini SDK's generate_content() is a blocking sync call.
+            # Run it in a thread-pool executor so the event loop stays free.
+            import asyncio as _asyncio
+            response = await _asyncio.to_thread(
+                client.models.generate_content,
                 model=GEMINI_MODEL_PRIMARY,
                 contents=prompt,
                 config={
                     "temperature": 0.7,
                     "max_output_tokens": 4000,
-                    "system_instruction": "You are a business analysis expert. Provide detailed, actionable insights."
-                }
+                    "system_instruction": "You are a business analysis expert. Provide detailed, actionable insights.",
+                },
             )
             
             if response and response.text:
@@ -721,12 +728,22 @@ Generate the analysis now:"""
             if start != -1 and end > start:
                 json_content = json_content[start:end]
         
-        # Parse JSON
-        analysis_data = json.loads(json_content)
-        
+        # Parse JSON with robust retries and extraction heuristics
+        analysis_data = await parse_json_with_retries(json_content, max_attempts=3, metadata={
+            "service": "business_analysis",
+            "model": source_used
+        })
+
+        if not analysis_data:
+            logger.error("[BusinessAnalysis] ❌ Unable to parse Gemini/Groq response as JSON after retries")
+            logger.warning("[BusinessAnalysis] 🔄 JSON parsing failed, using programmatic mock fallback to ensure functionality")
+            mock_data = _generate_mock_business_analysis(business_profile)
+            await _set_cached_analysis(cache_key, mock_data)
+            return mock_data
+
         logger.info(f"[BusinessAnalysis] ✅ Analysis completed successfully")
         logger.info(f"[BusinessAnalysis] Health Score: {analysis_data.get('health_score', 'N/A')}")
-        
+
         # Return structured response
         result = {
             "status": "success",

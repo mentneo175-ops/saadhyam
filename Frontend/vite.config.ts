@@ -35,6 +35,32 @@ export default defineConfig({
       },
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes("node_modules")) {
+            if (id.includes("recharts") || id.includes("d3")) {
+              return "charts";
+            }
+            if (id.includes("reactflow")) {
+              return "reactflow";
+            }
+            if (id.includes("leaflet")) {
+              return "maps";
+            }
+            if (id.includes("firebase")) {
+              return "firebase";
+            }
+            if (id.includes("framer-motion")) {
+              return "framer-motion";
+            }
+            return "vendor";
+          }
+        },
+      },
+    },
+  },
   optimizeDeps: {
     include: ["react", "react-dom", "framer-motion"],
   },

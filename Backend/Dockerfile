@@ -15,18 +15,7 @@ COPY requirements.txt .
 
 # Install only essential Python dependencies
 RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir \
-    fastapi==0.104.1 \
-    uvicorn==0.24.0 \
-    python-multipart==0.0.6 \
-    starlette==0.27.0 \
-    asyncpg==0.29.0 \
-    pydantic-settings==2.1.0 \
-    python-dotenv==1.0.0 \
-    requests==2.31.0 \
-    python-jose[cryptography]==3.3.0 \
-    passlib[bcrypt]==1.7.4 \
-    firebase-admin==7.4.0
+    pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
 COPY . .

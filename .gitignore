@@ -23,8 +23,11 @@ __pycache__/
 *$py.class
 *.so
 .Python
+
+# Virtual Environments (CRITICAL - NEVER COMMIT THESE!)
 venv/
 .venv/
+.venv_test/
 env/
 ENV/
 *.egg-info/
@@ -43,6 +46,35 @@ yarn-error.log*
 .yarn-integrity
 *.tgz
 *.tar.gz
+
+# ============================================
+# AI/ML Models & Checkpoints (CRITICAL!)
+# ============================================
+# Model files
+*.pth
+*.pt
+*.safetensors
+*.ckpt
+*.bin
+*.h5
+*.pb
+*.onnx
+*.tflite
+*.mlmodel
+
+# Model directories
+models/
+checkpoints/
+checkpoint-*/
+adapter/
+mistral_adapter/
+ai_models/content_creator/mistral_adapter/
+*.model/
+
+# HuggingFace cache
+.cache/
+transformers_cache/
+huggingface/
 
 # ============================================
 # Database Files

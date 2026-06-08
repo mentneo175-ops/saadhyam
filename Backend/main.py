@@ -472,6 +472,14 @@ except Exception as e:
     health_available = False
 
 try:
+    from routes.public import router as public_router
+    public_available = True
+    logging.info("✅ Public API router imported successfully")
+except Exception as e:
+    logging.warning(f"Public API router not available: {e}")
+    public_available = False
+
+try:
     from ai_models.website_ai.app.api.v1.routes import generation as website_ai_generation
     from ai_models.website_ai.app.api.v1.routes import jobs as website_ai_jobs
     from ai_models.website_ai.app.api.v1.routes import websites as website_ai_websites
@@ -1050,6 +1058,9 @@ if cache_management_available:
 if health_available:
     app.include_router(health_router)
     logging.info("✅ Health Check router included in app")
+if public_available:
+    app.include_router(public_router)
+    logging.info("✅ Public API router included in app")
 if google_business_available:
     app.include_router(google_business_router)
     logging.info("✅ Google Business router included in app")

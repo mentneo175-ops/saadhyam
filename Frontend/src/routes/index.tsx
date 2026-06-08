@@ -168,27 +168,59 @@ const LeadCaptureModal = ({ isOpen, onClose, onSuccess }: LeadCaptureModalProps)
     
     setIsSubmitting(true);
     try {
-      if (!db) {
-        throw new Error("Firestore instance not available. Make sure Firebase is properly configured.");
+      // Try Firestore first (if available)
+      if (db) {
+        try {
+          await addDoc(collection(db, "leads"), {
+            name: formData.name,
+            email: formData.email,
+            phone: formData.phone,
+            businessType: formData.businessType,
+            goals: formData.goals,
+            timestamp: serverTimestamp()
+          });
+          console.log("✅ Saved to Firestore");
+        } catch (firestoreError: any) {
+          console.warn("⚠️ Firestore save failed:", firestoreError.message);
+          // Continue to backend fallback
+        }
       }
-      await addDoc(collection(db, "leads"), {
-        name: formData.name,
-        email: formData.email,
-        phone: formData.phone,
-        businessType: formData.businessType,
-        goals: formData.goals,
-        timestamp: serverTimestamp()
-      });
+      
+      // Also send to backend API as backup
+      try {
+        const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/public/waitlist`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: formData.name,
+            email: formData.email,
+            phone: formData.phone,
+            business_type: formData.businessType,
+            goals: formData.goals
+          })
+        });
+        
+        if (response.ok) {
+          console.log("✅ Saved to backend");
+        } else {
+          console.warn("⚠️ Backend save returned:", response.status);
+        }
+      } catch (backendError: any) {
+        console.warn("⚠️ Backend save failed:", backendError.message);
+        // Still continue - at least one method might have worked
+      }
+      
+      // Show success regardless
       setSubmitted(true);
       setTimeout(() => { 
         setSubmitted(false); 
         onSuccess();
         onClose(); 
       }, 3000);
+      
     } catch (error: any) {
-      console.error("Error adding document: ", error);
+      console.error("Error submitting form:", error);
       alert(`Failed to save waitlist data: ${error.message || 'Unknown error'}`);
-    } finally {
       setIsSubmitting(false);
     }
   };

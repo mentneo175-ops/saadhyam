@@ -89,7 +89,7 @@ class ContentGenerationResponse(BaseModel):
 
 
 @router.post("/generate", response_model=ContentGenerationResponse)
-async def generate_content_endpoint(request: ContentGenerationRequest):
+def generate_content_endpoint(request: ContentGenerationRequest):
     """
     Generate marketing content for social media using AI
     

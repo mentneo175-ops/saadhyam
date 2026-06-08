@@ -62,7 +62,7 @@ def main():
         if match:
             tunnel_url = match.group(0)
             print(f"\n[SUCCESS] Quick Tunnel Created successfully!")
-            print(f"🔗 Tunnel URL: {tunnel_url}\n")
+            print(f"[LINK] Tunnel URL: {tunnel_url}\n")
             break
             
         # Timeout after 20 seconds

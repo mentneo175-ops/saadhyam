@@ -19,6 +19,14 @@ def configure_logging(environment: str = "development"):
     Args:
         environment: "development" or "production"
     """
+    # Force stdout and stderr to use UTF-8 encoding to prevent UnicodeEncodeError with emojis on Windows
+    try:
+        if sys.stdout and hasattr(sys.stdout, 'reconfigure'):
+            sys.stdout.reconfigure(encoding='utf-8')
+        if sys.stderr and hasattr(sys.stderr, 'reconfigure'):
+            sys.stderr.reconfigure(encoding='utf-8')
+    except Exception:
+        pass
     
     # Base log level based on environment
     if environment == "production":

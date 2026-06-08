@@ -153,22 +153,27 @@ def get_user_by_id(db: Session, user_id: int) -> User:
     Raises:
         HTTPException: If user not found
     """
-    try:
-        user = db.query(User).filter(User.id == user_id).first()
+    max_retries = 2
+    for attempt in range(max_retries):
+        try:
+            user = db.query(User).filter(User.id == user_id).first()
 
-        if not user:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="User not found",
-            )
+            if not user:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="User not found",
+                )
 
-        return user
+            return user
 
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error fetching user: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Internal server error",
-        )
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.warning(f"Error fetching user (attempt {attempt + 1}): {e}")
+            if attempt == max_retries - 1:
+                logger.error(f"Failed to fetch user after all attempts: {e}")
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail="Internal server error",
+                )
+            db.rollback()

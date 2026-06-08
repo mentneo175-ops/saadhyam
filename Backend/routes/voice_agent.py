@@ -14,6 +14,7 @@ from pathlib import Path
 from fastapi import APIRouter, WebSocket, Depends, HTTPException, status, Form, File, UploadFile, Request
 from fastapi.websockets import WebSocketDisconnect
 from sqlalchemy.orm import Session
+from sqlalchemy import and_
 import google.generativeai as genai
 import aiohttp
 
@@ -207,10 +208,57 @@ def generate_text(prompt: str, system_prompt: Optional[str] = None, max_tokens: 
 def speak_elevenlabs(text: str, output_filename: str, voice_id: Optional[str] = None) -> str:
     import os
     import requests
+    import base64
     from pathlib import Path
     
+    SARVAM_API_KEY = os.getenv("SARVAM_API_KEY", "")
+    tts_provider = os.getenv("TTS_PROVIDER", "sarvam").lower()
+    if SARVAM_API_KEY and tts_provider == "sarvam":
+        logger.info(f"🎤 Using Sarvam AI TTS for '{text[:20]}...'")
+        has_telugu = any('\u0c00' <= char <= '\u0c7f' for char in text)
+        has_hindi = any('\u0900' <= char <= '\u097f' for char in text)
+        has_tamil = any('\u0b80' <= char <= '\u0bff' for char in text)
+        
+        target_lang = "te-IN" if has_telugu else ("ta-IN" if has_tamil else ("hi-IN" if has_hindi else "en-IN"))
+        
+        # Determine speaker dynamically: default to 'ritu' for Telugu/Tamil if speaker is 'shubh'
+        speaker = os.getenv("SARVAM_SPEAKER", "shubh")
+        if speaker == "shubh" and (has_telugu or has_tamil):
+            speaker = "ritu"
+            
+        url = "https://api.sarvam.ai/text-to-speech"
+        headers = {
+            "api-subscription-key": SARVAM_API_KEY,
+            "Content-Type": "application/json"
+        }
+        payload = {
+            "text": text,
+            "target_language_code": target_lang,
+            "model": os.getenv("SARVAM_MODEL", "bulbul:v3"),
+            "speaker": speaker
+        }
+        
+        BASE_DIR = Path(__file__).resolve().parent.parent
+        AUDIO_OUTPUT_DIR = BASE_DIR / "audio_output"
+        AUDIO_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+        
+        try:
+            response = requests.post(url, json=payload, headers=headers)
+            if response.status_code == 200:
+                res_data = response.json()
+                audio_base64 = res_data["audios"][0]
+                audio_bytes = base64.b64decode(audio_base64)
+                
+                file_path = AUDIO_OUTPUT_DIR / output_filename
+                with open(file_path, "wb") as f:
+                    f.write(audio_bytes)
+                return f"/audio/{output_filename}"
+            else:
+                logger.error(f"❌ Sarvam Error: Status {response.status_code} - {response.text}")
+        except Exception as e:
+            logger.error(f"❌ Sarvam Call Exception: {e}")
+            
     ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY", "")
-    VOICE_ID = os.getenv("ELEVENLABS_VOICE_ID", "TX3LPaxmHKxFdv7VOQHJ")
     
     if not ELEVENLABS_API_KEY:
         logger.warning("⚠️ ElevenLabs Key missing, cannot synthesize speech.")
@@ -232,8 +280,21 @@ def speak_elevenlabs(text: str, output_filename: str, voice_id: Optional[str] = 
     }
     
     global ELEVENLABS_USE_FALLBACK
-    primary_voice_id = voice_id if voice_id else VOICE_ID
     
+    # Dynamic language-based Voice ID routing
+    if not voice_id:
+        has_telugu = any('\u0c00' <= char <= '\u0c7f' for char in text)
+        has_hindi = any('\u0900' <= char <= '\u097f' for char in text)
+        
+        if has_telugu:
+            primary_voice_id = os.getenv("ELEVENLABS_TELUGU_VOICE_ID", "EMxdghWQV7gqV33j4J3F")
+        elif has_hindi:
+            primary_voice_id = os.getenv("ELEVENLABS_HINDI_VOICE_ID", "uavKGt8JpB2lo1bcty9J")
+        else:
+            primary_voice_id = os.getenv("ELEVENLABS_VOICE_ID", "TX3LPaxmHKxFdv7VOQHJ")
+    else:
+        primary_voice_id = voice_id
+        
     if ELEVENLABS_USE_FALLBACK and primary_voice_id != "hpp4J3VqNfWAUOO0d1Us":
         primary_voice_id = "hpp4J3VqNfWAUOO0d1Us"
         
@@ -343,6 +404,9 @@ class CampaignCreate(BaseModel):
     objective: str
     agent_id: int
     status: Optional[str] = "active"
+
+class CampaignStatusUpdate(BaseModel):
+    status: str  # active, paused, completed, draft
 
 class LeadCreate(BaseModel):
     name: str
@@ -507,22 +571,45 @@ def delete_agent(
 
 @router.get("/campaigns")
 def get_campaigns(
+    status: Optional[str] = None,
+    view: Optional[str] = None,   # "trash" to list soft-deleted campaigns
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db_sync)
 ):
-    campaigns = db.query(Campaign).order_by(Campaign.created_at.desc()).all()
+    """List campaigns. Supports ?status=active|paused|completed|archived&view=trash"""
+    if view == "trash":
+        query = db.query(Campaign).filter(Campaign.is_deleted == True)
+    else:
+        query = db.query(Campaign).filter(
+            Campaign.is_deleted == False,
+            Campaign.is_archived == False,
+        )
+        if status == "archived":
+            query = db.query(Campaign).filter(
+                Campaign.is_deleted == False,
+                Campaign.is_archived == True,
+            )
+        elif status and status != "all":
+            query = query.filter(Campaign.status == status)
+
+    campaigns_data = query.outerjoin(AIAgent, Campaign.agent_id == AIAgent.id).\
+        add_columns(AIAgent.name).\
+        order_by(Campaign.created_at.desc()).all()
+        
     result = []
-    for c in campaigns:
-        agent = db.query(AIAgent).filter(AIAgent.id == c.agent_id).first()
-        agent_name = agent.name if agent else "Unknown Agent"
+    for c, agent_name in campaigns_data:
         result.append({
             "id": c.id,
             "name": c.name,
             "objective": c.objective,
             "agent_id": c.agent_id,
-            "agent_name": agent_name,
+            "agent_name": agent_name if agent_name else "Unknown Agent",
             "status": c.status,
-            "created_at": c.created_at.isoformat()
+            "is_archived": getattr(c, 'is_archived', False),
+            "is_deleted": getattr(c, 'is_deleted', False),
+            "archived_at": c.archived_at.isoformat() if getattr(c, 'archived_at', None) else None,
+            "deleted_at": c.deleted_at.isoformat() if getattr(c, 'deleted_at', None) else None,
+            "created_at": c.created_at.isoformat() if c.created_at else None,
         })
     return result
 
@@ -542,7 +629,16 @@ def create_campaign(
     db.add(campaign)
     db.commit()
     db.refresh(campaign)
-    return campaign
+    return {
+        "id": campaign.id,
+        "name": campaign.name,
+        "objective": campaign.objective,
+        "agent_id": campaign.agent_id,
+        "status": campaign.status,
+        "is_archived": False,
+        "is_deleted": False,
+        "created_at": campaign.created_at.isoformat() if campaign.created_at else None,
+    }
 
 
 @router.put("/campaigns/{campaign_id}")
@@ -561,21 +657,114 @@ def update_campaign(
     campaign.status = data.status
     db.commit()
     db.refresh(campaign)
-    return campaign
+    return {"id": campaign.id, "name": campaign.name, "status": campaign.status}
+
+
+@router.patch("/campaigns/{campaign_id}/status")
+def update_campaign_status(
+    campaign_id: int,
+    data: CampaignStatusUpdate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db_sync)
+):
+    """Pause, resume (active), complete a campaign."""
+    allowed = {"active", "paused", "completed", "draft"}
+    if data.status not in allowed:
+        raise HTTPException(status_code=400, detail=f"Status must be one of: {allowed}")
+    campaign = db.query(Campaign).filter(Campaign.id == campaign_id).first()
+    if not campaign:
+        raise HTTPException(status_code=404, detail="Campaign not found")
+    campaign.status = data.status
+    db.commit()
+    return {"id": campaign_id, "status": campaign.status, "message": f"Campaign {data.status}"}
+
+
+@router.patch("/campaigns/{campaign_id}/archive")
+def archive_campaign(
+    campaign_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db_sync)
+):
+    """Toggle archive state of a campaign."""
+    from datetime import datetime as _dt
+    campaign = db.query(Campaign).filter(Campaign.id == campaign_id).first()
+    if not campaign:
+        raise HTTPException(status_code=404, detail="Campaign not found")
+    currently_archived = getattr(campaign, 'is_archived', False)
+    campaign.is_archived = not currently_archived
+    campaign.archived_at = _dt.utcnow() if not currently_archived else None
+    db.commit()
+    action = "archived" if campaign.is_archived else "unarchived"
+    return {"id": campaign_id, "is_archived": campaign.is_archived, "message": f"Campaign {action}"}
+
+
+@router.post("/campaigns/{campaign_id}/duplicate")
+def duplicate_campaign(
+    campaign_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db_sync)
+):
+    """Clone a campaign with '(Copy)' suffix. New campaign starts in draft status."""
+    original = db.query(Campaign).filter(Campaign.id == campaign_id).first()
+    if not original:
+        raise HTTPException(status_code=404, detail="Campaign not found")
+    clone = Campaign(
+        name=f"{original.name} (Copy)",
+        objective=original.objective,
+        agent_id=original.agent_id,
+        status="draft",
+    )
+    db.add(clone)
+    db.commit()
+    db.refresh(clone)
+    return {
+        "id": clone.id,
+        "name": clone.name,
+        "status": clone.status,
+        "message": "Campaign duplicated successfully",
+    }
+
+
+@router.patch("/campaigns/{campaign_id}/restore")
+def restore_campaign(
+    campaign_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db_sync)
+):
+    """Restore a soft-deleted campaign from Trash."""
+    campaign = db.query(Campaign).filter(Campaign.id == campaign_id).first()
+    if not campaign:
+        raise HTTPException(status_code=404, detail="Campaign not found")
+    campaign.is_deleted = False
+    campaign.deleted_at = None
+    campaign.is_archived = False
+    campaign.archived_at = None
+    campaign.status = "draft"
+    db.commit()
+    return {"id": campaign_id, "message": "Campaign restored successfully"}
 
 
 @router.delete("/campaigns/{campaign_id}")
 def delete_campaign(
     campaign_id: int,
+    permanent: bool = False,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db_sync)
 ):
+    """Soft-delete a campaign (moves to Trash). Pass ?permanent=true to hard-delete from Trash."""
+    from datetime import datetime as _dt
     campaign = db.query(Campaign).filter(Campaign.id == campaign_id).first()
     if not campaign:
         raise HTTPException(status_code=404, detail="Campaign not found")
-    db.delete(campaign)
+    if permanent:
+        db.delete(campaign)
+        db.commit()
+        return {"message": "Campaign permanently deleted"}
+    # Soft delete
+    campaign.is_deleted = True
+    campaign.deleted_at = _dt.utcnow()
     db.commit()
-    return {"message": "Campaign deleted successfully"}
+    return {"message": "Campaign moved to Trash", "id": campaign_id}
 
 
 @router.get("/leads")
@@ -719,31 +908,156 @@ def get_analytics_overview(
     }
 
 
+
+@router.get("/dashboard/overview")
+def get_dashboard_overview(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db_sync)
+):
+    """Aggregate endpoint returning analytics, agents, campaigns, leads and recent sessions in one payload."""
+    logger.info(f"📊 [VOICE_AGENT_OVERVIEW] Endpoint called for user: {current_user.email if current_user else 'None'}")
+    max_retries = 2
+    for attempt in range(max_retries):
+        try:
+            # Analytics
+            total_calls = db.query(CallSession).count()
+            completed_calls = db.query(CallSession).filter(CallSession.status == "completed").count()
+            hot_leads = db.query(Lead).filter(Lead.interest_level == "Hot").count()
+            warm_leads = db.query(Lead).filter(Lead.interest_level == "Warm").count()
+            nurture_leads = db.query(Lead).filter(Lead.interest_level == "Nurture").count()
+            cold_leads = db.query(Lead).filter(Lead.interest_level == "Cold").count()
+            total_leads = db.query(Lead).count()
+            conversion_rate = (hot_leads / total_leads * 100) if total_leads > 0 else 0.0
+
+            analytics = {
+                "total_calls": total_calls,
+                "connected_calls": completed_calls,
+                "answered_calls": completed_calls,
+                "hot_leads": hot_leads,
+                "warm_leads": warm_leads,
+                "nurture_leads": nurture_leads,
+                "cold_leads": cold_leads,
+                "conversion_rate": round(conversion_rate, 1),
+            }
+
+            # Agents
+            agents = db.query(AIAgent).order_by(AIAgent.created_at.desc()).all()
+
+            # Campaigns: main, trash, archived
+            campaigns_main_q = db.query(Campaign).filter(Campaign.is_deleted == False, Campaign.is_archived == False)
+            campaigns_main = campaigns_main_q.order_by(Campaign.created_at.desc()).all()
+            campaigns_trash = db.query(Campaign).filter(Campaign.is_deleted == True).order_by(Campaign.deleted_at.desc()).all()
+            campaigns_archived = db.query(Campaign).filter(Campaign.is_archived == True, Campaign.is_deleted == False).order_by(Campaign.archived_at.desc()).all()
+
+            def campaign_to_dict(c):
+                return {
+                    "id": c.id,
+                    "name": c.name,
+                    "objective": c.objective,
+                    "agent_id": c.agent_id,
+                    "status": c.status,
+                    "is_archived": getattr(c, 'is_archived', False),
+                    "is_deleted": getattr(c, 'is_deleted', False),
+                    "archived_at": c.archived_at.isoformat() if getattr(c, 'archived_at', None) else None,
+                    "deleted_at": c.deleted_at.isoformat() if getattr(c, 'deleted_at', None) else None,
+                    "created_at": c.created_at.isoformat() if c.created_at else None,
+                }
+
+            campaigns = [campaign_to_dict(c) for c in campaigns_main]
+            trashed = [campaign_to_dict(c) for c in campaigns_trash]
+            archived = [campaign_to_dict(c) for c in campaigns_archived]
+
+            # Leads (recent)
+            leads_q = db.query(Lead).order_by(Lead.created_at.desc()).limit(500).all()
+            leads = []
+            for l in leads_q:
+                leads.append({
+                    "id": l.id,
+                    "name": l.name,
+                    "phone": l.phone,
+                    "language": l.language,
+                    "campaign_id": l.campaign_id,
+                    "status": l.status,
+                    "interest_level": l.interest_level,
+                    "urgency_score": l.urgency_score,
+                    "created_at": l.created_at.isoformat() if l.created_at else None,
+                })
+
+            # Sessions (recent)
+            sessions_data = db.query(CallSession, Lead.name, Lead.phone).outerjoin(Lead, CallSession.lead_id == Lead.id).order_by(CallSession.created_at.desc()).limit(200).all()
+            sessions = []
+            for s, lead_name, phone in sessions_data:
+                sessions.append({
+                    "session_id": s.session_id,
+                    "status": s.status,
+                    "summary": s.summary,
+                    "sentiment": s.sentiment,
+                    "lead_name": lead_name if lead_name else "Visitor",
+                    "phone": phone if phone else "N/A",
+                    "interest_score": s.interest_score,
+                    "buying_intent": s.buying_intent,
+                    "lead_category": s.lead_category,
+                    "objections": s.objections,
+                    "callback_time": s.callback_time,
+                    "whatsapp_sent": s.whatsapp_sent,
+                    "created_at": s.created_at.isoformat() if s.created_at else None,
+                })
+
+            return {
+                "analytics": analytics,
+                "agents": [
+                    {
+                        "id": a.id,
+                        "name": a.name,
+                        "role": a.role,
+                        "prompt": a.prompt,
+                        "voice_id": a.voice_id,
+                        "languages": a.languages,
+                        "whatsapp_threshold": a.whatsapp_threshold,
+                        "created_at": a.created_at.isoformat() if a.created_at else None,
+                    }
+                    for a in agents
+                ],
+                "campaigns": campaigns,
+                "trashed_campaigns": trashed,
+                "archived_campaigns": archived,
+                "leads": leads,
+                "sessions": sessions,
+            }
+        except Exception as e:
+            logger.warning(f"Database query attempt {attempt + 1} failed in get_dashboard_overview: {e}")
+            if attempt == max_retries - 1:
+                logger.error(f"All database query attempts failed in get_dashboard_overview: {e}")
+                raise HTTPException(status_code=500, detail="Database connection or query error")
+            db.rollback()
+
+
 @router.get("/sessions")
 def get_sessions(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db_sync)
 ):
-    sessions = db.query(CallSession).order_by(CallSession.created_at.desc()).all()
+    sessions_data = db.query(CallSession, Lead.name, Lead.phone).\
+        outerjoin(Lead, CallSession.lead_id == Lead.id).\
+        order_by(CallSession.created_at.desc()).\
+        limit(100).all()
+        
     result = []
-    for s in sessions:
-        lead = db.query(Lead).filter(Lead.id == s.lead_id).first()
-        lead_name = lead.name if lead else "Visitor"
-        phone = lead.phone if lead else "N/A"
+    for s, lead_name, phone in sessions_data:
         result.append({
             "session_id": s.session_id,
             "status": s.status,
             "summary": s.summary,
             "sentiment": s.sentiment,
-            "lead_name": lead_name,
-            "phone": phone,
+            "lead_name": lead_name if lead_name else "Visitor",
+            "phone": phone if phone else "N/A",
             "interest_score": s.interest_score,
             "buying_intent": s.buying_intent,
             "lead_category": s.lead_category,
             "objections": s.objections,
             "callback_time": s.callback_time,
             "whatsapp_sent": s.whatsapp_sent,
-            "created_at": s.created_at.isoformat()
+            "created_at": s.created_at.isoformat() if s.created_at else None
         })
     return result
 
@@ -1084,6 +1398,10 @@ def voice_agent_turn(
         system_prompt += lead_info
 
     if lead_language == "te":
+        telugu_voice_id = os.getenv("ELEVENLABS_TELUGU_VOICE_ID", "EMxdghWQV7gqV33j4J3F")
+        is_male = telugu_voice_id in ["2DRBj9T2XZ7Jmkcm6WCZ", "EMxdghWQV7gqV33j4J3F", "TX3LPaxmHKxFdv7VOQHJ"] or os.getenv("ELEVENLABS_TELUGU_VOICE_GENDER", "male").lower() == "male"
+        voice_tone = "male tone (aged 25-30)" if is_male else "female tone (aged 20-25)"
+
         sales_directive = (
             "\n\n[SALES DIRECTIVE]\n"
             "నీ ముఖ్య ఉద్దేశ్యం మన కంపెనీ సేవలు (Services) మరియు ప్యాకేజీలను (Packages) కస్టమర్‌కి వివరించి, వాటిని కొనేలా ప్రోత్సహించడం. "
@@ -1097,9 +1415,9 @@ def voice_agent_turn(
             "\n\n[CRITICAL DIRECTIVE]\n"
             "You MUST respond ONLY in Telugu script. Do not write or speak in English script or Hindi.\n"
             "TONE & STYLE GUIDELINES:\n"
-            "- Speak in a calm, polite, sweet, and warm South Indian female tone (aged 20-25).\n"
-            "- Use natural, conversational, spoken Telugu (వాడుక భాష) used on daily phone calls. Do NOT use bookish, grammatical, or highly formal Telugu.\n"
-            "- Use natural English loanwords written in Telugu script.\n"
+            f"- Speak in a calm, polite, respectful, and warm South Indian {voice_tone}.\n"
+            "- Use natural, casual, and conversational spoken Telugu (వాడుక భాష/రోజువారీ మాట్లాడే తెలుగు) used on daily phone calls. Avoid bookish, formal, grammatical, or highly sanskritized Telugu vocabulary.\n"
+            "- Use common English loanwords written in Telugu script (Teenglish) where appropriate, as they sound more natural to modern speakers than pure Telugu words (e.g. use 'ఇంట్రెస్ట్/ఇంట్రెస్టెడ్' instead of 'ఆసక్తి', 'కాల్' instead of 'ఫోన్ పిలుపు/సంభాషణ', 'సర్వీసెస్' instead of 'సేవలు', 'ప్యాకేజీ' instead of 'పథకం/ప్యాకేజీలు').\n"
             "- Keep your response short, friendly, calm, and limited to 1 or 2 sentences max.\n"
             f"- CRITICAL PROFILE: You already know the customer's name ({lead_name}) and phone number ({lead_phone}). DO NOT ask the customer for their name or phone number. If they ask, confirm you already have it.\n"
             f"- NAME DIRECTIVE: కస్టమర్ పేరును ({lead_name}) కేవలం మొదటి పలకరింపులో మరియు కాల్ చివరి ముగింపు సంభాషణలో మాత్రమే ఉపయోగించు. సంభాషణ మధ్యలో పదే పదే కస్టమర్ పేరు వాడవద్దు.\n"
@@ -1320,7 +1638,6 @@ async def voice_agent_live(websocket: WebSocket):
             await websocket.send_json({"error": "Session not found"})
             await websocket.close()
             return
-
         profile_res = await db.execute(select(CompanyProfile))
         profile = profile_res.scalars().first()
         if not profile:
@@ -1407,6 +1724,10 @@ async def voice_agent_live(websocket: WebSocket):
             system_prompt += lead_info
 
         if lead_language == "te":
+            telugu_voice_id = os.getenv("ELEVENLABS_TELUGU_VOICE_ID", "EMxdghWQV7gqV33j4J3F")
+            is_male = telugu_voice_id in ["2DRBj9T2XZ7Jmkcm6WCZ", "EMxdghWQV7gqV33j4J3F", "TX3LPaxmHKxFdv7VOQHJ"] or os.getenv("ELEVENLABS_TELUGU_VOICE_GENDER", "male").lower() == "male"
+            voice_tone = "male tone (aged 25-30)" if is_male else "female tone (aged 20-25)"
+
             sales_directive = (
                 "\n\n[SALES DIRECTIVE]\n"
                 "నీ ముఖ్య ఉద్దేశ్యం మన కంపెనీ సేవలు (Services) మరియు ప్యాకేజీలను (Packages) కస్టమర్‌కి వివరించి, వాటిని కొనేలా ప్రోత్సహించడం. "
@@ -1417,9 +1738,9 @@ async def voice_agent_live(websocket: WebSocket):
                 "\n\n[CRITICAL DIRECTIVE]\n"
                 "You MUST respond ONLY in Telugu script (తెలుగు లిపి). Do not write or speak in English script or Hindi.\n"
                 "TONE & STYLE GUIDELINES:\n"
-                "- Speak in a calm, polite, sweet, and warm South Indian female tone (aged 20-25).\n"
-                "- Use natural, conversational, spoken Telugu (వాడుక భాష) used on daily phone calls.\n"
-                "- Use natural English loanwords written in Telugu script.\n"
+                f"- Speak in a calm, polite, respectful, and warm South Indian {voice_tone}.\n"
+                "- Use natural, casual, and conversational spoken Telugu (వాడుక భాష/రోజువారీ మాట్లాడే తెలుగు) used on daily phone calls. Avoid bookish, formal, grammatical, or highly sanskritized Telugu vocabulary.\n"
+                "- Use common English loanwords written in Telugu script (Teenglish) where appropriate, as they sound more natural to modern speakers than pure Telugu words (e.g. use 'ఇంట్రెస్ట్/ఇంట్రెస్టెడ్' instead of 'ఆసక్తి', 'కాల్' instead of 'ఫోన్ పిలుపు/సంభాషణ', 'సర్వీసెస్' instead of 'సేవలు', 'ప్యాకేజీ' instead of 'పథకం/ప్యాకేజీలు').\n"
                 "- Keep your response short, friendly, calm, and limited to 1 or 2 sentences max.\n"
                 f"- CRITICAL PROFILE: You already know the customer's name ({lead_name}) and phone number ({lead_phone}). DO NOT ask the customer for their name or phone number.\n"
                 f"- NAME DIRECTIVE: కస్టమర్ పేరును ({lead_name}) కేవలం మొదటి పలకరింపులో మరియు కాల్ చివరి ముగింపు సంభాషణలో మాత్రమే ఉపయోగించు.\n"
@@ -1682,8 +2003,8 @@ async def exotel_stream_endpoint(websocket: WebSocket, call_id: int):
         # Start Deepgram speech-to-text task
         await handler.start_deepgram_stt()
         
-        # Stream the initial greeting to caller
-        await handler.speak_greeting()
+        # Stream the initial greeting to caller in the background (non-blocking)
+        asyncio.create_task(handler.speak_greeting())
         
         # Manage bidirectional streaming (receive caller audio -> Deepgram -> Gemini -> ElevenLabs -> send audio)
         await handler.handle_exotel_media()
@@ -1984,6 +2305,19 @@ def trigger_real_lead_call(
         res = twilio_service.trigger_outbound_call(lead.phone, voice_call.id)
         if res["success"]:
             voice_call.call_sid = res["exotel_call_sid"]
+            
+            # Create CallSession record for CRM / history compatibility
+            session_record = CallSession(
+                session_id=res["exotel_call_sid"],
+                status="calling",
+                lead_id=lead.id,
+                campaign_id=campaign.id if campaign else None
+            )
+            db.add(session_record)
+            
+            # Update Lead status to called
+            lead.status = "called"
+            
             db.commit()
             return {"success": True, "call_id": voice_call.id, "provider": "twilio", "call_sid": res["exotel_call_sid"]}
         else:
@@ -1998,6 +2332,19 @@ def trigger_real_lead_call(
         res = exotel_service.trigger_outbound_call(lead.phone, voice_call.id)
         if res["success"]:
             voice_call.call_sid = res["exotel_call_sid"]
+            
+            # Create CallSession record for CRM / history compatibility
+            session_record = CallSession(
+                session_id=res["exotel_call_sid"],
+                status="calling",
+                lead_id=lead.id,
+                campaign_id=campaign.id if campaign else None
+            )
+            db.add(session_record)
+            
+            # Update Lead status to called
+            lead.status = "called"
+            
             db.commit()
             return {"success": True, "call_id": voice_call.id, "provider": "exotel", "call_sid": res["exotel_call_sid"]}
         else:

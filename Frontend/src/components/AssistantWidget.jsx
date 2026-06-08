@@ -16,6 +16,12 @@ export default function AssistantWidget() {
   const { user } = useAuth();
   const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
+  const [isClient, setIsClient] = useState(false);
+  
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
   const [mode, setMode] = useState("chat"); // "chat" or "voice"
   const [messages, setMessages] = useState(initialMessages);
   const [query, setQuery] = useState("");
@@ -271,7 +277,7 @@ export default function AssistantWidget() {
   // Show widget on all dashboard pages except login/signup, and hide on B2B Chat
   const isDashboardPage = location.pathname.startsWith('/dashboard');
   const isB2BChatPage = location.pathname === '/dashboard/b2b-chat';
-  const shouldShow = isDashboardPage && !isB2BChatPage && user;
+  const shouldShow = isClient && isDashboardPage && !isB2BChatPage && user;
 
   // Don't render if should not be shown
   if (!shouldShow) {

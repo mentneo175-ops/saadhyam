@@ -8,6 +8,7 @@ import json
 import re
 from typing import Dict, Any, List
 import google.generativeai as genai
+from services.ai_parsing_utils import parse_json_with_retries, extract_balanced_json
 from config.settings import settings
 
 logger = logging.getLogger(__name__)
@@ -144,17 +145,32 @@ Be specific, practical, and actionable. Avoid generic advice. Use real-time data
         
         # Extract JSON from response
         response_text = response.text.strip()
-        
+
         # Extract JSON from markdown code blocks if present
         json_match = re.search(r'```json\s*(.*?)\s*```', response_text, re.DOTALL)
         if json_match:
-            response_text = json_match.group(1)
-        
-        # Parse JSON
-        analysis = json.loads(response_text)
-        
+            json_content = json_match.group(1).strip()
+        else:
+            json_content = response_text
+
+        # Robust parse with retries
+        analysis = await parse_json_with_retries(json_content, max_attempts=3, metadata={
+            "service": "realtime_analysis",
+            "model": GEMINI_MODEL
+        })
+
+        if not analysis:
+            logger.error("❌ Unable to parse Gemini response as JSON after retries")
+            preview = response_text[:1000]
+            logger.error(f"Response preview: {preview}")
+            return {
+                "status": "error",
+                "message": "Failed to parse analysis results from AI model. Please try again.",
+                "raw_preview": preview
+            }
+
         logger.info(f"✅ Business analysis generated successfully")
-        
+
         return {
             "status": "success",
             "source": "gemini_search_grounding",

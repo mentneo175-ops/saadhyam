@@ -12,6 +12,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from dotenv import load_dotenv
 import socketio
+from middleware.asgi_protocol_middleware import ProtocolSafeASGI
 from sqlalchemy import inspect, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -559,6 +560,17 @@ async def lifespan(app: FastAPI):
         migrate_add_youtube_tables()
         from migrations.add_youtube_cloudinary_fields import migrate_add_youtube_cloudinary_fields
         migrate_add_youtube_cloudinary_fields()
+        # Campaign lifecycle columns (soft-delete + archive)
+        try:
+            from migrations.add_campaign_lifecycle_columns import run_migration as run_campaign_lifecycle_migration
+            from config.database import SyncSessionLocal
+            _mig_db = SyncSessionLocal()
+            try:
+                run_campaign_lifecycle_migration(_mig_db)
+            finally:
+                _mig_db.close()
+        except Exception as _mig_err:
+            logger.warning(f"⚠️ Campaign lifecycle migration skipped: {_mig_err}")
         logger.info("✅ Migrations completed")
         
         # Start scheduler for processing scheduled Instagram posts
@@ -756,11 +768,15 @@ async def global_exception_handler(request, exc):
         return None
 
 # Mount Socket.IO app for real-time communication
+# Wrap the Socket.IO ASGI app and protect it with the protocol-safe wrapper
 sio_asgi_app = socketio.ASGIApp(
     socketio_server=realtime_service.sio,
     other_asgi_app=app,
     socketio_path='socket.io'
 )
+
+# Wrap with ProtocolSafeASGI to suppress h11 LocalProtocolError and ConnectionResetError
+sio_asgi_app = ProtocolSafeASGI(sio_asgi_app)
 
 # Website AI static files - Simple direct mapping
 BASE_DIR = Path(__file__).resolve().parent
@@ -1097,6 +1113,13 @@ async def list_routes():
                 "name": route.name
             })
     return {"routes": routes}
+
+
+@app.get("/api/features/public", tags=["Health"])
+async def get_public_features():
+    """Mock public feature flags endpoint to avoid frontend 404 errors"""
+    return []
+
 
 
 @app.post("/api/admin/broadcast-notification")

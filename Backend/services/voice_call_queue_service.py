@@ -135,6 +135,38 @@ class VoiceCallQueueService:
                 if res["success"]:
                     # Save Call SID to track
                     call.call_sid = res["exotel_call_sid"]
+                    
+                    # Update CRM Lead status and create CallSession immediately
+                    try:
+                        from models.voice_agent import CallSession, Lead, Campaign
+                        clean_phone = "".join(c for c in contact.phone_number if c.isdigit())[-10:]
+                        crm_campaign = db.query(Campaign).filter(Campaign.name == campaign.name).first()
+                        crm_campaign_id = crm_campaign.id if crm_campaign else None
+                        
+                        crm_lead = None
+                        if crm_campaign_id:
+                            crm_lead = db.query(Lead).filter(
+                                Lead.phone.like(f"%{clean_phone}%"),
+                                Lead.campaign_id == crm_campaign_id
+                            ).first()
+                        if not crm_lead:
+                            crm_lead = db.query(Lead).filter(Lead.phone.like(f"%{clean_phone}%")).first()
+                            
+                        if crm_lead:
+                            crm_lead.status = "called"
+                        lead_id = crm_lead.id if crm_lead else None
+                        
+                        session_record = CallSession(
+                            session_id=res["exotel_call_sid"],
+                            status="calling",
+                            lead_id=lead_id,
+                            campaign_id=crm_campaign_id
+                        )
+                        db.add(session_record)
+                        logger.info(f"🎯 CRM Sync: Created CallSession and updated Lead {crm_lead.name if crm_lead else 'None'} status to called (Twilio)")
+                    except Exception as crm_err:
+                        logger.error(f"⚠️ Failed to sync CRM Lead/Session on campaign Twilio call trigger: {crm_err}")
+                    
                     db.commit()
                     return {
                         "success": True,
@@ -170,6 +202,38 @@ class VoiceCallQueueService:
                 if res["success"]:
                     # Save Exotel Call SID to track
                     call.call_sid = res["exotel_call_sid"]
+                    
+                    # Update CRM Lead status and create CallSession immediately
+                    try:
+                        from models.voice_agent import CallSession, Lead, Campaign
+                        clean_phone = "".join(c for c in contact.phone_number if c.isdigit())[-10:]
+                        crm_campaign = db.query(Campaign).filter(Campaign.name == campaign.name).first()
+                        crm_campaign_id = crm_campaign.id if crm_campaign else None
+                        
+                        crm_lead = None
+                        if crm_campaign_id:
+                            crm_lead = db.query(Lead).filter(
+                                Lead.phone.like(f"%{clean_phone}%"),
+                                Lead.campaign_id == crm_campaign_id
+                            ).first()
+                        if not crm_lead:
+                            crm_lead = db.query(Lead).filter(Lead.phone.like(f"%{clean_phone}%")).first()
+                            
+                        if crm_lead:
+                            crm_lead.status = "called"
+                        lead_id = crm_lead.id if crm_lead else None
+                        
+                        session_record = CallSession(
+                            session_id=res["exotel_call_sid"],
+                            status="calling",
+                            lead_id=lead_id,
+                            campaign_id=crm_campaign_id
+                        )
+                        db.add(session_record)
+                        logger.info(f"🎯 CRM Sync: Created CallSession and updated Lead {crm_lead.name if crm_lead else 'None'} status to called (Exotel)")
+                    except Exception as crm_err:
+                        logger.error(f"⚠️ Failed to sync CRM Lead/Session on campaign Exotel call trigger: {crm_err}")
+                    
                     db.commit()
                     return {
                         "success": True,

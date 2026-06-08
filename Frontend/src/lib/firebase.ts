@@ -13,9 +13,10 @@ import {
   User as FirebaseUser,
   AuthError
 } from 'firebase/auth';
+import { getFirestore } from 'firebase/firestore';
 
-// Firebase configuration - REQUIRED
-const firebaseConfig = {
+// Main App Firebase configuration - REQUIRED for main app features (e.g. Google OAuth)
+const mainFirebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
@@ -24,8 +25,18 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
-// Validate Firebase configuration - FAIL FAST if not configured
-const validateFirebaseConfig = () => {
+// Landing/Waitlist Firebase configuration - REQUIRED for waitlist features
+const landingFirebaseConfig = {
+  apiKey: import.meta.env.VITE_LANDING_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_LANDING_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_LANDING_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_LANDING_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_LANDING_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_LANDING_FIREBASE_APP_ID,
+};
+
+// Validate a Firebase configuration
+const isConfigValid = (config: Record<string, string | undefined>) => {
   const requiredFields = [
     'apiKey',
     'authDomain', 
@@ -35,66 +46,106 @@ const validateFirebaseConfig = () => {
     'appId'
   ];
   
-  const missingFields = requiredFields.filter(field => 
-    !firebaseConfig[field as keyof typeof firebaseConfig] ||
-    firebaseConfig[field as keyof typeof firebaseConfig] === `your-firebase-${field.toLowerCase()}-here`
+  return requiredFields.every(field => 
+    config[field] && 
+    config[field] !== '' &&
+    !config[field]?.startsWith('your-firebase-')
   );
-  
-  if (missingFields.length > 0) {
-    const error = `❌ CRITICAL: Missing Firebase configuration fields: ${missingFields.join(', ')}`;
-    console.error(error);
-    console.error('❌ Please configure your Firebase environment variables in .env file');
-    throw new Error(`Firebase configuration incomplete: ${missingFields.join(', ')}`);
-  }
-  
-  console.log('✅ Firebase configuration validated');
-  return true;
 };
 
-// Initialize Firebase - PRODUCTION ONLY
+// Helper to get missing configuration fields for helpful warning messages
+const getMissingFields = (config: Record<string, string | undefined>) => {
+  const requiredFields = [
+    'apiKey',
+    'authDomain', 
+    'projectId',
+    'storageBucket',
+    'messagingSenderId',
+    'appId'
+  ];
+  return requiredFields.filter(field => 
+    !config[field] ||
+    config[field] === '' ||
+    config[field]?.startsWith('your-firebase-')
+  );
+};
+
+// Initialize Default App (Main Firebase) - PRODUCTION ONLY
 let app: any = null;
 let auth: any = null;
+let db: any = null;
 let googleProvider: GoogleAuthProvider | null = null;
 let firebaseConfigured = false;
 
-try {
-  // Validate configuration first
-  validateFirebaseConfig();
-  
-  // Initialize Firebase
-  app = initializeApp(firebaseConfig);
-  auth = getAuth(app);
-  
-  // Configure Google Auth Provider
-  googleProvider = new GoogleAuthProvider();
-  googleProvider.addScope('email');
-  googleProvider.addScope('profile');
-  
-  // Set custom parameters for better UX
-  googleProvider.setCustomParameters({
-    prompt: 'select_account'
-  });
-  
-  firebaseConfigured = true;
-  console.log('🔥 Firebase initialized successfully');
-  console.log('📋 Project ID:', firebaseConfig.projectId);
-  
-} catch (error) {
-  console.warn('⚠️ Firebase not configured - running in development mode');
-  console.warn('⚠️ To enable Google authentication, configure Firebase in .env file');
+if (isConfigValid(mainFirebaseConfig)) {
+  try {
+    app = initializeApp(mainFirebaseConfig);
+    auth = getAuth(app);
+    db = getFirestore(app);
+    
+    // Configure Google Auth Provider
+    googleProvider = new GoogleAuthProvider();
+    googleProvider.addScope('email');
+    googleProvider.addScope('profile');
+    googleProvider.setCustomParameters({
+      prompt: 'select_account'
+    });
+    
+    firebaseConfigured = true;
+    console.log('🔥 Main Firebase (default) initialized successfully:', mainFirebaseConfig.projectId);
+  } catch (error) {
+    console.error('❌ Failed to initialize Main Firebase:', error);
+  }
+} else {
+  const missing = getMissingFields(mainFirebaseConfig);
+  console.warn(`⚠️ Main Firebase config incomplete (missing: ${missing.join(', ')}). Running in development mode with mock auth.`);
+}
+
+if (!firebaseConfigured) {
   // Create a mock auth object to prevent crashes
   auth = {
     currentUser: null,
     onAuthStateChanged: (callback: any) => {
-      // Call callback with null user immediately
       callback(null);
-      // Return unsubscribe function
       return () => {};
     }
   };
+  db = null;
 }
 
-export { auth };
+// Initialize Named App (Landing/Waitlist Firebase) - PRODUCTION ONLY
+let landingApp: any = null;
+let authLanding: any = null;
+let dbLanding: any = null;
+let landingFirebaseConfigured = false;
+
+if (isConfigValid(landingFirebaseConfig)) {
+  try {
+    landingApp = initializeApp(landingFirebaseConfig, "landing");
+    authLanding = getAuth(landingApp);
+    dbLanding = getFirestore(landingApp);
+    landingFirebaseConfigured = true;
+    console.log('🔥 Landing Firebase (named: landing) initialized successfully:', landingFirebaseConfig.projectId);
+  } catch (error) {
+    console.error('❌ Failed to initialize Landing Firebase:', error);
+  }
+} else {
+  const missing = getMissingFields(landingFirebaseConfig);
+  console.warn(`⚠️ Landing Firebase config incomplete (missing: ${missing.join(', ')}). Running in development mode with mock services.`);
+}
+
+if (!landingFirebaseConfigured) {
+  authLanding = {
+    currentUser: null,
+    onAuthStateChanged: (callback: any) => {
+      callback(null);
+      return () => {};
+    }
+  };
+  dbLanding = null;
+}
+
+export { auth, db, authLanding, dbLanding };
 
 export interface GoogleAuthResult {
   user: FirebaseUser;

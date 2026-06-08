@@ -3,6 +3,7 @@
 @import "tw-animate-css";
 @import "leaflet/dist/leaflet.css";
 @import "./styles/colors.css";
+@import "./landing.css";
 
 @custom-variant dark (&:is(.dark *));
 

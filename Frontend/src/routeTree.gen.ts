@@ -13,8 +13,10 @@ import { Route as YoutubeOauthCallbackRouteImport } from './routes/youtube-oauth
 import { Route as VerifyRouteImport } from './routes/verify'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
+import { Route as MainRouteImport } from './routes/main'
 import { Route as LoginReferenceRouteImport } from './routes/login-reference'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as LandingAdminRouteImport } from './routes/landing-admin'
 import { Route as InstagramOauthCallbackRouteImport } from './routes/instagram-oauth-callback'
 import { Route as GoogleBusinessOauthCallbackRouteImport } from './routes/google-business-oauth-callback'
 import { Route as DashboardRouteImport } from './routes/dashboard'
@@ -82,6 +84,11 @@ const OnboardingRoute = OnboardingRouteImport.update({
   path: '/onboarding',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MainRoute = MainRouteImport.update({
+  id: '/main',
+  path: '/main',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginReferenceRoute = LoginReferenceRouteImport.update({
   id: '/login-reference',
   path: '/login-reference',
@@ -90,6 +97,11 @@ const LoginReferenceRoute = LoginReferenceRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LandingAdminRoute = LandingAdminRouteImport.update({
+  id: '/landing-admin',
+  path: '/landing-admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const InstagramOauthCallbackRoute = InstagramOauthCallbackRouteImport.update({
@@ -337,8 +349,10 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof DashboardRouteWithChildren
   '/google-business-oauth-callback': typeof GoogleBusinessOauthCallbackRoute
   '/instagram-oauth-callback': typeof InstagramOauthCallbackRoute
+  '/landing-admin': typeof LandingAdminRoute
   '/login': typeof LoginRoute
   '/login-reference': typeof LoginReferenceRoute
+  '/main': typeof MainRoute
   '/onboarding': typeof OnboardingRoute
   '/signup': typeof SignupRoute
   '/verify': typeof VerifyRoute
@@ -390,8 +404,10 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/google-business-oauth-callback': typeof GoogleBusinessOauthCallbackRoute
   '/instagram-oauth-callback': typeof InstagramOauthCallbackRoute
+  '/landing-admin': typeof LandingAdminRoute
   '/login': typeof LoginRoute
   '/login-reference': typeof LoginReferenceRoute
+  '/main': typeof MainRoute
   '/onboarding': typeof OnboardingRoute
   '/signup': typeof SignupRoute
   '/verify': typeof VerifyRoute
@@ -444,8 +460,10 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRouteWithChildren
   '/google-business-oauth-callback': typeof GoogleBusinessOauthCallbackRoute
   '/instagram-oauth-callback': typeof InstagramOauthCallbackRoute
+  '/landing-admin': typeof LandingAdminRoute
   '/login': typeof LoginRoute
   '/login-reference': typeof LoginReferenceRoute
+  '/main': typeof MainRoute
   '/onboarding': typeof OnboardingRoute
   '/signup': typeof SignupRoute
   '/verify': typeof VerifyRoute
@@ -500,8 +518,10 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/google-business-oauth-callback'
     | '/instagram-oauth-callback'
+    | '/landing-admin'
     | '/login'
     | '/login-reference'
+    | '/main'
     | '/onboarding'
     | '/signup'
     | '/verify'
@@ -553,8 +573,10 @@ export interface FileRouteTypes {
     | '/'
     | '/google-business-oauth-callback'
     | '/instagram-oauth-callback'
+    | '/landing-admin'
     | '/login'
     | '/login-reference'
+    | '/main'
     | '/onboarding'
     | '/signup'
     | '/verify'
@@ -606,8 +628,10 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/google-business-oauth-callback'
     | '/instagram-oauth-callback'
+    | '/landing-admin'
     | '/login'
     | '/login-reference'
+    | '/main'
     | '/onboarding'
     | '/signup'
     | '/verify'
@@ -661,8 +685,10 @@ export interface RootRouteChildren {
   DashboardRoute: typeof DashboardRouteWithChildren
   GoogleBusinessOauthCallbackRoute: typeof GoogleBusinessOauthCallbackRoute
   InstagramOauthCallbackRoute: typeof InstagramOauthCallbackRoute
+  LandingAdminRoute: typeof LandingAdminRoute
   LoginRoute: typeof LoginRoute
   LoginReferenceRoute: typeof LoginReferenceRoute
+  MainRoute: typeof MainRoute
   OnboardingRoute: typeof OnboardingRoute
   SignupRoute: typeof SignupRoute
   VerifyRoute: typeof VerifyRoute
@@ -700,6 +726,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OnboardingRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/main': {
+      id: '/main'
+      path: '/main'
+      fullPath: '/main'
+      preLoaderRoute: typeof MainRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login-reference': {
       id: '/login-reference'
       path: '/login-reference'
@@ -712,6 +745,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/landing-admin': {
+      id: '/landing-admin'
+      path: '/landing-admin'
+      fullPath: '/landing-admin'
+      preLoaderRoute: typeof LandingAdminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/instagram-oauth-callback': {
@@ -1160,8 +1200,10 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardRoute: DashboardRouteWithChildren,
   GoogleBusinessOauthCallbackRoute: GoogleBusinessOauthCallbackRoute,
   InstagramOauthCallbackRoute: InstagramOauthCallbackRoute,
+  LandingAdminRoute: LandingAdminRoute,
   LoginRoute: LoginRoute,
   LoginReferenceRoute: LoginReferenceRoute,
+  MainRoute: MainRoute,
   OnboardingRoute: OnboardingRoute,
   SignupRoute: SignupRoute,
   VerifyRoute: VerifyRoute,

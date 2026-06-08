@@ -5,4 +5,4 @@ import { getRouter } from '../src/router'
 
 const router = getRouter()
 
-hydrateRoot(document.getElementById('root')!, <StartClient router={router} />)
+hydrateRoot(document, <StartClient router={router} />)

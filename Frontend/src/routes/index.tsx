@@ -1,941 +1,1018 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { Link } from "@tanstack/react-router";
-import { Navbar } from "@/components/landing/Navbar";
-import { Footer } from "@/components/landing/Footer";
-import { Button } from "@/components/ui/button";
-import {
-  ArrowRight,
-  Play,
-  Sparkles,
-  BarChart3,
-  PenTool,
-  MessageCircle,
-  Check,
-  Star,
-  Zap,
-  Search,
-  Brain,
-  TrendingUp,
-  Globe,
-  Bot,
-  Target,
-  PieChart,
-  Rocket,
-  Shield,
-  Users,
-} from "lucide-react";
-import { useState, useEffect } from "react";
-import LogoImage from "@/Icon/Saadhyam_Icon-removebg-preview.png";
-import { normalizePackKey } from "@/config/subscriptions";
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  Play, ArrowRight, Sparkles, BarChart3, PenTool, MessageSquare, Globe, 
+  Search, Cpu, TrendingUp, Users, 
+  X, CheckCircle, Zap, LayoutDashboard, Camera, Smartphone, Mail, FileText,
+  Activity, Target, Lock, Headphones, RefreshCw, Database
+} from 'lucide-react';
+import { LineChart, Line, ResponsiveContainer, Tooltip, XAxis } from 'recharts';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { createFileRoute, Link } from '@tanstack/react-router';
+import { dbLanding as db } from '../lib/firebase';
+import '../landing.css';
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute('/')({
   head: () => ({
     meta: [
-      { title: "Saadhyam AI — Get Discovered by Google, ChatGPT & AI Search" },
-      {
-        name: "description",
-        content:
-          "AI-powered visibility platform that optimizes your business for Google, ChatGPT, AI search engines, and voice assistants. Built for the future of search.",
-      },
-      { property: "og:title", content: "Saadhyam AI — AI Search Visibility Platform" },
-      {
-        property: "og:description",
-        content:
-          "Optimize your business for AI search engines, voice assistants, and generative AI platforms. The future of business discovery starts here.",
-      },
-    ],
+      { title: 'Saadhyam AI — AI-Powered Business Growth Platform' },
+      { name: 'description', content: 'Sync with your platforms automatically and drive automated growth with Saadhyam AI.' }
+    ]
   }),
-  component: Landing,
+  component: PreLandingPage
 });
 
-const features = [
-  {
-    icon: Search,
-    title: "AEO Optimization",
-    desc: "Optimize your business for answer engines like ChatGPT, Perplexity, and voice assistants.",
-    color: "from-purple-500 to-fuchsia-500",
-    badge: "AI Search",
-  },
-  {
-    icon: Brain,
-    title: "GEO Optimization",
-    desc: "Increase visibility across generative AI platforms and AI-powered search engines.",
-    color: "from-pink-500 to-rose-500",
-    badge: "Next-Gen",
-  },
-  {
-    icon: MessageCircle,
-    title: "Voice Search Ready",
-    desc: "Improve discoverability in conversational and voice-based search queries.",
-    color: "from-orange-500 to-amber-500",
-    badge: "Voice AI",
-  },
-  {
-    icon: TrendingUp,
-    title: "AI Search Monitoring",
-    desc: "Track how your business appears across AI search results and generative platforms.",
-    color: "from-violet-500 to-purple-500",
-    badge: "Analytics",
-  },
-  {
-    icon: PenTool,
-    title: "AI-First Content",
-    desc: "Generate content optimized for both traditional SEO and AI search engines.",
-    color: "from-emerald-500 to-teal-500",
-    badge: "Content AI",
-  },
-  {
-    icon: BarChart3,
-    title: "Smart Insights",
-    desc: "Deep analytics on SEO, AEO, and GEO performance with actionable recommendations.",
-    color: "from-blue-500 to-indigo-500",
-    badge: "Intelligence",
-  },
-];
+type TranslationKey = 'navPlatform' | 'navSolutions' | 'navPricing' | 'startButton' | 'heroTag' | 'heroTitlePart1' | 'heroTitleGradient' | 'heroSub' | 'freeTrial' | 'watchDemo';
 
-const steps = [
-  {
-    num: "01",
-    title: "Upload your business data",
-    desc: "Share your business details, website, or documents. Our AI analyzes everything in minutes.",
+const translations: Record<'en' | 'hi' | 'te', Record<TranslationKey, string>> = {
+  en: {
+    navPlatform: "Platform", navSolutions: "Solutions", navPricing: "Pricing", startButton: "Let's Start",
+    heroTag: "AI-Powered Business Growth Platform",
+    heroTitlePart1: "AI That Powers Your Business Growth ",
+    heroTitleGradient: "Automatically",
+    heroSub: "Saadhyam AI helps businesses analyze, automate, optimize, and scale using AI-powered insights, intelligent workflows, and growth automation systems.",
+    freeTrial: "Start Free Trial", watchDemo: "Watch AI Demo"
   },
-  {
-    num: "02",
-    title: "AI analyzes SEO + AEO + GEO",
-    desc: "We scan Google rankings, AI search visibility, voice search readiness, and generative AI discoverability.",
+  hi: {
+    navPlatform: "మంచ్", navSolutions: "సమాధాన్", navPricing: "మూల్య నిరాధారన్", startButton: "శూరు కరేం",
+    heroTag: "एआई-पावर्ड बिजनेस ग्रोथ प्लेटफॉर्म",
+    heroTitlePart1: "एआई जो आपके व्यापार के विकास को संचालित करता है ",
+    heroTitleGradient: "स्वचालित रूप से",
+    heroSub: "साध्यम एआई व्यवसायों को एआई-संचालित अंतर्दृष्टि, बुद्धिमान वर्कफ़्लो और विकास स्वचालन प्रणालियों का उपयोग करके विश्लेषण, स्वचालन, अनुकूलन और स्केल करने में मदद करता है।",
+    freeTrial: "निःशुल्क परीक्षण शुरू करें", watchDemo: "एआई डेमो देखें"
   },
-  {
-    num: "03",
-    title: "Get AI visibility strategy",
-    desc: "Receive optimized content, AI search recommendations, and a complete visibility roadmap.",
-  },
-];
-
-const testimonials = [
-  {
-    quote:
-      "We're now showing up in ChatGPT responses and voice search results. Saadhyam made AI search optimization actually work for us.",
-    name: "Priya Sharma",
-    role: "Founder, Bloom Studio",
-  },
-  {
-    quote: "Our AI visibility score went from 32% to 89% in 6 weeks. We're getting discovered by customers we never reached before.",
-    name: "Rahul Mehta",
-    role: "CEO, Crisp Foods",
-  },
-  {
-    quote:
-      "Finally, a platform that understands the future of search. We're ranking on Google AND appearing in AI-generated answers.",
-    name: "Anjali Verma",
-    role: "Marketing Lead, Lumen",
-  },
-];
-
-type LandingPlan = {
-  key: string;
-  name: string;
-  price: string;
-  desc: string;
-  features: string[];
-  cta: string;
-  highlighted?: boolean;
-  variant?: "outline" | "hero";
+  te: {
+    navPlatform: "ప్లాట్‌ఫారమ్", navSolutions: "పరిష్కారాలు", navPricing: "ధరలు", startButton: "ప్రారంభించండి",
+    heroTag: "AI-ఆధారిత వ్యాపార వృద్ధి వేదిక",
+    heroTitlePart1: "మీ వ్యాపార వృద్ధిని నడిపించే AI ",
+    heroTitleGradient: "స్వయంచాలకంగా",
+    heroSub: "AI-ఆధారిత అంతర్దృష్టులు, ఇంటెలిజెంట్ వర్క్‌ఫ్లోలు మరియు వృద్ధి ఆటోమేషన్ సిస్టమ్‌లను ఉపయోగించి వ్యాపారాలను విశ్లేషించడానికి, ఆటోమేట్ చేయడానికి, ఆప్టిమైజ్ చేయడానికి మరియు స్కేల్ చేయడానికి Saadhyam AI సహాయపడుతుంది.",
+    freeTrial: "ఉచిత ట్రయల్ ప్రారంభించండి", watchDemo: "AI డెమో చూడండి"
+  }
 };
 
-const defaultTiers: LandingPlan[] = [
-  {
-    key: "starter",
-    name: "Starter",
-    price: "₹2,999",
-    desc: "Best for low-business users who want the essentials.",
-    features: [
-      "Business analysis",
-      "Competitor analysis",
-      "Limited content creation",
-      "Partial reporting",
-    ],
-    cta: "Choose Starter",
-    variant: "outline" as const,
-  },
-  {
-    key: "growth",
-    name: "Growth",
-    price: "₹9,999",
-    desc: "For small businesses that need stronger automation.",
-    features: [
-      "Included content creator",
-      "Instagram tools",
-      "Partial website AI",
-      "Partial SEO & maps",
-      "Partial WhatsApp sales",
-      "Included insights",
-    ],
-    cta: "Choose Growth",
-    variant: "hero" as const,
-    highlighted: false,
-  },
-  {
-    key: "education",
-    name: "Education",
-    price: "₹14,999",
-    desc: "Recommended for colleges, institutes, and education groups.",
-    features: [
-      "Bulk reporting",
-      "Education-focused workflows",
-      "Included SEO & maps",
-      "Included content tools",
-      "Partial meta ads",
-      "Team access",
-    ],
-    cta: "Choose Education",
-    variant: "hero" as const,
-    highlighted: true,
-  },
-  {
-    key: "business",
-    name: "Business",
-    price: "₹24,999",
-    desc: "Business pack with enterprise combined. Everything unlocked.",
-    features: [
-      "Everything unlocked",
-      "Included website AI",
-      "Included SEO & maps",
-      "Included meta ads",
-      "Included AI voice agent",
-      "Included WhatsApp sales",
-      "Included reports & B2B network",
-    ],
-    cta: "Choose Business",
-    variant: "hero" as const,
-    highlighted: true,
-  },
+const chartData = [
+  { day: 'Mon', value: 12 }, { day: 'Tue', value: 18 }, { day: 'Wed', value: 35 },
+  { day: 'Thu', value: 42 }, { day: 'Fri', value: 68 }, { day: 'Sat', value: 85 },
+  { day: 'Sun', value: 100 }
 ];
 
-const defaultTierMap = Object.fromEntries(defaultTiers.map((tier) => [tier.key, tier]));
-
-function normalizeLandingPlans(payload: unknown): LandingPlan[] {
-  const list = Array.isArray(payload) ? payload : (payload as { plans?: unknown[] })?.plans || [];
-  const byKey = new Map<string, LandingPlan>();
-
-  list.forEach((item) => {
-    if (!item || typeof item !== "object") return;
-    const plan = item as Record<string, any>;
-    const key = normalizePackKey(String(plan.key || plan.id || plan.name || ""));
-    if (!key) return;
-
-    const fallback = defaultTierMap[key];
-    byKey.set(key, {
-      key,
-      name: String(plan.name || fallback?.name || "Plan"),
-      price: String(plan.price || fallback?.price || "$0"),
-      desc: String(plan.description || plan.desc || fallback?.desc || ""),
-      features: Array.isArray(plan.features)
-        ? plan.features.map((feature: any) => String(feature)).filter(Boolean)
-        : fallback?.features || [],
-      cta: String(plan.cta || fallback?.cta || "Get started"),
-      highlighted: Boolean(plan.highlighted || plan.featured || fallback?.highlighted),
-    });
-  });
-
-  return defaultTiers.map((tier) => byKey.get(tier.key) || tier);
-}
-
-function Landing() {
-  const [tiers, setTiers] = useState<LandingPlan[]>(defaultTiers);
-  const [pricingState, setPricingState] = useState<"loading" | "live" | "fallback">("loading");
-
+const Particles = () => {
+  const [particles, setParticles] = useState<Array<{ id: number; x: number; y: number; size: number; duration: number; delay: number }>>([]);
   useEffect(() => {
-    let cancelled = false;
-
-    const loadPricing = async () => {
-      try {
-        const response = await fetch(`/admin-api/api/public/billing-plans`, { cache: "no-store" });
-        if (!response.ok) {
-          throw new Error("Failed to fetch live pricing");
-        }
-
-        const data = await response.json();
-        if (!cancelled) {
-          setTiers(normalizeLandingPlans(data));
-          setPricingState("live");
-        }
-      } catch {
-        if (!cancelled) {
-          setTiers(defaultTiers);
-          setPricingState("fallback");
-        }
-      }
-    };
-
-    loadPricing();
-    const handleVisibilityRefresh = () => {
-      if (!document.hidden) {
-        loadPricing();
-      }
-    };
-
-    window.addEventListener("focus", loadPricing);
-    document.addEventListener("visibilitychange", handleVisibilityRefresh);
-    const refreshTimer = window.setInterval(loadPricing, 30000);
-
-    return () => {
-      cancelled = true;
-      window.removeEventListener("focus", loadPricing);
-      document.removeEventListener("visibilitychange", handleVisibilityRefresh);
-      window.clearInterval(refreshTimer);
-    };
+    const newParticles = Array.from({ length: 40 }).map((_, i) => ({
+      id: i, x: Math.random() * 100, y: Math.random() * 100,
+      size: Math.random() * 4 + 1, duration: Math.random() * 20 + 10, delay: Math.random() * 5,
+    }));
+    setParticles(newParticles);
   }, []);
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
+    <div className="particles-container">
+      {particles.map((p) => (
+        <div key={p.id} className="particle"
+          style={{ left: `${p.x}%`, top: `${p.y}%`, width: `${p.size}px`, height: `${p.size}px`, animationDuration: `${p.duration}s`, animationDelay: `${p.delay}s` }}
+        />
+      ))}
+    </div>
+  );
+};
 
-      {/* Hero Section - Premium Design */}
-      <section className="relative overflow-hidden min-h-screen flex items-center">
+interface LogoProps {
+  width?: string;
+  height?: string;
+  style?: React.CSSProperties;
+  withGlow?: boolean;
+}
+
+const Logo = ({ width = '32px', height = '32px', style = {}, withGlow = true }: LogoProps) => (
+  <div className={`logo-container ${withGlow ? 'glow-bg' : ''}`} style={{ width, height, ...style }}>
+    <motion.img 
+      src="https://i.ibb.co/rRhY66tN/Whats-App-Image-2026-05-11-at-8-22-35-PM-removebg-preview.png" 
+      alt="Saadhyam Logo" className="logo-img"
+      initial={{ rotateY: 0 }} animate={{ rotateY: 360 }}
+      transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+    />
+  </div>
+);
+
+const TypingText = ({ texts }: { texts: string[] }) => {
+  const [index, setIndex] = useState(0);
+  const [subIndex, setSubIndex] = useState(0);
+  const [reverse, setReverse] = useState(false);
+  const [blink, setBlink] = useState(true);
+
+  useEffect(() => {
+    const timeout = setTimeout(() => setBlink((prev) => !prev), 500);
+    return () => clearTimeout(timeout);
+  }, [blink]);
+
+  useEffect(() => {
+    if (subIndex === texts[index].length + 1 && !reverse) {
+      const timeout = setTimeout(() => setReverse(true), 2000);
+      return () => clearTimeout(timeout);
+    }
+    if (subIndex === 0 && reverse) {
+      setReverse(false);
+      setIndex((prev) => (prev + 1) % texts.length);
+      return;
+    }
+    const timeout = setTimeout(() => {
+      setSubIndex((prev) => prev + (reverse ? -1 : 1));
+    }, Math.max(reverse ? 30 : 80, Math.random() * 100));
+    return () => clearTimeout(timeout);
+  }, [subIndex, index, reverse, texts]);
+
+  return (
+    <span className="text-gradient">
+      {texts[index].substring(0, subIndex)}
+      <span style={{ opacity: blink ? 1 : 0, color: 'var(--accent-purple)', marginLeft: '2px', transition: 'opacity 0.1s' }}>|</span>
+    </span>
+  );
+};
+
+const AnimatedNumber = ({ value }: { value: number }) => {
+  const [count, setCount] = useState(0);
+  useEffect(() => {
+    let start = 0;
+    const duration = 2000;
+    const increment = value / (duration / 16);
+    const timer = setInterval(() => {
+      start += increment;
+      if (start >= value) { setCount(value); clearInterval(timer); } 
+      else { setCount(Math.floor(start)); }
+    }, 16);
+    return () => clearInterval(timer);
+  }, [value]);
+  return <span>{count}</span>;
+};
+
+interface LeadCaptureModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSuccess: () => void;
+}
+
+const LeadCaptureModal = ({ isOpen, onClose, onSuccess }: LeadCaptureModalProps) => {
+  const [formData, setFormData] = useState({ name: '', email: '', phone: '', businessType: '', goals: '' });
+  const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!formData.name || !formData.email || !formData.phone || !formData.businessType || !formData.goals) {
+      alert("Please fill in all fields.");
+      return;
+    }
+    
+    setIsSubmitting(true);
+    try {
+      if (!db) {
+        throw new Error("Firestore instance not available. Make sure Firebase is properly configured.");
+      }
+      await addDoc(collection(db, "leads"), {
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        businessType: formData.businessType,
+        goals: formData.goals,
+        timestamp: serverTimestamp()
+      });
+      setSubmitted(true);
+      setTimeout(() => { 
+        setSubmitted(false); 
+        onSuccess();
+        onClose(); 
+      }, 3000);
+    } catch (error: any) {
+      console.error("Error adding document: ", error);
+      alert(`Failed to save waitlist data: ${error.message || 'Unknown error'}`);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <div className="modal-overlay" onClick={onClose}>
+          <motion.div initial={{ opacity: 0, y: 50, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 20, scale: 0.95 }} className="modal-content" onClick={e => e.stopPropagation()}>
+            <button onClick={onClose} style={{ position: 'absolute', top: 20, right: 20, background: 'none', border: 'none', cursor: 'pointer' }}>
+              <X size={24} color="var(--text-secondary)" />
+            </button>
+            {submitted ? (
+              <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} style={{ textAlign: 'center', padding: '40px 0' }}>
+                <CheckCircle size={64} color="#10b981" style={{ margin: '0 auto 20px' }} />
+                <h3 style={{ fontSize: '24px', marginBottom: '10px', color: 'white' }}>You're on the list! 🎉</h3>
+                <p style={{ color: 'var(--text-secondary)' }}>We've received your interest. You'll be one of our very first founding customers!</p>
+              </motion.div>
+            ) : (
+              <>
+                <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+                  <h3 style={{ fontSize: '28px', marginBottom: '8px', color: 'white' }}>Join the Early Beta</h3>
+                  <p style={{ color: 'var(--text-secondary)' }}>Register your interest today to secure early access and become one of our first customers.</p>
+                </div>
+                <form onSubmit={handleSubmit}>
+                  <input required className="input-field" placeholder="Full Name" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
+                  <input required type="email" className="input-field" placeholder="Email Address" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} />
+                  <input required type="tel" className="input-field" placeholder="Phone Number" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} />
+                  <input required type="text" className="input-field" placeholder="Business/Organization Name" value={formData.businessType} onChange={e => setFormData({...formData, businessType: e.target.value})} />
+                  <textarea className="input-field" placeholder="What are your main goals?" value={formData.goals} onChange={e => setFormData({...formData, goals: e.target.value})} style={{ minHeight: '80px', resize: 'vertical' }} />
+                  <button type="submit" className="btn-primary" disabled={isSubmitting} style={{ width: '100%', justifyContent: 'center', marginTop: '10px', padding: '16px', opacity: isSubmitting ? 0.7 : 1 }}>
+                    {isSubmitting ? 'Registering...' : 'Register Interest'} <Zap size={18} />
+                  </button>
+                </form>
+              </>
+            )}
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>
+  );
+};
+
+const FloatingContact = () => {
+  return (
+    <motion.a 
+      href="mailto:info@saadhyam.com"
+      initial={{ opacity: 0, scale: 0.8, y: 50 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      transition={{ delay: 1, duration: 0.6, type: 'spring' }}
+      whileHover={{ y: -5, scale: 1.05 }}
+      style={{
+        position: 'fixed',
+        bottom: '24px',
+        right: '24px',
+        zIndex: 1000,
+        display: 'flex',
+        alignItems: 'center',
+        gap: '12px',
+        background: 'rgba(20, 20, 20, 0.75)',
+        backdropFilter: 'blur(20px)',
+        border: '1px solid rgba(255, 255, 255, 0.08)',
+        borderRadius: '100px',
+        padding: '10px 18px',
+        textDecoration: 'none',
+        boxShadow: '0 20px 40px -10px rgba(0, 0, 0, 0.5), 0 0 20px rgba(168, 85, 247, 0.15)',
+        transition: 'border-color 0.3s, box-shadow 0.3s'
+      }}
+      className="floating-contact-btn"
+    >
+      <div style={{
+        background: 'linear-gradient(135deg, #9333ea, #ec4899)',
+        width: '32px',
+        height: '32px',
+        borderRadius: '50%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        boxShadow: '0 0 10px rgba(168, 85, 247, 0.4)',
+        flexShrink: 0
+      }}>
+        <Mail size={16} color="white" />
+      </div>
+      <div className="floating-contact-text" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', lineHeight: '1.2' }}>
+        <span style={{ fontSize: '9px', color: 'var(--text-secondary)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Contact Us</span>
+        <span style={{ fontSize: '13px', color: 'white', fontWeight: 600 }}>info@saadhyam.com</span>
+      </div>
+    </motion.a>
+  );
+};
+
+interface NavbarProps {
+  onOpenModal: () => void;
+  lang: 'en' | 'hi' | 'te';
+  setLang: (l: 'en' | 'hi' | 'te') => void;
+}
+
+const Navbar = ({ onOpenModal, lang, setLang }: NavbarProps) => {
+  const t = translations[lang];
+  return (
+    <motion.nav initial={{ y: -20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.8, ease: "easeOut" }}
+      style={{ position: 'fixed', top: 0, left: 0, right: 0, padding: '16px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 100, background: 'rgba(0, 0, 0, 0.5)', backdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255, 255, 255, 0.05)' }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <Logo width="32px" height="32px" />
+        <span style={{ fontFamily: 'Outfit', fontWeight: 800, fontSize: '22px', color: 'var(--text-primary)', letterSpacing: '-0.5px' }}>Saadhyam <span className="text-gradient">AI</span></span>
+      </div>
+      <div className="nav-links" style={{ display: 'flex', gap: '32px', alignItems: 'center' }}>
+        <Link to="/main" hash="features" style={{ textDecoration: 'none', color: 'var(--text-secondary)', fontWeight: 500, fontSize: '15px', transition: 'color 0.3s' }}>{t.navPlatform}</Link>
+        <Link to="/main" hash="how" style={{ textDecoration: 'none', color: 'var(--text-secondary)', fontWeight: 500, fontSize: '15px', transition: 'color 0.3s' }}>{t.navSolutions}</Link>
+        <Link to="/main" hash="pricing" style={{ textDecoration: 'none', color: 'var(--text-secondary)', fontWeight: 500, fontSize: '15px', transition: 'color 0.3s' }}>{t.navPricing}</Link>
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+        <a href="mailto:info@saadhyam.com" className="nav-email" style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-secondary)', textDecoration: 'none', fontSize: '14px', fontWeight: 500, marginRight: '8px', transition: 'color 0.3s' }}>
+          <Mail size={14} color="var(--accent-purple)" />
+          <span>info@saadhyam.com</span>
+        </a>
+        <select className="language-selector" value={lang} onChange={(e) => setLang(e.target.value as any)}>
+          <option value="en">English</option><option value="hi">हिंदी</option><option value="te">తెలుగు</option>
+        </select>
+        <button className="btn-primary" onClick={onOpenModal} style={{ padding: '10px 24px', fontSize: '14px' }}>
+          {t.startButton} <ArrowRight size={16} />
+        </button>
+      </div>
+    </motion.nav>
+  );
+};
+
+interface HeroProps {
+  onOpenModal: () => void;
+  lang: 'en' | 'hi' | 'te';
+}
+
+const Hero = ({ onOpenModal, lang }: HeroProps) => {
+  const t = translations[lang];
+  return (
+    <section className="section" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', paddingTop: '120px' }}>
+      <div className="container" style={{ textAlign: 'center', position: 'relative', zIndex: 1 }}>
+        <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.8, delay: 0.2 }}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(168, 85, 247, 0.1)', padding: '8px 16px', borderRadius: '100px', marginBottom: '30px', border: '1px solid rgba(168, 85, 247, 0.2)' }}
+        >
+          <Sparkles size={16} color="var(--accent-purple)" />
+          <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--accent-purple)' }}>{t.heroTag}</span>
+        </motion.div>
+        <motion.h1 className="hero-heading" initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.8, delay: 0.3, ease: "easeOut" }}
+          style={{ fontSize: '72px', lineHeight: '1.1', marginBottom: '24px', maxWidth: '1000px', margin: '0 auto 24px' }}
+        >
+          {t.heroTitlePart1} <span className="text-gradient">{t.heroTitleGradient}</span>
+        </motion.h1>
+        <motion.div className="hero-typing-wrapper" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.35, ease: "easeOut" }}
+          style={{ fontSize: '32px', fontWeight: 600, marginBottom: '24px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '12px' }}
+        >
+          <span style={{ color: 'var(--text-secondary)' }}>Saadhyam AI for</span>
+          <div className="hero-typing-container" style={{ position: 'relative', height: '40px', width: '100%', maxWidth: '380px', textAlign: 'left', display: 'flex', alignItems: 'center' }}>
+             <TypingText texts={['Restaurants', 'Salons', 'Startups', 'Agencies', 'E-commerce Brands', 'Coaches', 'Healthcare Clinics', 'Real Estate Companies']} />
+          </div>
+        </motion.div>
+        <motion.p initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" }}
+          style={{ fontSize: '20px', color: 'var(--text-secondary)', maxWidth: '700px', margin: '0 auto 40px', lineHeight: '1.6' }}
+        >
+          {t.heroSub}
+        </motion.p>
+        <motion.div className="hero-buttons" initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.8, delay: 0.5 }}
+          style={{ display: 'flex', gap: '20px', justifyContent: 'center' }}
+        >
+          <button className="btn-primary" onClick={onOpenModal} style={{ padding: '16px 32px', fontSize: '18px' }}>
+            {t.freeTrial} <ArrowRight size={20} />
+          </button>
+          <Link to="/main" className="btn-secondary" style={{ padding: '16px 32px', fontSize: '18px', textDecoration: 'none' }}>
+            <Play size={20} color="var(--accent-purple)" style={{ marginRight: '8px', verticalAlign: 'middle' }} /> {t.watchDemo}
+          </Link>
+        </motion.div>
+      </div>
+      <Particles />
+    </section>
+  );
+};
+
+const AnimatedDashboardFlow = () => {
+  const [step, setStep] = useState(0);
+
+  useEffect(() => {
+    let isMounted = true;
+    const runSequence = async () => {
+      while (isMounted) {
+        setStep(0); 
+        await new Promise(r => setTimeout(r, 2500));
+        if (!isMounted) break;
+        setStep(1); 
+        await new Promise(r => setTimeout(r, 2500));
+        if (!isMounted) break;
+        setStep(2); 
+        await new Promise(r => setTimeout(r, 6000));
+      }
+    };
+    runSequence();
+    return () => { isMounted = false; };
+  }, []);
+
+  return (
+    <section className="section" style={{ background: 'transparent', paddingBottom: '60px', paddingTop: '0' }}>
+      <div className="container">
+        <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+           <h2 style={{ fontSize: '40px', color: 'white' }}>How Saadhyam AI <span className="text-gradient">Transforms Your Data</span></h2>
+        </div>
         
-        {/* Large Flowing Logo Background */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          {/* Big flowing gradient shape with logo */}
-          <div className="absolute top-0 right-0 w-[900px] h-[700px] opacity-40"
-               style={{
-                 background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(168, 85, 247, 0.25) 50%, rgba(139, 92, 246, 0.1) 100%)',
-                 borderRadius: '40% 60% 70% 30% / 40% 50% 60% 50%',
-                 transform: 'rotate(-15deg) translate(20%, -10%)',
-                 filter: 'blur(60px)',
-               }}>
-          </div>
-          
-          {/* Large logo that merges with background */}
-          <div className="absolute top-1/4 right-1/4 transform translate-x-1/4 -translate-y-1/4">
-            <div className="relative">
-              {/* Glow layers behind logo */}
-              <div className="absolute inset-0 w-[450px] h-[450px] bg-gradient-to-br from-[#8B5CF6]/20 to-[#A855F7]/30 rounded-full blur-3xl"></div>
-              <div className="absolute inset-0 w-[450px] h-[450px] bg-gradient-to-tl from-[#A855F7]/15 to-transparent rounded-full blur-2xl"></div>
-              
-              {/* Large logo with original colors */}
-              <img 
-                src={LogoImage} 
-                alt="" 
-                className="relative w-[450px] h-[450px] object-contain animate-float3d"
-                style={{
-                  filter: 'drop-shadow(0 30px 60px rgba(139, 92, 246, 0.4))',
-                  opacity: 1,
-                }}
-              />
-            </div>
-          </div>
-
-          {/* Flowing curved shape */}
-          <svg className="absolute top-0 right-0 w-full h-full opacity-30" viewBox="0 0 800 800" preserveAspectRatio="none">
-            <defs>
-              <linearGradient id="flowGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#8B5CF6" stopOpacity="0.2" />
-                <stop offset="50%" stopColor="#A855F7" stopOpacity="0.3" />
-                <stop offset="100%" stopColor="#8B5CF6" stopOpacity="0.1" />
-              </linearGradient>
-            </defs>
-            <path 
-              d="M 400,0 Q 600,200 800,300 L 800,0 Z" 
-              fill="url(#flowGradient)"
-              style={{
-                animation: 'flowMove 20s ease-in-out infinite',
-              }}
-            />
-          </svg>
-
-          {/* Additional soft orbs */}
-          <div className="absolute top-20 left-20 w-64 h-64 bg-[#8B5CF6]/8 rounded-full blur-3xl animate-ambient-move"></div>
-          <div className="absolute bottom-32 right-32 w-48 h-48 bg-[#A855F7]/10 rounded-full blur-2xl animate-ambient-move" style={{ animationDelay: '2s' }}></div>
-          
-          {/* Subtle particles - Fixed positions to avoid hydration mismatch */}
-          {[...Array(20)].map((_, i) => {
-            // Use deterministic values based on index instead of Math.random()
-            const left = ((i * 37) % 100);
-            const top = ((i * 53) % 100);
-            const delay = ((i * 0.7) % 5);
-            const duration = 8 + ((i * 0.5) % 8);
+        <div style={{ position: 'relative', minHeight: '600px', display: 'flex', justifyContent: 'center', alignItems: 'center', perspective: '1000px' }}>
+          <AnimatePresence mode="wait">
             
-            return (
-              <div
-                key={i}
-                className="absolute w-1 h-1 bg-[#8B5CF6]/40 rounded-full animate-particle-float"
-                style={{
-                  left: `${left}%`,
-                  top: `${top}%`,
-                  animationDelay: `${delay}s`,
-                  animationDuration: `${duration}s`,
-                }}
-              />
-            );
-          })}
-        </div>
+            {step === 0 && (
+              <motion.div key="step0" initial={{ opacity: 0, y: 30, scale: 0.9 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, scale: 0.9, filter: 'blur(10px)' }} transition={{ duration: 0.5 }}
+                className="bento-card" style={{ width: '100%', maxWidth: '400px', padding: '40px', textAlign: 'center', background: 'rgba(20,20,20,0.9)' }}
+              >
+                <div style={{ background: 'rgba(59,130,246,0.1)', width: '60px', height: '60px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', border: '1px solid rgba(59,130,246,0.2)' }}>
+                   <Activity size={32} color="var(--accent-blue)" />
+                </div>
+                <h3 style={{ color: 'white', fontSize: '24px', marginBottom: '10px' }}>Connecting Data Sources</h3>
+                <p style={{ color: 'var(--text-secondary)', marginBottom: '30px' }}>Syncing with your business platforms automatically...</p>
+                
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                   {['Google Analytics', 'Meta Ads', 'Sales CRM'].map((src, i) => (
+                      <motion.div key={i} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.4 }}
+                        style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px', background: 'rgba(255,255,255,0.05)', borderRadius: '8px' }}
+                      >
+                         <span style={{ color: 'white', fontSize: '14px' }}>{src}</span>
+                         <CheckCircle size={16} color="#10b981" />
+                      </motion.div>
+                   ))}
+                </div>
+              </motion.div>
+            )}
 
-        <div className="container mx-auto px-4 lg:px-8 py-20 relative z-10">
-          <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-            
-            {/* Left Side - Content */}
-            <div className="space-y-8 animate-fade-in-up">
-              
-              {/* Logo + Brand */}
-              {/* <div className="flex items-center gap-3 mb-8">
-                <img 
-                  src={LogoImage} 
-                  alt="Saadhyam AI" 
-                  className="w-14 h-14 object-contain"
+            {step === 1 && (
+              <motion.div key="step1" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.1, filter: 'blur(10px)' }} transition={{ duration: 0.5 }}
+                className="bento-card" style={{ width: '100%', maxWidth: '400px', padding: '40px', textAlign: 'center', background: 'rgba(20,20,20,0.9)', overflow: 'hidden', position: 'relative' }}
+              >
+                <motion.div animate={{ top: ['-20%', '120%'] }} transition={{ duration: 1.5, repeat: Infinity, ease: 'linear' }}
+                  style={{ position: 'absolute', left: 0, right: 0, height: '4px', background: 'var(--accent-purple)', boxShadow: '0 0 20px 10px rgba(168, 85, 247, 0.4)', zIndex: 0 }}
                 />
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                    Saadhyam <span className="text-[#8B5CF6]">AI</span>
-                  </h2>
-                </div>
-              </div> */}
-
-              {/* Badge */}
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#F3EEFF] border border-[#E9D5FF]">
-                <Sparkles size={16} className="text-[#8B5CF6]" />
-                <span className="text-sm text-[#8B5CF6] font-semibold">Built for the AI Search Era</span>
-              </div>
-
-              {/* Hero Heading */}
-              <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.05] text-gray-900 dark:text-gray-100">
-                Get discovered by <span className="text-[#8B5CF6]">Google, ChatGPT</span> & AI search
-              </h1>
-
-              {/* Description */}
-              <p className="text-xl text-gray-600 dark:text-gray-400 leading-relaxed max-w-xl">
-                The AI visibility platform that optimizes your business for traditional search, AI engines, voice assistants, and generative AI platforms.
-              </p>
-
-              {/* AI Visibility Metrics Preview */}
-              <div className="grid grid-cols-2 gap-4 py-4">
-                <div className="glass-card rounded-2xl p-5 shadow-3d-soft">
-                  <div className="text-3xl font-bold bg-gradient-to-r from-[#8B5CF6] to-[#A855F7] bg-clip-text text-transparent">89%</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">AI Visibility Score</div>
-                </div>
-                <div className="glass-card rounded-2xl p-5 shadow-3d-soft">
-                  <div className="text-3xl font-bold bg-gradient-to-r from-[#8B5CF6] to-[#A855F7] bg-clip-text text-transparent">12.4K</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">AI Mentions/Month</div>
-                </div>
-              </div>
-
-              {/* CTA Buttons */}
-              <div className="flex flex-wrap gap-4">
-                <Button 
-                  size="lg"
-                  className="h-14 px-8 text-base font-semibold bg-gradient-to-r from-[#8B5CF6] to-[#A855F7] hover:from-[#7C3AED] hover:to-[#9333EA] text-white rounded-xl shadow-lg shadow-[#8B5CF6]/25 hover:shadow-xl hover:shadow-[#8B5CF6]/30 transition-all"
-                  asChild
-                >
-                  <Link to="/signup">
-                    Optimize My AI Visibility <ArrowRight size={18} />
-                  </Link>
-                </Button>
-                <Button 
-                  variant="outline"
-                  size="lg"
-                  className="h-14 px-8 text-base font-semibold border-2 border-[#8B5CF6]/30 hover:border-[#8B5CF6] hover:bg-[#F9F7FF] rounded-xl transition-all"
-                  asChild
-                >
-                  <Link to="/dashboard">
-                    <Play size={16} /> View demo
-                  </Link>
-                </Button>
-              </div>
-
-              {/* AI Search Platforms Row */}
-              <div className="pt-4">
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 font-medium">Optimized for AI-powered discovery:</p>
-                <div className="flex items-center gap-3 flex-wrap">
-                  {[
-                    { icon: Globe, name: "Google", color: "text-blue-600" },
-                    { icon: Bot, name: "ChatGPT", color: "text-emerald-600" },
-                    { icon: Sparkles, name: "Gemini", color: "text-purple-600" },
-                    { icon: Brain, name: "Perplexity", color: "text-orange-600" },
-                    { icon: Search, name: "Claude", color: "text-cyan-600" },
-                  ].map((platform) => (
-                    <div key={platform.name} className="flex items-center gap-2 px-3 py-2 rounded-lg glass-card border border-[#E9D5FF]/50">
-                      <platform.icon size={14} className={platform.color} />
-                      <span className="text-xs font-medium text-gray-700">{platform.name}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Social Proof */}
-              <div className="flex items-center gap-6 pt-4">
-                <div className="flex -space-x-2">
-                  {[1, 2, 3, 4].map((i) => (
-                    <div
-                      key={i}
-                      className="h-10 w-10 rounded-full border-2 border-white bg-gradient-to-br from-[#8B5CF6] to-[#A855F7]"
-                      style={{ filter: `hue-rotate(${i * 20}deg)` }}
-                    />
-                  ))}
-                </div>
-                <div>
-                  <div className="flex items-center gap-1 mb-1">
-                    {Array.from({ length: 5 }).map((_, i) => (
-                      <Star key={i} size={14} className="fill-[#8B5CF6] text-[#8B5CF6]" />
-                    ))}
-                    <span className="ml-1 font-bold text-gray-900 dark:text-gray-100">4.9</span>
+                <div style={{ position: 'relative', zIndex: 1 }}>
+                  <div style={{ background: 'rgba(168,85,247,0.1)', width: '60px', height: '60px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', border: '1px solid rgba(168,85,247,0.2)' }}>
+                     <Cpu size={32} color="var(--accent-purple)" />
                   </div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">from 2,400+ businesses</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Right Side - 3D Floating Dashboard Cards */}
-            <div className="relative h-[600px] perspective-container hidden lg:block">
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="relative w-full max-w-lg h-full">
+                  <h3 style={{ color: 'white', fontSize: '24px', marginBottom: '10px' }}>AI Engine Processing</h3>
+                  <p style={{ color: 'var(--text-secondary)', marginBottom: '30px' }}>Analyzing patterns and spotting growth opportunities...</p>
                   
-                  {/* Business Overview Card - Center */}
-                  <div 
-                    className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-80 glass-premium rounded-3xl p-6 shadow-3d-float animate-float3d card-3d"
-                    style={{ transform: 'translate(-50%, -50%) rotateX(2deg) rotateY(-2deg)' }}
-                  >
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-sm font-semibold text-gray-700">Business Overview</h3>
-                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#8B5CF6] to-[#A855F7] flex items-center justify-center shadow-lg">
-                        <PieChart className="w-5 h-5 text-white" />
-                      </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-3 gap-4 mb-4">
-                      <div>
-                        <p className="text-xs text-gray-500 mb-1">Revenue</p>
-                        <p className="text-xl font-bold text-gray-900 dark:text-gray-100">₹24.8K</p>
-                        <p className="text-xs text-green-600 font-semibold">↑ 18.5%</p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-500 mb-1">Leads</p>
-                        <p className="text-xl font-bold text-gray-900 dark:text-gray-100">612</p>
-                        <p className="text-xs text-green-600 font-semibold">↑ 12.3%</p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-500 mb-1">Conversions</p>
-                        <p className="text-xl font-bold text-gray-900 dark:text-gray-100">98</p>
-                        <p className="text-xs text-green-600 font-semibold">↑ 8.7%</p>
-                      </div>
-                    </div>
-
-                    {/* Mini chart */}
-                    <svg className="w-full h-16" viewBox="0 0 300 60">
-                      <path 
-                        d="M0,50 Q75,25 150,30 T300,15" 
-                        fill="none" 
-                        stroke="url(#chartGradient)" 
-                        strokeWidth="2.5"
-                        strokeLinecap="round"
-                      />
-                      <defs>
-                        <linearGradient id="chartGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                          <stop offset="0%" stopColor="#8B5CF6" />
-                          <stop offset="100%" stopColor="#A855F7" />
-                        </linearGradient>
-                      </defs>
-                    </svg>
+                  <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                    {Array.from({length: 12}).map((_, i) => (
+                       <motion.div key={i} animate={{ opacity: [0.2, 1, 0.2] }} transition={{ duration: 1, delay: i * 0.1, repeat: Infinity }}
+                         style={{ width: '30px', height: '8px', background: 'rgba(168,85,247,0.5)', borderRadius: '4px' }}
+                       />
+                    ))}
                   </div>
-
-                  {/* AI Score Card - Top Right */}
-                  <div 
-                    className="absolute top-0 right-0 w-52 glass-premium rounded-2xl p-5 shadow-3d-soft animate-float3d-delayed card-3d"
-                    style={{ transform: 'rotateX(-3deg) rotateY(3deg)', animationDelay: '0.5s' }}
-                  >
-                    <div className="flex items-center justify-between mb-3">
-                      <p className="text-xs font-semibold text-gray-600 dark:text-gray-400">AI Score</p>
-                      <Zap className="w-5 h-5 text-[#8B5CF6]" />
-                    </div>
-                    <div className="flex items-baseline gap-1 mb-3">
-                      <span className="text-4xl font-bold bg-gradient-to-r from-[#8B5CF6] to-[#A855F7] bg-clip-text text-transparent">85</span>
-                      <span className="text-sm text-gray-400">/100</span>
-                    </div>
-                    <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                      <div className="h-full w-[85%] bg-gradient-to-r from-[#8B5CF6] to-[#A855F7] rounded-full animate-glow-pulse"></div>
-                    </div>
-                    <p className="text-xs text-gray-500 mt-3">Your business is growing 18.6% this month</p>
-                  </div>
-
-                  {/* Monthly Goal Card - Bottom Left */}
-                  <div 
-                    className="absolute bottom-0 left-0 w-48 glass-premium rounded-2xl p-5 shadow-3d-soft animate-float3d-slow card-3d"
-                    style={{ transform: 'rotateX(3deg) rotateY(-3deg)', animationDelay: '1s' }}
-                  >
-                    <div className="flex items-center gap-2 mb-3">
-                      <Target className="w-5 h-5 text-[#8B5CF6]" />
-                      <p className="text-xs font-semibold text-gray-600 dark:text-gray-400">Monthly Goal</p>
-                    </div>
-                    <p className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-3">87%</p>
-                    <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                      <div className="h-full w-[87%] bg-gradient-to-r from-[#8B5CF6] to-[#A855F7] rounded-full"></div>
-                    </div>
-                  </div>
-
-                  {/* Growth Trend Card - Top Left */}
-                  <div 
-                    className="absolute top-12 left-0 w-44 glass-premium rounded-2xl p-4 shadow-3d-soft animate-float3d card-3d"
-                    style={{ transform: 'rotateX(-2deg) rotateY(-2deg)', animationDelay: '1.5s' }}
-                  >
-                    <div className="flex items-center gap-2 mb-2">
-                      <TrendingUp className="w-4 h-4 text-[#8B5CF6]" />
-                      <p className="text-xs font-semibold text-gray-600 dark:text-gray-400">Growth Trend</p>
-                    </div>
-                    <p className="text-2xl font-bold text-green-600 mb-1">+24.5%</p>
-                    <p className="text-xs text-gray-500">vs last month</p>
-                  </div>
-
                 </div>
-              </div>
-            </div>
+              </motion.div>
+            )}
 
-          </div>
+            {step === 2 && (
+              <motion.div key="step2" initial={{ opacity: 0, scale: 0.8, rotateX: 10 }} animate={{ opacity: 1, scale: 1, rotateX: 0 }} exit={{ opacity: 0, scale: 0.9 }} transition={{ duration: 0.8, type: 'spring' }}
+                className="glass-panel" style={{ width: '100%', padding: '30px', borderRadius: '30px', transformStyle: 'preserve-3d' }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '20px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                     <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(168, 85, 247, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid rgba(168, 85, 247, 0.2)' }}>
+                       <LayoutDashboard size={20} color="var(--accent-purple)" />
+                     </div>
+                     <div>
+                       <h4 style={{ fontSize: '18px', margin: 0, color: 'white' }}>Live Dashboard Generated! 🚀</h4>
+                       <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-secondary)' }}>AI has mapped out your complete growth trajectory.</p>
+                     </div>
+                  </div>
+                </div>
+
+                <div className="dashboard-metrics" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', marginBottom: '30px' }}>
+                   {[
+                     { label: 'Business Health', val: 78, sub: 'Good', icon: Activity, color: '#a855f7' },
+                     { label: 'AI Visibility', val: 42, sub: 'Needs Improvement', icon: Search, color: '#f59e0b' },
+                     { label: 'Lead Conversion', val: 61, sub: 'Average', icon: Users, color: '#ec4899' },
+                     { label: 'Content Activity', val: 35, sub: 'Low', icon: FileText, color: '#3b82f6' }
+                   ].map((m, i) => (
+                     <div key={i} className="bento-card">
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
+                           <m.icon size={18} color={m.color} />
+                           <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-secondary)' }}>{m.label}</span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'baseline', gap: '5px' }}>
+                           <span style={{ fontSize: '32px', fontWeight: 800, color: 'white' }}><AnimatedNumber value={m.val} /></span>
+                           <span style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>/100</span>
+                        </div>
+                        <span style={{ fontSize: '12px', color: m.color, fontWeight: 500 }}>{m.sub}</span>
+                     </div>
+                   ))}
+                </div>
+                
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '20px', marginBottom: '20px' }}>
+                  <div style={{ flex: '1 1 500px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                    <div className="bento-card" style={{ height: '100%' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                         <div>
+                           <h4 style={{ fontSize: '16px', margin: 0, color: 'white' }}>Growth Trajectory</h4>
+                           <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-secondary)' }}>AI Visibility Score (Last 7 Days)</p>
+                         </div>
+                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(168, 85, 247, 0.1)', padding: '4px 10px', borderRadius: '100px', border: '1px solid rgba(168, 85, 247, 0.2)' }}>
+                           <TrendingUp size={14} color="var(--accent-purple)" />
+                           <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--accent-purple)' }}>+142%</span>
+                         </div>
+                      </div>
+                      <div style={{ height: '240px', width: '100%' }}>
+                        <ResponsiveContainer width="100%" height="100%">
+                          <LineChart data={chartData}>
+                            <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: 'var(--text-secondary)' }} />
+                            <Tooltip cursor={{ stroke: 'rgba(168, 85, 247, 0.1)', strokeWidth: 2 }} contentStyle={{ backgroundColor: '#111', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', color: 'white', boxShadow: '0 10px 25px rgba(0,0,0,0.5)' }} />
+                            <Line type="monotone" dataKey="value" stroke="var(--accent-purple)" strokeWidth={3} dot={{ r: 4, fill: '#111', strokeWidth: 2, stroke: 'var(--accent-purple)' }} activeDot={{ r: 6, fill: 'var(--accent-pink)', stroke: '#111', strokeWidth: 2 }} />
+                          </LineChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style={{ flex: '1 1 350px' }}>
+                    <h4 style={{ fontSize: '16px', marginBottom: '16px', color: 'var(--text-secondary)' }}>Recommended Actions for You</h4>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                       {[
+                         { title: 'Ask 5 customers for Google reviews', impact: 'High Impact', icon: Globe },
+                         { title: 'Post 1 offer on Instagram', impact: 'High Impact', icon: Camera },
+                         { title: 'Send WhatsApp message to 10 leads', impact: 'Medium Impact', icon: Smartphone }
+                       ].map((act, i) => (
+                         <div key={i} className="bento-card" style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '16px' }}>
+                            <div style={{ background: 'rgba(255,255,255,0.05)', padding: '10px', borderRadius: '12px' }}><act.icon size={20} color="white" /></div>
+                            <div style={{ flex: 1 }}>
+                              <p style={{ fontSize: '14px', fontWeight: 600, marginBottom: '6px', lineHeight: '1.3', color: 'white' }}>{act.title}</p>
+                              <span style={{ fontSize: '11px', background: 'rgba(236,72,153,0.1)', color: '#ec4899', padding: '4px 8px', borderRadius: '100px', fontWeight: 600, border: '1px solid rgba(236,72,153,0.2)' }}>{act.impact}</span>
+                            </div>
+                         </div>
+                       ))}
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
-      </section>
+      </div>
+    </section>
+  );
+};
 
-      {/* Features */}
-      <section id="features" className="container mx-auto px-4 lg:px-8 py-20">
-        <div className="text-center max-w-2xl mx-auto mb-14">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#F3EEFF] border border-[#E9D5FF] mb-4">
-            <Sparkles size={14} className="text-[#8B5CF6]" />
-            <span className="text-sm font-semibold text-[#8B5CF6] uppercase tracking-wider">
-              AI Search Capabilities
-            </span>
-          </div>
-          <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-gray-900 dark:text-gray-100 mb-4">
-            Rank beyond Google — Dominate AI search
-          </h2>
-          <p className="text-lg text-gray-600 dark:text-gray-400">
-            Six AI-powered capabilities designed to maximize your visibility across traditional search, AI engines, and voice assistants.
+const AIAnalysis = () => {
+  const [step, setStep] = useState(0);
+
+  useEffect(() => {
+    let isMounted = true;
+    const runSequence = async () => {
+      while (isMounted) {
+        setStep(0); 
+        await new Promise(r => setTimeout(r, 3000));
+        if (!isMounted) break;
+        setStep(1); 
+        await new Promise(r => setTimeout(r, 3000));
+        if (!isMounted) break;
+        setStep(2); 
+        await new Promise(r => setTimeout(r, 4500));
+      }
+    };
+    runSequence();
+    return () => { isMounted = false; };
+  }, []);
+
+  return (
+    <section className="section" style={{ background: 'transparent' }}>
+      <div className="container">
+        <div style={{ textAlign: 'center', marginBottom: '60px' }}>
+          <h2 style={{ fontSize: '48px', marginBottom: '20px' }}>AI analyzes your business <span className="text-gradient">automatically</span></h2>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '18px', maxWidth: '800px', margin: '0 auto' }}>
+            Saadhyam AI scans your business data, customer engagement, competitors, and growth performance to generate actionable recommendations.
           </p>
         </div>
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {features.map((f, idx) => (
-            <div
-              key={f.title}
-              className="group glass-card rounded-2xl p-7 border border-[#E9D5FF]/50 shadow-3d-soft hover:shadow-3d-float transition-all duration-300 relative overflow-hidden"
-              style={{
-                animation: `fadeInUp 0.5s ease-out ${idx * 0.1}s both`,
-              }}
-            >
-              {/* Badge */}
-              <div className="absolute top-5 right-5">
-                <span className="text-xs font-bold px-3 py-1 rounded-full bg-gradient-to-r from-[#F3EEFF] to-[#EDE9FE] text-[#8B5CF6] border border-[#E9D5FF]">
-                  {f.badge}
-                </span>
-              </div>
-              
-              {/* Glow effect on hover */}
-              <div className="absolute inset-0 bg-gradient-to-br from-[#8B5CF6]/5 to-[#A855F7]/5 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl"></div>
-              
-              <div className="relative">
-                <div
-                  className={`h-14 w-14 rounded-xl bg-gradient-to-br ${f.color} flex items-center justify-center shadow-lg mb-5 group-hover:scale-110 transition-transform`}
-                >
-                  <f.icon size={24} className="text-white" />
+
+        <div style={{ position: 'relative', height: '400px', display: 'flex', justifyContent: 'center', alignItems: 'center', perspective: '1000px' }}>
+          <AnimatePresence mode="wait">
+            {step === 0 && (
+              <motion.div key="scan" initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 30 }} transition={{ duration: 0.5 }}
+                className="bento-card" style={{ width: '100%', maxWidth: '800px', padding: '40px', background: 'rgba(20,20,20,0.9)', display: 'flex', gap: '40px', alignItems: 'center' }}
+              >
+                <div style={{ flex: 1 }}>
+                  <h3 style={{ fontSize: '28px', color: 'white', marginBottom: '10px', display: 'flex', alignItems: 'center' }}><Search color="var(--accent-blue)" style={{ marginRight: '10px' }} /> Scanning Market Data...</h3>
+                  <p style={{ color: 'var(--text-secondary)', marginBottom: '30px' }}>Real-time analysis of audience engagement and market trends.</p>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                     {['Audience Sentiment', 'Local Search Volume', 'Engagement Rates'].map((item, i) => (
+                       <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255,255,255,0.05)', padding: '12px 20px', borderRadius: '8px' }}>
+                         <span style={{ color: 'white', fontWeight: 500 }}>{item}</span>
+                         <div style={{ background: 'rgba(255,255,255,0.1)', height: '6px', width: '150px', borderRadius: '3px', overflow: 'hidden' }}>
+                            <motion.div animate={{ width: ['0%', '100%'] }} transition={{ duration: 2.5, ease: "easeInOut" }} style={{ height: '100%', background: 'var(--accent-blue)', borderRadius: '3px' }} />
+                         </div>
+                       </div>
+                     ))}
+                  </div>
                 </div>
-                <h3 className="font-bold text-xl mb-3 text-gray-900 dark:text-gray-100">{f.title}</h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">{f.desc}</p>
+              </motion.div>
+            )}
+
+            {step === 1 && (
+              <motion.div key="compete" initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 30 }} transition={{ duration: 0.5 }}
+                className="bento-card" style={{ width: '100%', maxWidth: '800px', padding: '40px', background: 'rgba(20,20,20,0.9)', display: 'flex', gap: '40px', alignItems: 'center' }}
+              >
+                <div style={{ flex: 1 }}>
+                  <h3 style={{ fontSize: '28px', color: 'white', marginBottom: '10px', display: 'flex', alignItems: 'center' }}><Target color="var(--accent-pink)" style={{ marginRight: '10px' }} /> Competitor Intelligence</h3>
+                  <p style={{ color: 'var(--text-secondary)', marginBottom: '30px' }}>Benchmarking your performance against top competitors in real-time.</p>
+                  <div style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'flex-end', height: '180px', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '10px' }}>
+                     <motion.div initial={{ height: 0 }} animate={{ height: '60%' }} style={{ width: '60px', background: 'rgba(255,255,255,0.1)', borderRadius: '6px 6px 0 0', position: 'relative' }}><span style={{ position: 'absolute', bottom: '-25px', left: '50%', transform: 'translateX(-50%)', color: 'var(--text-secondary)', fontSize: '12px', fontWeight: 600 }}>Comp A</span></motion.div>
+                     <motion.div initial={{ height: 0 }} animate={{ height: '100%' }} style={{ width: '60px', background: 'var(--accent-pink)', borderRadius: '6px 6px 0 0', position: 'relative', boxShadow: '0 0 20px rgba(236,72,153,0.5)' }}><span style={{ position: 'absolute', bottom: '-25px', left: '50%', transform: 'translateX(-50%)', color: 'white', fontSize: '14px', fontWeight: 'bold' }}>You</span></motion.div>
+                     <motion.div initial={{ height: 0 }} animate={{ height: '80%' }} style={{ width: '60px', background: 'rgba(255,255,255,0.1)', borderRadius: '6px 6px 0 0', position: 'relative' }}><span style={{ position: 'absolute', bottom: '-25px', left: '50%', transform: 'translateX(-50%)', color: 'var(--text-secondary)', fontSize: '12px', fontWeight: 600 }}>Comp B</span></motion.div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {step === 2 && (
+              <motion.div key="insight" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }} transition={{ duration: 0.5, type: 'spring' }}
+                className="bento-card" style={{ width: '100%', maxWidth: '800px', padding: '40px', background: 'rgba(20,20,20,0.9)', border: '1px solid var(--accent-purple)' }}
+              >
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ background: 'rgba(168,85,247,0.1)', width: '60px', height: '60px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', border: '1px solid rgba(168,85,247,0.3)' }}>
+                     <Sparkles size={32} color="var(--accent-purple)" />
+                  </div>
+                  <h3 style={{ fontSize: '32px', color: 'white', marginBottom: '10px' }}>Actionable Insights Found</h3>
+                  <p style={{ color: 'var(--text-secondary)', marginBottom: '30px' }}>AI has identified 3 critical growth levers for this week.</p>
+                </div>
+                
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px' }}>
+                   {[
+                     { title: 'Launch Ad Campaign', desc: 'High demand detected in your area.', impact: 'High Return', color: '#10b981' },
+                     { title: 'Content Update', desc: 'Competitor B dropped in rankings.', impact: 'Medium Effort', color: '#3b82f6' },
+                     { title: 'Customer Retention', desc: 'Send 10% discount to past clients.', impact: 'Quick Win', color: '#f59e0b' }
+                   ].map((item, i) => (
+                     <div key={i} style={{ background: 'rgba(255,255,255,0.05)', padding: '20px', borderRadius: '12px', borderTop: `2px solid ${item.color}` }}>
+                        <h4 style={{ color: 'white', marginBottom: '8px', fontSize: '15px' }}>{item.title}</h4>
+                        <p style={{ color: 'var(--text-secondary)', fontSize: '13px', marginBottom: '12px', lineHeight: '1.4' }}>{item.desc}</p>
+                        <span style={{ fontSize: '11px', color: item.color, background: `${item.color}20`, padding: '4px 8px', borderRadius: '100px', fontWeight: 600 }}>{item.impact}</span>
+                     </div>
+                   ))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+const Workflow = () => {
+  return (
+    <section className="section" style={{ position: 'relative', overflow: 'hidden' }}>
+      <div className="container">
+        <div style={{ textAlign: 'center', marginBottom: '60px' }}>
+          <h2 style={{ fontSize: '48px', marginBottom: '20px' }}>From insight to execution <span className="text-gradient">automatically</span></h2>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '18px', maxWidth: '800px', margin: '0 auto' }}>
+             See exactly how Saadhyam AI connects your tools, processes your data, and drives automated growth.
+          </p>
+        </div>
+
+        <div className="glass-panel" style={{ padding: '0', overflow: 'hidden', borderRadius: '30px', position: 'relative' }}>
+           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))' }}>
+              
+              <div style={{ padding: '50px', borderRight: '1px solid rgba(255,255,255,0.05)', position: 'relative', background: 'rgba(59, 130, 246, 0.02)' }}>
+                 <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'var(--accent-blue)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '30px' }}>
+                    <Database size={20} color="white" />
+                 </div>
+                 <h3 style={{ fontSize: '24px', color: 'white', marginBottom: '15px' }}>1. Connect</h3>
+                 <p style={{ color: 'var(--text-secondary)', marginBottom: '30px', fontSize: '15px' }}>Secure, real-time connection to your business platforms.</p>
+                 
+                 <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                    <div style={{ padding: '12px 16px', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', color: 'white', fontSize: '14px', border: '1px solid rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                       <Smartphone size={16} color="var(--text-secondary)" /> Instagram API
+                    </div>
+                    <div style={{ padding: '12px 16px', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', color: 'white', fontSize: '14px', border: '1px solid rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                       <Globe size={16} color="var(--text-secondary)" /> Website Analytics
+                    </div>
+                    <div style={{ padding: '12px 16px', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', color: 'white', fontSize: '14px', border: '1px solid rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                       <LayoutDashboard size={16} color="var(--text-secondary)" /> Sales CRM
+                    </div>
+                 </div>
               </div>
+
+              <div style={{ padding: '50px', borderRight: '1px solid rgba(255,255,255,0.05)', position: 'relative', background: 'rgba(168, 85, 247, 0.03)' }}>
+                 <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'var(--accent-purple)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '30px', boxShadow: '0 0 20px rgba(168,85,247,0.5)' }}>
+                    <Cpu size={20} color="white" />
+                 </div>
+                 <h3 style={{ fontSize: '24px', color: 'white', marginBottom: '15px' }}>2. Process</h3>
+                 <p style={{ color: 'var(--text-secondary)', marginBottom: '30px', fontSize: '15px' }}>The AI Engine detects patterns and formulates strategies.</p>
+
+                 <div style={{ height: '180px', border: '1px solid rgba(168,85,247,0.3)', borderRadius: '12px', background: 'rgba(0,0,0,0.4)', position: 'relative', overflow: 'hidden' }}>
+                    <motion.div animate={{ top: ['-20%', '120%'] }} transition={{ duration: 2.5, repeat: Infinity, ease: 'linear' }} style={{ position: 'absolute', left: 0, right: 0, height: '3px', background: 'var(--accent-purple)', boxShadow: '0 0 15px 5px rgba(168,85,247,0.5)' }} />
+                    <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px', opacity: 0.5 }}>
+                       <div style={{ width: '80%', height: '8px', background: 'rgba(255,255,255,0.2)', borderRadius: '4px' }} />
+                       <div style={{ width: '60%', height: '8px', background: 'rgba(255,255,255,0.2)', borderRadius: '4px' }} />
+                       <div style={{ width: '90%', height: '8px', background: 'rgba(255,255,255,0.2)', borderRadius: '4px' }} />
+                       <div style={{ width: '40%', height: '8px', background: 'rgba(255,255,255,0.2)', borderRadius: '4px' }} />
+                       <div style={{ width: '70%', height: '8px', background: 'rgba(255,255,255,0.2)', borderRadius: '4px' }} />
+                    </div>
+                 </div>
+              </div>
+
+              <div style={{ padding: '50px', position: 'relative', background: 'rgba(236, 72, 153, 0.02)' }}>
+                 <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'var(--accent-pink)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '30px' }}>
+                    <Zap size={20} color="white" />
+                 </div>
+                 <h3 style={{ fontSize: '24px', color: 'white', marginBottom: '15px' }}>3. Execute</h3>
+                 <p style={{ color: 'var(--text-secondary)', marginBottom: '30px', fontSize: '15px' }}>Automated actions deployed directly to your platforms.</p>
+
+                 <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                    <div style={{ padding: '16px', background: 'rgba(236,72,153,0.05)', borderRadius: '12px', borderLeft: '3px solid var(--accent-pink)', display: 'flex', alignItems: 'center', gap: '15px' }}>
+                       <Camera size={18} color="white" />
+                       <span style={{ color: 'white', fontSize: '14px', fontWeight: 500 }}>Publish IG Reel</span>
+                    </div>
+                    <div style={{ padding: '16px', background: 'rgba(236,72,153,0.05)', borderRadius: '12px', borderLeft: '3px solid var(--accent-pink)', display: 'flex', alignItems: 'center', gap: '15px' }}>
+                       <MessageSquare size={18} color="white" />
+                       <span style={{ color: 'white', fontSize: '14px', fontWeight: 500 }}>Reply to Review</span>
+                    </div>
+                    <div style={{ padding: '16px', background: 'rgba(236,72,153,0.05)', borderRadius: '12px', borderLeft: '3px solid var(--accent-pink)', display: 'flex', alignItems: 'center', gap: '15px' }}>
+                       <Mail size={18} color="white" />
+                       <span style={{ color: 'white', fontSize: '14px', fontWeight: 500 }}>Send Promo Email</span>
+                    </div>
+                 </div>
+              </div>
+
+           </div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+interface AnimatedGeneratorProps {
+  title: string;
+  subtitle: string;
+  inputAction: string;
+  generatedOutput: string;
+  icon: React.ComponentType<any>;
+  color: string;
+}
+
+const AnimatedGenerator = ({ title, subtitle, inputAction, generatedOutput, icon: Icon, color }: AnimatedGeneratorProps) => {
+  const [step, setStep] = useState(0); 
+  
+  useEffect(() => {
+    let isMounted = true;
+    const runSequence = async () => {
+      if (!isMounted) return;
+      setStep(0);
+      await new Promise(r => setTimeout(r, 1000));
+      if (!isMounted) return;
+      setStep(1); 
+      await new Promise(r => setTimeout(r, 2000));
+      if (!isMounted) return;
+      setStep(2); 
+      await new Promise(r => setTimeout(r, 1500));
+      if (!isMounted) return;
+      setStep(3); 
+      await new Promise(r => setTimeout(r, 4000));
+      if (isMounted) runSequence();
+    };
+    runSequence();
+    return () => { isMounted = false; };
+  }, []);
+
+  return (
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '40px', alignItems: 'center', marginBottom: '120px' }}>
+      <div style={{ flex: '1 1 400px' }}>
+        <h2 style={{ fontSize: '40px', marginBottom: '16px', color: 'white' }}>{title}</h2>
+        <p style={{ color: 'var(--text-secondary)', fontSize: '18px', marginBottom: '30px' }}>{subtitle}</p>
+        <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+          <span style={{ padding: '8px 16px', background: 'rgba(255,255,255,0.05)', borderRadius: '100px', color: 'var(--text-secondary)', fontSize: '14px' }}>Fast</span>
+          <span style={{ padding: '8px 16px', background: 'rgba(255,255,255,0.05)', borderRadius: '100px', color: 'var(--text-secondary)', fontSize: '14px' }}>Automated</span>
+          <span style={{ padding: '8px 16px', background: 'rgba(255,255,255,0.05)', borderRadius: '100px', color: 'var(--text-secondary)', fontSize: '14px' }}>Scalable</span>
+        </div>
+      </div>
+
+      <div className="bento-card" style={{ flex: '1 1 400px', minHeight: '300px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+        <div style={{ background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', padding: '16px', marginBottom: '20px' }}>
+           <p style={{ margin: 0, color: 'white', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+             <Icon size={16} color={color} /> 
+             {step === 0 ? <span style={{ opacity: 0.5 }}>Waiting for input...</span> : inputAction}
+           </p>
+        </div>
+
+        <div style={{ height: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          {step === 1 && (
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <div className="typing-dot" /><div className="typing-dot" /><div className="typing-dot" />
             </div>
+          )}
+          {step === 2 && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ color: color, fontWeight: 600, display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <RefreshCw size={18} className="logo-img" style={{ animation: 'logoFloat 1s infinite' }} /> Generating AI Output...
+            </motion.div>
+          )}
+          {step === 3 && (
+            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} 
+              style={{ background: `rgba(${color === 'var(--accent-pink)' ? '236,72,153' : '59,130,246'}, 0.1)`, border: `1px solid ${color}`, padding: '20px', borderRadius: '16px', width: '100%' }}
+            >
+               <h4 style={{ color: 'white', margin: '0 0 8px 0' }}>Success</h4>
+               <p style={{ color: 'var(--text-secondary)', margin: 0, fontSize: '14px' }}>{generatedOutput}</p>
+            </motion.div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const ContentStudioAndAutomation = () => {
+  return (
+    <section className="section" style={{ background: 'transparent' }}>
+      <div className="container">
+        
+        <AnimatedGenerator 
+          title="AI creates content that drives results"
+          subtitle="Generate highly converting social posts, ad copies, and emails in seconds."
+          inputAction="Create an Instagram post for weekend sale..."
+          generatedOutput="🎉 Weekend Flash Sale! Get 20% OFF all services. Limited slots available, book now! #Sale"
+          icon={PenTool}
+          color="var(--accent-pink)"
+        />
+
+        <AnimatedGenerator 
+          title="Smart automation for modern businesses"
+          subtitle="Let AI handle customer replies, scheduling, and workflow triggers automatically."
+          inputAction="New Google Review received: 5 Stars!"
+          generatedOutput="AI Auto-Reply Sent: 'Thank you so much for the 5 stars! We look forward to seeing you again soon!'"
+          icon={Cpu}
+          color="var(--accent-blue)"
+        />
+
+      </div>
+    </section>
+  );
+};
+
+const AEOSection = () => {
+  return (
+    <section className="section" style={{ background: 'transparent' }}>
+      <div className="container">
+        <div style={{ textAlign: 'center', marginBottom: '60px' }}>
+          <h2 style={{ fontSize: '48px', marginBottom: '20px' }}>Optimized for <span className="text-gradient">AI-powered search</span> systems</h2>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '18px', maxWidth: '800px', margin: '0 auto' }}>
+            Saadhyam AI structures business content for Answer Engine Optimization (AEO) and Generative Engine Optimization (GEO) to improve visibility.
+          </p>
+        </div>
+        <div className="aeo-geo-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '40px' }}>
+          <div className="bento-card" style={{ padding: '40px' }}>
+             <h3 style={{ fontSize: '24px', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '12px', color: 'white' }}>
+               <Search color="var(--accent-purple)" /> AEO Features
+             </h3>
+             <ul style={{ listStyle: 'none', padding: 0 }}>
+               {['FAQ-based structured content', 'Voice-search optimization', 'AI answer formatting', 'Search visibility enhancement'].map((f, i) => (
+                 <li key={i} style={{ padding: '12px 0', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--text-secondary)' }}>
+                   <CheckCircle size={16} color="var(--accent-purple)" /> {f}
+                 </li>
+               ))}
+             </ul>
+          </div>
+          <div className="bento-card" style={{ padding: '40px' }}>
+             <h3 style={{ fontSize: '24px', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '12px', color: 'white' }}>
+               <Globe color="var(--accent-pink)" /> GEO Features
+             </h3>
+             <ul style={{ listStyle: 'none', padding: 0 }}>
+               {['Context-rich content generation', 'Brand trust signals', 'AI recommendation optimization', 'Intelligent content structuring'].map((f, i) => (
+                 <li key={i} style={{ padding: '12px 0', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--text-secondary)' }}>
+                   <CheckCircle size={16} color="var(--accent-pink)" /> {f}
+                 </li>
+               ))}
+             </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+const AIAssistant = () => {
+  const capabilities = ['Generate growth strategies', 'Analyze competitors', 'Create campaigns', 'Generate marketing content', 'Suggest business improvements', 'Optimize customer engagement'];
+  return (
+    <section className="section" style={{ background: 'linear-gradient(180deg, rgba(168, 85, 247, 0.05), transparent)' }}>
+      <div className="container" style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '60px' }}>
+        <div style={{ flex: '1 1 400px' }}>
+          <h2 style={{ fontSize: '48px', marginBottom: '24px' }}>Meet your AI Growth <span className="text-gradient">Assistant</span></h2>
+          <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 40px 0' }}>
+             {capabilities.map((item, i) => (
+                <li key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px', fontSize: '16px', fontWeight: 500, color: 'var(--text-secondary)' }}>
+                  <div style={{ background: 'rgba(168, 85, 247, 0.1)', borderRadius: '50%', padding: '4px', border: '1px solid rgba(168, 85, 247, 0.2)' }}>
+                    <Zap size={16} color="var(--accent-purple)" />
+                  </div>
+                  {item}
+                </li>
+             ))}
+          </ul>
+        </div>
+        <motion.div initial={{ opacity: 0, x: 50 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.8 }}
+          className="bento-card" style={{ flex: '1 1 400px', height: '400px', padding: '30px', display: 'flex', flexDirection: 'column' }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '24px', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '16px' }}>
+            <Logo width="24px" height="24px" withGlow={false} />
+            <span style={{ fontWeight: 600, color: 'white' }}>Saadhyam Assistant</span>
+          </div>
+          <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <div style={{ alignSelf: 'flex-end', background: 'rgba(255,255,255,0.05)', padding: '16px', borderRadius: '16px 16px 0 16px', maxWidth: '80%', border: '1px solid rgba(255,255,255,0.05)' }}>
+              <p style={{ margin: 0, fontSize: '14px', color: 'white' }}>How can we improve Q3 conversion rates for our local business?</p>
+            </div>
+            <div style={{ alignSelf: 'flex-start', background: 'rgba(168, 85, 247, 0.1)', padding: '16px', borderRadius: '16px 16px 16px 0', maxWidth: '80%', border: '1px solid rgba(168, 85, 247, 0.2)' }}>
+              <div style={{ display: 'flex', gap: '4px', marginBottom: '12px' }}>
+                 <div className="typing-dot" /><div className="typing-dot" /><div className="typing-dot" />
+              </div>
+              <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ delay: 1.5, duration: 0.5 }}>
+                <p style={{ margin: 0, fontSize: '14px', lineHeight: '1.6', color: 'white' }}>
+                  Based on your current traffic and competitor analysis, I recommend deploying a hyper-personalized WhatsApp sequence and a new Weekend Offer. <br/><br/>
+                  I have automatically drafted the content. Shall I schedule the campaign?
+                </p>
+                <div style={{ marginTop: '16px', display: 'flex', gap: '10px' }}>
+                   <button style={{ background: 'linear-gradient(135deg, #9333ea, #ec4899)', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: 600 }}>Schedule Campaign</button>
+                </div>
+              </motion.div>
+            </div>
+          </div>
+        </motion.div>
+      </div>
+    </section>
+  );
+};
+
+const TrustAndBenefits = () => {
+  const businesses = ['Restaurants', 'Salons', 'Startups', 'Agencies', 'E-commerce Brands', 'Coaches', 'Healthcare Clinics', 'Real Estate Companies', 'Local Businesses'];
+  return (
+    <section className="section" style={{ textAlign: 'center' }}>
+      <div className="container">
+        <h3 style={{ fontSize: '32px', marginBottom: '24px', color: 'white' }}>Built for scale. Designed for trust.</h3>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '40px', flexWrap: 'wrap', marginBottom: '80px' }}>
+           {[
+             { title: 'Secure Authentication', icon: Lock }, { title: 'AI-Powered Insights', icon: BarChart3 },
+             { title: 'Real-Time Analytics', icon: Activity }, { title: 'Scalable Infrastructure', icon: Cpu },
+             { title: '24/7 Support', icon: Headphones }
+           ].map((t, i) => (
+             <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-secondary)', fontWeight: 500 }}>
+                <t.icon size={18} color="var(--accent-purple)" /> {t.title}
+             </div>
+           ))}
+        </div>
+        <h3 style={{ fontSize: '24px', marginBottom: '24px', color: 'var(--text-secondary)' }}>Empowering Businesses Everywhere</h3>
+        <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '12px' }}>
+          {businesses.map((b, i) => (
+            <span key={i} style={{ padding: '8px 16px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', fontSize: '14px', fontWeight: 600, color: 'var(--text-secondary)' }}>{b}</span>
           ))}
         </div>
-      </section>
+      </div>
+    </section>
+  );
+};
 
-      {/* Why AEO + GEO Section */}
-      <section className="container mx-auto px-4 lg:px-8 py-20">
-        <div className="rounded-3xl glass-premium border border-[#E9D5FF] p-10 md:p-16 relative overflow-hidden shadow-3d-deep">
-          {/* Decorative elements */}
-          <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-[#8B5CF6]/10 to-[#A855F7]/10 rounded-full blur-3xl"></div>
-          <div className="absolute bottom-0 left-0 w-96 h-96 bg-gradient-to-tr from-[#A855F7]/10 to-[#8B5CF6]/10 rounded-full blur-3xl"></div>
-          
-          <div className="relative">
-            <div className="text-center max-w-3xl mx-auto mb-12">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card border border-[#E9D5FF] mb-6">
-                <TrendingUp size={16} className="text-[#8B5CF6]" />
-                <span className="text-sm font-semibold text-[#8B5CF6]">The Future of Search</span>
-              </div>
-              <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-gray-900 dark:text-gray-100 mb-4">
-                Why businesses need AEO + GEO now
-              </h2>
-              <p className="text-lg text-gray-600 dark:text-gray-400">
-                Search behavior is changing. AI-powered platforms are replacing traditional search engines. Your business needs to adapt or risk becoming invisible.
-              </p>
-            </div>
-            
-            <div className="grid md:grid-cols-3 gap-6 mb-10">
-              {/* Stat Card 1 */}
-              <div className="relative group">
-                <div className="absolute inset-0 bg-gradient-to-br from-[#8B5CF6] to-[#A855F7] rounded-2xl blur-xl opacity-20 group-hover:opacity-30 transition-opacity"></div>
-                <div className="relative glass-premium rounded-2xl p-7 border border-[#E9D5FF] shadow-3d-soft">
-                  <div className="text-5xl font-bold bg-gradient-to-r from-[#8B5CF6] to-[#A855F7] bg-clip-text text-transparent mb-3">
-                    40%+
-                  </div>
-                  <p className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-2">Users now prefer AI search</p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">ChatGPT, Perplexity, and AI assistants are replacing Google for many queries</p>
-                </div>
-              </div>
-              
-              {/* Stat Card 2 */}
-              <div className="relative group">
-                <div className="absolute inset-0 bg-gradient-to-br from-[#8B5CF6] to-[#A855F7] rounded-2xl blur-xl opacity-20 group-hover:opacity-30 transition-opacity"></div>
-                <div className="relative glass-premium rounded-2xl p-7 border border-[#E9D5FF] shadow-3d-soft">
-                  <div className="text-5xl font-bold bg-gradient-to-r from-[#8B5CF6] to-[#A855F7] bg-clip-text text-transparent mb-3">
-                    58%
-                  </div>
-                  <p className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-2">Voice search growth</p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Conversational and voice-based queries continue to dominate mobile search</p>
-                </div>
-              </div>
-              
-              {/* Stat Card 3 */}
-              <div className="relative group">
-                <div className="absolute inset-0 bg-gradient-to-br from-[#8B5CF6] to-[#A855F7] rounded-2xl blur-xl opacity-20 group-hover:opacity-30 transition-opacity"></div>
-                <div className="relative glass-premium rounded-2xl p-7 border border-[#E9D5FF] shadow-3d-soft">
-                  <div className="text-5xl font-bold bg-gradient-to-r from-[#8B5CF6] to-[#A855F7] bg-clip-text text-transparent mb-3">
-                    73%
-                  </div>
-                  <p className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-2">Trust AI-generated answers</p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Consumers trust and act on information from AI platforms when making decisions</p>
-                </div>
-              </div>
-            </div>
-            
-            <div className="grid md:grid-cols-2 gap-6">
-              <div className="glass-card rounded-2xl p-7 border border-[#E9D5FF]/50">
-                <div className="flex items-start gap-4">
-                  <div className="p-4 rounded-xl bg-gradient-to-br from-[#8B5CF6] to-[#A855F7] flex-shrink-0 shadow-lg">
-                    <Search size={22} className="text-white" />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-lg mb-2 text-gray-900 dark:text-gray-100">Traditional SEO isn't enough</h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
-                      Ranking on Google is just the beginning. Your customers are asking ChatGPT, using voice search, and trusting AI-generated recommendations.
-                    </p>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="glass-card rounded-2xl p-7 border border-[#E9D5FF]/50">
-                <div className="flex items-start gap-4">
-                  <div className="p-4 rounded-xl bg-gradient-to-br from-[#8B5CF6] to-[#A855F7] flex-shrink-0 shadow-lg">
-                    <Brain size={22} className="text-white" />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-lg mb-2 text-gray-900 dark:text-gray-100">Future-proof your visibility</h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
-                      Businesses optimized for AI search engines and generative platforms will dominate the next decade of digital discovery.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+interface CTAProps {
+  onOpenModal: () => void;
+}
 
-      {/* How it works */}
-      <section id="how" className="container mx-auto px-4 lg:px-8 py-20">
-        <div className="rounded-3xl glass-premium border border-[#E9D5FF] p-10 md:p-16 shadow-3d-deep">
-          <div className="text-center max-w-2xl mx-auto mb-14">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#F3EEFF] border border-[#E9D5FF] mb-4">
-              <Rocket size={14} className="text-[#8B5CF6]" />
-              <span className="text-sm font-semibold text-[#8B5CF6] uppercase tracking-wider">
-                How it works
-              </span>
-            </div>
-            <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-gray-900 dark:text-gray-100 mb-4">
-              From setup to AI visibility in 3 steps
-            </h2>
-            <p className="text-lg text-gray-600 dark:text-gray-400">
-              Get discovered across Google, ChatGPT, voice search, and AI platforms in minutes
-            </p>
-          </div>
-          <div className="grid md:grid-cols-3 gap-8">
-            {steps.map((s, i) => (
-              <div key={s.num} className="relative">
-                <div className="glass-card rounded-2xl p-8 border border-[#E9D5FF]/50 shadow-3d-soft hover:shadow-3d-float transition-all h-full group">
-                  <div className="text-6xl font-bold bg-gradient-to-r from-[#8B5CF6] to-[#A855F7] bg-clip-text text-transparent mb-4 group-hover:scale-110 transition-transform">{s.num}</div>
-                  <h3 className="font-bold text-xl mb-3 text-gray-900 dark:text-gray-100">{s.title}</h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">{s.desc}</p>
-                </div>
-                {i < steps.length - 1 && (
-                  <ArrowRight
-                    size={28}
-                    className="hidden md:block absolute top-1/2 -right-5 -translate-y-1/2 text-[#8B5CF6]/40"
-                  />
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonials */}
-      <section id="testimonials" className="container mx-auto px-4 lg:px-8 py-20">
-        <div className="text-center max-w-2xl mx-auto mb-14">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#F3EEFF] border border-[#E9D5FF] mb-4">
-            <Users size={14} className="text-[#8B5CF6]" />
-            <span className="text-sm font-semibold text-[#8B5CF6] uppercase tracking-wider">
-              Loved by founders
-            </span>
-          </div>
-          <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-gray-900 dark:text-gray-100 mb-4">
-            Trusted by 2,400+ businesses
+const CTA = ({ onOpenModal }: CTAProps) => {
+  return (
+    <section className="section" style={{ position: 'relative', overflow: 'hidden', padding: '120px 0' }}>
+      <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '80%', height: '80%', background: 'radial-gradient(circle, rgba(168, 85, 247, 0.15) 0%, transparent 60%)', zIndex: 0 }} />
+      <div className="container" style={{ position: 'relative', zIndex: 1, textAlign: 'center' }}>
+        <motion.div initial={{ scale: 0.9, opacity: 0 }} whileInView={{ scale: 1, opacity: 1 }} viewport={{ once: true }} transition={{ duration: 0.8 }}
+          style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}
+        >
+          <Logo width="80px" height="80px" style={{ marginBottom: '30px' }} />
+          <h2 style={{ fontSize: '56px', marginBottom: '20px', maxWidth: '800px', margin: '0 auto 20px', lineHeight: '1.1' }}>
+            Start building your AI-powered <br/><span className="text-gradient">business growth system today.</span>
           </h2>
-        </div>
-        <div className="grid md:grid-cols-3 gap-6">
-          {testimonials.map((t, idx) => (
-            <div
-              key={t.name}
-              className="glass-card rounded-2xl p-7 border border-[#E9D5FF]/50 shadow-3d-soft hover:shadow-3d-float transition-all"
-              style={{
-                animation: `fadeInUp 0.5s ease-out ${idx * 0.1}s both`,
-              }}
-            >
-              <div className="flex gap-1 mb-4">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <Star key={i} size={16} className="fill-[#8B5CF6] text-[#8B5CF6]" />
-                ))}
-              </div>
-              <p className="text-sm leading-relaxed mb-6 text-gray-700">"{t.quote}"</p>
-              <div className="flex items-center gap-3">
-                <div className="h-12 w-12 rounded-full bg-gradient-to-br from-[#8B5CF6] to-[#A855F7]" />
-                <div>
-                  <p className="text-sm font-bold text-gray-900 dark:text-gray-100">{t.name}</p>
-                  <p className="text-xs text-gray-600 dark:text-gray-400">{t.role}</p>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
+          <button className="btn-primary" onClick={onOpenModal} style={{ padding: '20px 48px', fontSize: '20px', boxShadow: '0 20px 40px -10px rgba(168, 85, 247, 0.5)' }}>
+            Launch Your AI Business System <ArrowRight size={24} />
+          </button>
+        </motion.div>
+      </div>
+    </section>
+  );
+};
 
-      {/* Pricing */}
-      <section id="pricing" className="container mx-auto px-4 lg:px-8 py-20">
-        <div className="text-center max-w-2xl mx-auto mb-14">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#F3EEFF] border border-[#E9D5FF] mb-4">
-            <Zap size={14} className="text-[#8B5CF6]" />
-            <span className="text-sm font-semibold text-[#8B5CF6] uppercase tracking-wider">
-              {pricingState === "live" ? "Live Pricing" : "Pricing"}
-            </span>
-          </div>
-          <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-gray-900 dark:text-gray-100 mb-4">
-            Simple plans that grow with you
-          </h2>
-        </div>
-        <div className="grid gap-6 max-w-5xl mx-auto md:grid-cols-2 xl:grid-cols-4">
-          {tiers.map((t) => (
-            <div
-              key={t.name}
-              className={`relative rounded-2xl p-8 border shadow-3d-soft hover:shadow-3d-float transition-all ${
-                t.highlighted
-                  ? "glass-premium border-[#8B5CF6] shadow-3d-deep scale-[1.05] bg-gradient-to-br from-white to-[#F9F7FF]"
-                  : "glass-card border-[#E9D5FF]/50"
-              }`}
-            >
-              {t.highlighted && (
-                <span className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full bg-gradient-to-r from-[#8B5CF6] to-[#A855F7] text-white text-xs font-bold shadow-lg">
-                  RECOMMENDED
-                </span>
-              )}
-              <h3 className="font-bold text-xl text-gray-900 dark:text-gray-100">{t.name}</h3>
-              <div className="mt-4 mb-2">
-                <span className="text-5xl font-bold text-gray-900 dark:text-gray-100">{t.price}</span>
-                <span className="text-base text-gray-600 dark:text-gray-400">/mo</span>
-              </div>
-              <p className="text-sm mb-7 text-gray-600 dark:text-gray-400">{t.desc}</p>
-              <Button 
-                className={`w-full mb-7 h-12 text-base font-semibold rounded-xl transition-all ${
-                  t.highlighted 
-                    ? "bg-gradient-to-r from-[#8B5CF6] to-[#A855F7] hover:from-[#7C3AED] hover:to-[#9333EA] text-white shadow-lg shadow-[#8B5CF6]/25" 
-                    : "border-2 border-[#8B5CF6]/30 hover:border-[#8B5CF6] hover:bg-[#F9F7FF]"
-                }`}
-                variant={t.highlighted ? "default" : "outline"}
-                asChild
-              >
-                <Link to="/signup">{t.cta}</Link>
-              </Button>
-              <ul className="space-y-3">
-                {t.features.map((f) => (
-                  <li key={f} className="flex items-start gap-3 text-sm text-gray-700">
-                    <Check
-                      size={18}
-                      className="mt-0.5 shrink-0 text-[#8B5CF6]"
-                    />
-                    <span>{f}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
-      </section>
+const Footer = () => (
+  <footer style={{ borderTop: '1px solid rgba(255,255,255,0.05)', padding: '60px 0', background: 'rgba(0,0,0,0.4)' }}>
+    <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '20px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <Logo width="28px" height="28px" withGlow={false} />
+        <span style={{ fontFamily: 'Outfit', fontWeight: 800, fontSize: '20px', letterSpacing: '-0.5px' }}>Saadhyam AI</span>
+      </div>
+      <div style={{ display: 'flex', gap: '24px', fontSize: '14px', color: 'var(--text-secondary)' }}>
+        <p style={{ margin: 0, fontWeight: 600 }}>Powered by MentNeo</p>
+      </div>
+      <div style={{ display: 'flex', gap: '24px' }}>
+        <a href="#" style={{ textDecoration: 'none', color: 'var(--text-secondary)', fontSize: '14px' }}>Privacy</a>
+        <a href="#" style={{ textDecoration: 'none', color: 'var(--text-secondary)', fontSize: '14px' }}>Terms</a>
+        <a href="mailto:info@saadhyam.com" style={{ textDecoration: 'none', color: 'var(--text-secondary)', fontSize: '14px', transition: 'color 0.3s' }}>Contact</a>
+      </div>
+    </div>
+  </footer>
+);
 
-      {/* CTA */}
-      <section className="container mx-auto px-4 lg:px-8 py-20">
-        <div className="relative overflow-hidden rounded-3xl p-12 md:p-20 text-center shadow-3d-deep" style={{
-          background: 'linear-gradient(135deg, #8B5CF6 0%, #A855F7 50%, #8B5CF6 100%)',
-        }}>
-          <div className="absolute inset-0 opacity-20">
-            {/* Decorative elements */}
-            <div className="absolute top-0 right-0 w-96 h-96 bg-white/20 rounded-full blur-3xl"></div>
-            <div className="absolute bottom-0 left-0 w-96 h-96 bg-white/10 rounded-full blur-3xl"></div>
-          </div>
-          <div className="relative">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 mb-8">
-              <Sparkles size={16} className="text-white" />
-              <span className="text-sm font-semibold text-white">Built for the AI search era</span>
-            </div>
-            <h2 className="text-4xl md:text-6xl font-bold tracking-tight mb-5 text-white">
-              Ready to dominate AI search?
-            </h2>
-            <p className="text-xl text-white/90 max-w-2xl mx-auto mb-10">
-              Join 2,400+ businesses optimizing for Google, ChatGPT, voice search, and the future of AI-powered discovery.
-            </p>
-            <div className="flex flex-wrap gap-4 justify-center">
-              <Button 
-                size="lg"
-                className="h-14 px-8 text-base font-semibold bg-white text-[#8B5CF6] hover:bg-gray-50 rounded-xl shadow-xl transition-all"
-                asChild
-              >
-                <Link to="/signup">
-                  Boost My AI Discoverability <ArrowRight size={18} />
-                </Link>
-              </Button>
-              <Button 
-                variant="outline"
-                size="lg"
-                className="h-14 px-8 text-base font-semibold bg-white/10 border-2 border-white/30 hover:bg-white/20 text-white rounded-xl backdrop-blur-sm transition-all"
-                asChild
-              >
-                <Link to="/dashboard">
-                  <Play size={16} /> See how it works
-                </Link>
-              </Button>
-            </div>
-            
-            {/* Trust badges */}
-            <div className="mt-12 pt-10 border-t border-white/20">
-              <p className="text-sm text-white/75 mb-5">Future-proof your business visibility</p>
-              <div className="flex items-center justify-center gap-8 flex-wrap text-sm text-white/90">
-                <div className="flex items-center gap-2">
-                  <Check size={16} />
-                  <span>No credit card required</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Check size={16} />
-                  <span>Setup in 2 minutes</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Check size={16} />
-                  <span>Cancel anytime</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+function PreLandingPage() {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [lang, setLang] = useState<'en' | 'hi' | 'te'>('en');
 
+  return (
+    <div className="landing-wrapper">
+      <Navbar onOpenModal={() => setIsModalOpen(true)} lang={lang} setLang={setLang} />
+      <LeadCaptureModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSuccess={() => {}} />
+      <Hero onOpenModal={() => setIsModalOpen(true)} lang={lang} />
+      <AnimatedDashboardFlow />
+      <AIAnalysis />
+      <Workflow />
+      <ContentStudioAndAutomation />
+      <AEOSection />
+      <AIAssistant />
+      <TrustAndBenefits />
+      <CTA onOpenModal={() => setIsModalOpen(true)} />
       <Footer />
+      <FloatingContact />
     </div>
   );
 }

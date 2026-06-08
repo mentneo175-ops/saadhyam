@@ -25,7 +25,7 @@ function ResponsiveHeaderContent() {
 
   // Check if we're on dashboard pages
   const isDashboardPage = location.pathname.startsWith("/dashboard");
-  const isLandingPage = location.pathname === "/";
+  const isLandingPage = location.pathname === "/" || location.pathname === "/main" || location.pathname === "/landing-admin";
 
   // Only show on non-dashboard pages, excluding the landing page, and mobile devices
   const shouldShow = !isDashboardPage && !isLandingPage && isMobile;
@@ -112,7 +112,7 @@ export function ResponsiveHeader() {
 
   // Check if we're on dashboard pages
   const isDashboardPage = location.pathname.startsWith("/dashboard");
-  const isLandingPage = location.pathname === "/";
+  const isLandingPage = location.pathname === "/" || location.pathname === "/main" || location.pathname === "/landing-admin";
 
   // Only show on non-dashboard pages, excluding the landing page, and mobile devices
   const shouldShow = !isDashboardPage && !isLandingPage && isMobile;

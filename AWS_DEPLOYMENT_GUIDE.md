@@ -33,11 +33,11 @@ graph TD
 ---
 
 ## 💰 Expected Monthly Cost (Estimation)
-AWS offers a **12-Month Free Tier** for new accounts, which covers a large portion of this setup:
-1. **EC2 Instance (t3.medium — 2 vCPUs, 4GB RAM):** ~$30/month (Needed to run FastAPI, Celery, and Redis together. *t2.micro is Free Tier but has only 1GB RAM, which is too small for running machine learning or LLM agents*).
-2. **RDS PostgreSQL (db.t3.micro):** **FREE TIER** (up to 750 hours/month and 20GB storage).
-3. **Data Transfer & SSL Certificate:** **FREE** via Let's Encrypt.
-*Total Estimated Cost: ~$30/month (or less if using AWS credits).*
+AWS offers a **12-Month Free Tier** for new accounts, which covers this entire setup:
+1. **EC2 Instance (t3.micro or t2.micro):** **100% FREE TIER** (750 hours/month free). We will configure a **Swap File** (virtual memory) to allow running FastAPI, Celery, and Redis together on this free instance.
+2. **RDS PostgreSQL (db.t3.micro):** **100% FREE TIER** (750 hours/month free and 20GB storage).
+3. **Data Transfer & SSL Certificate:** **100% FREE** via Let's Encrypt.
+*Total Estimated Cost: $0.00 / month!*
 
 ---
 
@@ -72,7 +72,7 @@ We will use a managed database service (RDS) instead of running PostgreSQL insid
 2. Configure the instance details:
    * **Name:** `saadhyam-backend-prod`
    * **Application and OS Image (AMI):** Ubuntu Server 22.04 LTS (HVM), SSD Volume Type
-   * **Instance type:** `t3.medium` (Minimum recommended for FastAPI + Celery + Redis).
+   * **Instance type:** `t3.micro` (Select `t3.micro` or `t2.micro` - both are marked as **Free tier eligible**).
    * **Key pair (login):** Click **Create new key pair**.
      * **Key pair name:** `saadhyam-key`
      * **Key pair type:** RSA
@@ -84,7 +84,7 @@ We will use a managed database service (RDS) instead of running PostgreSQL insid
      1. **SSH (Port 22):** Source = *My IP* (for secure terminal connection).
      2. **HTTP (Port 80):** Source = *Anywhere-IPv4 (0.0.0.0/0)*.
      3. **HTTPS (Port 443):** Source = *Anywhere-IPv4 (0.0.0.0/0)*.
-4. **Configure storage:** Change size to **30 GB** gp3.
+4. **Configure storage:** Change size to **30 GB** gp3 (30 GB is the maximum storage allowed under AWS Free Tier).
 5. Click **Launch instance**.
 
 ---
@@ -138,6 +138,32 @@ sudo chmod +x /usr/local/bin/docker-compose
 exit
 ```
 *Log back in using SSH.*
+
+---
+
+## 🛠️ Step 4.5: Configure Swap Space (Crucial for Free Tier)
+Since `t3.micro`/`t2.micro` instances only have 1GB of physical RAM, running FastAPI, Celery, and Redis simultaneously will exceed this limit and cause the server to crash (Out of Memory). To prevent this, we set up **2GB of virtual RAM (Swap Space)** on the free 30GB SSD storage.
+
+Run the following commands inside your EC2 terminal:
+```bash
+# 1. Allocate a 2GB file for swap
+sudo fallocate -l 2G /swapfile
+
+# 2. Set secure permissions (only root can read/write)
+sudo chmod 600 /swapfile
+
+# 3. Designate the file as swap space
+sudo mkswap /swapfile
+
+# 4. Activate the swap space
+sudo swapon /swapfile
+
+# 5. Make it permanent so it survives server reboots
+echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
+
+# 6. Verify that it is working (you should see 2.0Gi of swap)
+free -h
+```
 
 ---
 

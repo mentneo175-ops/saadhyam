@@ -456,7 +456,7 @@ export function NeuralNetworkExplorer() {
             <span>Click business for details</span>
           </div>
           <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
-            <div className="w-3 h-3 rounded-full bg-gray-400" />
+            <div className="w-3 h-3 rounded-full bg-gray-400 dark:bg-slate-900" />
             <span>Scroll to zoom • Drag to pan</span>
           </div>
         </div>

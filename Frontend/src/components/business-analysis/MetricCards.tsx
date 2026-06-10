@@ -159,7 +159,7 @@ function MetricCard({
           <span>Insight depth</span>
           <span className="font-semibold text-slate-200">{Math.round(progress)}%</span>
         </div>
-        <div className="h-2 overflow-hidden rounded-lg bg-slate-950 ring-1 ring-inset ring-slate-800/80">
+        <div className="h-2 overflow-hidden rounded-lg bg-slate-950 ring-1 ring-inset ring-slate-800/80 dark:bg-slate-900">
           <motion.div
             className={cn("h-full rounded-lg bg-gradient-to-r", barGradient)}
             initial={{ width: 0 }}

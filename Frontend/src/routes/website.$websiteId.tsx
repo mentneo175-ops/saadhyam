@@ -159,7 +159,7 @@ function WebsitePreviewPage() {
           </div>
           
           {/* Website iframe */}
-          <div className="aspect-16/10 bg-white">
+          <div className="aspect-16/10 bg-white dark:bg-slate-900">
             {websiteData?.preview_url ? (
               <iframe
                 src={`${env.apiBaseUrl}${websiteData.preview_url}`}

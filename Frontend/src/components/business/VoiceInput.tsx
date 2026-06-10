@@ -185,7 +185,7 @@ export function VoiceInput({ onTextExtracted, onLiveTranscript, disabled }: Voic
       >
         {recording && liveTranscript && (
           <div className="absolute -top-2 -right-2 bg-red-500 text-white text-xs px-3 py-1 rounded-full animate-pulse flex items-center gap-1.5 shadow-lg z-10">
-            <div className="w-2 h-2 bg-white rounded-full animate-ping"></div>
+            <div className="w-2 h-2 bg-white rounded-full animate-ping dark:bg-slate-900"></div>
             <span className="font-medium">Recording</span>
           </div>
         )}
@@ -210,7 +210,7 @@ export function VoiceInput({ onTextExtracted, onLiveTranscript, disabled }: Voic
           </div>
           
           <div className="flex-1">
-            <h3 className="text-base font-semibold text-gray-900 mb-0.5">
+            <h3 className="text-base font-semibold text-gray-900 mb-0.5 dark:text-slate-100">
               {isComplete
                 ? "Recording Complete!"
                 : recording

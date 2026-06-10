@@ -281,7 +281,7 @@ function Overview() {
         // Remove ** and render as bold
         const boldText = part.slice(2, -2);
         return (
-          <strong key={idx} className="font-semibold text-gray-900">
+          <strong key={idx} className="font-semibold text-gray-900 dark:text-slate-100">
             {boldText}
           </strong>
         );
@@ -518,7 +518,7 @@ function Overview() {
                   className="animate-spin mx-auto text-[#8B5CF6] relative z-10 mb-4"
                 />
               </div>
-              <p className="text-gray-700 text-base font-medium">
+              <p className="text-gray-700 text-base font-medium dark:text-slate-300">
                 Loading your business intelligence...
               </p>
               <p className="text-gray-500 text-sm mt-1">Preparing insights powered by AI</p>
@@ -527,8 +527,8 @@ function Overview() {
 
           {/* Analysis Error State */}
           {analysis?.status === "error" && !analysisLoading && (
-            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-6 text-center shadow-xs">
-              <h3 className="text-slate-900 text-lg font-semibold mb-2">System Optimizing</h3>
+            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-6 text-center shadow-xs dark:bg-slate-900 dark:border-slate-800">
+              <h3 className="text-slate-900 text-lg font-semibold mb-2 dark:text-slate-100">System Optimizing</h3>
               <p className="text-slate-600 text-sm mb-4">
                 Our intelligence engine is currently optimizing. Insights are being computed, please
                 check back shortly.
@@ -538,7 +538,7 @@ function Overview() {
                   variant="outline"
                   size="sm"
                   onClick={refreshAll}
-                  className="border-slate-300 text-slate-700 hover:bg-slate-100"
+                  className="border-slate-300 text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300"
                 >
                   <RefreshCw size={14} className="mr-2" />
                   Refresh Overview
@@ -558,7 +558,7 @@ function Overview() {
               </div>
 
               {/* Saadhyam AI Visibility Engine™ Dashboard Card */}
-              <div className="bg-slate-900 border border-purple-500/20 rounded-2xl p-6 shadow-[0_4px_30px_rgba(139,92,246,0.1)] relative overflow-hidden group hover:border-purple-500/40 transition-all duration-300">
+              <div className="bg-slate-900 border border-purple-500/20 rounded-2xl p-6 shadow-[0_4px_30px_rgba(139,92,246,0.1)] relative overflow-hidden group hover:border-purple-500/40 transition-all duration-300 dark:bg-slate-900">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div className="space-y-1">
@@ -597,7 +597,7 @@ function Overview() {
                   <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 shadow-xl shadow-gray-200/50 p-6 hover:shadow-2xl hover:shadow-gray-300/50 transition-all duration-300 space-y-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <h3 className="font-bold text-base text-gray-900 flex items-center gap-1.5">
+                        <h3 className="font-bold text-base text-gray-900 flex items-center gap-1.5 dark:text-slate-100">
                           <Users size={18} className="text-purple-500" />
                           Competitor Watch
                         </h3>
@@ -615,8 +615,8 @@ function Overview() {
 
                     {competitorsLoading ? (
                       <div className="space-y-2 py-2">
-                        <div className="h-10 bg-gray-100 rounded-xl animate-pulse" />
-                        <div className="h-10 bg-gray-100 rounded-xl animate-pulse" />
+                        <div className="h-10 bg-gray-100 rounded-xl animate-pulse dark:bg-slate-800" />
+                        <div className="h-10 bg-gray-100 rounded-xl animate-pulse dark:bg-slate-800" />
                       </div>
                     ) : competitors.length === 0 ? (
                       <div className="space-y-3">
@@ -633,7 +633,7 @@ function Overview() {
                                 onFocus={() => setShowQuickSuggestions(true)}
                                 onBlur={() => setTimeout(() => setShowQuickSuggestions(false), 180)}
                                 onKeyDown={(e) => e.key === 'Enter' && handleQuickAdd()}
-                                className="w-full text-[10px] bg-white border border-gray-200 rounded-lg pl-7 pr-2 py-2 outline-none focus:border-purple-400 focus:ring-1 focus:ring-purple-100"
+                                className="w-full text-[10px] bg-white border border-gray-200 rounded-lg pl-7 pr-2 py-2 outline-none focus:border-purple-400 focus:ring-1 focus:ring-purple-100 dark:bg-slate-900 dark:border-slate-800"
                               />
                             </div>
                             <button
@@ -645,7 +645,7 @@ function Overview() {
                             </button>
                           </div>
                           {showQuickSuggestions && quickAddSuggestions.length > 0 && (
-                            <div className="absolute z-50 top-full mt-1 left-0 right-0 bg-white border border-gray-200 rounded-xl shadow-xl overflow-hidden">
+                            <div className="absolute z-50 top-full mt-1 left-0 right-0 bg-white border border-gray-200 rounded-xl shadow-xl overflow-hidden dark:bg-slate-900 dark:border-slate-800">
                               <p className="text-[8px] font-bold uppercase tracking-widest text-gray-400 px-3 pt-2 pb-0.5">Suggestions</p>
                               <div className="max-h-36 overflow-y-auto">
                                 {quickAddSuggestions.slice(0, 6).map((sug, i) => (
@@ -653,7 +653,7 @@ function Overview() {
                                     key={i}
                                     type="button"
                                     onMouseDown={() => { selectQuickSuggestion(sug); setTimeout(() => handleQuickAdd(sug), 100); }}
-                                    className="w-full text-left px-3 py-1.5 text-[10px] font-semibold text-gray-700 hover:bg-purple-50 flex items-center gap-2 transition-colors"
+                                    className="w-full text-left px-3 py-1.5 text-[10px] font-semibold text-gray-700 hover:bg-purple-50 flex items-center gap-2 transition-colors dark:text-slate-300"
                                   >
                                     <span className="h-1.5 w-1.5 rounded-full bg-purple-400 shrink-0" />
                                     {sug}
@@ -666,7 +666,7 @@ function Overview() {
                         <Button
                           size="sm"
                           onClick={() => navigate({ to: "/dashboard/competitor-analysis" })}
-                          className="w-full bg-white border border-dashed border-gray-300 text-gray-500 hover:border-purple-300 hover:text-purple-600 font-bold text-[10px] py-1 px-3 rounded-lg h-auto"
+                          className="w-full bg-white border border-dashed border-gray-300 text-gray-500 hover:border-purple-300 hover:text-purple-600 font-bold text-[10px] py-1 px-3 rounded-lg h-auto dark:bg-slate-900 dark:border-slate-700"
                           variant="ghost"
                         >
                           Open Full Competitor AI →
@@ -678,10 +678,10 @@ function Overview() {
                           <div
                             key={comp.id}
                             onClick={() => navigate({ to: "/dashboard/competitor-analysis" })}
-                            className="flex items-center justify-between p-3 rounded-xl border border-gray-100 hover:border-purple-200 hover:bg-purple-50/20 transition-all cursor-pointer"
+                            className="flex items-center justify-between p-3 rounded-xl border border-gray-100 hover:border-purple-200 hover:bg-purple-50/20 transition-all cursor-pointer dark:border-slate-800"
                           >
                             <div className="space-y-0.5 truncate pr-2">
-                              <h4 className="text-xs font-bold text-gray-800 truncate">{comp.name}</h4>
+                              <h4 className="text-xs font-bold text-gray-800 truncate dark:text-slate-300">{comp.name}</h4>
                               {comp.location && (
                                 <p className="text-[10px] text-gray-400 font-medium flex items-center gap-0.5">
                                   <MapPin size={9} />
@@ -711,7 +711,7 @@ function Overview() {
                                 onFocus={() => setShowQuickSuggestions(true)}
                                 onBlur={() => setTimeout(() => setShowQuickSuggestions(false), 180)}
                                 onKeyDown={(e) => e.key === 'Enter' && handleQuickAdd()}
-                                className="w-full text-[10px] bg-white border border-gray-200 rounded-lg pl-7 pr-2 py-2 outline-none focus:border-purple-400 focus:ring-1 focus:ring-purple-100"
+                                className="w-full text-[10px] bg-white border border-gray-200 rounded-lg pl-7 pr-2 py-2 outline-none focus:border-purple-400 focus:ring-1 focus:ring-purple-100 dark:bg-slate-900 dark:border-slate-800"
                               />
                             </div>
                             <button
@@ -723,7 +723,7 @@ function Overview() {
                             </button>
                           </div>
                           {showQuickSuggestions && quickAddSuggestions.length > 0 && (
-                            <div className="absolute z-50 top-full mt-1 left-0 right-0 bg-white border border-gray-200 rounded-xl shadow-xl overflow-hidden">
+                            <div className="absolute z-50 top-full mt-1 left-0 right-0 bg-white border border-gray-200 rounded-xl shadow-xl overflow-hidden dark:bg-slate-900 dark:border-slate-800">
                               <p className="text-[8px] font-bold uppercase tracking-widest text-gray-400 px-3 pt-2 pb-0.5">Suggestions</p>
                               <div className="max-h-36 overflow-y-auto">
                                 {quickAddSuggestions.slice(0, 6).map((sug, i) => (
@@ -731,7 +731,7 @@ function Overview() {
                                     key={i}
                                     type="button"
                                     onMouseDown={() => { selectQuickSuggestion(sug); setTimeout(() => handleQuickAdd(sug), 100); }}
-                                    className="w-full text-left px-3 py-1.5 text-[10px] font-semibold text-gray-700 hover:bg-purple-50 flex items-center gap-2 transition-colors"
+                                    className="w-full text-left px-3 py-1.5 text-[10px] font-semibold text-gray-700 hover:bg-purple-50 flex items-center gap-2 transition-colors dark:text-slate-300"
                                   >
                                     <span className="h-1.5 w-1.5 rounded-full bg-purple-400 shrink-0" />
                                     {sug}
@@ -750,14 +750,14 @@ function Overview() {
                 <div className="lg:col-span-2 bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 shadow-xl shadow-gray-200/50 p-6 hover:shadow-2xl hover:shadow-gray-300/50 transition-all duration-300">
                   <div className="flex items-center justify-between mb-4">
                     <div>
-                      <h3 className="font-bold text-lg text-gray-900">Your Growth Journey</h3>
+                      <h3 className="font-bold text-lg text-gray-900 dark:text-slate-100">Your Growth Journey</h3>
                       <p className="text-sm text-gray-600">Track your progress with daily tasks</p>
                     </div>
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => navigate({ to: "/dashboard/daily-ask" })}
-                      className="border-gray-300 text-gray-700 hover:bg-gray-50 transition-all"
+                      className="border-gray-300 text-gray-700 hover:bg-gray-50 transition-all dark:border-slate-700 dark:text-slate-300"
                     >
                       View full report <ArrowRight size={14} className="ml-1" />
                     </Button>
@@ -775,7 +775,7 @@ function Overview() {
               <div>
                 <div className="flex items-center justify-between mb-4">
                   <div>
-                    <h3 className="font-bold text-lg text-gray-900">
+                    <h3 className="font-bold text-lg text-gray-900 dark:text-slate-100">
                       {dynamicActions.length > 0
                         ? "🎯 AI-Generated Action Plan"
                         : "Recommended Actions"}
@@ -818,7 +818,7 @@ function Overview() {
 
               {/* 30-Day Growth Plan */}
               {growthPlan?.thirty_day_growth_plan && (
-                <div className="bg-white rounded-2xl shadow-xl shadow-gray-200/50 overflow-hidden border border-gray-200/50 backdrop-blur-sm hover:shadow-2xl hover:shadow-purple-300/50 transition-all duration-300">
+                <div className="bg-white rounded-2xl shadow-xl shadow-gray-200/50 overflow-hidden border border-gray-200/50 backdrop-blur-sm hover:shadow-2xl hover:shadow-purple-300/50 transition-all duration-300 dark:bg-slate-900">
                   <div className="bg-linear-to-r from-[#8B5CF6] to-[#A855F7] p-6">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-4">
@@ -845,13 +845,13 @@ function Overview() {
                   <div className="p-6 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                     {growthPlan.thirty_day_growth_plan.week_1 &&
                       growthPlan.thirty_day_growth_plan.week_1.length > 0 && (
-                        <div className="bg-white rounded-xl p-5 border border-gray-200 hover:border-blue-300 hover:shadow-lg transition-all duration-300 group">
+                        <div className="bg-white rounded-xl p-5 border border-gray-200 hover:border-blue-300 hover:shadow-lg transition-all duration-300 group dark:bg-slate-900 dark:border-slate-800">
                           <div className="flex items-center gap-3 mb-4">
                             <div className="h-10 w-10 rounded-xl bg-linear-to-br from-blue-500 to-indigo-500 flex items-center justify-center shadow-lg shadow-blue-500/30 group-hover:shadow-xl group-hover:shadow-blue-500/40 transition-all">
                               <span className="text-base font-bold text-white">1</span>
                             </div>
                             <div>
-                              <h4 className="font-bold text-sm text-gray-900">Week 1</h4>
+                              <h4 className="font-bold text-sm text-gray-900 dark:text-slate-100">Week 1</h4>
                               <p className="text-xs text-gray-600">Foundations</p>
                             </div>
                           </div>
@@ -861,7 +861,7 @@ function Overview() {
                               .map((action, idx) => (
                                 <li
                                   key={idx}
-                                  className="text-xs text-gray-700 flex items-start gap-2"
+                                  className="text-xs text-gray-700 flex items-start gap-2 dark:text-slate-300"
                                 >
                                   <CheckCircle2
                                     size={14}
@@ -877,13 +877,13 @@ function Overview() {
                       )}
                     {growthPlan.thirty_day_growth_plan.week_2 &&
                       growthPlan.thirty_day_growth_plan.week_2.length > 0 && (
-                        <div className="bg-white rounded-xl p-5 border border-gray-200 hover:border-purple-300 hover:shadow-lg transition-all duration-300 group">
+                        <div className="bg-white rounded-xl p-5 border border-gray-200 hover:border-purple-300 hover:shadow-lg transition-all duration-300 group dark:bg-slate-900 dark:border-slate-800">
                           <div className="flex items-center gap-3 mb-4">
                             <div className="h-10 w-10 rounded-xl bg-linear-to-br from-[#8B5CF6] to-[#A855F7] flex items-center justify-center shadow-lg shadow-[#8B5CF6]/30 group-hover:shadow-xl group-hover:shadow-[#8B5CF6]/40 transition-all">
                               <span className="text-base font-bold text-white">2</span>
                             </div>
                             <div>
-                              <h4 className="font-bold text-sm text-gray-900">Week 2</h4>
+                              <h4 className="font-bold text-sm text-gray-900 dark:text-slate-100">Week 2</h4>
                               <p className="text-xs text-gray-600">Engagement</p>
                             </div>
                           </div>
@@ -893,7 +893,7 @@ function Overview() {
                               .map((action, idx) => (
                                 <li
                                   key={idx}
-                                  className="text-xs text-gray-700 flex items-start gap-2"
+                                  className="text-xs text-gray-700 flex items-start gap-2 dark:text-slate-300"
                                 >
                                   <CheckCircle2
                                     size={14}
@@ -909,13 +909,13 @@ function Overview() {
                       )}
                     {growthPlan.thirty_day_growth_plan.week_3 &&
                       growthPlan.thirty_day_growth_plan.week_3.length > 0 && (
-                        <div className="bg-white rounded-xl p-5 border border-gray-200 hover:border-orange-300 hover:shadow-lg transition-all duration-300 group">
+                        <div className="bg-white rounded-xl p-5 border border-gray-200 hover:border-orange-300 hover:shadow-lg transition-all duration-300 group dark:bg-slate-900 dark:border-slate-800">
                           <div className="flex items-center gap-3 mb-4">
                             <div className="h-10 w-10 rounded-xl bg-linear-to-br from-orange-500 to-amber-500 flex items-center justify-center shadow-lg shadow-orange-500/30 group-hover:shadow-xl group-hover:shadow-orange-500/40 transition-all">
                               <span className="text-base font-bold text-white">3</span>
                             </div>
                             <div>
-                              <h4 className="font-bold text-sm text-gray-900">Week 3</h4>
+                              <h4 className="font-bold text-sm text-gray-900 dark:text-slate-100">Week 3</h4>
                               <p className="text-xs text-gray-600">Acceleration</p>
                             </div>
                           </div>
@@ -925,7 +925,7 @@ function Overview() {
                               .map((action, idx) => (
                                 <li
                                   key={idx}
-                                  className="text-xs text-gray-700 flex items-start gap-2"
+                                  className="text-xs text-gray-700 flex items-start gap-2 dark:text-slate-300"
                                 >
                                   <CheckCircle2
                                     size={14}
@@ -941,13 +941,13 @@ function Overview() {
                       )}
                     {growthPlan.thirty_day_growth_plan.week_4 &&
                       growthPlan.thirty_day_growth_plan.week_4.length > 0 && (
-                        <div className="bg-white rounded-xl p-5 border border-gray-200 hover:border-emerald-300 hover:shadow-lg transition-all duration-300 group">
+                        <div className="bg-white rounded-xl p-5 border border-gray-200 hover:border-emerald-300 hover:shadow-lg transition-all duration-300 group dark:bg-slate-900 dark:border-slate-800">
                           <div className="flex items-center gap-3 mb-4">
                             <div className="h-10 w-10 rounded-xl bg-linear-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-lg shadow-emerald-500/30 group-hover:shadow-xl group-hover:shadow-emerald-500/40 transition-all">
                               <span className="text-base font-bold text-white">4</span>
                             </div>
                             <div>
-                              <h4 className="font-bold text-sm text-gray-900">Week 4</h4>
+                              <h4 className="font-bold text-sm text-gray-900 dark:text-slate-100">Week 4</h4>
                               <p className="text-xs text-gray-600">Optimization</p>
                             </div>
                           </div>
@@ -957,7 +957,7 @@ function Overview() {
                               .map((action, idx) => (
                                 <li
                                   key={idx}
-                                  className="text-xs text-gray-700 flex items-start gap-2"
+                                  className="text-xs text-gray-700 flex items-start gap-2 dark:text-slate-300"
                                 >
                                   <CheckCircle2
                                     size={14}

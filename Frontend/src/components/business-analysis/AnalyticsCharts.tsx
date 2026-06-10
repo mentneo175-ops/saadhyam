@@ -44,7 +44,7 @@ function ChartShell({
       animate="show"
       transition={{ delay }}
       whileHover={{ y: -4 }}
-      className="group relative overflow-hidden rounded-3xl border border-slate-800 bg-gradient-to-b from-slate-900/60 to-slate-950/40 p-7 shadow-[0_4px_30px_rgba(0,0,0,0.4)] backdrop-blur-md transition-shadow duration-300 hover:border-purple-500/30 hover:shadow-[0_24px_56px_-24px_rgba(0,0,0,0.5)] md:p-8"
+      className="group relative overflow-hidden rounded-3xl border border-slate-800 bg-gradient-to-b from-slate-900/60 to-slate-950/40 p-7 shadow-[0_4px_30px_rgba(0,0,0,0.4)] backdrop-blur-md transition-shadow duration-300 hover:border-purple-500/30 hover:shadow-[0_24px_56px_-24px_rgba(0,0,0,0.5)] md:p-8 dark:border-slate-700"
     >
       <div
         aria-hidden
@@ -165,7 +165,7 @@ export function AnalyticsSection({
           {swotData.map((item, idx) => (
             <div
               key={item.name}
-              className="flex items-center gap-2 rounded-full border border-slate-800 bg-slate-950/40 px-2.5 py-1 text-xs text-slate-400"
+              className="flex items-center gap-2 rounded-full border border-slate-800 bg-slate-950/40 px-2.5 py-1 text-xs text-slate-400 dark:border-slate-700"
             >
               <span
                 className="h-2.5 w-2.5 rounded-full shadow-sm ring-2 ring-slate-900/50"

@@ -139,7 +139,7 @@ export const RateLimitExample: React.FC = () => {
         <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
           Code Example:
         </h3>
-        <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-sm">
+        <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-sm dark:bg-slate-900">
 {`import { apiPost } from '@/utils/api';
 import { useRateLimit } from '@/contexts/RateLimitContext';
 

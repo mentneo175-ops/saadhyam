@@ -54,7 +54,7 @@ export function VideoCard({ video, onDelete }: VideoCardProps) {
           </span>
         );
       default:
-        return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-50 text-slate-700 border border-slate-200">{video.status}</span>;
+        return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-50 text-slate-700 border border-slate-200 dark:bg-slate-900 dark:text-slate-300 dark:border-slate-800">{video.status}</span>;
     }
   };
 
@@ -69,9 +69,9 @@ export function VideoCard({ video, onDelete }: VideoCardProps) {
   };
 
   return (
-    <Card className="border border-slate-100/80 shadow-xs hover:shadow-md transition-all duration-300 rounded-xl overflow-hidden flex flex-col h-full bg-white group">
+    <Card className="border border-slate-100/80 shadow-xs hover:shadow-md transition-all duration-300 rounded-xl overflow-hidden flex flex-col h-full bg-white group dark:bg-slate-900">
       {/* Thumbnail */}
-      <div className="relative aspect-video w-full bg-slate-100 overflow-hidden shrink-0">
+      <div className="relative aspect-video w-full bg-slate-100 overflow-hidden shrink-0 dark:bg-slate-800">
         {video.thumbnail_url ? (
           <img
             src={video.thumbnail_url}
@@ -79,7 +79,7 @@ export function VideoCard({ video, onDelete }: VideoCardProps) {
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center bg-slate-50 text-slate-300">
+          <div className="w-full h-full flex items-center justify-center bg-slate-50 text-slate-300 dark:bg-slate-900">
             <Play className="w-8 h-8 opacity-45" />
           </div>
         )}
@@ -102,7 +102,7 @@ export function VideoCard({ video, onDelete }: VideoCardProps) {
 
       {/* Card body */}
       <div className="p-4 flex flex-col flex-grow">
-        <h4 className="font-bold text-slate-800 text-sm line-clamp-2 leading-snug mb-3 group-hover:text-purple-700 transition-colors" title={video.title}>
+        <h4 className="font-bold text-slate-800 text-sm line-clamp-2 leading-snug mb-3 group-hover:text-purple-700 transition-colors dark:text-slate-300" title={video.title}>
           {video.title}
         </h4>
         
@@ -123,7 +123,7 @@ export function VideoCard({ video, onDelete }: VideoCardProps) {
         )}
 
         {/* Footer */}
-        <div className="flex items-center justify-between border-t border-slate-100 pt-3">
+        <div className="flex items-center justify-between border-t border-slate-100 pt-3 dark:border-slate-800">
           {video.status === "posted" ? (
             <div className="flex items-center gap-3 text-xs text-slate-500">
               <span className="flex items-center gap-1" title="Views">

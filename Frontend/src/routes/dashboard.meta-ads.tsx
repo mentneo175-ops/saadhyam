@@ -225,12 +225,12 @@ function MetaAdsPage() {
 
         <TabsContent value="all" className="mt-6">
           {campaigns.length === 0 ? (
-            <Card className="border-2 border-dashed border-gray-300">
+            <Card className="border-2 border-dashed border-gray-300 dark:border-slate-700">
               <CardContent className="py-12 text-center">
                 <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-purple-100 flex items-center justify-center">
                   <Target className="w-8 h-8 text-purple-600" />
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">No campaigns yet</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2 dark:text-slate-100">No campaigns yet</h3>
                 <p className="text-gray-600 mb-4">
                   Go to Instagram page and click "Promote Post" to create your first campaign
                 </p>
@@ -258,7 +258,7 @@ function MetaAdsPage() {
 
         <TabsContent value="active" className="mt-6">
           {activeCampaigns.length === 0 ? (
-            <Card className="border-2 border-dashed border-gray-300">
+            <Card className="border-2 border-dashed border-gray-300 dark:border-slate-700">
               <CardContent className="py-12 text-center">
                 <p className="text-gray-600">No active campaigns</p>
               </CardContent>
@@ -278,7 +278,7 @@ function MetaAdsPage() {
 
         <TabsContent value="paused" className="mt-6">
           {pausedCampaigns.length === 0 ? (
-            <Card className="border-2 border-dashed border-gray-300">
+            <Card className="border-2 border-dashed border-gray-300 dark:border-slate-700">
               <CardContent className="py-12 text-center">
                 <p className="text-gray-600">No paused campaigns</p>
               </CardContent>

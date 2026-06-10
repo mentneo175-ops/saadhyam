@@ -454,7 +454,7 @@ function Landing() {
                   ].map((platform) => (
                     <div key={platform.name} className="flex items-center gap-2 px-3 py-2 rounded-lg glass-card border border-[#E9D5FF]/50">
                       <platform.icon size={14} className={platform.color} />
-                      <span className="text-xs font-medium text-gray-700">{platform.name}</span>
+                      <span className="text-xs font-medium text-gray-700 dark:text-slate-300">{platform.name}</span>
                     </div>
                   ))}
                 </div>
@@ -494,7 +494,7 @@ function Landing() {
                     style={{ transform: 'translate(-50%, -50%) rotateX(2deg) rotateY(-2deg)' }}
                   >
                     <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-sm font-semibold text-gray-700">Business Overview</h3>
+                      <h3 className="text-sm font-semibold text-gray-700 dark:text-slate-300">Business Overview</h3>
                       <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#8B5CF6] to-[#A855F7] flex items-center justify-center shadow-lg">
                         <PieChart className="w-5 h-5 text-white" />
                       </div>
@@ -549,7 +549,7 @@ function Landing() {
                       <span className="text-4xl font-bold bg-gradient-to-r from-[#8B5CF6] to-[#A855F7] bg-clip-text text-transparent">85</span>
                       <span className="text-sm text-gray-400">/100</span>
                     </div>
-                    <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div className="h-2 bg-gray-100 rounded-full overflow-hidden dark:bg-slate-800">
                       <div className="h-full w-[85%] bg-gradient-to-r from-[#8B5CF6] to-[#A855F7] rounded-full animate-glow-pulse"></div>
                     </div>
                     <p className="text-xs text-gray-500 mt-3">Your business is growing 18.6% this month</p>
@@ -565,7 +565,7 @@ function Landing() {
                       <p className="text-xs font-semibold text-gray-600 dark:text-gray-400">Monthly Goal</p>
                     </div>
                     <p className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-3">87%</p>
-                    <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div className="h-2 bg-gray-100 rounded-full overflow-hidden dark:bg-slate-800">
                       <div className="h-full w-[87%] bg-gradient-to-r from-[#8B5CF6] to-[#A855F7] rounded-full"></div>
                     </div>
                   </div>
@@ -796,7 +796,7 @@ function Landing() {
                   <Star key={i} size={16} className="fill-[#8B5CF6] text-[#8B5CF6]" />
                 ))}
               </div>
-              <p className="text-sm leading-relaxed mb-6 text-gray-700">"{t.quote}"</p>
+              <p className="text-sm leading-relaxed mb-6 text-gray-700 dark:text-slate-300">"{t.quote}"</p>
               <div className="flex items-center gap-3">
                 <div className="h-12 w-12 rounded-full bg-gradient-to-br from-[#8B5CF6] to-[#A855F7]" />
                 <div>
@@ -856,7 +856,7 @@ function Landing() {
               </Button>
               <ul className="space-y-3">
                 {t.features.map((f) => (
-                  <li key={f} className="flex items-start gap-3 text-sm text-gray-700">
+                  <li key={f} className="flex items-start gap-3 text-sm text-gray-700 dark:text-slate-300">
                     <Check
                       size={18}
                       className="mt-0.5 shrink-0 text-[#8B5CF6]"
@@ -894,7 +894,7 @@ function Landing() {
             <div className="flex flex-wrap gap-4 justify-center">
               <Button 
                 size="lg"
-                className="h-14 px-8 text-base font-semibold bg-white text-[#8B5CF6] hover:bg-gray-50 rounded-xl shadow-xl transition-all"
+                className="h-14 px-8 text-base font-semibold bg-white text-[#8B5CF6] hover:bg-gray-50 rounded-xl shadow-xl transition-all dark:bg-slate-900"
                 asChild
               >
                 <Link to="/signup">

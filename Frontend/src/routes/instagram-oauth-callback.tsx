@@ -43,10 +43,10 @@ function InstagramOAuthCallback() {
   }, [])
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-50">
+    <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-slate-900">
       <div className="text-center">
         <Loader className="w-12 h-12 animate-spin text-purple-600 mx-auto mb-4" />
-        <h2 className="text-xl font-semibold text-gray-900 mb-2">
+        <h2 className="text-xl font-semibold text-gray-900 mb-2 dark:text-slate-100">
           Connecting Instagram Account...
         </h2>
         <p className="text-gray-600">

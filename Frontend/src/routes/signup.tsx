@@ -231,7 +231,7 @@ function SignupPage() {
             <div className="flex items-center gap-3 mb-8">
               <img src={LogoImage} alt="Saadhyam AI" className="w-12 h-12 object-contain" />
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-slate-100">
                   Saadhyam <span className="text-[#8B5CF6]">AI</span>
                 </h1>
               </div>
@@ -247,7 +247,7 @@ function SignupPage() {
 
           {/* Hero Text */}
           <div className="mb-8">
-            <h2 className="text-5xl font-bold text-gray-900 leading-tight mb-4">
+            <h2 className="text-5xl font-bold text-gray-900 leading-tight mb-4 dark:text-slate-100">
               AI that powers
               <br />
               your <span className="text-[#8B5CF6]">business growth</span>
@@ -288,7 +288,7 @@ function SignupPage() {
                     <feature.icon className="w-6 h-6 text-[#8B5CF6]" />
                   </div>
                   <div>
-                    <h3 className="text-base font-semibold text-gray-900">{feature.title}</h3>
+                    <h3 className="text-base font-semibold text-gray-900 dark:text-slate-100">{feature.title}</h3>
                     <p className="text-sm text-gray-600">{feature.desc}</p>
                   </div>
                 </div>
@@ -311,7 +311,7 @@ function SignupPage() {
               >
                 {/* Business Overview Header */}
                 <div className="flex items-center justify-between mb-5">
-                  <h3 className="text-sm font-semibold text-gray-700">Business Overview</h3>
+                  <h3 className="text-sm font-semibold text-gray-700 dark:text-slate-300">Business Overview</h3>
                   <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#8B5CF6] to-[#A855F7] flex items-center justify-center">
                     <PieChart className="w-4 h-4 text-white" />
                   </div>
@@ -321,17 +321,17 @@ function SignupPage() {
                 <div className="grid grid-cols-3 gap-4 mb-5">
                   <div>
                     <p className="text-xs text-gray-500 mb-1">Revenue</p>
-                    <p className="text-xl font-bold text-gray-900">₹24.8K</p>
+                    <p className="text-xl font-bold text-gray-900 dark:text-slate-100">₹24.8K</p>
                     <p className="text-xs text-green-600 font-semibold">↑ 18.5%</p>
                   </div>
                   <div>
                     <p className="text-xs text-gray-500 mb-1">Leads</p>
-                    <p className="text-xl font-bold text-gray-900">612</p>
+                    <p className="text-xl font-bold text-gray-900 dark:text-slate-100">612</p>
                     <p className="text-xs text-green-600 font-semibold">↑ 12.3%</p>
                   </div>
                   <div>
                     <p className="text-xs text-gray-500 mb-1">Conversions</p>
-                    <p className="text-xl font-bold text-gray-900">98</p>
+                    <p className="text-xl font-bold text-gray-900 dark:text-slate-100">98</p>
                     <p className="text-xs text-green-600 font-semibold">↑ 8.7%</p>
                   </div>
                 </div>
@@ -364,7 +364,7 @@ function SignupPage() {
                       </span>
                       <span className="text-sm text-gray-400">/100</span>
                     </div>
-                    <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                    <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden dark:bg-slate-800">
                       <div className="h-full w-[85%] bg-gradient-to-r from-[#8B5CF6] to-[#A855F7] rounded-full"></div>
                     </div>
                   </div>
@@ -372,7 +372,7 @@ function SignupPage() {
                   {/* Your Business Growth */}
                   <div>
                     <p className="text-xs text-gray-500 mb-2">Your business is</p>
-                    <p className="text-xl font-bold text-gray-900 mb-1">growing 18.6%</p>
+                    <p className="text-xl font-bold text-gray-900 mb-1 dark:text-slate-100">growing 18.6%</p>
                     <p className="text-xs text-gray-500">this month</p>
                   </div>
                 </div>
@@ -392,7 +392,7 @@ function SignupPage() {
                 ))}
               </div>
               <div>
-                <p className="text-sm font-semibold text-gray-900">Join 4,000+ businesses</p>
+                <p className="text-sm font-semibold text-gray-900 dark:text-slate-100">Join 4,000+ businesses</p>
                 <p className="text-xs text-gray-600">growing with Saadhyam AI</p>
               </div>
             </div>
@@ -401,7 +401,7 @@ function SignupPage() {
       </div>
 
       {/* RIGHT PANEL - Auth Form (Exact Reference) */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 h-full overflow-y-auto bg-white">
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 h-full overflow-y-auto bg-white dark:bg-slate-900">
         <div className="w-full max-w-md">
           {/* Logo at Top (Mobile + Desktop) */}
           <div className="text-center mb-12">
@@ -410,7 +410,7 @@ function SignupPage() {
               alt="Saadhyam AI"
               className="w-16 h-16 object-contain mx-auto mb-4"
             />
-            <h2 className="text-4xl font-bold text-gray-900 mb-2">Start your journey! 🚀</h2>
+            <h2 className="text-4xl font-bold text-gray-900 mb-2 dark:text-slate-100">Start your journey! 🚀</h2>
             <p className="text-gray-600">Create your account and unlock AI-powered growth</p>
           </div>
 
@@ -428,7 +428,7 @@ function SignupPage() {
             <Button
               variant="outline"
               size="lg"
-              className="w-full h-14 text-base font-medium border-2 border-gray-200 hover:border-[#8B5CF6] hover:bg-[#F9F7FF] transition-all rounded-xl"
+              className="w-full h-14 text-base font-medium border-2 border-gray-200 hover:border-[#8B5CF6] hover:bg-[#F9F7FF] transition-all rounded-xl dark:border-slate-800"
               onClick={handleGoogleSignIn}
               disabled={isGoogleLoading || isEmailLoading}
             >
@@ -448,17 +448,17 @@ function SignupPage() {
             {/* Divider */}
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-gray-200" />
+                <span className="w-full border-t border-gray-200 dark:border-slate-800" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="bg-white px-3 text-gray-500">or</span>
+                <span className="bg-white px-3 text-gray-500 dark:bg-slate-900">or</span>
               </div>
             </div>
 
             {/* Email Form */}
             <form onSubmit={handleEmailSignUp} className="space-y-4">
               <div>
-                <Label htmlFor="name" className="text-sm font-semibold text-gray-700 mb-2 block">
+                <Label htmlFor="name" className="text-sm font-semibold text-gray-700 mb-2 block dark:text-slate-300">
                   Full Name (Optional)
                 </Label>
                 <Input
@@ -468,12 +468,12 @@ function SignupPage() {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   disabled={isGoogleLoading || isEmailLoading}
-                  className="h-12 border-2 border-gray-200 focus:border-[#8B5CF6] focus:ring-2 focus:ring-[#8B5CF6]/20 rounded-xl"
+                  className="h-12 border-2 border-gray-200 focus:border-[#8B5CF6] focus:ring-2 focus:ring-[#8B5CF6]/20 rounded-xl dark:border-slate-800"
                 />
               </div>
 
               <div>
-                <Label htmlFor="email" className="text-sm font-semibold text-gray-700 mb-2 block">
+                <Label htmlFor="email" className="text-sm font-semibold text-gray-700 mb-2 block dark:text-slate-300">
                   Email address
                 </Label>
                 <div className="relative">
@@ -485,7 +485,7 @@ function SignupPage() {
                     onChange={(e) => setEmail(e.target.value)}
                     required
                     disabled={isGoogleLoading || isEmailLoading}
-                    className="h-12 pl-10 border-2 border-gray-200 focus:border-[#8B5CF6] focus:ring-2 focus:ring-[#8B5CF6]/20 rounded-xl"
+                    className="h-12 pl-10 border-2 border-gray-200 focus:border-[#8B5CF6] focus:ring-2 focus:ring-[#8B5CF6]/20 rounded-xl dark:border-slate-800"
                   />
                   <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -503,7 +503,7 @@ function SignupPage() {
               <div>
                 <Label
                   htmlFor="password"
-                  className="text-sm font-semibold text-gray-700 mb-2 block"
+                  className="text-sm font-semibold text-gray-700 mb-2 block dark:text-slate-300"
                 >
                   Password
                 </Label>
@@ -517,7 +517,7 @@ function SignupPage() {
                     required
                     minLength={6}
                     disabled={isGoogleLoading || isEmailLoading}
-                    className="h-12 pl-10 pr-10 border-2 border-gray-200 focus:border-[#8B5CF6] focus:ring-2 focus:ring-[#8B5CF6]/20 rounded-xl"
+                    className="h-12 pl-10 pr-10 border-2 border-gray-200 focus:border-[#8B5CF6] focus:ring-2 focus:ring-[#8B5CF6]/20 rounded-xl dark:border-slate-800"
                   />
                   <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -547,9 +547,9 @@ function SignupPage() {
                   type="checkbox"
                   checked={agreeToTerms}
                   onChange={(e) => setAgreeToTerms(e.target.checked)}
-                  className="w-4 h-4 mt-1 text-[#8B5CF6] border-gray-300 rounded focus:ring-[#8B5CF6]"
+                  className="w-4 h-4 mt-1 text-[#8B5CF6] border-gray-300 rounded focus:ring-[#8B5CF6] dark:border-slate-700"
                 />
-                <label htmlFor="terms" className="ml-2 text-sm text-gray-700">
+                <label htmlFor="terms" className="ml-2 text-sm text-gray-700 dark:text-slate-300">
                   I agree to the{" "}
                   <a href="/terms" className="text-[#8B5CF6] hover:underline">
                     Terms of Service
@@ -594,20 +594,20 @@ function SignupPage() {
             </p>
 
             {/* Trust Badges */}
-            <div className="grid grid-cols-3 gap-4 pt-6 border-t border-gray-100">
+            <div className="grid grid-cols-3 gap-4 pt-6 border-t border-gray-100 dark:border-slate-800">
               <div className="text-center">
                 <Shield className="w-6 h-6 text-[#8B5CF6] mx-auto mb-2" />
-                <p className="text-xs font-semibold text-gray-900">Secure & Private</p>
+                <p className="text-xs font-semibold text-gray-900 dark:text-slate-100">Secure & Private</p>
                 <p className="text-xs text-gray-500">Your data is 100% safe</p>
               </div>
               <div className="text-center">
                 <Rocket className="w-6 h-6 text-[#8B5CF6] mx-auto mb-2" />
-                <p className="text-xs font-semibold text-gray-900">14-Day Free Trial</p>
+                <p className="text-xs font-semibold text-gray-900 dark:text-slate-100">14-Day Free Trial</p>
                 <p className="text-xs text-gray-500">No credit card required</p>
               </div>
               <div className="text-center">
                 <Headphones className="w-6 h-6 text-[#8B5CF6] mx-auto mb-2" />
-                <p className="text-xs font-semibold text-gray-900">24/7 Support</p>
+                <p className="text-xs font-semibold text-gray-900 dark:text-slate-100">24/7 Support</p>
                 <p className="text-xs text-gray-500">We're here to help</p>
               </div>
             </div>

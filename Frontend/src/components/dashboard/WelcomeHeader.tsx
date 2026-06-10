@@ -71,7 +71,7 @@ export const WelcomeHeader = () => {
   return (
     <div className="mb-8 pt-4">
       <div className="flex flex-col gap-2">
-        <h1 className="text-3xl lg:text-4xl font-bold text-gray-900">
+        <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-slate-100">
           {getGreeting()},{" "}
           <span className="bg-linear-to-r from-purple-600 to-purple-500 bg-clip-text text-transparent">
             {businessName}

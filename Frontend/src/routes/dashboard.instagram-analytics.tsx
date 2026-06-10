@@ -35,7 +35,7 @@ export const Route = createFileRoute('/dashboard/instagram-analytics')({
   errorComponent: ({ error, reset }) => (
     <div className="p-6">
       <div className="text-center py-12">
-        <h2 className="text-xl font-semibold text-gray-900 mb-2">Unable to load Instagram Analytics</h2>
+        <h2 className="text-xl font-semibold text-gray-900 mb-2 dark:text-slate-100">Unable to load Instagram Analytics</h2>
         <p className="text-gray-600 mb-4">{error.message}</p>
         <Button onClick={reset}>Try Again</Button>
       </div>
@@ -230,7 +230,7 @@ function InstagramAnalytics() {
       <div className="p-8">
         <div className="max-w-2xl mx-auto text-center">
           <Instagram className="w-20 h-20 text-purple-600 mx-auto mb-6" />
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">
+          <h2 className="text-3xl font-bold text-gray-900 mb-4 dark:text-slate-100">
             Connect Your Instagram Business Account
           </h2>
           <p className="text-gray-600 mb-8">
@@ -244,19 +244,19 @@ function InstagramAnalytics() {
           </button>
           
           <div className="mt-12 grid grid-cols-3 gap-6 text-left">
-            <div className="bg-white p-6 rounded-lg border border-gray-200">
+            <div className="bg-white p-6 rounded-lg border border-gray-200 dark:bg-slate-900 dark:border-slate-800">
               <BarChart3 className="w-8 h-8 text-purple-600 mb-3" />
-              <h3 className="font-semibold text-gray-900 mb-2">Real-Time Analytics</h3>
+              <h3 className="font-semibold text-gray-900 mb-2 dark:text-slate-100">Real-Time Analytics</h3>
               <p className="text-sm text-gray-600">Track followers, engagement, reach, and more</p>
             </div>
-            <div className="bg-white p-6 rounded-lg border border-gray-200">
+            <div className="bg-white p-6 rounded-lg border border-gray-200 dark:bg-slate-900 dark:border-slate-800">
               <Lightbulb className="w-8 h-8 text-yellow-600 mb-3" />
-              <h3 className="font-semibold text-gray-900 mb-2">AI Recommendations</h3>
+              <h3 className="font-semibold text-gray-900 mb-2 dark:text-slate-100">AI Recommendations</h3>
               <p className="text-sm text-gray-600">Get smart suggestions to grow faster</p>
             </div>
-            <div className="bg-white p-6 rounded-lg border border-gray-200">
+            <div className="bg-white p-6 rounded-lg border border-gray-200 dark:bg-slate-900 dark:border-slate-800">
               <TrendingUp className="w-8 h-8 text-green-600 mb-3" />
-              <h3 className="font-semibold text-gray-900 mb-2">Growth Predictions</h3>
+              <h3 className="font-semibold text-gray-900 mb-2 dark:text-slate-100">Growth Predictions</h3>
               <p className="text-sm text-gray-600">Forecast your account's future growth</p>
             </div>
           </div>
@@ -272,7 +272,7 @@ function InstagramAnalytics() {
         <div className="flex items-center gap-4">
           <Instagram className="w-10 h-10 text-purple-600" />
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Instagram Analytics</h1>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-slate-100">Instagram Analytics</h1>
             <p className="text-gray-600">AI-powered insights for your Instagram Business account</p>
           </div>
         </div>
@@ -281,7 +281,7 @@ function InstagramAnalytics() {
           <button
             onClick={triggerSync}
             disabled={syncing}
-            className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+            className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 dark:bg-slate-900 dark:border-slate-700"
           >
             <RefreshCw className={`w-4 h-4 ${syncing ? 'animate-spin' : ''}`} />
             {syncing ? 'Syncing...' : 'Refresh Data'}
@@ -295,7 +295,7 @@ function InstagramAnalytics() {
           <select
             value={selectedAccount || ''}
             onChange={(e) => setSelectedAccount(Number(e.target.value))}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:border-slate-700"
           >
             {accounts.map(account => (
               <option key={account.id} value={account.id}>
@@ -354,7 +354,7 @@ function InstagramAnalytics() {
             <div className="mb-6">
               <div className="flex items-center gap-2 mb-4">
                 <Lightbulb className="w-6 h-6 text-yellow-600" />
-                <h3 className="text-xl font-bold text-gray-900">AI Recommendations</h3>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-slate-100">AI Recommendations</h3>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -365,7 +365,7 @@ function InstagramAnalytics() {
                   >
                     <div className="flex items-start justify-between mb-2">
                       <h4 className="font-semibold">{rec.title}</h4>
-                      <span className="text-xs px-2 py-1 rounded-full bg-white border">
+                      <span className="text-xs px-2 py-1 rounded-full bg-white border dark:bg-slate-900">
                         {(rec.confidence_score * 100).toFixed(0)}% confident
                       </span>
                     </div>
@@ -385,7 +385,7 @@ function InstagramAnalytics() {
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <BarChart3 className="w-6 h-6 text-purple-600" />
-                <h3 className="text-xl font-bold text-gray-900">Recent Posts Performance</h3>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-slate-100">Recent Posts Performance</h3>
               </div>
               <a
                 href={`/dashboard/instagram-analytics/posts`}
@@ -398,9 +398,9 @@ function InstagramAnalytics() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {dashboardData.recent_posts.slice(0, 6).map(post => (
-                <div key={post.id} className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow">
+                <div key={post.id} className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow dark:bg-slate-900 dark:border-slate-800">
                   {/* Post Image */}
-                  <div className="relative aspect-square bg-gray-100">
+                  <div className="relative aspect-square bg-gray-100 dark:bg-slate-800">
                     <img
                       src={post.thumbnail_url || post.media_url}
                       alt="Post"
@@ -450,7 +450,7 @@ function InstagramAnalytics() {
                       </div>
                     </div>
 
-                    <div className="mt-3 pt-3 border-t border-gray-100 flex items-center justify-between text-xs text-gray-600">
+                    <div className="mt-3 pt-3 border-t border-gray-100 flex items-center justify-between text-xs text-gray-600 dark:border-slate-800">
                       <div className="flex items-center gap-1">
                         <Eye className="w-3 h-3" />
                         <span>{formatNumber(post.reach)} reach</span>
@@ -482,13 +482,13 @@ function InstagramAnalytics() {
             <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg p-6 border border-green-200">
               <div className="flex items-center gap-2 mb-4">
                 <TrendingUp className="w-6 h-6 text-green-600" />
-                <h3 className="text-xl font-bold text-gray-900">Growth Prediction</h3>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-slate-100">Growth Prediction</h3>
               </div>
               
               <div className="grid grid-cols-3 gap-6">
                 <div>
                   <p className="text-sm text-gray-600 mb-1">Predicted Followers</p>
-                  <p className="text-3xl font-bold text-gray-900">
+                  <p className="text-3xl font-bold text-gray-900 dark:text-slate-100">
                     {formatNumber(dashboardData.prediction.predicted_followers)}
                   </p>
                   <p className="text-sm text-green-600 font-medium">
@@ -497,7 +497,7 @@ function InstagramAnalytics() {
                 </div>
                 <div>
                   <p className="text-sm text-gray-600 mb-1">Growth Rate</p>
-                  <p className="text-3xl font-bold text-gray-900">
+                  <p className="text-3xl font-bold text-gray-900 dark:text-slate-100">
                     {dashboardData.prediction.predicted_growth_rate.toFixed(1)}%
                   </p>
                   <p className="text-sm text-gray-600">
@@ -506,7 +506,7 @@ function InstagramAnalytics() {
                 </div>
                 <div>
                   <p className="text-sm text-gray-600 mb-1">Confidence</p>
-                  <p className="text-3xl font-bold text-gray-900">
+                  <p className="text-3xl font-bold text-gray-900 dark:text-slate-100">
                     {(dashboardData.prediction.confidence_score * 100).toFixed(0)}%
                   </p>
                   <p className="text-sm text-gray-600">Prediction accuracy</p>

@@ -292,10 +292,10 @@ export function VideoUploadForm({ channelDbId, onSubmit }: VideoUploadFormProps)
   };
 
   return (
-    <Card className="border border-purple-100 shadow-xs bg-white rounded-2xl overflow-hidden">
+    <Card className="border border-purple-100 shadow-xs bg-white rounded-2xl overflow-hidden dark:bg-slate-900">
       <div className="h-1.5 bg-gradient-to-r from-purple-500 to-indigo-500 w-full" />
       <CardContent className="p-6 md:p-8">
-        <h3 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2 border-b border-slate-50 pb-4">
+        <h3 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2 border-b border-slate-50 pb-4 dark:text-slate-300 dark:border-slate-700">
           <Video className="w-5 h-5 text-purple-600" />
           Upload & Publish Video
         </h3>
@@ -318,9 +318,9 @@ export function VideoUploadForm({ channelDbId, onSubmit }: VideoUploadFormProps)
               value={videoUrl}
               onChange={(e) => setVideoUrl(e.target.value)}
               placeholder="Paste public video URL (e.g. Cloudinary, S3) or local file path"
-              className="w-full bg-slate-50/70 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
+              className="w-full bg-slate-50/70 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all dark:border-slate-800 dark:text-slate-300"
             />
-            <div className="mt-3.5 bg-slate-50 border border-dashed border-slate-200 rounded-xl p-3.5">
+            <div className="mt-3.5 bg-slate-50 border border-dashed border-slate-200 rounded-xl p-3.5 dark:bg-slate-900 dark:border-slate-800">
               <input
                 type="file"
                 accept="video/*"
@@ -354,9 +354,9 @@ export function VideoUploadForm({ channelDbId, onSubmit }: VideoUploadFormProps)
               value={thumbnailUrl}
               onChange={(e) => setThumbnailUrl(e.target.value)}
               placeholder="Paste a thumbnail image URL (optional)"
-              className="w-full bg-slate-50/70 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
+              className="w-full bg-slate-50/70 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all dark:border-slate-800 dark:text-slate-300"
             />
-            <div className="mt-3.5 bg-slate-50 border border-dashed border-slate-200 rounded-xl p-3.5">
+            <div className="mt-3.5 bg-slate-50 border border-dashed border-slate-200 rounded-xl p-3.5 dark:bg-slate-900 dark:border-slate-800">
               <input
                 type="file"
                 accept="image/*"
@@ -393,7 +393,7 @@ export function VideoUploadForm({ channelDbId, onSubmit }: VideoUploadFormProps)
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Enter an engaging title for your video"
-              className="w-full bg-slate-50/70 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
+              className="w-full bg-slate-50/70 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all dark:border-slate-800 dark:text-slate-300"
             />
           </div>
 
@@ -423,7 +423,7 @@ export function VideoUploadForm({ channelDbId, onSubmit }: VideoUploadFormProps)
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Provide a detailed video description including timestamps, links, and hashtags..."
-              className="w-full bg-slate-50/70 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all resize-y"
+              className="w-full bg-slate-50/70 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all resize-y dark:border-slate-800 dark:text-slate-300"
             />
           </div>
 
@@ -452,7 +452,7 @@ export function VideoUploadForm({ channelDbId, onSubmit }: VideoUploadFormProps)
               value={tags}
               onChange={(e) => setTags(e.target.value)}
               placeholder="marketing, business, guide, ai (comma separated)"
-              className="w-full bg-slate-50/70 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
+              className="w-full bg-slate-50/70 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all dark:border-slate-800 dark:text-slate-300"
             />
           </div>
 
@@ -465,7 +465,7 @@ export function VideoUploadForm({ channelDbId, onSubmit }: VideoUploadFormProps)
               <select
                 value={privacyStatus}
                 onChange={(e) => setPrivacyStatus(e.target.value)}
-                className="w-full bg-slate-50/70 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
+                className="w-full bg-slate-50/70 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all dark:border-slate-800 dark:text-slate-300"
               >
                 <option value="public">Public (Everyone can watch)</option>
                 <option value="unlisted">Unlisted (Anyone with link)</option>
@@ -474,13 +474,13 @@ export function VideoUploadForm({ channelDbId, onSubmit }: VideoUploadFormProps)
             </div>
             
             <div className="flex items-center">
-              <div className="flex items-center gap-2.5 mt-6 bg-slate-50 border border-slate-100 p-3.5 rounded-xl w-full cursor-pointer select-none">
+              <div className="flex items-center gap-2.5 mt-6 bg-slate-50 border border-slate-100 p-3.5 rounded-xl w-full cursor-pointer select-none dark:bg-slate-900 dark:border-slate-800">
                 <input
                   type="checkbox"
                   id="isScheduled"
                   checked={isScheduled}
                   onChange={(e) => setIsScheduled(e.target.checked)}
-                  className="w-4 h-4 rounded text-purple-600 border-slate-300 focus:ring-purple-500 shrink-0 cursor-pointer"
+                  className="w-4 h-4 rounded text-purple-600 border-slate-300 focus:ring-purple-500 shrink-0 cursor-pointer dark:border-slate-700"
                 />
                 <label htmlFor="isScheduled" className="text-sm font-bold text-slate-600 cursor-pointer">
                   Schedule this upload
@@ -500,7 +500,7 @@ export function VideoUploadForm({ channelDbId, onSubmit }: VideoUploadFormProps)
                 type="datetime-local"
                 value={scheduledTime}
                 onChange={(e) => setScheduledTime(e.target.value)}
-                className="w-full bg-white border border-purple-200/80 rounded-xl px-4 py-3 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
+                className="w-full bg-white border border-purple-200/80 rounded-xl px-4 py-3 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all dark:bg-slate-900 dark:text-slate-300"
               />
             </div>
           )}
@@ -528,8 +528,8 @@ export function VideoUploadForm({ channelDbId, onSubmit }: VideoUploadFormProps)
         {/* AI Titles Selector Modal */}
         {showTitlesModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-fade-in">
-            <div className="w-full max-w-lg bg-white border border-slate-100 rounded-2xl p-6 shadow-2xl flex flex-col">
-              <h4 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2 border-b border-slate-50 pb-3">
+            <div className="w-full max-w-lg bg-white border border-slate-100 rounded-2xl p-6 shadow-2xl flex flex-col dark:bg-slate-900 dark:border-slate-800">
+              <h4 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2 border-b border-slate-50 pb-3 dark:text-slate-300 dark:border-slate-700">
                 <Sparkles className="w-5 h-5 text-purple-600" />
                 Select an AI Generated Title
               </h4>
@@ -543,7 +543,7 @@ export function VideoUploadForm({ channelDbId, onSubmit }: VideoUploadFormProps)
                       setTitle(t);
                       setShowTitlesModal(false);
                     }}
-                    className="w-full text-left p-3.5 rounded-xl border border-slate-100 bg-slate-50 hover:border-purple-300 text-sm text-slate-700 hover:bg-purple-50/20 hover:text-purple-900 transition-all font-medium"
+                    className="w-full text-left p-3.5 rounded-xl border border-slate-100 bg-slate-50 hover:border-purple-300 text-sm text-slate-700 hover:bg-purple-50/20 hover:text-purple-900 transition-all font-medium dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300"
                   >
                     {t}
                   </button>
@@ -553,7 +553,7 @@ export function VideoUploadForm({ channelDbId, onSubmit }: VideoUploadFormProps)
               <button
                 type="button"
                 onClick={() => setShowTitlesModal(false)}
-                className="mt-6 w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-xs font-bold rounded-xl text-slate-600 hover:text-slate-800 transition-colors"
+                className="mt-6 w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-xs font-bold rounded-xl text-slate-600 hover:text-slate-800 transition-colors dark:bg-slate-800"
               >
                 Close
               </button>

@@ -108,7 +108,7 @@ function AgentsIndexPage() {
             <Bot size={24} className="text-white" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-slate-100">
               Your AI-Powered Business Team
             </h1>
             <p className="text-gray-600 mt-1">
@@ -125,10 +125,10 @@ function AgentsIndexPage() {
             <Zap size={20} className="text-purple-600" />
           </div>
           <div>
-            <h3 className="font-semibold text-gray-900 mb-1">
+            <h3 className="font-semibold text-gray-900 mb-1 dark:text-slate-100">
               Specialized AI Agents for Every Business Need
             </h3>
-            <p className="text-sm text-gray-700 leading-relaxed">
+            <p className="text-sm text-gray-700 leading-relaxed dark:text-slate-300">
               Each agent is trained on specific business tasks - from finding partnership
               opportunities to creating content and analyzing your market. Choose an agent
               below to get started.
@@ -173,7 +173,7 @@ function AgentsIndexPage() {
               </div>
 
               {/* Content */}
-              <h3 className="text-xl font-bold text-gray-900 mb-2">{agent.title}</h3>
+              <h3 className="text-xl font-bold text-gray-900 mb-2 dark:text-slate-100">{agent.title}</h3>
               <p className="text-sm text-gray-600 mb-4 leading-relaxed">
                 {agent.description}
               </p>
@@ -181,7 +181,7 @@ function AgentsIndexPage() {
               {/* Features */}
               <ul className="space-y-2.5 mb-5">
                 {agent.features.map((feature, idx) => (
-                  <li key={idx} className="flex items-start gap-2.5 text-sm text-gray-700">
+                  <li key={idx} className="flex items-start gap-2.5 text-sm text-gray-700 dark:text-slate-300">
                     <CheckCircle2
                       size={16}
                       className={`${agent.iconColor} shrink-0 mt-0.5`}
@@ -204,10 +204,10 @@ function AgentsIndexPage() {
       </div>
 
       {/* Bottom CTA */}
-      <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl border border-gray-200 p-6">
+      <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl border border-gray-200 p-6 dark:border-slate-800">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="font-semibold text-gray-900 mb-1">
+            <h3 className="font-semibold text-gray-900 mb-1 dark:text-slate-100">
               More AI Agents Coming Soon
             </h3>
             <p className="text-sm text-gray-600">

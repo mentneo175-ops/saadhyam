@@ -884,7 +884,7 @@ function WebsiteAIPage() {
                   </div>
                   
                   {/* Animated Progress Bar */}
-                  <div className="relative w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                  <div className="relative w-full bg-gray-200 rounded-full h-3 overflow-hidden dark:bg-slate-700">
                     <div 
                       className="bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500 h-3 rounded-full transition-all duration-700 ease-out relative"
                       style={{ width: `${progress}%` }}
@@ -930,23 +930,23 @@ function WebsiteAIPage() {
                       <div className="flex items-center justify-between">
                         <div className="w-20 h-6 bg-purple-200 rounded"></div>
                         <div className="flex gap-2">
-                          <div className="w-16 h-4 bg-gray-200 rounded"></div>
-                          <div className="w-16 h-4 bg-gray-200 rounded"></div>
+                          <div className="w-16 h-4 bg-gray-200 rounded dark:bg-slate-700"></div>
+                          <div className="w-16 h-4 bg-gray-200 rounded dark:bg-slate-700"></div>
                         </div>
                       </div>
                       <div className="space-y-2">
                         <div className="w-3/4 h-8 bg-purple-300 rounded"></div>
-                        <div className="w-full h-4 bg-gray-200 rounded"></div>
-                        <div className="w-5/6 h-4 bg-gray-200 rounded"></div>
+                        <div className="w-full h-4 bg-gray-200 rounded dark:bg-slate-700"></div>
+                        <div className="w-5/6 h-4 bg-gray-200 rounded dark:bg-slate-700"></div>
                       </div>
                       <div className="grid grid-cols-2 gap-3 flex-1">
                         <div className="h-20 bg-pink-200 rounded"></div>
                         <div className="h-20 bg-blue-200 rounded"></div>
                       </div>
                       <div className="grid grid-cols-3 gap-2 mt-4">
-                        <div className="h-12 bg-gray-200 rounded"></div>
-                        <div className="h-12 bg-gray-200 rounded"></div>
-                        <div className="h-12 bg-gray-200 rounded"></div>
+                        <div className="h-12 bg-gray-200 rounded dark:bg-slate-700"></div>
+                        <div className="h-12 bg-gray-200 rounded dark:bg-slate-700"></div>
+                        <div className="h-12 bg-gray-200 rounded dark:bg-slate-700"></div>
                       </div>
                     </div>
                     
@@ -995,7 +995,7 @@ function WebsiteAIPage() {
                   </div>
                   
                   {/* Browser-like Address Bar */}
-                  <div className="flex items-center gap-2 bg-gray-100 border rounded-lg p-2 mb-2 flex-shrink-0">
+                  <div className="flex items-center gap-2 bg-gray-100 border rounded-lg p-2 mb-2 flex-shrink-0 dark:bg-slate-800">
                     <div className="flex gap-1">
                       <div className="w-3 h-3 bg-red-400 rounded-full"></div>
                       <div className="w-3 h-3 bg-yellow-400 rounded-full"></div>
@@ -1041,7 +1041,7 @@ function WebsiteAIPage() {
                             }
                           }
                         }}
-                        className="flex-1 bg-white border border-gray-300 rounded px-3 py-1 text-sm focus:outline-none focus:border-blue-400"
+                        className="flex-1 bg-white border border-gray-300 rounded px-3 py-1 text-sm focus:outline-none focus:border-blue-400 dark:bg-slate-900 dark:border-slate-700"
                         placeholder="Enter website URL..."
                       />
                       <button
@@ -1058,7 +1058,7 @@ function WebsiteAIPage() {
                     </div>
                   </div>
                   
-                  <div className="border rounded-lg overflow-hidden flex-1 bg-white min-h-[400px]">
+                  <div className="border rounded-lg overflow-hidden flex-1 bg-white min-h-[400px] dark:bg-slate-900">
                     <iframe
                       srcDoc={websiteHtml}
                       className="w-full h-full border-0"

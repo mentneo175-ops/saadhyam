@@ -334,7 +334,7 @@ function SEOGoogleMapsPage() {
           {/* Left Column: Control Panel / Health Center */}
           <div className="lg:col-span-1 space-y-6 lg:sticky lg:top-6">
             {/* Google OAuth & Account Link Status Card */}
-            <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 shadow-[0_4px_30px_rgba(0,0,0,0.4)] backdrop-blur-md relative overflow-hidden">
+            <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 shadow-[0_4px_30px_rgba(0,0,0,0.4)] backdrop-blur-md relative overflow-hidden dark:border-slate-700">
               <div className="absolute top-0 right-0 h-32 w-32 bg-purple-500/5 rounded-full blur-2xl pointer-events-none" />
               <div className="space-y-4">
                 <div className="flex items-center gap-2">
@@ -386,7 +386,7 @@ function SEOGoogleMapsPage() {
             )}
             
             {/* Quick Summary / Sync Stats */}
-            <div className="rounded-2xl border border-slate-800 bg-slate-900/40 p-4 text-[11px] text-slate-400 space-y-2">
+            <div className="rounded-2xl border border-slate-800 bg-slate-900/40 p-4 text-[11px] text-slate-400 space-y-2 dark:border-slate-700">
               <div className="flex justify-between">
                 <span>Sync Mode:</span>
                 <span className="font-semibold text-slate-350">Simulated / Live API</span>
@@ -413,7 +413,7 @@ function SEOGoogleMapsPage() {
             {/* Tab: Google API Suite Connection Panel */}
             {activeTab === "integrations" && (
               <div className="space-y-6">
-                <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 shadow-[0_4px_30px_rgba(0,0,0,0.4)] backdrop-blur-md relative overflow-hidden">
+                <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 shadow-[0_4px_30px_rgba(0,0,0,0.4)] backdrop-blur-md relative overflow-hidden dark:border-slate-700">
                   <div className="absolute top-0 right-0 h-40 w-40 bg-purple-500/5 rounded-full blur-3xl pointer-events-none" />
                   
                   <div className="space-y-3">
@@ -429,7 +429,7 @@ function SEOGoogleMapsPage() {
 
                 <div className="grid gap-6 md:grid-cols-3">
                   {/* Card 1: Search Console */}
-                  <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-5 space-y-3 relative group backdrop-blur-md hover:border-slate-700 transition-all">
+                  <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-5 space-y-3 relative group backdrop-blur-md hover:border-slate-700 transition-all dark:border-slate-700">
                     <div className="flex items-center justify-between">
                       <Search className="h-5 w-5 text-blue-400" />
                       <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase border ${
@@ -445,7 +445,7 @@ function SEOGoogleMapsPage() {
                   </div>
 
                   {/* Card 2: Google Analytics */}
-                  <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-5 space-y-3 relative group backdrop-blur-md hover:border-slate-700 transition-all">
+                  <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-5 space-y-3 relative group backdrop-blur-md hover:border-slate-700 transition-all dark:border-slate-700">
                     <div className="flex items-center justify-between">
                       <TrendingUp className="h-5 w-5 text-emerald-400" />
                       <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase border ${
@@ -461,7 +461,7 @@ function SEOGoogleMapsPage() {
                   </div>
 
                   {/* Card 3: Business Profile */}
-                  <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-5 space-y-3 relative group backdrop-blur-md hover:border-slate-700 transition-all">
+                  <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-5 space-y-3 relative group backdrop-blur-md hover:border-slate-700 transition-all dark:border-slate-700">
                     <div className="flex items-center justify-between">
                       <MapPin className="h-5 w-5 text-purple-450" />
                       <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase border ${
@@ -483,25 +483,25 @@ function SEOGoogleMapsPage() {
             {activeTab === "search-console" && isGoogleConnected && googleMetrics?.search_console && (
               <div className="space-y-6">
                 <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
-                  <div className="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl shadow-[0_4px_30px_rgba(0,0,0,0.4)] backdrop-blur-md transition-all hover:border-slate-700">
+                  <div className="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl shadow-[0_4px_30px_rgba(0,0,0,0.4)] backdrop-blur-md transition-all hover:border-slate-700 dark:border-slate-700">
                     <div className="text-2xl font-black text-blue-400">
                       {googleMetrics.search_console.stats.total_clicks}
                     </div>
                     <div className="text-[10px] font-bold text-slate-400 uppercase mt-1">Total Web Clicks</div>
                   </div>
-                  <div className="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl shadow-[0_4px_30px_rgba(0,0,0,0.4)] backdrop-blur-md transition-all hover:border-slate-700">
+                  <div className="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl shadow-[0_4px_30px_rgba(0,0,0,0.4)] backdrop-blur-md transition-all hover:border-slate-700 dark:border-slate-700">
                     <div className="text-2xl font-black text-white">
                       {googleMetrics.search_console.stats.total_impressions.toLocaleString()}
                     </div>
                     <div className="text-[10px] font-bold text-slate-400 uppercase mt-1">Total Impressions</div>
                   </div>
-                  <div className="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl shadow-[0_4px_30px_rgba(0,0,0,0.4)] backdrop-blur-md transition-all hover:border-slate-700">
+                  <div className="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl shadow-[0_4px_30px_rgba(0,0,0,0.4)] backdrop-blur-md transition-all hover:border-slate-700 dark:border-slate-700">
                     <div className="text-2xl font-black text-emerald-400">
                       {googleMetrics.search_console.stats.avg_ctr}%
                     </div>
                     <div className="text-[10px] font-bold text-slate-400 uppercase mt-1">Average CTR</div>
                   </div>
-                  <div className="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl shadow-[0_4px_30px_rgba(0,0,0,0.4)] backdrop-blur-md transition-all hover:border-slate-700">
+                  <div className="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl shadow-[0_4px_30px_rgba(0,0,0,0.4)] backdrop-blur-md transition-all hover:border-slate-700 dark:border-slate-700">
                     <div className="text-2xl font-black text-purple-400">
                       {googleMetrics.search_console.stats.avg_position}
                     </div>
@@ -510,7 +510,7 @@ function SEOGoogleMapsPage() {
                 </div>
 
                 {/* Clicks over time chart */}
-                <div className="bg-slate-900/60 border border-slate-800 p-6 rounded-2xl shadow-[0_4px_30px_rgba(0,0,0,0.4)] backdrop-blur-md space-y-4">
+                <div className="bg-slate-900/60 border border-slate-800 p-6 rounded-2xl shadow-[0_4px_30px_rgba(0,0,0,0.4)] backdrop-blur-md space-y-4 dark:border-slate-700">
                   <h4 className="text-sm font-bold text-white">Search Performance Over Time</h4>
                   <div className="h-[280px]">
                     <ResponsiveContainer width="100%" height="100%">
@@ -529,12 +529,12 @@ function SEOGoogleMapsPage() {
                 </div>
 
                 {/* Top queries table */}
-                <div className="bg-slate-900/60 border border-slate-800 rounded-2xl shadow-[0_4px_30px_rgba(0,0,0,0.4)] backdrop-blur-md overflow-hidden">
+                <div className="bg-slate-900/60 border border-slate-800 rounded-2xl shadow-[0_4px_30px_rgba(0,0,0,0.4)] backdrop-blur-md overflow-hidden dark:border-slate-700">
                   <div className="px-6 py-4 border-b border-slate-800/80">
                     <h4 className="text-sm font-bold text-white">Top Queries Driving Organic Traffic</h4>
                   </div>
                   <table className="w-full text-left text-xs">
-                    <thead className="bg-slate-950/60 font-bold text-slate-400 uppercase text-[10px] border-b border-slate-800">
+                    <thead className="bg-slate-950/60 font-bold text-slate-400 uppercase text-[10px] border-b border-slate-800 dark:border-slate-700">
                       <tr>
                         <th className="px-6 py-3">Search Query</th>
                         <th className="px-6 py-3 text-right">Clicks</th>
@@ -561,25 +561,25 @@ function SEOGoogleMapsPage() {
             {activeTab === "analytics" && isGoogleConnected && googleMetrics?.analytics && (
               <div className="space-y-6">
                 <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
-                  <div className="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl shadow-[0_4px_30px_rgba(0,0,0,0.4)] backdrop-blur-md transition-all hover:border-slate-700">
+                  <div className="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl shadow-[0_4px_30px_rgba(0,0,0,0.4)] backdrop-blur-md transition-all hover:border-slate-700 dark:border-slate-700">
                     <div className="text-2xl font-black text-blue-400">
                       {googleMetrics.analytics.stats.sessions.toLocaleString()}
                     </div>
                     <div className="text-[10px] font-bold text-slate-400 uppercase mt-1">Total Sessions</div>
                   </div>
-                  <div className="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl shadow-[0_4px_30px_rgba(0,0,0,0.4)] backdrop-blur-md transition-all hover:border-slate-700">
+                  <div className="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl shadow-[0_4px_30px_rgba(0,0,0,0.4)] backdrop-blur-md transition-all hover:border-slate-700 dark:border-slate-700">
                     <div className="text-2xl font-black text-white">
                       {googleMetrics.analytics.stats.users.toLocaleString()}
                     </div>
                     <div className="text-[10px] font-bold text-slate-400 uppercase mt-1">Total Users</div>
                   </div>
-                  <div className="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl shadow-[0_4px_30px_rgba(0,0,0,0.4)] backdrop-blur-md transition-all hover:border-slate-700">
+                  <div className="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl shadow-[0_4px_30px_rgba(0,0,0,0.4)] backdrop-blur-md transition-all hover:border-slate-700 dark:border-slate-700">
                     <div className="text-2xl font-black text-purple-400">
                       {googleMetrics.analytics.stats.pageviews.toLocaleString()}
                     </div>
                     <div className="text-[10px] font-bold text-slate-400 uppercase mt-1">Pageviews</div>
                   </div>
-                  <div className="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl shadow-[0_4px_30px_rgba(0,0,0,0.4)] backdrop-blur-md transition-all hover:border-slate-700">
+                  <div className="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl shadow-[0_4px_30px_rgba(0,0,0,0.4)] backdrop-blur-md transition-all hover:border-slate-700 dark:border-slate-700">
                     <div className="text-2xl font-black text-emerald-400">
                       {googleMetrics.analytics.stats.avg_session_duration}
                     </div>
@@ -590,7 +590,7 @@ function SEOGoogleMapsPage() {
                 {/* Traffic Sources & Pages grid */}
                 <div className="grid gap-6 lg:grid-cols-3">
                   {/* Traffic Sources */}
-                  <div className="bg-slate-900/60 border border-slate-800 p-6 rounded-2xl shadow-[0_4px_30px_rgba(0,0,0,0.4)] backdrop-blur-md space-y-4 lg:col-span-1">
+                  <div className="bg-slate-900/60 border border-slate-800 p-6 rounded-2xl shadow-[0_4px_30px_rgba(0,0,0,0.4)] backdrop-blur-md space-y-4 lg:col-span-1 dark:border-slate-700">
                     <h4 className="text-sm font-bold text-white">Traffic Channels</h4>
                     <div className="h-[240px]">
                       <ResponsiveContainer width="100%" height="100%">
@@ -611,12 +611,12 @@ function SEOGoogleMapsPage() {
                   </div>
 
                   {/* Top Pages */}
-                  <div className="bg-slate-900/60 border border-slate-800 rounded-2xl shadow-[0_4px_30px_rgba(0,0,0,0.4)] backdrop-blur-md overflow-hidden lg:col-span-2">
+                  <div className="bg-slate-900/60 border border-slate-800 rounded-2xl shadow-[0_4px_30px_rgba(0,0,0,0.4)] backdrop-blur-md overflow-hidden lg:col-span-2 dark:border-slate-700">
                     <div className="px-6 py-4 border-b border-slate-800/80">
                       <h4 className="text-sm font-bold text-white">Top Site Pages Visited</h4>
                     </div>
                     <table className="w-full text-left text-xs">
-                      <thead className="bg-slate-950/60 font-bold text-slate-400 uppercase text-[10px] border-b border-slate-800">
+                      <thead className="bg-slate-950/60 font-bold text-slate-400 uppercase text-[10px] border-b border-slate-800 dark:border-slate-700">
                         <tr>
                           <th className="px-6 py-3">Page URL</th>
                           <th className="px-6 py-3">Page Title</th>
@@ -644,7 +644,7 @@ function SEOGoogleMapsPage() {
             {activeTab === "business-insights" && isGoogleConnected && googleMetrics?.business_profile && (
               <div className="space-y-6">
                 <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
-                  <div className="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl shadow-[0_4px_30px_rgba(0,0,0,0.4)] backdrop-blur-md flex items-center justify-between transition-all hover:border-slate-700">
+                  <div className="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl shadow-[0_4px_30px_rgba(0,0,0,0.4)] backdrop-blur-md flex items-center justify-between transition-all hover:border-slate-700 dark:border-slate-700">
                     <div>
                       <div className="text-2xl font-black text-purple-500">
                         {googleMetrics.business_profile.stats.profile_views.toLocaleString()}
@@ -653,7 +653,7 @@ function SEOGoogleMapsPage() {
                     </div>
                     <Globe className="h-8 w-8 text-purple-500/20" />
                   </div>
-                  <div className="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl shadow-[0_4px_30px_rgba(0,0,0,0.4)] backdrop-blur-md flex items-center justify-between transition-all hover:border-slate-700">
+                  <div className="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl shadow-[0_4px_30px_rgba(0,0,0,0.4)] backdrop-blur-md flex items-center justify-between transition-all hover:border-slate-700 dark:border-slate-700">
                     <div>
                       <div className="text-2xl font-black text-blue-500">
                         {googleMetrics.business_profile.stats.search_views.toLocaleString()}
@@ -662,7 +662,7 @@ function SEOGoogleMapsPage() {
                     </div>
                     <Search className="h-8 w-8 text-blue-500/20" />
                   </div>
-                  <div className="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl shadow-[0_4px_30px_rgba(0,0,0,0.4)] backdrop-blur-md flex items-center justify-between transition-all hover:border-slate-700">
+                  <div className="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl shadow-[0_4px_30px_rgba(0,0,0,0.4)] backdrop-blur-md flex items-center justify-between transition-all hover:border-slate-700 dark:border-slate-700">
                     <div>
                       <div className="text-2xl font-black text-emerald-500">
                         {googleMetrics.business_profile.stats.customer_actions}
@@ -674,18 +674,18 @@ function SEOGoogleMapsPage() {
                 </div>
 
                 {/* Actions breakdown info box */}
-                <div className="bg-slate-900/60 border border-slate-800 p-6 rounded-2xl shadow-[0_4px_30px_rgba(0,0,0,0.4)] backdrop-blur-md space-y-4">
+                <div className="bg-slate-900/60 border border-slate-800 p-6 rounded-2xl shadow-[0_4px_30px_rgba(0,0,0,0.4)] backdrop-blur-md space-y-4 dark:border-slate-700">
                   <h4 className="text-sm font-bold text-slate-200">Customer Actions Breakdown</h4>
                   <div className="grid gap-4 md:grid-cols-3 text-xs">
-                    <div className="bg-slate-950/60 p-4 border border-slate-800 rounded-xl space-y-1">
+                    <div className="bg-slate-950/60 p-4 border border-slate-800 rounded-xl space-y-1 dark:border-slate-700">
                       <div className="text-slate-500 font-bold uppercase text-[10px]">Website Clicks</div>
                       <div className="text-lg font-bold text-white">{googleMetrics.business_profile.actions_breakdown.website_clicks}</div>
                     </div>
-                    <div className="bg-slate-950/60 p-4 border border-slate-800 rounded-xl space-y-1">
+                    <div className="bg-slate-950/60 p-4 border border-slate-800 rounded-xl space-y-1 dark:border-slate-700">
                       <div className="text-slate-500 font-bold uppercase text-[10px]">Directions Requests</div>
                       <div className="text-lg font-bold text-white">{googleMetrics.business_profile.actions_breakdown.directions_requests}</div>
                     </div>
-                    <div className="bg-slate-950/60 p-4 border border-slate-800 rounded-xl space-y-1">
+                    <div className="bg-slate-950/60 p-4 border border-slate-800 rounded-xl space-y-1 dark:border-slate-700">
                       <div className="text-slate-500 font-bold uppercase text-[10px]">Phone Calls</div>
                       <div className="text-lg font-bold text-white">{googleMetrics.business_profile.actions_breakdown.phone_calls}</div>
                     </div>
@@ -693,7 +693,7 @@ function SEOGoogleMapsPage() {
                 </div>
 
                 {/* Latest reviews */}
-                <div className="bg-slate-900/60 border border-slate-800 rounded-2xl shadow-[0_4px_30px_rgba(0,0,0,0.4)] backdrop-blur-md overflow-hidden">
+                <div className="bg-slate-900/60 border border-slate-800 rounded-2xl shadow-[0_4px_30px_rgba(0,0,0,0.4)] backdrop-blur-md overflow-hidden dark:border-slate-700">
                   <div className="px-6 py-4 border-b border-slate-800/80">
                     <h4 className="text-sm font-bold text-white">Latest Google Maps Reviews</h4>
                   </div>

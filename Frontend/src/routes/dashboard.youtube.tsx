@@ -383,7 +383,7 @@ function YouTubeDashboard() {
               <Youtube className="w-9 h-9 text-red-500 animate-pulse" />
             </div>
 
-            <h2 className="text-2xl font-bold text-slate-800 mb-3 tracking-tight">
+            <h2 className="text-2xl font-bold text-slate-800 mb-3 tracking-tight dark:text-slate-300">
               Connect your YouTube Channel
             </h2>
 
@@ -426,7 +426,7 @@ function YouTubeDashboard() {
               className="w-10 h-10 rounded-full border-2 border-white shadow-sm"
             />
             <div className="text-sm">
-              <div className="font-semibold text-slate-800 leading-tight">
+              <div className="font-semibold text-slate-800 leading-tight dark:text-slate-300">
                 {activeChannel.channel_title}
               </div>
               <div className="text-xs text-slate-500">
@@ -456,7 +456,7 @@ function YouTubeDashboard() {
 
       {/* KPI Stats Row */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-        <Card className="border border-purple-100/80 shadow-xs bg-white">
+        <Card className="border border-purple-100/80 shadow-xs bg-white dark:bg-slate-900">
           <CardContent className="p-5 flex items-center gap-4">
             <div className="w-12 h-12 rounded-xl bg-purple-50 flex items-center justify-center text-purple-600 shrink-0">
               <Users className="w-6 h-6" />
@@ -465,14 +465,14 @@ function YouTubeDashboard() {
               <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
                 Subscribers
               </p>
-              <p className="text-2xl font-bold text-slate-800 mt-0.5">
+              <p className="text-2xl font-bold text-slate-800 mt-0.5 dark:text-slate-300">
                 {formatBig(activeChannel.subscriber_count)}
               </p>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border border-purple-100/80 shadow-xs bg-white">
+        <Card className="border border-purple-100/80 shadow-xs bg-white dark:bg-slate-900">
           <CardContent className="p-5 flex items-center gap-4">
             <div className="w-12 h-12 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 shrink-0">
               <Eye className="w-6 h-6" />
@@ -481,14 +481,14 @@ function YouTubeDashboard() {
               <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
                 Total Views
               </p>
-              <p className="text-2xl font-bold text-slate-800 mt-0.5">
+              <p className="text-2xl font-bold text-slate-800 mt-0.5 dark:text-slate-300">
                 {formatBig(activeChannel.view_count)}
               </p>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border border-purple-100/80 shadow-xs bg-white">
+        <Card className="border border-purple-100/80 shadow-xs bg-white dark:bg-slate-900">
           <CardContent className="p-5 flex items-center gap-4">
             <div className="w-12 h-12 rounded-xl bg-pink-50 flex items-center justify-center text-pink-600 shrink-0">
               <Video className="w-6 h-6" />
@@ -497,7 +497,7 @@ function YouTubeDashboard() {
               <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
                 Videos
               </p>
-              <p className="text-2xl font-bold text-slate-800 mt-0.5">
+              <p className="text-2xl font-bold text-slate-800 mt-0.5 dark:text-slate-300">
                 {activeChannel.video_count}
               </p>
             </div>
@@ -545,16 +545,16 @@ function YouTubeDashboard() {
             {/* Videos Tab */}
             <TabsContent value="videos" className="focus-visible:outline-hidden mt-0">
               {isLoadingVideos ? (
-                <div className="flex flex-col items-center justify-center py-20 bg-white border border-slate-100 rounded-2xl shadow-xs">
+                <div className="flex flex-col items-center justify-center py-20 bg-white border border-slate-100 rounded-2xl shadow-xs dark:bg-slate-900 dark:border-slate-800">
                   <Loader2 className="w-8 h-8 animate-spin text-purple-600 mb-3" />
                   <p className="text-sm font-medium text-slate-500">Loading videos list...</p>
                 </div>
               ) : publishedVideos.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-16 px-4 bg-white border border-slate-100 rounded-2xl text-center max-w-lg mx-auto shadow-xs">
-                  <div className="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center mb-4 text-slate-400">
+                <div className="flex flex-col items-center justify-center py-16 px-4 bg-white border border-slate-100 rounded-2xl text-center max-w-lg mx-auto shadow-xs dark:bg-slate-900 dark:border-slate-800">
+                  <div className="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center mb-4 text-slate-400 dark:bg-slate-900">
                     <Video className="w-6 h-6" />
                   </div>
-                  <h3 className="text-base font-bold text-slate-800 mb-1">No videos yet</h3>
+                  <h3 className="text-base font-bold text-slate-800 mb-1 dark:text-slate-300">No videos yet</h3>
                   <p className="text-sm text-slate-500 mb-5">
                     Upload your first video to see it here.
                   </p>
@@ -577,16 +577,16 @@ function YouTubeDashboard() {
             {/* Scheduled Tab */}
             <TabsContent value="scheduled" className="focus-visible:outline-hidden mt-0">
               {isLoadingVideos ? (
-                <div className="flex flex-col items-center justify-center py-20 bg-white border border-slate-100 rounded-2xl shadow-xs">
+                <div className="flex flex-col items-center justify-center py-20 bg-white border border-slate-100 rounded-2xl shadow-xs dark:bg-slate-900 dark:border-slate-800">
                   <Loader2 className="w-8 h-8 animate-spin text-purple-600 mb-3" />
                   <p className="text-sm font-medium text-slate-500">Loading scheduled list...</p>
                 </div>
               ) : scheduledVideos.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-16 px-4 bg-white border border-slate-100 rounded-2xl text-center max-w-lg mx-auto shadow-xs">
-                  <div className="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center mb-4 text-slate-400">
+                <div className="flex flex-col items-center justify-center py-16 px-4 bg-white border border-slate-100 rounded-2xl text-center max-w-lg mx-auto shadow-xs dark:bg-slate-900 dark:border-slate-800">
+                  <div className="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center mb-4 text-slate-400 dark:bg-slate-900">
                     <Clock className="w-6 h-6" />
                   </div>
-                  <h3 className="text-base font-bold text-slate-800 mb-1">No scheduled uploads</h3>
+                  <h3 className="text-base font-bold text-slate-800 mb-1 dark:text-slate-300">No scheduled uploads</h3>
                   <p className="text-sm text-slate-500 mb-5">
                     Schedule a video to publish it at a specific time.
                   </p>
@@ -609,18 +609,18 @@ function YouTubeDashboard() {
             {/* Analytics Tab */}
             <TabsContent value="analytics" className="focus-visible:outline-hidden mt-0">
               {isLoadingAnalytics ? (
-                <div className="flex flex-col items-center justify-center py-20 bg-white border border-slate-100 rounded-2xl shadow-xs">
+                <div className="flex flex-col items-center justify-center py-20 bg-white border border-slate-100 rounded-2xl shadow-xs dark:bg-slate-900 dark:border-slate-800">
                   <Loader2 className="w-8 h-8 animate-spin text-purple-600 mb-3" />
                   <p className="text-sm font-medium text-slate-500">
                     Fetching live analytics from YouTube...
                   </p>
                 </div>
               ) : !analytics ? (
-                <div className="flex flex-col items-center justify-center py-16 px-4 bg-white border border-slate-100 rounded-2xl text-center max-w-lg mx-auto shadow-xs">
-                  <div className="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center mb-4 text-slate-400">
+                <div className="flex flex-col items-center justify-center py-16 px-4 bg-white border border-slate-100 rounded-2xl text-center max-w-lg mx-auto shadow-xs dark:bg-slate-900 dark:border-slate-800">
+                  <div className="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center mb-4 text-slate-400 dark:bg-slate-900">
                     <BarChart2 className="w-6 h-6" />
                   </div>
-                  <h3 className="text-base font-bold text-slate-800 mb-1">No analytics data</h3>
+                  <h3 className="text-base font-bold text-slate-800 mb-1 dark:text-slate-300">No analytics data</h3>
                   <p className="text-sm text-slate-500 mb-5">
                     Analytics require at least one published video and a valid token.
                   </p>
@@ -646,70 +646,70 @@ function YouTubeDashboard() {
 
                   {/* KPI grid */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4">
-                    <Card className="border border-slate-100 shadow-xs hover:border-blue-200 transition-colors bg-white">
+                    <Card className="border border-slate-100 shadow-xs hover:border-blue-200 transition-colors bg-white dark:border-slate-800 dark:bg-slate-900">
                       <CardContent className="p-5 flex flex-col gap-3">
                         <div className="w-9 h-9 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
                           <Eye className="w-5 h-5" />
                         </div>
                         <div>
                           <p className="text-xs font-medium text-slate-500">Views</p>
-                          <p className="text-2xl font-bold text-slate-800 mt-0.5">
+                          <p className="text-2xl font-bold text-slate-800 mt-0.5 dark:text-slate-300">
                             {formatBig(analytics.views)}
                           </p>
                         </div>
                       </CardContent>
                     </Card>
 
-                    <Card className="border border-slate-100 shadow-xs hover:border-purple-200 transition-colors bg-white">
+                    <Card className="border border-slate-100 shadow-xs hover:border-purple-200 transition-colors bg-white dark:border-slate-800 dark:bg-slate-900">
                       <CardContent className="p-5 flex flex-col gap-3">
                         <div className="w-9 h-9 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
                           <Clock className="w-5 h-5" />
                         </div>
                         <div>
                           <p className="text-xs font-medium text-slate-500">Watch Time (min)</p>
-                          <p className="text-2xl font-bold text-slate-800 mt-0.5">
+                          <p className="text-2xl font-bold text-slate-800 mt-0.5 dark:text-slate-300">
                             {formatBig(analytics.watch_time_minutes)}
                           </p>
                         </div>
                       </CardContent>
                     </Card>
 
-                    <Card className="border border-slate-100 shadow-xs hover:border-green-200 transition-colors bg-white">
+                    <Card className="border border-slate-100 shadow-xs hover:border-green-200 transition-colors bg-white dark:border-slate-800 dark:bg-slate-900">
                       <CardContent className="p-5 flex flex-col gap-3">
                         <div className="w-9 h-9 rounded-lg bg-green-50 text-green-600 flex items-center justify-center shrink-0">
                           <Users className="w-5 h-5" />
                         </div>
                         <div>
                           <p className="text-xs font-medium text-slate-500">Subs Gained</p>
-                          <p className="text-2xl font-bold text-slate-800 mt-0.5">
+                          <p className="text-2xl font-bold text-slate-800 mt-0.5 dark:text-slate-300">
                             +{formatBig(analytics.subscribers_gained)}
                           </p>
                         </div>
                       </CardContent>
                     </Card>
 
-                    <Card className="border border-slate-100 shadow-xs hover:border-pink-200 transition-colors bg-white">
+                    <Card className="border border-slate-100 shadow-xs hover:border-pink-200 transition-colors bg-white dark:border-slate-800 dark:bg-slate-900">
                       <CardContent className="p-5 flex flex-col gap-3">
                         <div className="w-9 h-9 rounded-lg bg-pink-50 text-pink-600 flex items-center justify-center shrink-0">
                           <ThumbsUp className="w-5 h-5" />
                         </div>
                         <div>
                           <p className="text-xs font-medium text-slate-500">Likes</p>
-                          <p className="text-2xl font-bold text-slate-800 mt-0.5">
+                          <p className="text-2xl font-bold text-slate-800 mt-0.5 dark:text-slate-300">
                             {formatBig(analytics.likes)}
                           </p>
                         </div>
                       </CardContent>
                     </Card>
 
-                    <Card className="border border-slate-100 shadow-xs hover:border-yellow-200 transition-colors bg-white">
+                    <Card className="border border-slate-100 shadow-xs hover:border-yellow-200 transition-colors bg-white dark:border-slate-800 dark:bg-slate-900">
                       <CardContent className="p-5 flex flex-col gap-3">
                         <div className="w-9 h-9 rounded-lg bg-yellow-50 text-yellow-600 flex items-center justify-center shrink-0">
                           <MessageSquare className="w-5 h-5" />
                         </div>
                         <div>
                           <p className="text-xs font-medium text-slate-500">Comments</p>
-                          <p className="text-2xl font-bold text-slate-800 mt-0.5">
+                          <p className="text-2xl font-bold text-slate-800 mt-0.5 dark:text-slate-300">
                             {formatBig(analytics.comments)}
                           </p>
                         </div>

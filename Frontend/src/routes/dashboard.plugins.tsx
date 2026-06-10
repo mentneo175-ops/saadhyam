@@ -1038,9 +1038,9 @@ function PluginsPage() {
   }, [filteredPlugins, aiRecommendations]);
 
   return (
-    <div className="p-4 md:p-6 bg-slate-950 text-slate-100 min-h-screen space-y-6">
+    <div className="p-4 md:p-6 bg-slate-950 text-slate-100 min-h-screen space-y-6 dark:bg-slate-900">
       {/* Page Header */}
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between border-b border-slate-900 pb-5">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between border-b border-slate-900 pb-5 dark:border-slate-700">
         <div>
           <div className="flex items-center gap-2 text-xs font-semibold text-purple-400 uppercase tracking-wider mb-1">
             <Cpu size={14} className="animate-spin-slow" />
@@ -1053,7 +1053,7 @@ function PluginsPage() {
         </div>
 
         {/* Tab Controls */}
-        <div className="flex bg-slate-900 p-1 rounded-xl border border-slate-800 self-start">
+        <div className="flex bg-slate-900 p-1 rounded-xl border border-slate-800 self-start dark:bg-slate-900 dark:border-slate-700">
           <button
             onClick={() => setActiveTab("store")}
             className={`px-4 py-2 text-xs font-semibold rounded-lg transition-all ${
@@ -1091,7 +1091,7 @@ function PluginsPage() {
         <>
           {/* Onboarding & Video Introduction Section */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 bg-slate-900/60 border border-slate-800 rounded-2xl p-6 shadow-md relative overflow-hidden flex flex-col justify-between backdrop-blur-md">
+            <div className="lg:col-span-2 bg-slate-900/60 border border-slate-800 rounded-2xl p-6 shadow-md relative overflow-hidden flex flex-col justify-between backdrop-blur-md dark:border-slate-700">
               <div className="space-y-4">
                 <div className="flex items-center gap-2 bg-purple-500/10 border border-purple-500/30 text-purple-400 text-xs px-3 py-1 rounded-full w-fit">
                   <Video size={12} />
@@ -1104,7 +1104,7 @@ function PluginsPage() {
               </div>
 
               {/* Video Player */}
-              <div className="relative mt-5 rounded-xl border border-slate-800 bg-black/80 aspect-video overflow-hidden group">
+              <div className="relative mt-5 rounded-xl border border-slate-800 bg-black/80 aspect-video overflow-hidden group dark:border-slate-700">
                 <video
                   ref={videoRef}
                   src="https://vjs.zencdn.net/v/oceans.mp4"
@@ -1145,16 +1145,16 @@ function PluginsPage() {
                         <motion.line x1="50%" y1="50%" x2="50%" y2="80%" stroke="#3B82F6" strokeWidth="1.5" strokeDasharray="5,5" animate={{ strokeDashoffset: [0, -20] }} transition={{ repeat: Infinity, duration: 4, ease: "linear" }} />
                       </svg>
                       
-                      <div className="absolute left-[30%] top-[30%] -translate-x-1/2 -translate-y-1/2 h-8 w-8 rounded-lg bg-slate-900 border border-purple-500/30 flex items-center justify-center text-purple-400 shadow-[0_0_15px_rgba(139,92,246,0.2)]">
+                      <div className="absolute left-[30%] top-[30%] -translate-x-1/2 -translate-y-1/2 h-8 w-8 rounded-lg bg-slate-900 border border-purple-500/30 flex items-center justify-center text-purple-400 shadow-[0_0_15px_rgba(139,92,246,0.2)] dark:bg-slate-900">
                         <Puzzle size={14} />
                       </div>
-                      <div className="absolute right-[30%] top-[30%] translate-x-1/2 -translate-y-1/2 h-8 w-8 rounded-lg bg-slate-900 border border-pink-500/30 flex items-center justify-center text-pink-400 shadow-[0_0_15px_rgba(236,72,153,0.2)]">
+                      <div className="absolute right-[30%] top-[30%] translate-x-1/2 -translate-y-1/2 h-8 w-8 rounded-lg bg-slate-900 border border-pink-500/30 flex items-center justify-center text-pink-400 shadow-[0_0_15px_rgba(236,72,153,0.2)] dark:bg-slate-900">
                         <Sparkles size={14} />
                       </div>
-                      <div className="absolute left-[50%] top-[50%] -translate-x-1/2 -translate-y-1/2 h-12 w-12 rounded-xl bg-slate-900 border border-purple-500 flex items-center justify-center text-purple-400 shadow-[0_0_30px_rgba(139,92,246,0.4)]">
+                      <div className="absolute left-[50%] top-[50%] -translate-x-1/2 -translate-y-1/2 h-12 w-12 rounded-xl bg-slate-900 border border-purple-500 flex items-center justify-center text-purple-400 shadow-[0_0_30px_rgba(139,92,246,0.4)] dark:bg-slate-900">
                         <Cpu size={20} className="animate-spin-slow" />
                       </div>
-                      <div className="absolute left-[50%] top-[80%] -translate-x-1/2 -translate-y-1/2 h-8 w-8 rounded-lg bg-slate-900 border border-blue-500/30 flex items-center justify-center text-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.2)]">
+                      <div className="absolute left-[50%] top-[80%] -translate-x-1/2 -translate-y-1/2 h-8 w-8 rounded-lg bg-slate-900 border border-blue-500/30 flex items-center justify-center text-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.2)] dark:bg-slate-900">
                         <Zap size={14} />
                       </div>
                     </div>
@@ -1187,7 +1187,7 @@ function PluginsPage() {
                   <div 
                     ref={progressBarRef}
                     onClick={handleProgressClick}
-                    className="flex-1 mx-4 h-1.5 bg-slate-800 hover:bg-slate-700 rounded-full overflow-hidden relative cursor-pointer pointer-events-auto group/timeline"
+                    className="flex-1 mx-4 h-1.5 bg-slate-800 hover:bg-slate-700 rounded-full overflow-hidden relative cursor-pointer pointer-events-auto group/timeline dark:bg-slate-900"
                   >
                     <div 
                       className="h-full bg-purple-500 rounded-full transition-all duration-75" 
@@ -1200,7 +1200,7 @@ function PluginsPage() {
             </div>
 
             {/* AI Recommendation Engine Panel */}
-            <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 shadow-md relative overflow-hidden backdrop-blur-md flex flex-col justify-between">
+            <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 shadow-md relative overflow-hidden backdrop-blur-md flex flex-col justify-between dark:border-slate-700">
               <div className="space-y-4">
                 <div className="flex items-center gap-2 text-purple-400 text-xs font-semibold uppercase tracking-wider">
                   <Sparkles size={14} className="animate-pulse" />
@@ -1216,7 +1216,7 @@ function PluginsPage() {
                   <select
                     value={businessType}
                     onChange={(e) => setBusinessType(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-slate-200 focus:outline-none focus:ring-1 focus:ring-purple-500"
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-slate-200 focus:outline-none focus:ring-1 focus:ring-purple-500 dark:bg-slate-900 dark:border-slate-700"
                   >
                     <option value="">-- Choose Business Type --</option>
                     <option value="hospital">Healthcare / Clinic / Hospital</option>
@@ -1241,7 +1241,7 @@ function PluginsPage() {
                   </div>
                 </div>
               ) : (
-                <div className="mt-4 p-4 border border-dashed border-slate-800 rounded-xl text-center text-xs text-slate-500">
+                <div className="mt-4 p-4 border border-dashed border-slate-800 rounded-xl text-center text-xs text-slate-500 dark:border-slate-700">
                   Select a business type above to generate tailored recommendations.
                 </div>
               )}
@@ -1250,7 +1250,7 @@ function PluginsPage() {
 
           {/* Plugin Marketplace Storefront */}
           <div className="space-y-4 pt-4">
-            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between bg-slate-900/40 p-4 border border-slate-900 rounded-2xl">
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between bg-slate-900/40 p-4 border border-slate-900 rounded-2xl dark:border-slate-700">
               {/* Category filters */}
               <div className="flex flex-wrap gap-1.5">
                 {[
@@ -1282,7 +1282,7 @@ function PluginsPage() {
                   placeholder="Search plugins..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-4 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-purple-500 text-slate-200"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-4 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-purple-500 text-slate-200 dark:bg-slate-900 dark:border-slate-700"
                 />
               </div>
             </div>
@@ -1315,7 +1315,7 @@ function PluginsPage() {
                     <div className="space-y-4">
                       {/* Icon & Title */}
                       <div className="flex items-center gap-3">
-                        <div className="h-11 w-11 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-center group-hover:scale-105 transition-transform">
+                        <div className="h-11 w-11 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-center group-hover:scale-105 transition-transform dark:bg-slate-900 dark:border-slate-700">
                           <Icon size={20} />
                         </div>
                         <div>
@@ -1324,7 +1324,7 @@ function PluginsPage() {
                           </h3>
                           <div className="flex items-center gap-2 mt-0.5">
                             <span className="text-[10px] text-slate-500">{plugin.developer}</span>
-                            <span className="h-1 w-1 rounded-full bg-slate-700" />
+                            <span className="h-1 w-1 rounded-full bg-slate-700 dark:bg-slate-900" />
                             <span className="text-[10px] text-purple-400 font-semibold">{plugin.cost}</span>
                           </div>
                         </div>
@@ -1336,7 +1336,7 @@ function PluginsPage() {
                       </p>
 
                       {/* Store stats */}
-                      <div className="flex items-center justify-between text-[10px] text-slate-500 pt-2 border-t border-slate-900">
+                      <div className="flex items-center justify-between text-[10px] text-slate-500 pt-2 border-t border-slate-900 dark:border-slate-700">
                         <div className="flex items-center gap-1">
                           <Star size={12} className="text-amber-500 fill-amber-500" />
                           <span className="text-slate-300 font-medium">{plugin.rating}</span>
@@ -1350,7 +1350,7 @@ function PluginsPage() {
                     <div className="mt-5 flex gap-2">
                       <Button
                         onClick={() => setSelectedPlugin(plugin)}
-                        className="flex-1 bg-slate-950 hover:bg-slate-800 border border-slate-800 text-slate-300 text-xs py-2 rounded-xl"
+                        className="flex-1 bg-slate-950 hover:bg-slate-800 border border-slate-800 text-slate-300 text-xs py-2 rounded-xl dark:bg-slate-900 dark:border-slate-700"
                       >
                         Specs & DDL
                       </Button>
@@ -1391,7 +1391,7 @@ function PluginsPage() {
             </h2>
             <div className="space-y-3">
               {isLoadingStatuses ? (
-                <div className="p-8 border border-dashed border-slate-800 bg-slate-900/20 rounded-xl text-center">
+                <div className="p-8 border border-dashed border-slate-800 bg-slate-900/20 rounded-xl text-center dark:border-slate-700">
                   <div className="w-5 h-5 border-2 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
                   <span className="text-xs text-slate-500">Checking connection statuses...</span>
                 </div>
@@ -1423,10 +1423,10 @@ function PluginsPage() {
                   return (
                     <div
                       key={plugin.id}
-                      className="bg-slate-900/60 border border-slate-800 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-slate-700 transition-all relative overflow-hidden group/item"
+                      className="bg-slate-900/60 border border-slate-800 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-slate-700 transition-all relative overflow-hidden group/item dark:border-slate-700"
                     >
                       <div className="flex items-center gap-3">
-                        <div className="h-9 w-9 rounded-lg bg-slate-950 border border-slate-850 flex items-center justify-center shrink-0">
+                        <div className="h-9 w-9 rounded-lg bg-slate-950 border border-slate-850 flex items-center justify-center shrink-0 dark:bg-slate-900 dark:border-slate-700">
                           <Icon size={16} />
                         </div>
                         <div className="min-w-0">
@@ -1446,7 +1446,7 @@ function PluginsPage() {
                       <div className="flex items-center justify-end gap-2 shrink-0 self-end sm:self-center">
                         <Link
                           to={getPluginConfigRoute(plugin.id)}
-                          className="px-2.5 py-1 text-[10px] font-semibold text-slate-350 hover:text-white bg-slate-950 border border-slate-800 hover:border-slate-700 rounded-md transition-all flex items-center gap-1"
+                          className="px-2.5 py-1 text-[10px] font-semibold text-slate-350 hover:text-white bg-slate-950 border border-slate-800 hover:border-slate-700 rounded-md transition-all flex items-center gap-1 dark:bg-slate-900 dark:border-slate-700"
                         >
                           <Settings size={10} />
                           Configure
@@ -1467,7 +1467,7 @@ function PluginsPage() {
           </div>
 
           {/* Flow Orchestration Canvas */}
-          <div className="lg:col-span-2 bg-slate-900/60 border border-slate-800 rounded-2xl p-6 shadow-md relative overflow-hidden backdrop-blur-md flex flex-col justify-between">
+          <div className="lg:col-span-2 bg-slate-900/60 border border-slate-800 rounded-2xl p-6 shadow-md relative overflow-hidden backdrop-blur-md flex flex-col justify-between dark:border-slate-700">
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
@@ -1483,7 +1483,7 @@ function PluginsPage() {
               </p>
 
               {/* AI Autonomous Orchestrator Prompt Box */}
-              <div className="bg-slate-950/65 border border-slate-850 rounded-xl p-5 space-y-4 relative overflow-hidden group">
+              <div className="bg-slate-950/65 border border-slate-850 rounded-xl p-5 space-y-4 relative overflow-hidden group dark:border-slate-700">
                 <div className="absolute top-0 right-0 p-3 opacity-25 group-hover:opacity-40 transition-opacity pointer-events-none">
                   <Bot size={36} className="text-purple-400 animate-pulse" />
                 </div>
@@ -1508,7 +1508,7 @@ function PluginsPage() {
                       }
                     }}
                     placeholder="e.g., Send WABA fee reminders to class 10 and log in CRM..."
-                    className="flex-1 bg-slate-900 border border-slate-800 rounded-xl px-4 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-purple-500 focus:border-purple-500 min-w-0"
+                    className="flex-1 bg-slate-900 border border-slate-800 rounded-xl px-4 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-purple-500 focus:border-purple-500 min-w-0 dark:bg-slate-900 dark:border-slate-700"
                     disabled={isFlowRunning}
                   />
                   <button
@@ -1541,7 +1541,7 @@ function PluginsPage() {
                         handleRunFlowPrompt(p);
                       }}
                       disabled={isFlowRunning}
-                      className="px-2 py-1 bg-slate-900/60 border border-slate-850 hover:border-slate-700 rounded-lg text-[9px] text-slate-400 hover:text-slate-200 transition-all select-none cursor-pointer"
+                      className="px-2 py-1 bg-slate-900/60 border border-slate-850 hover:border-slate-700 rounded-lg text-[9px] text-slate-400 hover:text-slate-200 transition-all select-none cursor-pointer dark:border-slate-700"
                     >
                       {p.length > 40 ? p.substring(0, 40) + "..." : p}
                     </button>
@@ -1550,7 +1550,7 @@ function PluginsPage() {
               </div>
 
               {/* Node graph builder visual representation */}
-              <div className="relative py-10 bg-slate-950 border border-slate-850 rounded-xl px-4 flex flex-col md:flex-row items-center justify-center gap-6 md:gap-4 overflow-x-auto min-h-[220px]">
+              <div className="relative py-10 bg-slate-950 border border-slate-850 rounded-xl px-4 flex flex-col md:flex-row items-center justify-center gap-6 md:gap-4 overflow-x-auto min-h-[220px] dark:bg-slate-900 dark:border-slate-700">
                 {automationSteps.length === 0 ? (
                   <div className="text-center text-xs text-slate-500">
                     No steps in workflow. Add plugins below to configure your automation path.
@@ -1564,8 +1564,8 @@ function PluginsPage() {
                     return (
                       <div key={stepId} className="flex flex-col md:flex-row items-center shrink-0">
                         {/* Node block */}
-                        <div className="bg-slate-900 border border-slate-800 rounded-xl p-3 w-40 flex items-center gap-2 shadow-[0_4px_20px_rgba(0,0,0,0.3)] relative group hover:border-purple-500/40 transition-all duration-200">
-                          <div className="h-7 w-7 rounded bg-slate-950 border border-slate-850 flex items-center justify-center shrink-0">
+                        <div className="bg-slate-900 border border-slate-800 rounded-xl p-3 w-40 flex items-center gap-2 shadow-[0_4px_20px_rgba(0,0,0,0.3)] relative group hover:border-purple-500/40 transition-all duration-200 dark:bg-slate-900 dark:border-slate-700">
+                          <div className="h-7 w-7 rounded bg-slate-950 border border-slate-850 flex items-center justify-center shrink-0 dark:bg-slate-900 dark:border-slate-700">
                             <Icon size={12} />
                           </div>
                           <div className="min-w-0 flex-1">
@@ -1576,7 +1576,7 @@ function PluginsPage() {
                           {/* Remove node button */}
                           <button
                             onClick={() => setAutomationSteps((prev) => prev.filter((_, i) => i !== idx))}
-                            className="absolute -top-1.5 -right-1.5 h-4 w-4 bg-red-600 hover:bg-red-700 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-[8px] font-bold border border-slate-950"
+                            className="absolute -top-1.5 -right-1.5 h-4 w-4 bg-red-600 hover:bg-red-700 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-[8px] font-bold border border-slate-950 dark:border-slate-700"
                             title="Remove from flow"
                           >
                             ✕
@@ -1607,7 +1607,7 @@ function PluginsPage() {
                     }
                     e.target.value = "";
                   }}
-                  className="bg-slate-950 border border-slate-850 rounded-lg px-2.5 py-1.5 text-xs text-slate-300 focus:outline-none focus:ring-1 focus:ring-purple-500"
+                  className="bg-slate-950 border border-slate-850 rounded-lg px-2.5 py-1.5 text-xs text-slate-300 focus:outline-none focus:ring-1 focus:ring-purple-500 dark:bg-slate-900 dark:border-slate-700"
                 >
                   <option value="">+ Add Automation Step</option>
                   {installedPluginIds
@@ -1620,7 +1620,7 @@ function PluginsPage() {
                 
                 <button
                   onClick={() => setAutomationSteps(["whatsapp", "crm", "ai-voice", "google-workspace"])}
-                  className="px-2.5 py-1.5 text-xs font-semibold text-slate-400 hover:text-white bg-slate-950 border border-slate-800 rounded-lg transition-colors"
+                  className="px-2.5 py-1.5 text-xs font-semibold text-slate-400 hover:text-white bg-slate-950 border border-slate-800 rounded-lg transition-colors dark:bg-slate-900 dark:border-slate-700"
                 >
                   Reset Flow
                 </button>
@@ -1641,8 +1641,8 @@ function PluginsPage() {
 
               {/* Dynamic Automation Output Logs */}
               {(flowLogs.length > 0 || isFlowRunning) && (
-                <div className="mt-4 border border-slate-850 bg-slate-950 rounded-xl p-4 font-mono text-[10px] space-y-2 max-h-[220px] overflow-y-auto shadow-inner relative">
-                  <div className="sticky top-0 right-0 flex items-center justify-between pb-2 bg-slate-950 border-b border-slate-900/60 text-slate-400 select-none">
+                <div className="mt-4 border border-slate-850 bg-slate-950 rounded-xl p-4 font-mono text-[10px] space-y-2 max-h-[220px] overflow-y-auto shadow-inner relative dark:border-slate-700 dark:bg-slate-900">
+                  <div className="sticky top-0 right-0 flex items-center justify-between pb-2 bg-slate-950 border-b border-slate-900/60 text-slate-400 select-none dark:bg-slate-900">
                     <span className="flex items-center gap-1 text-[8px] uppercase tracking-wider font-bold">
                       <span className="h-1.5 w-1.5 rounded-full bg-purple-500 animate-ping" />
                       Live Autopilot Trigger Log
@@ -1684,14 +1684,14 @@ function PluginsPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
                   <button
                     onClick={() => setAutomationSteps(["whatsapp", "crm", "ai-voice", "google-workspace"])}
-                    className="p-3 bg-slate-950 border border-slate-850 hover:border-purple-500/20 text-left rounded-xl hover:bg-slate-950/80 transition-all text-slate-300"
+                    className="p-3 bg-slate-950 border border-slate-850 hover:border-purple-500/20 text-left rounded-xl hover:bg-slate-950/80 transition-all text-slate-300 dark:bg-slate-900 dark:border-slate-700"
                   >
                     <span className="font-bold text-slate-200 block">WhatsApp Inbound Lead Automation</span>
                     <span className="text-slate-500 text-[10px] mt-0.5 block">New Whatsapp lead → Add to CRM → Outbound calling agents followup → Email calendar confirmations.</span>
                   </button>
                   <button
                     onClick={() => setAutomationSteps(["hospital-management", "whatsapp", "accounting", "google-workspace"])}
-                    className="p-3 bg-slate-950 border border-slate-850 hover:border-purple-500/20 text-left rounded-xl hover:bg-slate-950/80 transition-all text-slate-300"
+                    className="p-3 bg-slate-950 border border-slate-850 hover:border-purple-500/20 text-left rounded-xl hover:bg-slate-950/80 transition-all text-slate-300 dark:bg-slate-900 dark:border-slate-700"
                   >
                     <span className="font-bold text-slate-200 block">Healthcare Patient Checkout Automation</span>
                     <span className="text-slate-500 text-[10px] mt-0.5 block">New record in Hospital hub → Generate invoice in Accounting → Send invoice on Whatsapp.</span>
@@ -1713,7 +1713,7 @@ function PluginsPage() {
       {activeTab === "developer" && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* SDK & Documentation */}
-          <div className="lg:col-span-2 bg-slate-900/60 border border-slate-800 rounded-2xl p-6 shadow-md relative overflow-hidden backdrop-blur-md space-y-6">
+          <div className="lg:col-span-2 bg-slate-900/60 border border-slate-800 rounded-2xl p-6 shadow-md relative overflow-hidden backdrop-blur-md space-y-6 dark:border-slate-700">
             <div className="space-y-2">
               <span className="text-purple-400 text-xs font-semibold uppercase tracking-wider block">SDK & Developer Ecosystem</span>
               <h3 className="text-xl font-bold text-white">Build for Saadhyam Platform</h3>
@@ -1723,39 +1723,39 @@ function PluginsPage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-slate-950 border border-slate-850 rounded-xl p-4 space-y-2">
+              <div className="bg-slate-950 border border-slate-850 rounded-xl p-4 space-y-2 dark:bg-slate-900 dark:border-slate-700">
                 <Code className="text-purple-400 mb-1" size={20} />
                 <h4 className="text-xs font-bold text-white">Saadhyam SDK v1.0</h4>
                 <p className="text-slate-500 text-[11px]">
                   Fully typed Typescript and Python client packages facilitating integration, authentication, and layout rendering within our grid systems.
                 </p>
-                <Button className="w-full bg-slate-900 border border-slate-850 hover:bg-slate-800 text-xs text-slate-300 py-1.5 rounded-lg mt-2">
+                <Button className="w-full bg-slate-900 border border-slate-850 hover:bg-slate-800 text-xs text-slate-300 py-1.5 rounded-lg mt-2 dark:bg-slate-900 dark:border-slate-700">
                   Download SDK
                 </Button>
               </div>
 
-              <div className="bg-slate-950 border border-slate-850 rounded-xl p-4 space-y-2">
+              <div className="bg-slate-950 border border-slate-850 rounded-xl p-4 space-y-2 dark:bg-slate-900 dark:border-slate-700">
                 <Database className="text-purple-400 mb-1" size={20} />
                 <h4 className="text-xs font-bold text-white">Developer API Keys</h4>
                 <p className="text-slate-500 text-[11px]">
                   Generate secret public API keys to call CRM contacts, messaging channels, and calendar endpoints directly from your code.
                 </p>
-                <Button onClick={generateDevKey} className="w-full bg-slate-900 border border-slate-850 hover:bg-slate-800 text-xs text-slate-300 py-1.5 rounded-lg mt-2">
+                <Button onClick={generateDevKey} className="w-full bg-slate-900 border border-slate-850 hover:bg-slate-800 text-xs text-slate-300 py-1.5 rounded-lg mt-2 dark:bg-slate-900 dark:border-slate-700">
                   Generate Key
                 </Button>
               </div>
             </div>
 
             {devApiKey && (
-              <div className="p-3.5 bg-slate-950 border border-slate-800 rounded-xl space-y-1">
+              <div className="p-3.5 bg-slate-950 border border-slate-800 rounded-xl space-y-1 dark:bg-slate-900 dark:border-slate-700">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-purple-400 block">Your API Key:</span>
-                <code className="text-xs text-slate-200 block select-all break-all bg-black/40 p-2 rounded border border-slate-900 font-mono">{devApiKey}</code>
+                <code className="text-xs text-slate-200 block select-all break-all bg-black/40 p-2 rounded border border-slate-900 font-mono dark:border-slate-700">{devApiKey}</code>
               </div>
             )}
 
             <div className="pt-2 space-y-3">
               <h4 className="text-xs font-bold text-white uppercase tracking-wider">Revenue Sharing Model</h4>
-              <div className="bg-slate-950 border border-slate-850 rounded-xl p-4 flex items-center justify-between">
+              <div className="bg-slate-950 border border-slate-850 rounded-xl p-4 flex items-center justify-between dark:bg-slate-900 dark:border-slate-700">
                 <div>
                   <span className="text-xl font-extrabold text-white">80% / 20%</span>
                   <span className="text-slate-500 text-xs block mt-1">Developers keep 80% of subscription revenue generated by installed plugins.</span>
@@ -1768,7 +1768,7 @@ function PluginsPage() {
           </div>
 
           {/* Validation checklist */}
-          <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 shadow-md relative overflow-hidden backdrop-blur-md flex flex-col justify-between">
+          <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 shadow-md relative overflow-hidden backdrop-blur-md flex flex-col justify-between dark:border-slate-700">
             <div className="space-y-4">
               <span className="text-purple-400 text-xs font-semibold uppercase tracking-wider block">Verification Guidelines</span>
               <h3 className="text-lg font-bold text-white">Submit Your Plugin</h3>
@@ -1803,7 +1803,7 @@ function PluginsPage() {
       )}
 
       {/* Roadmap Timeline */}
-      <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 shadow-md relative overflow-hidden backdrop-blur-md space-y-6">
+      <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 shadow-md relative overflow-hidden backdrop-blur-md space-y-6 dark:border-slate-700">
         <div>
           <span className="text-purple-400 text-xs font-semibold uppercase tracking-wider block">Vision & Expansion Roadmap</span>
           <h3 className="text-xl font-bold text-white">Saadhyam Plugins Evolution</h3>
@@ -1816,7 +1816,7 @@ function PluginsPage() {
             { phase: "Phase 3 (Enterprise)", title: "Vertical Industry SaaS Modules", desc: "Deploy full clinic management portals, school class schedules, and automated medical followup remap tracks.", status: "Q3 2026" },
             { phase: "Phase 4 (Global Expansion)", title: "Cross-Plugin Automation API", desc: "Release developer API SDKs and enable global payment processing loops for regional builders.", status: "Q4 2026" },
           ].map((item, idx) => (
-            <div key={idx} className="bg-slate-950 border border-slate-850 rounded-xl p-4 relative flex flex-col justify-between min-h-[140px] hover:border-purple-500/20 transition-colors">
+            <div key={idx} className="bg-slate-950 border border-slate-850 rounded-xl p-4 relative flex flex-col justify-between min-h-[140px] hover:border-purple-500/20 transition-colors dark:bg-slate-900 dark:border-slate-700">
               <div>
                 <span className="text-[10px] font-bold text-purple-400 uppercase tracking-wider block">{item.phase}</span>
                 <h4 className="text-xs font-bold text-slate-200 mt-1">{item.title}</h4>
@@ -1852,13 +1852,13 @@ function PluginsPage() {
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 220 }}
-              className="fixed top-0 right-0 h-full w-full md:w-[600px] bg-slate-900 border-l border-slate-800 z-[60] shadow-[0_0_50px_rgba(0,0,0,0.8)] overflow-y-auto"
+              className="fixed top-0 right-0 h-full w-full md:w-[600px] bg-slate-900 border-l border-slate-800 z-[60] shadow-[0_0_50px_rgba(0,0,0,0.8)] overflow-y-auto dark:bg-slate-900 dark:border-slate-700"
             >
               <div className="p-6 md:p-8 space-y-6">
                 {/* Header */}
-                <div className="flex items-start justify-between border-b border-slate-800 pb-5">
+                <div className="flex items-start justify-between border-b border-slate-800 pb-5 dark:border-slate-700">
                   <div className="flex items-center gap-3">
-                    <div className="h-12 w-12 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-center">
+                    <div className="h-12 w-12 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-center dark:bg-slate-900 dark:border-slate-700">
                       <Puzzle size={22} className="text-purple-400" />
                     </div>
                     <div>
@@ -1868,7 +1868,7 @@ function PluginsPage() {
                   </div>
                   <button
                     onClick={() => setSelectedPlugin(null)}
-                    className="text-slate-400 hover:text-white px-3 py-1.5 border border-slate-800 rounded-lg text-xs"
+                    className="text-slate-400 hover:text-white px-3 py-1.5 border border-slate-800 rounded-lg text-xs dark:border-slate-700"
                   >
                     Close
                   </button>
@@ -1903,7 +1903,7 @@ function PluginsPage() {
                     <span className="text-[10px] font-bold text-purple-400 uppercase tracking-wider block">D. Core Features</span>
                     <div className="grid grid-cols-2 gap-2 mt-1.5 text-xs">
                       {selectedPlugin.coreFeatures.map((feat, i) => (
-                        <div key={i} className="flex items-center gap-1.5 text-slate-300 bg-slate-950 p-2 rounded-lg border border-slate-850">
+                        <div key={i} className="flex items-center gap-1.5 text-slate-300 bg-slate-950 p-2 rounded-lg border border-slate-850 dark:bg-slate-900 dark:border-slate-700">
                           <Check size={12} className="text-purple-400 shrink-0" />
                           <span className="truncate">{feat}</span>
                         </div>
@@ -1916,7 +1916,7 @@ function PluginsPage() {
                     <span className="text-[10px] font-bold text-purple-400 uppercase tracking-wider block">E. AI Features</span>
                     <div className="space-y-2 mt-1.5">
                       {selectedPlugin.aiFeatures.map((aifeat, i) => (
-                        <div key={i} className="text-xs text-slate-300 bg-slate-950 p-2.5 rounded-lg border border-slate-850 flex items-start gap-2">
+                        <div key={i} className="text-xs text-slate-300 bg-slate-950 p-2.5 rounded-lg border border-slate-850 flex items-start gap-2 dark:bg-slate-900 dark:border-slate-700">
                           <Sparkles size={12} className="text-purple-400 mt-0.5 shrink-0" />
                           <span>{aifeat}</span>
                         </div>
@@ -1929,7 +1929,7 @@ function PluginsPage() {
                     <span className="text-[10px] font-bold text-purple-400 uppercase tracking-wider block">F. Required APIs</span>
                     <div className="flex flex-wrap gap-1.5 mt-1.5">
                       {selectedPlugin.requiredApis.map((api, i) => (
-                        <span key={i} className="px-2 py-1 bg-slate-950 border border-slate-800 text-[10px] font-semibold text-slate-400 rounded-md">
+                        <span key={i} className="px-2 py-1 bg-slate-950 border border-slate-800 text-[10px] font-semibold text-slate-400 rounded-md dark:bg-slate-900 dark:border-slate-700">
                           {api}
                         </span>
                       ))}
@@ -1939,7 +1939,7 @@ function PluginsPage() {
                   {/* G. Database Structure */}
                   <div>
                     <span className="text-[10px] font-bold text-purple-400 uppercase tracking-wider block">G. Database Structure (Schema)</span>
-                    <pre className="text-[10px] text-slate-300 bg-black/40 border border-slate-950 rounded-xl p-3.5 font-mono overflow-x-auto mt-1.5 select-all">
+                    <pre className="text-[10px] text-slate-300 bg-black/40 border border-slate-950 rounded-xl p-3.5 font-mono overflow-x-auto mt-1.5 select-all dark:border-slate-700">
                       {selectedPlugin.dbStructure}
                     </pre>
                   </div>

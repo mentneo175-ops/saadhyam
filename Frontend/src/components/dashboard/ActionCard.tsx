@@ -24,7 +24,7 @@ const renderMarkdown = (text: string) => {
     if (part.startsWith('**') && part.endsWith('**')) {
       // Remove ** and render as bold
       const boldText = part.slice(2, -2);
-      return <strong key={idx} className="font-bold text-gray-900">{boldText}</strong>;
+      return <strong key={idx} className="font-bold text-gray-900 dark:text-slate-100">{boldText}</strong>;
     }
     return <span key={idx}>{part}</span>;
   });
@@ -51,7 +51,7 @@ export function ActionCard({ icon: Icon, title, desc, impact, bg, iconColor }: A
             {impact} impact
           </span>
         </div>
-        <p className="font-bold text-sm mb-2 text-gray-900 group-hover:text-purple-900 transition-colors">
+        <p className="font-bold text-sm mb-2 text-gray-900 group-hover:text-purple-900 transition-colors dark:text-slate-100">
           {renderMarkdown(title)}
         </p>
         <p className="text-xs text-gray-600 leading-relaxed">{desc}</p>

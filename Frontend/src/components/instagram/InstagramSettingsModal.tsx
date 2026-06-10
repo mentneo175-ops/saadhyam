@@ -365,7 +365,7 @@ export const InstagramSettingsModal: React.FC<InstagramSettingsModalProps> = ({
                           type="time"
                           value={postingPreferences.preferred_posting_time}
                           onChange={(e) => updatePostingPreferences("preferred_posting_time", e.target.value)}
-                          className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-slate-700"
                         />
                       </div>
                       <div>
@@ -374,7 +374,7 @@ export const InstagramSettingsModal: React.FC<InstagramSettingsModalProps> = ({
                           id="posting-frequency"
                           value={postingPreferences.posting_frequency}
                           onChange={(e) => updatePostingPreferences("posting_frequency", e.target.value)}
-                          className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-slate-700"
                         >
                           <option value="daily">Daily</option>
                           <option value="weekly">Weekly</option>
@@ -390,7 +390,7 @@ export const InstagramSettingsModal: React.FC<InstagramSettingsModalProps> = ({
                           id="weekly-day"
                           value={postingPreferences.weekly_day}
                           onChange={(e) => updatePostingPreferences("weekly_day", e.target.value)}
-                          className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-slate-700"
                         >
                           <option value="monday">Monday</option>
                           <option value="tuesday">Tuesday</option>

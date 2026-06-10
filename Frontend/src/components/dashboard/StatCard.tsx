@@ -26,7 +26,7 @@ export function StatCard({ label, value, icon: Icon, gradient, delta, deltaUp }:
         </p>
 
         {/* Value */}
-        <p className="text-2xl font-bold text-gray-900 leading-none mb-2">{value}</p>
+        <p className="text-2xl font-bold text-gray-900 leading-none mb-2 dark:text-slate-100">{value}</p>
 
         {/* Delta */}
         {delta && (

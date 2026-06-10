@@ -59,7 +59,7 @@ function InsightListPanel({
       animate="show"
       transition={{ delay }}
       whileHover={{ y: -3 }}
-      className="group relative overflow-hidden rounded-3xl border border-slate-800 bg-gradient-to-b from-slate-900/60 to-slate-950/40 p-7 shadow-[0_4px_30px_rgba(0,0,0,0.4)] backdrop-blur-md transition-shadow duration-300 hover:border-purple-500/30 hover:shadow-[0_20px_48px_-24px_rgba(0,0,0,0.5)] md:p-8"
+      className="group relative overflow-hidden rounded-3xl border border-slate-800 bg-gradient-to-b from-slate-900/60 to-slate-950/40 p-7 shadow-[0_4px_30px_rgba(0,0,0,0.4)] backdrop-blur-md transition-shadow duration-300 hover:border-purple-500/30 hover:shadow-[0_20px_48px_-24px_rgba(0,0,0,0.5)] md:p-8 dark:border-slate-700"
     >
       <div
         aria-hidden
@@ -114,7 +114,7 @@ function MarketInsightBlock({
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, duration: 0.42 }}
       whileHover={{ y: -1 }}
-      className="rounded-2xl border border-slate-800 bg-gradient-to-br from-slate-950/80 to-purple-500/[0.02] p-5 shadow-sm backdrop-blur-md transition-shadow hover:border-purple-500/20 hover:shadow-glow"
+      className="rounded-2xl border border-slate-800 bg-gradient-to-br from-slate-950/80 to-purple-500/[0.02] p-5 shadow-sm backdrop-blur-md transition-shadow hover:border-purple-500/20 hover:shadow-glow dark:border-slate-700"
     >
       <h4 className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-200">
         <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-purple-500/10 text-purple-400">
@@ -179,7 +179,7 @@ export function InsightPanels({
           animate="show"
           transition={{ delay: 0.18 }}
           whileHover={{ y: -2 }}
-          className="group relative overflow-hidden rounded-3xl border border-slate-800 bg-gradient-to-b from-slate-900/60 to-slate-950/40 p-7 shadow-[0_4px_30px_rgba(0,0,0,0.4)] backdrop-blur-md transition-shadow duration-300 hover:border-purple-500/30 hover:shadow-[0_20px_48px_-24px_rgba(0,0,0,0.5)] md:p-8 lg:col-span-2"
+          className="group relative overflow-hidden rounded-3xl border border-slate-800 bg-gradient-to-b from-slate-900/60 to-slate-950/40 p-7 shadow-[0_4px_30px_rgba(0,0,0,0.4)] backdrop-blur-md transition-shadow duration-300 hover:border-purple-500/30 hover:shadow-[0_20px_48px_-24px_rgba(0,0,0,0.5)] md:p-8 lg:col-span-2 dark:border-slate-700"
         >
           <div
             aria-hidden

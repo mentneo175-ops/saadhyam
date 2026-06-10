@@ -159,7 +159,7 @@ function ReviewReplyPage() {
   };
 
   return (
-    <div className="min-h-full bg-white p-4 md:p-6 lg:p-8">
+    <div className="min-h-full bg-white p-4 md:p-6 lg:p-8 dark:bg-slate-900">
       {/* Page Header */}
       <div className="mb-8">
         <div className="flex items-center justify-between">
@@ -168,7 +168,7 @@ function ReviewReplyPage() {
               <div className="p-2.5 bg-gradient-to-br from-[#8B5CF6] to-[#A855F7] rounded-xl shadow-lg shadow-[#8B5CF6]/30">
                 <MessageSquare size={18} className="text-white" />
               </div>
-              <h1 className="text-2xl font-bold text-gray-900">Review Reply AI</h1>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-slate-100">Review Reply AI</h1>
             </div>
             <p className="text-sm text-gray-500 ml-[52px]">Generate professional replies to Google reviews instantly</p>
           </div>
@@ -184,20 +184,20 @@ function ReviewReplyPage() {
 
       <div className="grid lg:grid-cols-2 gap-6 mb-6">
         {/* Input Panel */}
-        <div className="bg-white rounded-2xl border border-gray-200/60 shadow-lg shadow-gray-100/50 p-6 space-y-5">
-          <div className="flex items-center gap-3 pb-4 border-b border-gray-100">
+        <div className="bg-white rounded-2xl border border-gray-200/60 shadow-lg shadow-gray-100/50 p-6 space-y-5 dark:bg-slate-900">
+          <div className="flex items-center gap-3 pb-4 border-b border-gray-100 dark:border-slate-800">
             <div className="p-2 bg-[#F3EEFF] rounded-xl">
               <Star size={15} className="text-[#8B5CF6]" />
             </div>
             <div>
-              <h3 className="font-semibold text-gray-900 text-sm">Review Details</h3>
+              <h3 className="font-semibold text-gray-900 text-sm dark:text-slate-100">Review Details</h3>
               <p className="text-xs text-gray-500">Configure the review parameters</p>
             </div>
           </div>
 
           {/* Rating */}
           <div>
-            <label className="text-sm font-semibold text-gray-700 mb-2.5 block">Review Rating</label>
+            <label className="text-sm font-semibold text-gray-700 mb-2.5 block dark:text-slate-300">Review Rating</label>
             <div className="flex gap-1.5">
               {[1, 2, 3, 4, 5].map((star) => (
                 <button
@@ -218,11 +218,11 @@ function ReviewReplyPage() {
 
           {/* Business Type */}
           <div>
-            <label className="text-sm font-semibold text-gray-700 mb-2.5 block">Business Type</label>
+            <label className="text-sm font-semibold text-gray-700 mb-2.5 block dark:text-slate-300">Business Type</label>
             <select
               value={businessType}
               onChange={(e) => setBusinessType(e.target.value)}
-              className="w-full rounded-xl border-2 border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-700 focus:border-[#8B5CF6] focus:ring-2 focus:ring-[#8B5CF6]/20 outline-none transition-all"
+              className="w-full rounded-xl border-2 border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-700 focus:border-[#8B5CF6] focus:ring-2 focus:ring-[#8B5CF6]/20 outline-none transition-all dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300"
             >
               {businessTypes.map((type) => (
                 <option key={type} value={type}>{type}</option>
@@ -232,7 +232,7 @@ function ReviewReplyPage() {
 
           {/* Tone */}
           <div>
-            <label className="text-sm font-semibold text-gray-700 mb-2.5 block">Reply Tone</label>
+            <label className="text-sm font-semibold text-gray-700 mb-2.5 block dark:text-slate-300">Reply Tone</label>
             <div className="flex gap-2 flex-wrap">
               {tones.map((t) => (
                 <button
@@ -252,13 +252,13 @@ function ReviewReplyPage() {
 
           {/* Review Text */}
           <div>
-            <label className="text-sm font-semibold text-gray-700 mb-2.5 block">Customer Review</label>
+            <label className="text-sm font-semibold text-gray-700 mb-2.5 block dark:text-slate-300">Customer Review</label>
             <textarea
               value={reviewText}
               onChange={(e) => setReviewText(e.target.value)}
               rows={5}
               placeholder="Paste the customer's review here..."
-              className="w-full rounded-xl border-2 border-gray-200 bg-white p-3 text-sm text-gray-700 focus:border-[#8B5CF6] focus:ring-2 focus:ring-[#8B5CF6]/20 outline-none resize-none transition-all placeholder:text-gray-400"
+              className="w-full rounded-xl border-2 border-gray-200 bg-white p-3 text-sm text-gray-700 focus:border-[#8B5CF6] focus:ring-2 focus:ring-[#8B5CF6]/20 outline-none resize-none transition-all placeholder:text-gray-400 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300"
             />
           </div>
 
@@ -282,14 +282,14 @@ function ReviewReplyPage() {
         </div>
 
         {/* Output Panel */}
-        <div className="bg-white rounded-2xl border border-gray-200/60 shadow-lg shadow-gray-100/50 p-6 flex flex-col">
-          <div className="flex items-center justify-between pb-4 border-b border-gray-100 mb-5">
+        <div className="bg-white rounded-2xl border border-gray-200/60 shadow-lg shadow-gray-100/50 p-6 flex flex-col dark:bg-slate-900">
+          <div className="flex items-center justify-between pb-4 border-b border-gray-100 mb-5 dark:border-slate-800">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-[#F3EEFF] rounded-xl">
                 <Sparkles size={15} className="text-[#8B5CF6]" />
               </div>
               <div>
-                <h3 className="font-semibold text-gray-900 text-sm">AI Generated Reply</h3>
+                <h3 className="font-semibold text-gray-900 text-sm dark:text-slate-100">AI Generated Reply</h3>
                 <p className="text-xs text-gray-500">Ready to copy & use</p>
               </div>
             </div>
@@ -302,10 +302,10 @@ function ReviewReplyPage() {
 
           <div className="flex-1 rounded-xl bg-gradient-to-br from-[#F8F7FC] to-[#F3F1F9] border border-gray-200/60 p-5 mb-5 min-h-64">
             {generatedReply ? (
-              <p className="text-sm leading-relaxed text-gray-700 whitespace-pre-line">{generatedReply}</p>
+              <p className="text-sm leading-relaxed text-gray-700 whitespace-pre-line dark:text-slate-300">{generatedReply}</p>
             ) : (
               <div className="h-full flex flex-col items-center justify-center text-center gap-3">
-                <div className="w-14 h-14 rounded-2xl bg-white border border-gray-200 flex items-center justify-center shadow-sm">
+                <div className="w-14 h-14 rounded-2xl bg-white border border-gray-200 flex items-center justify-center shadow-sm dark:bg-slate-900 dark:border-slate-800">
                   <MessageSquare size={22} className="text-gray-300" />
                 </div>
                 <p className="text-sm text-gray-400 font-medium">Your reply will appear here</p>
@@ -318,14 +318,14 @@ function ReviewReplyPage() {
             <button
               onClick={handleCopyReply}
               disabled={!generatedReply}
-              className="flex-1 h-10 flex items-center justify-center gap-2 rounded-xl border-2 border-gray-200 text-gray-600 text-sm font-medium hover:border-[#8B5CF6] hover:text-[#8B5CF6] hover:bg-[#F9F7FF] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+              className="flex-1 h-10 flex items-center justify-center gap-2 rounded-xl border-2 border-gray-200 text-gray-600 text-sm font-medium hover:border-[#8B5CF6] hover:text-[#8B5CF6] hover:bg-[#F9F7FF] transition-all disabled:opacity-40 disabled:cursor-not-allowed dark:border-slate-800"
             >
               {copied ? <><CheckCircle size={14} className="text-emerald-600" /><span className="text-emerald-600">Copied!</span></> : <><Copy size={14} /> Copy Reply</>}
             </button>
             <button
               onClick={handleRegenerate}
               disabled={!generatedReply || isGenerating}
-              className="flex-1 h-10 flex items-center justify-center gap-2 rounded-xl border-2 border-gray-200 text-gray-600 text-sm font-medium hover:border-[#8B5CF6] hover:text-[#8B5CF6] hover:bg-[#F9F7FF] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+              className="flex-1 h-10 flex items-center justify-center gap-2 rounded-xl border-2 border-gray-200 text-gray-600 text-sm font-medium hover:border-[#8B5CF6] hover:text-[#8B5CF6] hover:bg-[#F9F7FF] transition-all disabled:opacity-40 disabled:cursor-not-allowed dark:border-slate-800"
             >
               <RefreshCcw size={14} className={isGenerating ? "animate-spin" : ""} /> Regenerate
             </button>
@@ -334,13 +334,13 @@ function ReviewReplyPage() {
       </div>
 
       {/* Recent Replies History */}
-      <div className="bg-white rounded-2xl border border-gray-200/60 shadow-lg shadow-gray-100/50 p-6 mb-6">
-        <div className="flex items-center gap-3 pb-4 border-b border-gray-100 mb-5">
+      <div className="bg-white rounded-2xl border border-gray-200/60 shadow-lg shadow-gray-100/50 p-6 mb-6 dark:bg-slate-900">
+        <div className="flex items-center gap-3 pb-4 border-b border-gray-100 mb-5 dark:border-slate-800">
           <div className="p-2 bg-[#F3EEFF] rounded-xl">
             <Clock size={15} className="text-[#8B5CF6]" />
           </div>
           <div>
-            <h3 className="font-semibold text-gray-900 text-sm">Recent Replies {history.length > 0 ? `(${history.length})` : ""}</h3>
+            <h3 className="font-semibold text-gray-900 text-sm dark:text-slate-100">Recent Replies {history.length > 0 ? `(${history.length})` : ""}</h3>
             <p className="text-xs text-gray-500">Click to reload a previous reply</p>
           </div>
         </div>
@@ -363,7 +363,7 @@ function ReviewReplyPage() {
                       <span className="text-xs text-gray-500">{item.tone}</span>
                       <span className="text-xs text-yellow-500">{"★".repeat(item.rating)}</span>
                     </div>
-                    <p className="text-sm text-gray-700 line-clamp-2">{item.review}</p>
+                    <p className="text-sm text-gray-700 line-clamp-2 dark:text-slate-300">{item.review}</p>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
                     <button
@@ -381,8 +381,8 @@ function ReviewReplyPage() {
             ))}
           </div>
         ) : (
-          <div className="rounded-xl border-2 border-dashed border-gray-200 p-8 text-center">
-            <div className="w-12 h-12 rounded-xl bg-gray-50 flex items-center justify-center mx-auto mb-3">
+          <div className="rounded-xl border-2 border-dashed border-gray-200 p-8 text-center dark:border-slate-800">
+            <div className="w-12 h-12 rounded-xl bg-gray-50 flex items-center justify-center mx-auto mb-3 dark:bg-slate-900">
               <MessageSquare size={20} className="text-gray-300" />
             </div>
             <p className="text-sm font-medium text-gray-500">No saved replies yet</p>
@@ -392,13 +392,13 @@ function ReviewReplyPage() {
       </div>
 
       {/* Quick Templates */}
-      <div className="bg-white rounded-2xl border border-gray-200/60 shadow-lg shadow-gray-100/50 p-6">
-        <div className="flex items-center gap-3 pb-4 border-b border-gray-100 mb-5">
+      <div className="bg-white rounded-2xl border border-gray-200/60 shadow-lg shadow-gray-100/50 p-6 dark:bg-slate-900">
+        <div className="flex items-center gap-3 pb-4 border-b border-gray-100 mb-5 dark:border-slate-800">
           <div className="p-2 bg-[#F3EEFF] rounded-xl">
             <Sparkles size={15} className="text-[#8B5CF6]" />
           </div>
           <div>
-            <h3 className="font-semibold text-gray-900 text-sm">Quick Reply Templates</h3>
+            <h3 className="font-semibold text-gray-900 text-sm dark:text-slate-100">Quick Reply Templates</h3>
             <p className="text-xs text-gray-500">Example responses for common scenarios</p>
           </div>
         </div>

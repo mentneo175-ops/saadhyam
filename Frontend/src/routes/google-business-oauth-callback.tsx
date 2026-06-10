@@ -47,7 +47,7 @@ function GoogleBusinessOAuthCallback() {
   }, []);
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-900 text-white">
+    <div className="flex items-center justify-center min-h-screen bg-gray-900 text-white dark:bg-slate-900">
       <div className="text-center p-6 bg-gray-800/50 border border-gray-700/50 rounded-2xl backdrop-blur-md">
         <Loader className="w-12 h-12 animate-spin text-purple-500 mx-auto mb-4" />
         <h2 className="text-xl font-semibold text-white mb-2">Connecting Google Business...</h2>

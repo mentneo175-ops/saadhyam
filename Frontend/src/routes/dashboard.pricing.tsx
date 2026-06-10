@@ -102,7 +102,7 @@ function CurrentPlanSummary({ plans }: { plans: Plan[] }) {
             <Button
               variant="outline"
               size="sm"
-              className="border-white/20 bg-white text-purple-700 hover:bg-white/90"
+              className="border-white/20 bg-white text-purple-700 hover:bg-white/90 dark:bg-slate-900"
               onClick={() => navigate({ to: "/dashboard/checkout", search: { plan: nextPlan.key, upgrade_from: currentKey } })}
             >
               Upgrade to {nextPlan.name}
@@ -335,8 +335,8 @@ function PricingPlansPage() {
             </div>
           </div>
 
-          <div className="mt-4 rounded-xl bg-gradient-to-r from-purple-50 via-fuchsia-50 to-pink-50 p-4 text-sm text-gray-700">
-            <p className="font-semibold text-gray-900">Recommended mapping</p>
+          <div className="mt-4 rounded-xl bg-gradient-to-r from-purple-50 via-fuchsia-50 to-pink-50 p-4 text-sm text-gray-700 dark:text-slate-300">
+            <p className="font-semibold text-gray-900 dark:text-slate-100">Recommended mapping</p>
             <p className="mt-1">
               <span className="font-medium">₹2,999</span> for starter access, <span className="font-medium">₹9,999</span> for small businesses,
               <span className="font-medium">₹14,999</span> for colleges and education, and <span className="font-medium">₹24,999</span> for medium businesses.

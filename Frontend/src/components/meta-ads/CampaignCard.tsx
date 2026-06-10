@@ -77,7 +77,7 @@ export function CampaignCard({ campaign, onUpdate, onViewDetails }: CampaignCard
           {/* Header */}
           <div className="flex items-start justify-between">
             <div className="flex-1">
-              <h3 className="font-semibold text-lg text-gray-900 group-hover:text-purple-600 transition-colors line-clamp-1">
+              <h3 className="font-semibold text-lg text-gray-900 group-hover:text-purple-600 transition-colors line-clamp-1 dark:text-slate-100">
                 {campaign.name}
               </h3>
               <div className="flex items-center gap-2 mt-1">

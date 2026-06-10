@@ -331,7 +331,7 @@ function CompetitorIntelligencePage() {
               <p className="text-[9px] font-bold text-zinc-600 uppercase tracking-widest px-1 mb-1.5">Live Scraping Terminal</p>
               <div className="h-36 bg-[#060a0f] rounded-xl p-3 border border-white/5 font-mono text-[10px] space-y-1 overflow-y-auto">
                 {consoleLogs.map((log, i) => (
-                  <div key={i} className={`border-l-2 pl-2 ${i === 0 ? "text-violet-300 border-violet-500 font-bold" : "text-zinc-700 border-zinc-900"}`}>
+                  <div key={i} className={`border-l-2 pl-2 ${i === 0 ? "text-violet-300 border-violet-500 font-bold" : "text-zinc-700 border-zinc-900"} dark:border-slate-700`}>
                     {log}
                   </div>
                 ))}

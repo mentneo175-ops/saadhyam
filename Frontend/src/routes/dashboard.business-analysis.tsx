@@ -56,7 +56,7 @@ export const Route = createFileRoute("/dashboard/business-analysis")({
   errorComponent: ({ error, reset }) => (
     <div className="p-6">
       <div className="text-center py-12">
-        <h2 className="text-xl font-semibold text-gray-900 mb-2">Unable to load Business Analysis</h2>
+        <h2 className="text-xl font-semibold text-gray-900 mb-2 dark:text-slate-100">Unable to load Business Analysis</h2>
         <p className="text-gray-600 mb-4">{error.message}</p>
         <Button onClick={reset}>Try Again</Button>
       </div>
@@ -75,7 +75,7 @@ export const Route = createFileRoute("/dashboard/business-analysis")({
 
 function PageShell({ children }: { children: ReactNode }) {
   return (
-    <div className="relative w-full min-h-screen overflow-hidden bg-slate-950 text-slate-100 p-4 md:p-6 lg:p-8">
+    <div className="relative w-full min-h-screen overflow-hidden bg-slate-950 text-slate-100 p-4 md:p-6 lg:p-8 dark:bg-slate-900">
       {/* Layered premium backdrop */}
       <div
         aria-hidden
@@ -320,12 +320,12 @@ function BusinessAnalysisPage() {
 
   if (!analysis && status?.status === "not_started") {
     return (
-      <div className="p-4 md:p-6 bg-slate-950 text-slate-100 min-h-screen space-y-6">
+      <div className="p-4 md:p-6 bg-slate-950 text-slate-100 min-h-screen space-y-6 dark:bg-slate-900">
         <PageHeader
           title="Business Analysis"
           subtitle="AI-powered insights for your business"
         />
-        <div className="flex flex-col items-center justify-center py-20 max-w-2xl mx-auto bg-slate-900/60 border border-slate-800 rounded-2xl p-8 text-center shadow-[0_0_50px_rgba(168,85,247,0.15)] relative overflow-hidden backdrop-blur-md">
+        <div className="flex flex-col items-center justify-center py-20 max-w-2xl mx-auto bg-slate-900/60 border border-slate-800 rounded-2xl p-8 text-center shadow-[0_0_50px_rgba(168,85,247,0.15)] relative overflow-hidden backdrop-blur-md dark:border-slate-700">
           <div className="h-20 w-20 rounded-full bg-purple-500/10 border border-purple-500/30 flex items-center justify-center mb-6 shadow-[0_0_30px_rgba(168,85,247,0.2)]">
             <Sparkles size={40} className="text-purple-400 animate-pulse" />
           </div>
@@ -378,7 +378,7 @@ function BusinessAnalysisPage() {
           )}
 
           {/* Quick Actions Panel */}
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 shadow-[0_4px_30px_rgba(0,0,0,0.4)] backdrop-blur-md relative overflow-hidden">
+          <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 shadow-[0_4px_30px_rgba(0,0,0,0.4)] backdrop-blur-md relative overflow-hidden dark:border-slate-700">
             <div className="absolute top-0 right-0 h-32 w-32 bg-purple-500/5 rounded-full blur-2xl pointer-events-none" />
             <div className="space-y-4">
               <div className="flex items-center gap-2">
@@ -411,7 +411,7 @@ function BusinessAnalysisPage() {
                 size="default"
                 onClick={handleDownloadPDF}
                 disabled={!analysis}
-                className="w-full gap-2 justify-center py-2 h-9 text-xs border-slate-800 hover:bg-slate-900 text-slate-300"
+                className="w-full gap-2 justify-center py-2 h-9 text-xs border-slate-800 hover:bg-slate-900 text-slate-300 dark:border-slate-700"
               >
                 <Download size={14} /> Download PDF
               </Button>
@@ -420,7 +420,7 @@ function BusinessAnalysisPage() {
 
           {/* Cooldown Timer Status */}
           {!regenerateCooldown.canExecute && (
-            <div className="rounded-2xl border border-slate-800 bg-slate-900/40 p-4 text-[11px] text-slate-400 space-y-1.5">
+            <div className="rounded-2xl border border-slate-800 bg-slate-900/40 p-4 text-[11px] text-slate-400 space-y-1.5 dark:border-slate-700">
               <span className="font-semibold text-purple-400 uppercase tracking-wider block text-[9px]">Cooldown Active</span>
               <p>Next request available in:</p>
               <p className="font-bold text-slate-200">{formatCooldownTime(regenerateCooldown.remainingTime)}</p>
@@ -428,7 +428,7 @@ function BusinessAnalysisPage() {
           )}
           
           {/* Quick Summary / Engine Stats */}
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/40 p-4 text-[11px] text-slate-400 space-y-2">
+          <div className="rounded-2xl border border-slate-800 bg-slate-900/40 p-4 text-[11px] text-slate-400 space-y-2 dark:border-slate-700">
             <div className="flex justify-between">
               <span>Grounding:</span>
               <span className="font-semibold text-slate-350">Google Grounded</span>

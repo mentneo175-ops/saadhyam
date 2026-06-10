@@ -114,10 +114,10 @@ export const ScheduledPostsList: React.FC<ScheduledPostsListProps> = ({
             return (
               <div
                 key={post.id}
-                className="border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow"
+                className="border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow dark:border-slate-800"
               >
                 {/* Image */}
-                <div className="relative w-full pt-[100%] bg-gray-100 overflow-hidden">
+                <div className="relative w-full pt-[100%] bg-gray-100 overflow-hidden dark:bg-slate-800">
                   <img
                     src={post.image_url}
                     alt="Post"
@@ -135,14 +135,14 @@ export const ScheduledPostsList: React.FC<ScheduledPostsListProps> = ({
                   <div>
                     {isEditing ? (
                       <textarea
-                        className="w-full p-2 border border-gray-300 rounded text-sm resize-none"
+                        className="w-full p-2 border border-gray-300 rounded text-sm resize-none dark:border-slate-700"
                         rows={3}
                         value={editCaption}
                         onChange={(e) => setEditCaption(e.target.value)}
                         disabled={post.status === "posted" || post.status === "failed"}
                       />
                     ) : (
-                      <p className="text-sm text-gray-700 line-clamp-3">
+                      <p className="text-sm text-gray-700 line-clamp-3 dark:text-slate-300">
                         {post.caption || "No caption"}
                       </p>
                     )}

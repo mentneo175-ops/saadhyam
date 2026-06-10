@@ -101,7 +101,7 @@ export function InstagramConnect({ onClose, onSuccess }: InstagramConnectProps) 
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl max-w-md w-full p-6 relative">
+      <div className="bg-white rounded-xl max-w-md w-full p-6 relative dark:bg-slate-900">
         {/* Close Button */}
         <button
           onClick={onClose}
@@ -117,7 +117,7 @@ export function InstagramConnect({ onClose, onSuccess }: InstagramConnectProps) 
               <div className="w-16 h-16 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Instagram className="w-8 h-8 text-white" />
               </div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              <h2 className="text-2xl font-bold text-gray-900 mb-2 dark:text-slate-100">
                 Connect Instagram Business Account
               </h2>
               <p className="text-gray-600">
@@ -129,7 +129,7 @@ export function InstagramConnect({ onClose, onSuccess }: InstagramConnectProps) 
               <div className="flex items-start gap-3">
                 <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
                 <div>
-                  <p className="font-medium text-gray-900">Real-Time Analytics</p>
+                  <p className="font-medium text-gray-900 dark:text-slate-100">Real-Time Analytics</p>
                   <p className="text-sm text-gray-600">Track followers, engagement, reach, and impressions</p>
                 </div>
               </div>
@@ -137,7 +137,7 @@ export function InstagramConnect({ onClose, onSuccess }: InstagramConnectProps) 
               <div className="flex items-start gap-3">
                 <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
                 <div>
-                  <p className="font-medium text-gray-900">AI Recommendations</p>
+                  <p className="font-medium text-gray-900 dark:text-slate-100">AI Recommendations</p>
                   <p className="text-sm text-gray-600">Get smart suggestions to optimize your content</p>
                 </div>
               </div>
@@ -145,7 +145,7 @@ export function InstagramConnect({ onClose, onSuccess }: InstagramConnectProps) 
               <div className="flex items-start gap-3">
                 <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
                 <div>
-                  <p className="font-medium text-gray-900">Growth Predictions</p>
+                  <p className="font-medium text-gray-900 dark:text-slate-100">Growth Predictions</p>
                   <p className="text-sm text-gray-600">Forecast your account's future performance</p>
                 </div>
               </div>
@@ -153,7 +153,7 @@ export function InstagramConnect({ onClose, onSuccess }: InstagramConnectProps) 
               <div className="flex items-start gap-3">
                 <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
                 <div>
-                  <p className="font-medium text-gray-900">Post Performance</p>
+                  <p className="font-medium text-gray-900 dark:text-slate-100">Post Performance</p>
                   <p className="text-sm text-gray-600">Detailed analytics for every post, reel, and story</p>
                 </div>
               </div>
@@ -178,7 +178,7 @@ export function InstagramConnect({ onClose, onSuccess }: InstagramConnectProps) 
         {step === 'connecting' && (
           <div className="text-center py-8">
             <Loader className="w-12 h-12 animate-spin text-purple-600 mx-auto mb-4" />
-            <h3 className="text-xl font-bold text-gray-900 mb-2">Connecting...</h3>
+            <h3 className="text-xl font-bold text-gray-900 mb-2 dark:text-slate-100">Connecting...</h3>
             <p className="text-gray-600">
               Please complete the authorization in the popup window
             </p>
@@ -191,7 +191,7 @@ export function InstagramConnect({ onClose, onSuccess }: InstagramConnectProps) 
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <CheckCircle className="w-8 h-8 text-green-600" />
             </div>
-            <h3 className="text-xl font-bold text-gray-900 mb-2">Successfully Connected!</h3>
+            <h3 className="text-xl font-bold text-gray-900 mb-2 dark:text-slate-100">Successfully Connected!</h3>
             <p className="text-gray-600">
               Your Instagram account has been connected. Fetching analytics...
             </p>
@@ -205,7 +205,7 @@ export function InstagramConnect({ onClose, onSuccess }: InstagramConnectProps) 
               <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <AlertCircle className="w-8 h-8 text-red-600" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">Connection Failed</h3>
+              <h3 className="text-xl font-bold text-gray-900 mb-2 dark:text-slate-100">Connection Failed</h3>
               <p className="text-gray-600">{error}</p>
             </div>
 
@@ -218,7 +218,7 @@ export function InstagramConnect({ onClose, onSuccess }: InstagramConnectProps) 
               </button>
               <button
                 onClick={onClose}
-                className="flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg font-medium hover:bg-gray-300 transition-colors"
+                className="flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg font-medium hover:bg-gray-300 transition-colors dark:bg-slate-700 dark:text-slate-300"
               >
                 Cancel
               </button>

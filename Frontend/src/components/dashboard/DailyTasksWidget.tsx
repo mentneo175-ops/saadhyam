@@ -223,7 +223,7 @@ export function DailyTasksWidget() {
           <span>Today's Progress</span>
           <span>100%</span>
         </div>
-        <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+        <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden dark:bg-slate-700">
           <div className="bg-green-600 h-full rounded-full" style={{ width: "100%" }} />
         </div>
       </div>
@@ -239,7 +239,7 @@ export function DailyTasksWidget() {
           <span>Today's Progress ({completedCount}/{tasks.length})</span>
           <span className="font-semibold text-blue-900">{earnedPoints}/{totalPoints} pts</span>
         </div>
-        <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+        <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden dark:bg-slate-700">
           <div
             className="bg-blue-900 h-full rounded-full transition-all duration-500"
             style={{ width: `${progressPercentage}%` }}
@@ -251,7 +251,7 @@ export function DailyTasksWidget() {
       {currentTask && (
         <div
           onClick={() => toggleTask(currentTask.id, currentTask.is_completed)}
-          className="flex items-start gap-3 p-3 rounded-lg border-2 bg-white border-gray-200 hover:border-blue-300 hover:bg-blue-50 cursor-pointer transition-all mb-3"
+          className="flex items-start gap-3 p-3 rounded-lg border-2 bg-white border-gray-200 hover:border-blue-300 hover:bg-blue-50 cursor-pointer transition-all mb-3 dark:bg-slate-900 dark:border-slate-800"
         >
           <div className="shrink-0 mt-0.5">
             {completing === currentTask.id ? (
@@ -264,7 +264,7 @@ export function DailyTasksWidget() {
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between gap-2 mb-1">
-              <p className="text-sm font-medium leading-tight text-gray-900">
+              <p className="text-sm font-medium leading-tight text-gray-900 dark:text-slate-100">
                 {currentTask.title}
               </p>
               <span className="text-xs font-semibold text-blue-900 shrink-0">

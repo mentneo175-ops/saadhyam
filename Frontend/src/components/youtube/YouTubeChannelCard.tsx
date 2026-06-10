@@ -42,7 +42,7 @@ export function YouTubeChannelCard({ channel, onDisconnect, onRefresh }: YouTube
   };
 
   return (
-    <Card className="border border-purple-100/80 shadow-xs overflow-hidden bg-white">
+    <Card className="border border-purple-100/80 shadow-xs overflow-hidden bg-white dark:bg-slate-900">
       {/* Banner gradient */}
       <div className="h-20 bg-gradient-to-r from-[#5D2F8F] via-[#7C3AED] to-[#A855F7] relative" />
 
@@ -52,7 +52,7 @@ export function YouTubeChannelCard({ channel, onDisconnect, onRefresh }: YouTube
           <img
             src={channel.thumbnail_url}
             alt={channel.channel_title}
-            className="w-18 h-18 rounded-full border-4 border-white shadow-md bg-white object-cover shrink-0 select-none"
+            className="w-18 h-18 rounded-full border-4 border-white shadow-md bg-white object-cover shrink-0 select-none dark:bg-slate-900"
             onError={() => setImageFailed(true)}
           />
         ) : (
@@ -62,7 +62,7 @@ export function YouTubeChannelCard({ channel, onDisconnect, onRefresh }: YouTube
         )}
 
         <div className="mt-3 w-full">
-          <h3 className="font-bold text-base text-slate-800 truncate px-2" title={channel.channel_title}>
+          <h3 className="font-bold text-base text-slate-800 truncate px-2 dark:text-slate-300" title={channel.channel_title}>
             {channel.channel_title}
           </h3>
           
@@ -79,18 +79,18 @@ export function YouTubeChannelCard({ channel, onDisconnect, onRefresh }: YouTube
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-3 gap-2 w-full py-4 border-t border-b border-slate-100 my-4 text-center">
+        <div className="grid grid-cols-3 gap-2 w-full py-4 border-t border-b border-slate-100 my-4 text-center dark:border-slate-800">
           <div>
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Subs</p>
-            <p className="text-sm font-extrabold text-slate-700 mt-0.5">{formatCount(channel.subscriber_count)}</p>
+            <p className="text-sm font-extrabold text-slate-700 mt-0.5 dark:text-slate-300">{formatCount(channel.subscriber_count)}</p>
           </div>
           <div>
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Views</p>
-            <p className="text-sm font-extrabold text-slate-700 mt-0.5">{formatCount(channel.view_count)}</p>
+            <p className="text-sm font-extrabold text-slate-700 mt-0.5 dark:text-slate-300">{formatCount(channel.view_count)}</p>
           </div>
           <div>
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Videos</p>
-            <p className="text-sm font-extrabold text-slate-700 mt-0.5">{formatCount(channel.video_count)}</p>
+            <p className="text-sm font-extrabold text-slate-700 mt-0.5 dark:text-slate-300">{formatCount(channel.video_count)}</p>
           </div>
         </div>
 

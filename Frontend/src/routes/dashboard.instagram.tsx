@@ -985,7 +985,7 @@ function InstagramPage() {
             {/* Scheduled Time - Professional Date/Time Picker */}
             {isScheduled && (
               <div className="space-y-3 p-4 rounded-lg bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200">
-                <Label className="text-base font-semibold text-gray-700">Schedule Post</Label>
+                <Label className="text-base font-semibold text-gray-700 dark:text-slate-300">Schedule Post</Label>
                 
                 {/* Date Picker */}
                 <div className="space-y-2">
@@ -995,7 +995,7 @@ function InstagramPage() {
                     value={scheduledDate}
                     onChange={(e) => setScheduledDate(e.target.value)}
                     min={getMinDate()}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:border-slate-700"
                   />
                 </div>
 
@@ -1005,7 +1005,7 @@ function InstagramPage() {
                   <div className="flex gap-2 items-center">
                     {/* Hour */}
                     <div className="flex-1">
-                      <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden">
+                      <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden dark:border-slate-700">
                         <button
                           type="button"
                           onClick={() => {
@@ -1048,7 +1048,7 @@ function InstagramPage() {
 
                     {/* Minute */}
                     <div className="flex-1">
-                      <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden">
+                      <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden dark:border-slate-700">
                         <button
                           type="button"
                           onClick={() => {
@@ -1091,7 +1091,7 @@ function InstagramPage() {
 
                 {/* Display Preview */}
                 {scheduledDate && (
-                  <div className="mt-3 p-3 bg-white rounded-lg border border-blue-200">
+                  <div className="mt-3 p-3 bg-white rounded-lg border border-blue-200 dark:bg-slate-900">
                     <p className="text-sm text-gray-600">
                       <Clock size={14} className="inline mr-2" />
                       <span className="font-semibold">{formatTimeDisplay()}</span>

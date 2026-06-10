@@ -78,7 +78,7 @@ export function MetaConnectionWizard({ onSuccess }: MetaConnectionWizardProps) {
             <div className="w-16 h-16 mx-auto bg-green-100 rounded-full flex items-center justify-center">
               <CheckCircle className="w-8 h-8 text-green-600" />
             </div>
-            <h2 className="text-2xl font-bold text-gray-900">Already Connected!</h2>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-slate-100">Already Connected!</h2>
             <p className="text-gray-600">Your Meta Ads account is already connected.</p>
             <Button onClick={onSuccess} className="w-full">
               Continue to Dashboard
@@ -118,7 +118,7 @@ export function MetaConnectionWizard({ onSuccess }: MetaConnectionWizardProps) {
                   </svg>
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900">AI-Powered Targeting</h3>
+                  <h3 className="font-semibold text-gray-900 dark:text-slate-100">AI-Powered Targeting</h3>
                   <p className="text-sm text-gray-600">Smart audience recommendations</p>
                 </div>
               </div>
@@ -132,7 +132,7 @@ export function MetaConnectionWizard({ onSuccess }: MetaConnectionWizardProps) {
                   </svg>
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900">Smart Budgeting</h3>
+                  <h3 className="font-semibold text-gray-900 dark:text-slate-100">Smart Budgeting</h3>
                   <p className="text-sm text-gray-600">AI budget optimization</p>
                 </div>
               </div>
@@ -146,7 +146,7 @@ export function MetaConnectionWizard({ onSuccess }: MetaConnectionWizardProps) {
                   </svg>
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900">Real-time Analytics</h3>
+                  <h3 className="font-semibold text-gray-900 dark:text-slate-100">Real-time Analytics</h3>
                   <p className="text-sm text-gray-600">Track performance live</p>
                 </div>
               </div>
@@ -160,7 +160,7 @@ export function MetaConnectionWizard({ onSuccess }: MetaConnectionWizardProps) {
                   </svg>
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900">One-Click Promotion</h3>
+                  <h3 className="font-semibold text-gray-900 dark:text-slate-100">One-Click Promotion</h3>
                   <p className="text-sm text-gray-600">Promote posts instantly</p>
                 </div>
               </div>
@@ -169,7 +169,7 @@ export function MetaConnectionWizard({ onSuccess }: MetaConnectionWizardProps) {
 
           {/* Requirements */}
           <div className="p-4 rounded-xl bg-blue-50 border border-blue-200">
-            <h3 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
+            <h3 className="font-semibold text-gray-900 mb-2 flex items-center gap-2 dark:text-slate-100">
               <AlertCircle className="w-5 h-5 text-blue-600" />
               Requirements
             </h3>

@@ -260,7 +260,7 @@ export default function PartnershipWizard({ onComplete, isLoading }: WizardProps
             </span>
             <span className="text-sm font-medium text-purple-600">{Math.round(progress)}%</span>
           </div>
-          <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+          <div className="h-2 bg-gray-200 rounded-full overflow-hidden dark:bg-slate-700">
             <motion.div
               className="h-full bg-gradient-to-r from-purple-500 to-pink-500"
               initial={{ width: 0 }}
@@ -271,7 +271,7 @@ export default function PartnershipWizard({ onComplete, isLoading }: WizardProps
         </div>
 
         {/* Main Card */}
-        <div className="bg-white rounded-3xl shadow-2xl border border-gray-200 p-8 md:p-12 relative overflow-hidden">
+        <div className="bg-white rounded-3xl shadow-2xl border border-gray-200 p-8 md:p-12 relative overflow-hidden dark:bg-slate-900 dark:border-slate-800">
           {/* Background Decoration */}
           <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-purple-100 to-pink-100 rounded-full blur-3xl opacity-30 -z-10" />
 
@@ -293,7 +293,7 @@ export default function PartnershipWizard({ onComplete, isLoading }: WizardProps
               </div>
 
               {/* Title */}
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 text-center mb-3">
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 text-center mb-3 dark:text-slate-100">
                 {currentStepData.title}
               </h2>
               <p className="text-gray-600 text-center mb-8">{currentStepData.subtitle}</p>
@@ -317,7 +317,7 @@ export default function PartnershipWizard({ onComplete, isLoading }: WizardProps
                     onKeyPress={handleKeyPress}
                     placeholder={currentStepData.placeholder}
                     autoFocus
-                    className="w-full px-6 py-4 text-lg rounded-2xl border-2 border-gray-200 focus:border-purple-500 focus:ring-4 focus:ring-purple-100 transition-all outline-none"
+                    className="w-full px-6 py-4 text-lg rounded-2xl border-2 border-gray-200 focus:border-purple-500 focus:ring-4 focus:ring-purple-100 transition-all outline-none dark:border-slate-800"
                   />
                 )}
 
@@ -328,7 +328,7 @@ export default function PartnershipWizard({ onComplete, isLoading }: WizardProps
                     placeholder={currentStepData.placeholder}
                     autoFocus
                     rows={4}
-                    className="w-full px-6 py-4 text-lg rounded-2xl border-2 border-gray-200 focus:border-purple-500 focus:ring-4 focus:ring-purple-100 transition-all outline-none resize-none"
+                    className="w-full px-6 py-4 text-lg rounded-2xl border-2 border-gray-200 focus:border-purple-500 focus:ring-4 focus:ring-purple-100 transition-all outline-none resize-none dark:border-slate-800"
                   />
                 )}
 
@@ -357,7 +357,7 @@ export default function PartnershipWizard({ onComplete, isLoading }: WizardProps
                   <button
                     onClick={handleBack}
                     disabled={isLoading}
-                    className="flex-1 px-6 py-4 rounded-2xl border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-all font-semibold text-gray-700 flex items-center justify-center gap-2 disabled:opacity-50"
+                    className="flex-1 px-6 py-4 rounded-2xl border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-all font-semibold text-gray-700 flex items-center justify-center gap-2 disabled:opacity-50 dark:border-slate-800 dark:text-slate-300"
                   >
                     <ArrowLeft className="w-5 h-5" />
                     Back
@@ -406,7 +406,7 @@ export default function PartnershipWizard({ onComplete, isLoading }: WizardProps
           ].map((item, index) => (
             <div
               key={index}
-              className="flex items-center gap-2 justify-center text-sm text-gray-600 bg-white rounded-xl px-4 py-3 shadow-sm border border-gray-100"
+              className="flex items-center gap-2 justify-center text-sm text-gray-600 bg-white rounded-xl px-4 py-3 shadow-sm border border-gray-100 dark:bg-slate-900 dark:border-slate-800"
             >
               <item.icon className="w-4 h-4 text-purple-600" />
               <span className="font-medium">{item.text}</span>

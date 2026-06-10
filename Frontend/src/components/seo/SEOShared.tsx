@@ -97,7 +97,7 @@ export function SEOTabSwitcher({
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.05 }}
-      className="inline-flex flex-wrap gap-1 rounded-2xl border border-slate-800 bg-slate-950/60 p-1 shadow-[0_4px_30px_rgba(0,0,0,0.3)] backdrop-blur-md"
+      className="inline-flex flex-wrap gap-1 rounded-2xl border border-slate-800 bg-slate-950/60 p-1 shadow-[0_4px_30px_rgba(0,0,0,0.3)] backdrop-blur-md dark:border-slate-700"
     >
       {tabs.map((tab) => {
         const Icon = tab.icon;
@@ -115,7 +115,7 @@ export function SEOTabSwitcher({
             {isActive && (
               <motion.span
                 layoutId="seo-tab-pill"
-                className="absolute inset-0 rounded-xl bg-slate-900 border border-slate-800"
+                className="absolute inset-0 rounded-xl bg-slate-900 border border-slate-800 dark:bg-slate-900 dark:border-slate-700"
                 transition={{ type: "spring", stiffness: 380, damping: 32 }}
               />
             )}
@@ -214,7 +214,7 @@ export function MetricCard({
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, duration: 0.3 }}
       whileHover={{ y: -3 }}
-      className="group rounded-2xl border border-slate-800 bg-slate-900/60 p-4 shadow-[0_4px_30px_rgba(0,0,0,0.4)] backdrop-blur-md transition-all hover:border-slate-700 md:p-5"
+      className="group rounded-2xl border border-slate-800 bg-slate-900/60 p-4 shadow-[0_4px_30px_rgba(0,0,0,0.4)] backdrop-blur-md transition-all hover:border-slate-700 md:p-5 dark:border-slate-700"
     >
       <motion.div
         initial={{ opacity: 0, y: 12 }}
@@ -308,7 +308,7 @@ export function QuickActionsGrid({
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: delay + idx * 0.06 }}
             whileHover={{ y: -4 }}
-            className="group rounded-2xl border border-slate-800 bg-slate-900/60 p-5 shadow-[0_4px_30px_rgba(0,0,0,0.4)] backdrop-blur-md transition-all hover:border-purple-500/30 hover:shadow-[0_8px_30px_rgba(168,85,247,0.04)]"
+            className="group rounded-2xl border border-slate-800 bg-slate-900/60 p-5 shadow-[0_4px_30px_rgba(0,0,0,0.4)] backdrop-blur-md transition-all hover:border-purple-500/30 hover:shadow-[0_8px_30px_rgba(168,85,247,0.04)] dark:border-slate-700"
           >
             <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-purple-600 to-indigo-600 shadow-[0_4px_20px_rgba(168,85,247,0.25)] transition-transform group-hover:scale-105">
               <item.icon className="h-5 w-5 text-white" />
@@ -338,7 +338,7 @@ export function ProTipsBanner({ delay = 0.4 }: { delay?: number }) {
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay }}
-      className="overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/40 p-5 md:p-6"
+      className="overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/40 p-5 md:p-6 dark:border-slate-700"
     >
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
         <motion.div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-purple-600 to-indigo-600 shadow-[0_4px_20px_rgba(168,85,247,0.25)]">
@@ -370,7 +370,7 @@ export function EmptyInsightsState({ message }: { message?: string }) {
     <motion.div
       initial={{ opacity: 0, scale: 0.98 }}
       animate={{ opacity: 1, scale: 1 }}
-      className="flex flex-col items-center rounded-2xl border border-dashed border-slate-800 bg-slate-900/20 px-6 py-14 text-center"
+      className="flex flex-col items-center rounded-2xl border border-dashed border-slate-800 bg-slate-900/20 px-6 py-14 text-center dark:border-slate-700"
     >
       <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-purple-500/10">
         <Search className="h-7 w-7 text-purple-400" />
@@ -480,7 +480,7 @@ export function AnalyzeBusinessForm({
             value={businessType}
             onChange={(e) => onBusinessTypeChange(e.target.value)}
             placeholder="E.g., Dental Clinic, Salon, Restaurant"
-            className="h-11 rounded-xl border-slate-800 bg-slate-950 text-white placeholder-slate-600 focus:ring-1 focus:ring-purple-500 focus:border-transparent"
+            className="h-11 rounded-xl border-slate-800 bg-slate-950 text-white placeholder-slate-600 focus:ring-1 focus:ring-purple-500 focus:border-transparent dark:border-slate-700 dark:bg-slate-900"
           />
         </motion.div>
         <motion.div
@@ -497,7 +497,7 @@ export function AnalyzeBusinessForm({
             value={location}
             onChange={(e) => onLocationChange(e.target.value)}
             placeholder="E.g., Hyderabad, Banjara Hills"
-            className="h-11 rounded-xl border-slate-800 bg-slate-950 text-white placeholder-slate-600 focus:ring-1 focus:ring-purple-500 focus:border-transparent"
+            className="h-11 rounded-xl border-slate-800 bg-slate-950 text-white placeholder-slate-600 focus:ring-1 focus:ring-purple-500 focus:border-transparent dark:border-slate-700 dark:bg-slate-900"
           />
         </motion.div>
       </div>

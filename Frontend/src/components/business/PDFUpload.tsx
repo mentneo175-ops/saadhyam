@@ -110,7 +110,7 @@ export function PDFUpload({ onTextExtracted, disabled }: PDFUploadProps) {
           </div>
           
           <div className="flex-1 min-w-0">
-            <h3 className="text-base font-semibold text-gray-900 mb-0.5">
+            <h3 className="text-base font-semibold text-gray-900 mb-0.5 dark:text-slate-100">
               {uploading ? "Processing..." : uploadStatus === "success" ? "PDF Uploaded!" : "Upload PDF or Brochure"}
             </h3>
             <p className="text-sm text-gray-500 truncate">

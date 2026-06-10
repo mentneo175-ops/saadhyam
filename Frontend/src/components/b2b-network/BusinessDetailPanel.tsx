@@ -211,7 +211,7 @@ export function BusinessDetailPanel({
                 )}
               </div>
               <div>
-                <h2 className="text-xl font-bold text-gray-900 mb-1">
+                <h2 className="text-xl font-bold text-gray-900 mb-1 dark:text-slate-100">
                   {business.name}
                 </h2>
                 <p className="text-sm text-muted-foreground">{business.category}</p>
@@ -246,9 +246,9 @@ export function BusinessDetailPanel({
               </div>
             )}
             {business.source === "external" && (
-              <div className="px-3 py-1 rounded-full bg-gray-100 border border-gray-200 flex items-center gap-2">
+              <div className="px-3 py-1 rounded-full bg-gray-100 border border-gray-200 flex items-center gap-2 dark:bg-slate-800 dark:border-slate-800">
                 <MapPin className="w-3 h-3 text-gray-600" />
-                <span className="text-xs font-medium text-gray-700">
+                <span className="text-xs font-medium text-gray-700 dark:text-slate-300">
                   External
                 </span>
               </div>
@@ -258,11 +258,11 @@ export function BusinessDetailPanel({
           {/* Description */}
           {business.description && (
             <div className="mb-6">
-              <h3 className="text-sm font-semibold text-gray-900 mb-2">
+              <h3 className="text-sm font-semibold text-gray-900 mb-2 dark:text-slate-100">
                 About
               </h3>
               <div className="relative">
-                <p className="text-sm text-gray-700 leading-relaxed">
+                <p className="text-sm text-gray-700 leading-relaxed dark:text-slate-300">
                   {isDescriptionExpanded 
                     ? business.description 
                     : business.description.length > 200
@@ -297,7 +297,7 @@ export function BusinessDetailPanel({
             {business.employees && (
               <div className="p-4 rounded-xl bg-muted/50 border border-border/60">
                 <Users className="w-5 h-5 text-purple-600 mb-2" />
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-2xl font-bold text-gray-900 dark:text-slate-100">
                   {business.employees}
                 </p>
                 <p className="text-xs text-muted-foreground">Employees</p>
@@ -316,7 +316,7 @@ export function BusinessDetailPanel({
 
           {/* Services */}
           <div className="mb-6">
-            <h3 className="text-sm font-semibold text-gray-900 mb-3">
+            <h3 className="text-sm font-semibold text-gray-900 mb-3 dark:text-slate-100">
               Services
             </h3>
             <div className="flex flex-wrap gap-2">
@@ -333,10 +333,10 @@ export function BusinessDetailPanel({
 
           {/* Location */}
           <div className="mb-6">
-            <h3 className="text-sm font-semibold text-gray-900 mb-2">
+            <h3 className="text-sm font-semibold text-gray-900 mb-2 dark:text-slate-100">
               Location
             </h3>
-            <div className="flex items-center gap-2 text-gray-700 text-sm">
+            <div className="flex items-center gap-2 text-gray-700 text-sm dark:text-slate-300">
               <MapPin className="w-4 h-4 text-purple-600" />
               <span>
                 {business.location.lat.toFixed(4)},{" "}
@@ -348,7 +348,7 @@ export function BusinessDetailPanel({
           {/* Website */}
           {business.website && (
             <div className="mb-6">
-              <h3 className="text-sm font-semibold text-gray-900 mb-2">
+              <h3 className="text-sm font-semibold text-gray-900 mb-2 dark:text-slate-100">
                 Website
               </h3>
               <a

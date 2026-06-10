@@ -66,10 +66,10 @@ export function BusinessAnalysisWidget({ onTasksGenerated }: BusinessAnalysisWid
   };
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-5">
+    <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-5 dark:bg-slate-900 dark:border-slate-800">
       <div className="flex items-start justify-between mb-4">
         <div>
-          <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+          <h3 className="font-semibold text-gray-900 flex items-center gap-2 dark:text-slate-100">
             <Sparkles size={18} className="text-blue-900" />
             AI Business Analysis
           </h3>
@@ -84,7 +84,7 @@ export function BusinessAnalysisWidget({ onTasksGenerated }: BusinessAnalysisWid
           value={businessDescription}
           onChange={(e) => setBusinessDescription(e.target.value)}
           placeholder="E.g., We are a restaurant in downtown area serving Italian cuisine. We have 50 seats, open 6 days a week. We have Instagram and Facebook but post irregularly..."
-          className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-blue-900 focus:ring-2 focus:ring-blue-100 outline-none resize-none min-h-20"
+          className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-blue-900 focus:ring-2 focus:ring-blue-100 outline-none resize-none min-h-20 dark:border-slate-700 dark:bg-slate-900"
         />
 
         {error && (

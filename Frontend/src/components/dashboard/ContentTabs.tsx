@@ -215,10 +215,10 @@ export function ContentTabs() {
   };
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-5">
+    <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-5 dark:bg-slate-900 dark:border-slate-800">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="font-semibold text-gray-900">Ready-to-use content</h3>
+          <h3 className="font-semibold text-gray-900 dark:text-slate-100">Ready-to-use content</h3>
           {businessProfile && (
             <p className="text-[11px] text-gray-600 mt-0.5">
               Personalized for {businessProfile.business_name}
@@ -273,17 +273,17 @@ export function ContentTabs() {
           </button>
         ))}
       </div>
-      <div className="mt-4 rounded-lg bg-gray-50 border border-gray-200 p-4">
-        <p className="text-sm font-semibold text-gray-900 mb-1">{currentContent.title}</p>
+      <div className="mt-4 rounded-lg bg-gray-50 border border-gray-200 p-4 dark:bg-slate-900 dark:border-slate-800">
+        <p className="text-sm font-semibold text-gray-900 mb-1 dark:text-slate-100">{currentContent.title}</p>
         {editMode ? (
           <textarea
             value={editedBody}
             onChange={(e) => setEditedBody(e.target.value)}
-            className="w-full text-sm text-gray-700 leading-relaxed bg-white border border-gray-300 rounded-lg p-2 min-h-[100px] focus:outline-none focus:ring-2 focus:ring-blue-900 focus:border-transparent"
+            className="w-full text-sm text-gray-700 leading-relaxed bg-white border border-gray-300 rounded-lg p-2 min-h-[100px] focus:outline-none focus:ring-2 focus:ring-blue-900 focus:border-transparent dark:text-slate-300 dark:bg-slate-900 dark:border-slate-700"
             placeholder="Edit your content..."
           />
         ) : (
-          <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">
+          <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line dark:text-slate-300">
             {currentContent.body}
           </p>
         )}
@@ -292,14 +292,14 @@ export function ContentTabs() {
       <div className="flex items-center gap-2 mt-3">
         <button
           onClick={copy}
-          className="flex-1 inline-flex items-center justify-center gap-1.5 h-9 rounded-lg text-xs font-semibold border border-gray-300 bg-white hover:bg-gray-50 text-gray-700 transition"
+          className="flex-1 inline-flex items-center justify-center gap-1.5 h-9 rounded-lg text-xs font-semibold border border-gray-300 bg-white hover:bg-gray-50 text-gray-700 transition dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
         >
           {copied ? <Check size={13} /> : <Copy size={13} />}
           {copied ? "Copied" : "Copy"}
         </button>
         <button 
           onClick={handleEdit}
-          className="flex-1 inline-flex items-center justify-center gap-1.5 h-9 rounded-lg text-xs font-semibold border border-gray-300 bg-white hover:bg-gray-50 text-gray-700 transition"
+          className="flex-1 inline-flex items-center justify-center gap-1.5 h-9 rounded-lg text-xs font-semibold border border-gray-300 bg-white hover:bg-gray-50 text-gray-700 transition dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
         >
           <Edit3 size={13} /> 
           {editMode ? "Save" : "Edit"}

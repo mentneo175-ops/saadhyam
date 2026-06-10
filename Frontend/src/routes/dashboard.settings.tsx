@@ -597,7 +597,7 @@ function SettingsPage() {
                 />
               </div>
             </div>
-            <p className="text-gray-700 font-semibold text-lg">Loading settings...</p>
+            <p className="text-gray-700 font-semibold text-lg dark:text-slate-300">Loading settings...</p>
             <p className="text-gray-400 text-sm mt-1">Preparing your preferences</p>
           </div>
         </div>
@@ -610,7 +610,7 @@ function SettingsPage() {
   const renderProfileTab = () => (
     <div className="space-y-6 animate-fadeIn">
       {/* Profile Card */}
-      <div className="bg-white rounded-2xl border border-gray-200/60 shadow-xl shadow-gray-200/40 overflow-hidden hover:shadow-2xl transition-shadow duration-300">
+      <div className="bg-white rounded-2xl border border-gray-200/60 shadow-xl shadow-gray-200/40 overflow-hidden hover:shadow-2xl transition-shadow duration-300 dark:bg-slate-900">
         {/* Gradient Banner */}
         <div className="h-28 bg-gradient-to-r from-purple-600 via-fuchsia-500 to-pink-500 relative overflow-hidden">
           <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PHBhdGggZD0iTTM2IDM0djJIMjR2LTJoMTJ6TTI0IDI0aDEydjJIMjR2LTJ6Ii8+PC9nPjwvZz48L3N2Zz4=')] opacity-40" />
@@ -629,7 +629,7 @@ function SettingsPage() {
                   {settings.full_name ? settings.full_name.charAt(0).toUpperCase() : "U"}
                 </span>
               </div>
-              <button className="absolute -bottom-1 -right-1 p-1.5 bg-white rounded-lg shadow-lg border border-gray-200 hover:bg-gray-50 hover:shadow-xl transition-all duration-200 group-hover:scale-110">
+              <button className="absolute -bottom-1 -right-1 p-1.5 bg-white rounded-lg shadow-lg border border-gray-200 hover:bg-gray-50 hover:shadow-xl transition-all duration-200 group-hover:scale-110 dark:bg-slate-900 dark:border-slate-800">
                 <Camera size={12} className="text-gray-600" />
               </button>
             </div>
@@ -648,7 +648,7 @@ function SettingsPage() {
 
           {/* Name + Email — fully in white area, never overlaps gradient */}
           <div className="mt-4">
-            <h2 className="text-xl font-bold text-gray-900 truncate">
+            <h2 className="text-xl font-bold text-gray-900 truncate dark:text-slate-100">
               {settings.full_name || "Your Name"}
             </h2>
             <p className="text-gray-500 text-sm mt-0.5 truncate">{settings.email}</p>
@@ -657,20 +657,20 @@ function SettingsPage() {
       </div>
 
       {/* Personal Information Form */}
-      <div className="bg-white rounded-2xl border border-gray-200/60 shadow-lg shadow-gray-100/50 overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
+      <div className="bg-white rounded-2xl border border-gray-200/60 shadow-lg shadow-gray-100/50 overflow-hidden dark:bg-slate-900">
+        <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-3 dark:border-slate-800">
           <div className="p-2 bg-purple-100 rounded-xl">
             <User size={16} className="text-purple-600" />
           </div>
           <div>
-            <h3 className="font-semibold text-gray-900">Personal Information</h3>
+            <h3 className="font-semibold text-gray-900 dark:text-slate-100">Personal Information</h3>
             <p className="text-xs text-gray-500">Update your personal details</p>
           </div>
         </div>
         <div className="p-6">
           <div className="grid md:grid-cols-2 gap-5">
             <div className="space-y-2">
-              <Label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+              <Label className="text-sm font-medium text-gray-700 flex items-center gap-2 dark:text-slate-300">
                 <User size={13} className="text-gray-400" />
                 Full name
               </Label>
@@ -678,11 +678,11 @@ function SettingsPage() {
                 value={settings.full_name}
                 onChange={(e) => setSettings({ ...settings, full_name: e.target.value })}
                 placeholder="Your full name"
-                className="h-11 rounded-xl border-gray-200 focus:border-purple-400 focus:ring-purple-100 transition-all"
+                className="h-11 rounded-xl border-gray-200 focus:border-purple-400 focus:ring-purple-100 transition-all dark:border-slate-800"
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+              <Label className="text-sm font-medium text-gray-700 flex items-center gap-2 dark:text-slate-300">
                 <Mail size={13} className="text-gray-400" />
                 Email
               </Label>
@@ -690,12 +690,12 @@ function SettingsPage() {
                 value={settings.email}
                 onChange={(e) => setSettings({ ...settings, email: e.target.value })}
                 placeholder="your@email.com"
-                className="h-11 rounded-xl border-gray-200 focus:border-purple-400 focus:ring-purple-100 transition-all"
+                className="h-11 rounded-xl border-gray-200 focus:border-purple-400 focus:ring-purple-100 transition-all dark:border-slate-800"
                 type="email"
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+              <Label className="text-sm font-medium text-gray-700 flex items-center gap-2 dark:text-slate-300">
                 <Phone size={13} className="text-gray-400" />
                 Phone number
               </Label>
@@ -703,17 +703,17 @@ function SettingsPage() {
                 value={settings.phone}
                 onChange={(e) => setSettings({ ...settings, phone: e.target.value })}
                 placeholder="+91 98765 43210"
-                className="h-11 rounded-xl border-gray-200 focus:border-purple-400 focus:ring-purple-100 transition-all"
+                className="h-11 rounded-xl border-gray-200 focus:border-purple-400 focus:ring-purple-100 transition-all dark:border-slate-800"
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+              <Label className="text-sm font-medium text-gray-700 flex items-center gap-2 dark:text-slate-300">
                 <Globe size={13} className="text-gray-400" />
                 Timezone
               </Label>
               <Input
                 value={settings.timezone}
-                className="h-11 rounded-xl border-gray-200 bg-gray-50 text-gray-500 cursor-not-allowed"
+                className="h-11 rounded-xl border-gray-200 bg-gray-50 text-gray-500 cursor-not-allowed dark:border-slate-800 dark:bg-slate-900"
                 readOnly
               />
             </div>
@@ -722,42 +722,42 @@ function SettingsPage() {
       </div>
 
       {/* Security */}
-      <div className="bg-white rounded-2xl border border-gray-200/60 shadow-lg shadow-gray-100/50 overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
+      <div className="bg-white rounded-2xl border border-gray-200/60 shadow-lg shadow-gray-100/50 overflow-hidden dark:bg-slate-900">
+        <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-3 dark:border-slate-800">
           <div className="p-2 bg-amber-100 rounded-xl">
             <Shield size={16} className="text-amber-600" />
           </div>
           <div>
-            <h3 className="font-semibold text-gray-900">Security</h3>
+            <h3 className="font-semibold text-gray-900 dark:text-slate-100">Security</h3>
             <p className="text-xs text-gray-500">Protect your account</p>
           </div>
         </div>
         <div className="p-6 space-y-4">
-          <div className="flex items-center justify-between p-4 rounded-xl bg-gray-50/80 border border-gray-100">
+          <div className="flex items-center justify-between p-4 rounded-xl bg-gray-50/80 border border-gray-100 dark:border-slate-800">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-white rounded-lg shadow-sm">
+              <div className="p-2 bg-white rounded-lg shadow-sm dark:bg-slate-900">
                 <Lock size={16} className="text-gray-500" />
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-900">Password</p>
+                <p className="text-sm font-medium text-gray-900 dark:text-slate-100">Password</p>
                 <p className="text-xs text-gray-500">Last changed 30 days ago</p>
               </div>
             </div>
             <Button
               variant="outline"
               size="sm"
-              className="rounded-xl border-gray-200 text-gray-700 hover:bg-white"
+              className="rounded-xl border-gray-200 text-gray-700 hover:bg-white dark:border-slate-800 dark:text-slate-300"
             >
               Change
             </Button>
           </div>
-          <div className="flex items-center justify-between p-4 rounded-xl bg-gray-50/80 border border-gray-100">
+          <div className="flex items-center justify-between p-4 rounded-xl bg-gray-50/80 border border-gray-100 dark:border-slate-800">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-white rounded-lg shadow-sm">
+              <div className="p-2 bg-white rounded-lg shadow-sm dark:bg-slate-900">
                 <Shield size={16} className="text-gray-500" />
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-900">Two-Factor Authentication</p>
+                <p className="text-sm font-medium text-gray-900 dark:text-slate-100">Two-Factor Authentication</p>
                 <p className="text-xs text-gray-500">Add an extra layer of security</p>
               </div>
             </div>
@@ -773,21 +773,21 @@ function SettingsPage() {
   const renderBusinessTab = () => (
     <div className="space-y-6 animate-fadeIn">
       {/* Business Details */}
-      <div className="bg-white rounded-2xl border border-gray-200/60 shadow-lg shadow-gray-100/50 overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+      <div className="bg-white rounded-2xl border border-gray-200/60 shadow-lg shadow-gray-100/50 overflow-hidden dark:bg-slate-900">
+        <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between dark:border-slate-800">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-emerald-100 rounded-xl">
               <Building2 size={16} className="text-emerald-600" />
             </div>
             <div>
-              <h3 className="font-semibold text-gray-900">Business Details</h3>
+              <h3 className="font-semibold text-gray-900 dark:text-slate-100">Business Details</h3>
               <p className="text-xs text-gray-500">Your company information</p>
             </div>
           </div>
           <Button
             variant="outline"
             size="sm"
-            className="rounded-xl border-gray-200 text-gray-600 hover:bg-white"
+            className="rounded-xl border-gray-200 text-gray-600 hover:bg-white dark:border-slate-800"
             onClick={() => (window.location.href = "/dashboard/business-details")}
           >
             <ExternalLink size={14} className="mr-1.5" />
@@ -797,7 +797,7 @@ function SettingsPage() {
         <div className="p-6">
           <div className="grid md:grid-cols-2 gap-5">
             <div className="space-y-2">
-              <Label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+              <Label className="text-sm font-medium text-gray-700 flex items-center gap-2 dark:text-slate-300">
                 <Building2 size={13} className="text-gray-400" />
                 Business name
               </Label>
@@ -805,11 +805,11 @@ function SettingsPage() {
                 value={settings.business_name}
                 onChange={(e) => setSettings({ ...settings, business_name: e.target.value })}
                 placeholder="Your business name"
-                className="h-11 rounded-xl border-gray-200 focus:border-purple-400 focus:ring-purple-100 transition-all"
+                className="h-11 rounded-xl border-gray-200 focus:border-purple-400 focus:ring-purple-100 transition-all dark:border-slate-800"
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+              <Label className="text-sm font-medium text-gray-700 flex items-center gap-2 dark:text-slate-300">
                 <ShoppingBag size={13} className="text-gray-400" />
                 Industry
               </Label>
@@ -817,11 +817,11 @@ function SettingsPage() {
                 value={settings.industry}
                 onChange={(e) => setSettings({ ...settings, industry: e.target.value })}
                 placeholder="e.g., Restaurant, Retail, SaaS"
-                className="h-11 rounded-xl border-gray-200 focus:border-purple-400 focus:ring-purple-100 transition-all"
+                className="h-11 rounded-xl border-gray-200 focus:border-purple-400 focus:ring-purple-100 transition-all dark:border-slate-800"
               />
             </div>
             <div className="space-y-2 md:col-span-2">
-              <Label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+              <Label className="text-sm font-medium text-gray-700 flex items-center gap-2 dark:text-slate-300">
                 <MapPin size={13} className="text-gray-400" />
                 Business location
               </Label>
@@ -829,17 +829,17 @@ function SettingsPage() {
                 value={settings.business_location || ""}
                 onChange={(e) => setSettings({ ...settings, business_location: e.target.value })}
                 placeholder="City, State, Country"
-                className="h-11 rounded-xl border-gray-200 focus:border-purple-400 focus:ring-purple-100 transition-all"
+                className="h-11 rounded-xl border-gray-200 focus:border-purple-400 focus:ring-purple-100 transition-all dark:border-slate-800"
               />
             </div>
             <div className="space-y-2 md:col-span-2">
-              <Label className="text-sm font-medium text-gray-700">Business description</Label>
+              <Label className="text-sm font-medium text-gray-700 dark:text-slate-300">Business description</Label>
               <textarea
                 value={settings.description}
                 onChange={(e) => setSettings({ ...settings, description: e.target.value })}
                 placeholder="Describe your business, services, challenges, and goals..."
                 rows={4}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-purple-400 focus:ring-4 focus:ring-purple-50 outline-none transition-all duration-200 bg-white resize-none text-sm leading-relaxed"
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-purple-400 focus:ring-4 focus:ring-purple-50 outline-none transition-all duration-200 bg-white resize-none text-sm leading-relaxed dark:border-slate-800 dark:bg-slate-900"
               />
               <p className="text-xs text-gray-400">
                 {settings.description.length}/5,000 characters
@@ -850,35 +850,35 @@ function SettingsPage() {
       </div>
 
       {/* Branding */}
-      <div className="bg-white rounded-2xl border border-gray-200/60 shadow-lg shadow-gray-100/50 overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
+      <div className="bg-white rounded-2xl border border-gray-200/60 shadow-lg shadow-gray-100/50 overflow-hidden dark:bg-slate-900">
+        <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-3 dark:border-slate-800">
           <div className="p-2 bg-fuchsia-100 rounded-xl">
             <Palette size={16} className="text-fuchsia-600" />
           </div>
           <div>
-            <h3 className="font-semibold text-gray-900">Brand Identity</h3>
+            <h3 className="font-semibold text-gray-900 dark:text-slate-100">Brand Identity</h3>
             <p className="text-xs text-gray-500">Define how your brand communicates</p>
           </div>
         </div>
         <div className="p-6">
           <div className="grid md:grid-cols-2 gap-5">
             <div className="space-y-2">
-              <Label className="text-sm font-medium text-gray-700">Brand voice</Label>
+              <Label className="text-sm font-medium text-gray-700 dark:text-slate-300">Brand voice</Label>
               <Input
                 value={settings.brand_voice}
                 onChange={(e) => setSettings({ ...settings, brand_voice: e.target.value })}
                 placeholder="e.g., Warm, premium, playful"
-                className="h-11 rounded-xl border-gray-200 focus:border-purple-400 focus:ring-purple-100 transition-all"
+                className="h-11 rounded-xl border-gray-200 focus:border-purple-400 focus:ring-purple-100 transition-all dark:border-slate-800"
               />
               <p className="text-xs text-gray-400">Helps AI generate content in your tone</p>
             </div>
             <div className="space-y-2">
-              <Label className="text-sm font-medium text-gray-700">Target audience</Label>
+              <Label className="text-sm font-medium text-gray-700 dark:text-slate-300">Target audience</Label>
               <Input
                 value={settings.target_audience}
                 onChange={(e) => setSettings({ ...settings, target_audience: e.target.value })}
                 placeholder="e.g., Women 25-40, urban India"
-                className="h-11 rounded-xl border-gray-200 focus:border-purple-400 focus:ring-purple-100 transition-all"
+                className="h-11 rounded-xl border-gray-200 focus:border-purple-400 focus:ring-purple-100 transition-all dark:border-slate-800"
               />
               <p className="text-xs text-gray-400">Personalizes recommendations for your market</p>
             </div>
@@ -889,7 +889,7 @@ function SettingsPage() {
       {/* Tip Card */}
       <div className="rounded-2xl bg-gradient-to-r from-purple-50 via-fuchsia-50 to-pink-50 border border-purple-100 p-5">
         <div className="flex items-start gap-4">
-          <div className="p-2.5 bg-white rounded-xl shadow-sm shrink-0">
+          <div className="p-2.5 bg-white rounded-xl shadow-sm shrink-0 dark:bg-slate-900">
             <Sparkles size={18} className="text-purple-600" />
           </div>
           <div>
@@ -918,7 +918,7 @@ function SettingsPage() {
         {integrations.map((integration) => (
           <div
             key={integration.name}
-            className="bg-white rounded-2xl border border-gray-200/60 shadow-lg shadow-gray-100/50 overflow-hidden hover:shadow-xl transition-all duration-300"
+            className="bg-white rounded-2xl border border-gray-200/60 shadow-lg shadow-gray-100/50 overflow-hidden hover:shadow-xl transition-all duration-300 dark:bg-slate-900"
           >
             <div
               className="flex items-center gap-4 p-5 cursor-pointer"
@@ -931,7 +931,7 @@ function SettingsPage() {
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
-                  <p className="font-semibold text-gray-900">{integration.name}</p>
+                  <p className="font-semibold text-gray-900 dark:text-slate-100">{integration.name}</p>
                   <span
                     className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wide ${
                       integration.name === "Instagram" && instagramStatus.is_connected
@@ -967,7 +967,7 @@ function SettingsPage() {
 
             {/* Instagram Settings - Expanded */}
             {integration.name === "Instagram" && expandedIntegration === "Instagram" && (
-              <div className="border-t border-gray-100 p-5 bg-gray-50/50">
+              <div className="border-t border-gray-100 p-5 bg-gray-50/50 dark:border-slate-800">
                 {!instagramStatus.is_connected && !instagramLoading ? (
                   <div className="space-y-4">
                     <div className="p-4 rounded-xl bg-amber-50 border border-amber-200/60">
@@ -995,7 +995,7 @@ function SettingsPage() {
                       <Button
                         size="sm"
                         variant="outline"
-                        className="rounded-xl border-gray-200"
+                        className="rounded-xl border-gray-200 dark:border-slate-800"
                         onClick={handleLoadInstagramData}
                         disabled={instagramLoading}
                       >
@@ -1025,7 +1025,7 @@ function SettingsPage() {
                     </div>
 
                     <div className="space-y-1">
-                      <h4 className="font-semibold text-sm text-gray-900 mb-3">
+                      <h4 className="font-semibold text-sm text-gray-900 mb-3 dark:text-slate-100">
                         Automation Settings
                       </h4>
 
@@ -1071,11 +1071,11 @@ function SettingsPage() {
                           className="flex items-center justify-between p-3.5 rounded-xl hover:bg-white transition-colors"
                         >
                           <div className="flex items-center gap-3">
-                            <div className="p-1.5 bg-white rounded-lg shadow-sm border border-gray-100">
+                            <div className="p-1.5 bg-white rounded-lg shadow-sm border border-gray-100 dark:bg-slate-900 dark:border-slate-800">
                               <item.icon size={14} className="text-gray-500" />
                             </div>
                             <div>
-                              <p className="text-sm font-medium text-gray-900">{item.label}</p>
+                              <p className="text-sm font-medium text-gray-900 dark:text-slate-100">{item.label}</p>
                               <p className="text-xs text-gray-400">{item.desc}</p>
                             </div>
                           </div>
@@ -1237,7 +1237,7 @@ function SettingsPage() {
                 variant="outline"
                 onClick={handleLogout}
                 disabled={logoutLoading}
-                className="rounded-xl border-gray-200 text-gray-600 hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-all duration-200"
+                className="rounded-xl border-gray-200 text-gray-600 hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-all duration-200 dark:border-slate-800"
               >
                 {logoutLoading ? (
                   <Loader2 size={16} className="animate-spin mr-2" />
@@ -1316,7 +1316,7 @@ function SettingsPage() {
                   )}
                 </div>
 
-                <Button className="w-full bg-white text-purple-700 hover:bg-white/90 font-semibold shadow-lg rounded-xl h-10">
+                <Button className="w-full bg-white text-purple-700 hover:bg-white/90 font-semibold shadow-lg rounded-xl h-10 dark:bg-slate-900">
                   <CreditCard size={14} className="mr-2" />
                   Upgrade — ₹999/mo
                 </Button>

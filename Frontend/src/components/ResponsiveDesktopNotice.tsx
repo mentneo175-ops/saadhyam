@@ -48,7 +48,7 @@ export default function ResponsiveDesktopNotice({
         <div className="flex items-center gap-2">
           <button
             onClick={openDesktopPreview}
-            className="inline-flex items-center px-3 py-1.5 bg-white border border-yellow-200 rounded-md text-sm font-semibold text-yellow-800"
+            className="inline-flex items-center px-3 py-1.5 bg-white border border-yellow-200 rounded-md text-sm font-semibold text-yellow-800 dark:bg-slate-900"
           >
             {ctaLabel}
           </button>

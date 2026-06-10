@@ -70,7 +70,7 @@ export const InstagramOAuthCallback = () => {
         {status === "loading" && (
           <div className="text-center">
             <Loader2 className="h-12 w-12 animate-spin text-pink-600 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Connecting Instagram...</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2 dark:text-slate-100">Connecting Instagram...</h2>
             <p className="text-gray-600">Please wait while we authorize your account</p>
           </div>
         )}

@@ -165,7 +165,7 @@ function WhatsAppSalesPage() {
               </div>
 
               <div className="flex-1 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-4 mb-4 border-2 border-green-200 min-h-[250px]">
-                <div className="bg-white rounded-lg p-4 shadow-sm">
+                <div className="bg-white rounded-lg p-4 shadow-sm dark:bg-slate-900">
                   {generatedMessage ? (
                     <p className="text-sm leading-relaxed whitespace-pre-line">
                       {generatedMessage}

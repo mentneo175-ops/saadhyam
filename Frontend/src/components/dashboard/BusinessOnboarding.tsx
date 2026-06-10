@@ -97,7 +97,7 @@ export function BusinessOnboarding({ isOpen, onComplete, onSkip }: BusinessOnboa
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-      <div className="relative w-full max-w-2xl mx-4 bg-white rounded-2xl shadow-2xl overflow-hidden">
+      <div className="relative w-full max-w-2xl mx-4 bg-white rounded-2xl shadow-2xl overflow-hidden dark:bg-slate-900">
         {/* Header */}
         <div className="bg-gradient-to-r from-purple-500 to-pink-500 p-6 text-white">
           <div className="flex items-center justify-between mb-4">
@@ -124,7 +124,7 @@ export function BusinessOnboarding({ isOpen, onComplete, onSkip }: BusinessOnboa
           {/* Progress bar */}
           <div className="h-2 bg-white/20 rounded-full overflow-hidden">
             <div
-              className="h-full bg-white rounded-full transition-all duration-300"
+              className="h-full bg-white rounded-full transition-all duration-300 dark:bg-slate-900"
               style={{ width: `${progress}%` }}
             />
           </div>
@@ -151,7 +151,7 @@ export function BusinessOnboarding({ isOpen, onComplete, onSkip }: BusinessOnboa
                 value={formData.business_name}
                 onChange={(e) => handleInputChange("business_name", e.target.value)}
                 placeholder="e.g., Luxury Spa Resort, Tech Solutions Inc."
-                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-base focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all"
+                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-base focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all dark:border-slate-700 dark:bg-slate-900"
                 autoFocus
               />
             </div>
@@ -175,7 +175,7 @@ export function BusinessOnboarding({ isOpen, onComplete, onSkip }: BusinessOnboa
                 value={formData.business_type}
                 onChange={(e) => handleInputChange("business_type", e.target.value)}
                 placeholder="e.g., Spa & Wellness, Restaurant, Retail Store, Service"
-                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-base focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all"
+                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-base focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all dark:border-slate-700 dark:bg-slate-900"
                 autoFocus
               />
 
@@ -184,7 +184,7 @@ export function BusinessOnboarding({ isOpen, onComplete, onSkip }: BusinessOnboa
                   <button
                     key={type}
                     onClick={() => handleInputChange("business_type", type)}
-                    className="px-3 py-1.5 text-sm rounded-full border border-gray-300 hover:border-purple-500 hover:bg-purple-50 transition-colors"
+                    className="px-3 py-1.5 text-sm rounded-full border border-gray-300 hover:border-purple-500 hover:bg-purple-50 transition-colors dark:border-slate-700"
                   >
                     {type}
                   </button>
@@ -211,7 +211,7 @@ export function BusinessOnboarding({ isOpen, onComplete, onSkip }: BusinessOnboa
                 value={formData.business_location}
                 onChange={(e) => handleInputChange("business_location", e.target.value)}
                 placeholder="e.g., Hyderabad, Banjara Hills or Kakinada, Andhra Pradesh"
-                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-base focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all"
+                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-base focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all dark:border-slate-700 dark:bg-slate-900"
                 autoFocus
               />
             </div>
@@ -236,7 +236,7 @@ export function BusinessOnboarding({ isOpen, onComplete, onSkip }: BusinessOnboa
                 value={formData.business_description}
                 onChange={(e) => handleInputChange("business_description", e.target.value)}
                 placeholder="e.g., We offer premium spa services including massages, facials, and wellness treatments. Our target customers are professionals aged 25-45 looking for relaxation and self-care. We aim to become the top-rated spa in our area."
-                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-base focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all resize-none"
+                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-base focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all resize-none dark:border-slate-700 dark:bg-slate-900"
                 rows={6}
                 autoFocus
               />
@@ -255,7 +255,7 @@ export function BusinessOnboarding({ isOpen, onComplete, onSkip }: BusinessOnboa
           )}
 
           {/* Actions */}
-          <div className="flex items-center justify-between mt-8 pt-6 border-t border-gray-200">
+          <div className="flex items-center justify-between mt-8 pt-6 border-t border-gray-200 dark:border-slate-800">
             <Button
               variant="outline"
               onClick={handleBack}

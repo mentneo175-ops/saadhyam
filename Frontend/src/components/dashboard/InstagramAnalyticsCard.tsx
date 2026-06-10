@@ -149,7 +149,7 @@ export function InstagramAnalyticsCard() {
             <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center shadow-lg shadow-purple-500/30">
               <Instagram className="w-6 h-6 text-white" />
             </div>
-            <h3 className="font-bold text-lg text-gray-900">Instagram Analytics</h3>
+            <h3 className="font-bold text-lg text-gray-900 dark:text-slate-100">Instagram Analytics</h3>
           </div>
           <div className="flex items-center justify-center py-12">
             <div className="relative">
@@ -171,13 +171,13 @@ export function InstagramAnalyticsCard() {
             <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center shadow-lg shadow-purple-500/30 group-hover:shadow-xl group-hover:shadow-purple-500/40 group-hover:scale-110 transition-all duration-300">
               <Instagram className="w-6 h-6 text-white" />
             </div>
-            <h3 className="font-bold text-lg text-gray-900">Instagram Analytics</h3>
+            <h3 className="font-bold text-lg text-gray-900 dark:text-slate-100">Instagram Analytics</h3>
           </div>
           <div className="flex-1 flex flex-col justify-center text-center">
             <div className="w-16 h-16 bg-gradient-to-br from-purple-100 to-pink-100 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
               <Instagram className="w-8 h-8 text-purple-600" />
             </div>
-            <p className="text-sm text-gray-700 font-medium mb-2">Unlock Powerful Analytics</p>
+            <p className="text-sm text-gray-700 font-medium mb-2 dark:text-slate-300">Unlock Powerful Analytics</p>
             <p className="text-xs text-gray-600 mb-6">
               Connect your Instagram to track performance and get AI-powered insights
             </p>
@@ -207,7 +207,7 @@ export function InstagramAnalyticsCard() {
               <Instagram className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h3 className="font-bold text-base text-gray-900">Instagram Analytics</h3>
+              <h3 className="font-bold text-base text-gray-900 dark:text-slate-100">Instagram Analytics</h3>
               <p className="text-xs text-gray-600">@{stats.username}</p>
             </div>
           </div>
@@ -286,21 +286,21 @@ export function InstagramAnalyticsCard() {
               <div className="h-7 w-7 rounded-lg bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center shadow-sm">
                 <ImageIcon className="w-4 h-4 text-white" />
               </div>
-              <span className="text-xs font-bold text-gray-900">Latest Post</span>
+              <span className="text-xs font-bold text-gray-900 dark:text-slate-100">Latest Post</span>
             </div>
-            <p className="text-sm text-gray-700 line-clamp-2 mb-3 leading-relaxed">
+            <p className="text-sm text-gray-700 line-clamp-2 mb-3 leading-relaxed dark:text-slate-300">
               {stats.recent_post.caption || "No caption"}
             </p>
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-1.5">
                 <Heart className="w-4 h-4 text-red-500 fill-red-500" />
-                <span className="text-sm font-bold text-gray-900">
+                <span className="text-sm font-bold text-gray-900 dark:text-slate-100">
                   {stats.recent_post.like_count.toLocaleString()}
                 </span>
               </div>
               <div className="flex items-center gap-1.5">
                 <MessageCircle className="w-4 h-4 text-blue-500 fill-blue-500" />
-                <span className="text-sm font-bold text-gray-900">
+                <span className="text-sm font-bold text-gray-900 dark:text-slate-100">
                   {stats.recent_post.comment_count.toLocaleString()}
                 </span>
               </div>

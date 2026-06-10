@@ -53,7 +53,7 @@ export function SnapshotCard({
         </div>
         <p className="text-xs text-gray-600 font-semibold mb-1">{title}</p>
         <div className="flex items-end justify-between mt-2 mb-3">
-          <p className="text-2xl font-bold tracking-tight text-gray-900">{value}</p>
+          <p className="text-2xl font-bold tracking-tight text-gray-900 dark:text-slate-100">{value}</p>
           <div
             className={`inline-flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded-full ${
               trend === "up" ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"

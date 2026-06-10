@@ -80,7 +80,7 @@ export function HeaderActions({
       <Button
         variant="outline"
         size="lg"
-        className="gap-2.5 rounded-xl border-slate-800 bg-slate-900/60 text-slate-200 px-5 shadow-sm backdrop-blur-md transition-all duration-200 hover:border-purple-500/40 hover:bg-purple-500/10 hover:text-white"
+        className="gap-2.5 rounded-xl border-slate-800 bg-slate-900/60 text-slate-200 px-5 shadow-sm backdrop-blur-md transition-all duration-200 hover:border-purple-500/40 hover:bg-purple-500/10 hover:text-white dark:border-slate-700"
         onClick={onDownload}
       >
         <Download className="h-4.5 w-4.5" />
@@ -193,9 +193,9 @@ export function NotStartedState({ onAnalyze }: { onAnalyze: () => void }) {
     <motion.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      className="flex flex-col items-center rounded-2xl border border-dashed border-slate-800 bg-slate-900/30 px-6 py-20 text-center backdrop-blur-md"
+      className="flex flex-col items-center rounded-2xl border border-dashed border-slate-800 bg-slate-900/30 px-6 py-20 text-center backdrop-blur-md dark:border-slate-700"
     >
-      <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-xl border border-slate-800 bg-slate-950/80">
+      <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-xl border border-slate-800 bg-slate-950/80 dark:border-slate-700">
         <Sparkles className="h-6 w-6 text-purple-400 animate-pulse" />
       </div>
       <h2 className="text-lg font-semibold text-slate-100">Ready to analyze your business?</h2>

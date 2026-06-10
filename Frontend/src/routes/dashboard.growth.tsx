@@ -84,7 +84,7 @@ function GrowthPage() {
         </div>
         <div className="mt-4 h-2 rounded-full bg-white/25 overflow-hidden">
           <div
-            className="h-full bg-white rounded-full transition-all"
+            className="h-full bg-white rounded-full transition-all dark:bg-slate-900"
             style={{ width: `${pct}%` }}
           />
         </div>

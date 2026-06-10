@@ -199,7 +199,7 @@ Sarah Williams,sarah@example.com,+919876543213,2024-05-01,12000,15,5`;
             <Users size={24} className="text-white" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Customer Retention Agent</h1>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-slate-100">Customer Retention Agent</h1>
             <p className="text-gray-600 mt-1">
               Analyze customer behavior, reduce churn, and increase repeat business using AI
             </p>
@@ -209,14 +209,14 @@ Sarah Williams,sarah@example.com,+919876543213,2024-05-01,12000,15,5`;
 
       {/* Upload Section */}
       {!analysis && (
-        <div className="bg-white rounded-2xl border border-gray-200 p-8">
+        <div className="bg-white rounded-2xl border border-gray-200 p-8 dark:bg-slate-900 dark:border-slate-800">
           <div className="max-w-2xl mx-auto space-y-6">
             {/* Instructions */}
             <div className="text-center space-y-2">
               <div className="h-16 w-16 rounded-2xl bg-emerald-100 flex items-center justify-center mx-auto">
                 <Upload size={32} className="text-emerald-600" />
               </div>
-              <h2 className="text-2xl font-bold text-gray-900">Upload Customer Data</h2>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-slate-100">Upload Customer Data</h2>
               <p className="text-gray-600">
                 Upload a CSV file with your customer data to get AI-powered retention insights
               </p>
@@ -224,11 +224,11 @@ Sarah Williams,sarah@example.com,+919876543213,2024-05-01,12000,15,5`;
 
             {/* CSV Format Info */}
             <div className="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-xl border border-emerald-200 p-4">
-              <h3 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
+              <h3 className="font-semibold text-gray-900 mb-2 flex items-center gap-2 dark:text-slate-100">
                 <FileText size={18} className="text-emerald-600" />
                 Required CSV Columns
               </h3>
-              <div className="grid grid-cols-2 gap-2 text-sm text-gray-700">
+              <div className="grid grid-cols-2 gap-2 text-sm text-gray-700 dark:text-slate-300">
                 <div className="flex items-center gap-2">
                   <CheckCircle2 size={14} className="text-emerald-600" />
                   <span>customer_name</span>
@@ -266,7 +266,7 @@ Sarah Williams,sarah@example.com,+919876543213,2024-05-01,12000,15,5`;
             {/* File Upload */}
             <div className="space-y-3">
               <label className="block">
-                <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-emerald-400 hover:bg-emerald-50/50 transition-all cursor-pointer">
+                <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-emerald-400 hover:bg-emerald-50/50 transition-all cursor-pointer dark:border-slate-700">
                   <input
                     type="file"
                     accept=".csv"
@@ -274,7 +274,7 @@ Sarah Williams,sarah@example.com,+919876543213,2024-05-01,12000,15,5`;
                     className="hidden"
                   />
                   <Upload size={32} className="mx-auto text-gray-400 mb-3" />
-                  <p className="text-sm font-medium text-gray-900 mb-1">
+                  <p className="text-sm font-medium text-gray-900 mb-1 dark:text-slate-100">
                     {file ? file.name : "Click to upload CSV file"}
                   </p>
                   <p className="text-xs text-gray-500">
@@ -316,7 +316,7 @@ Sarah Williams,sarah@example.com,+919876543213,2024-05-01,12000,15,5`;
         <div className="space-y-6">
           {/* Action Bar */}
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold text-gray-900">Retention Analysis</h2>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-slate-100">Retention Analysis</h2>
             <button
               onClick={() => {
                 setAnalysis(null);
@@ -339,32 +339,32 @@ Sarah Williams,sarah@example.com,+919876543213,2024-05-01,12000,15,5`;
               <p className="text-emerald-100 text-sm mt-1">Overall health score</p>
             </div>
 
-            <div className="bg-white rounded-2xl border border-gray-200 p-6">
+            <div className="bg-white rounded-2xl border border-gray-200 p-6 dark:bg-slate-900 dark:border-slate-800">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-gray-600 text-sm font-medium">Loyal Customers</span>
                 <Heart size={20} className="text-emerald-600" />
               </div>
-              <div className="text-3xl font-bold text-gray-900">{analysis.loyal_customers}</div>
+              <div className="text-3xl font-bold text-gray-900 dark:text-slate-100">{analysis.loyal_customers}</div>
               <p className="text-gray-500 text-sm mt-1">
                 {((analysis.loyal_customers / analysis.total_customers) * 100).toFixed(1)}% of total
               </p>
             </div>
 
-            <div className="bg-white rounded-2xl border border-gray-200 p-6">
+            <div className="bg-white rounded-2xl border border-gray-200 p-6 dark:bg-slate-900 dark:border-slate-800">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-gray-600 text-sm font-medium">Inactive Customers</span>
                 <TrendingDown size={20} className="text-orange-600" />
               </div>
-              <div className="text-3xl font-bold text-gray-900">{analysis.inactive_customers}</div>
+              <div className="text-3xl font-bold text-gray-900 dark:text-slate-100">{analysis.inactive_customers}</div>
               <p className="text-gray-500 text-sm mt-1">Need re-engagement</p>
             </div>
 
-            <div className="bg-white rounded-2xl border border-gray-200 p-6">
+            <div className="bg-white rounded-2xl border border-gray-200 p-6 dark:bg-slate-900 dark:border-slate-800">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-gray-600 text-sm font-medium">Churn Risk</span>
                 <AlertTriangle size={20} className="text-red-600" />
               </div>
-              <div className="text-3xl font-bold text-gray-900">
+              <div className="text-3xl font-bold text-gray-900 dark:text-slate-100">
                 {analysis.churn_risk_percentage}%
               </div>
               <p className="text-gray-500 text-sm mt-1">{analysis.churn_risk_customers} customers</p>
@@ -377,12 +377,12 @@ Sarah Williams,sarah@example.com,+919876543213,2024-05-01,12000,15,5`;
               <div className="h-10 w-10 rounded-xl bg-white/80 flex items-center justify-center">
                 <Sparkles size={20} className="text-purple-600" />
               </div>
-              <h3 className="text-lg font-bold text-gray-900">AI Recommendations</h3>
+              <h3 className="text-lg font-bold text-gray-900 dark:text-slate-100">AI Recommendations</h3>
             </div>
             <div className="space-y-3">
               {analysis.recommendations.map((rec, idx) => (
                 <div key={idx} className="bg-white/60 rounded-xl p-4 border border-purple-100">
-                  <p className="text-gray-800 leading-relaxed">{rec}</p>
+                  <p className="text-gray-800 leading-relaxed dark:text-slate-300">{rec}</p>
                 </div>
               ))}
             </div>
@@ -390,13 +390,13 @@ Sarah Williams,sarah@example.com,+919876543213,2024-05-01,12000,15,5`;
 
           {/* Inactive Customers Table - NEW SECTION */}
           {analysis.segments.inactive.length > 0 && (
-            <div className="bg-white rounded-2xl border border-orange-200 p-6">
+            <div className="bg-white rounded-2xl border border-orange-200 p-6 dark:bg-slate-900">
               <div className="flex items-center gap-3 mb-4">
                 <div className="h-10 w-10 rounded-xl bg-orange-100 flex items-center justify-center">
                   <Mail size={20} className="text-orange-600" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-gray-900">Inactive Customers</h3>
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-slate-100">Inactive Customers</h3>
                   <p className="text-sm text-gray-600">
                     Send AI-powered retention emails to win them back
                   </p>
@@ -406,26 +406,26 @@ Sarah Williams,sarah@example.com,+919876543213,2024-05-01,12000,15,5`;
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
-                    <tr className="border-b border-gray-200">
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">
+                    <tr className="border-b border-gray-200 dark:border-slate-800">
+                      <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700 dark:text-slate-300">
                         Customer Name
                       </th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">
+                      <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700 dark:text-slate-300">
                         Email
                       </th>
-                      <th className="text-center py-3 px-4 text-sm font-semibold text-gray-700">
+                      <th className="text-center py-3 px-4 text-sm font-semibold text-gray-700 dark:text-slate-300">
                         Inactive Days
                       </th>
-                      <th className="text-center py-3 px-4 text-sm font-semibold text-gray-700">
+                      <th className="text-center py-3 px-4 text-sm font-semibold text-gray-700 dark:text-slate-300">
                         Visit Count
                       </th>
-                      <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">
+                      <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700 dark:text-slate-300">
                         Total Spent
                       </th>
-                      <th className="text-center py-3 px-4 text-sm font-semibold text-gray-700">
+                      <th className="text-center py-3 px-4 text-sm font-semibold text-gray-700 dark:text-slate-300">
                         Churn Risk
                       </th>
-                      <th className="text-center py-3 px-4 text-sm font-semibold text-gray-700">
+                      <th className="text-center py-3 px-4 text-sm font-semibold text-gray-700 dark:text-slate-300">
                         Action
                       </th>
                     </tr>
@@ -446,15 +446,15 @@ Sarah Williams,sarah@example.com,+919876543213,2024-05-01,12000,15,5`;
                           : "bg-yellow-100 text-yellow-700";
 
                       return (
-                        <tr key={idx} className="border-b border-gray-100 hover:bg-gray-50">
+                        <tr key={idx} className="border-b border-gray-100 hover:bg-gray-50 dark:border-slate-800">
                           <td className="py-3 px-4">
-                            <p className="font-medium text-gray-900">{customer.name}</p>
+                            <p className="font-medium text-gray-900 dark:text-slate-100">{customer.name}</p>
                           </td>
                           <td className="py-3 px-4">
                             <p className="text-sm text-gray-600">{customer.email}</p>
                           </td>
                           <td className="py-3 px-4 text-center">
-                            <span className="text-sm font-medium text-gray-900">
+                            <span className="text-sm font-medium text-gray-900 dark:text-slate-100">
                               {customer.inactive_days}
                             </span>
                           </td>
@@ -462,7 +462,7 @@ Sarah Williams,sarah@example.com,+919876543213,2024-05-01,12000,15,5`;
                             <span className="text-sm text-gray-600">{customer.visit_count}</span>
                           </td>
                           <td className="py-3 px-4 text-right">
-                            <span className="text-sm font-medium text-gray-900">
+                            <span className="text-sm font-medium text-gray-900 dark:text-slate-100">
                               ₹{customer.total_spent.toLocaleString()}
                             </span>
                           </td>
@@ -512,7 +512,7 @@ Sarah Williams,sarah@example.com,+919876543213,2024-05-01,12000,15,5`;
               </div>
 
               <div className="mt-4 p-4 bg-orange-50 rounded-lg border border-orange-200">
-                <p className="text-sm text-gray-700">
+                <p className="text-sm text-gray-700 dark:text-slate-300">
                   <strong>💡 Tip:</strong> Click "Send Offer" to automatically generate and send a
                   personalized retention email with an exclusive discount offer using AI.
                 </p>
@@ -523,10 +523,10 @@ Sarah Williams,sarah@example.com,+919876543213,2024-05-01,12000,15,5`;
           {/* Customer Segments */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Churn Risk Customers */}
-            <div className="bg-white rounded-2xl border border-red-200 p-6">
+            <div className="bg-white rounded-2xl border border-red-200 p-6 dark:bg-slate-900">
               <div className="flex items-center gap-3 mb-4">
                 <AlertTriangle size={20} className="text-red-600" />
-                <h3 className="font-bold text-gray-900">Churn Risk Customers</h3>
+                <h3 className="font-bold text-gray-900 dark:text-slate-100">Churn Risk Customers</h3>
                 <span className="ml-auto text-sm text-gray-500">
                   {analysis.segments.churn_risk.length} customers
                 </span>
@@ -536,7 +536,7 @@ Sarah Williams,sarah@example.com,+919876543213,2024-05-01,12000,15,5`;
                   <div key={idx} className="bg-red-50 rounded-lg p-4 border border-red-100">
                     <div className="flex items-start justify-between mb-2">
                       <div>
-                        <p className="font-semibold text-gray-900">{customer.name}</p>
+                        <p className="font-semibold text-gray-900 dark:text-slate-100">{customer.name}</p>
                         <p className="text-sm text-gray-600">{customer.email}</p>
                       </div>
                       {customer.risk_score && (
@@ -555,10 +555,10 @@ Sarah Williams,sarah@example.com,+919876543213,2024-05-01,12000,15,5`;
             </div>
 
             {/* Loyal Customers */}
-            <div className="bg-white rounded-2xl border border-emerald-200 p-6">
+            <div className="bg-white rounded-2xl border border-emerald-200 p-6 dark:bg-slate-900">
               <div className="flex items-center gap-3 mb-4">
                 <Heart size={20} className="text-emerald-600" />
-                <h3 className="font-bold text-gray-900">Loyal Customers</h3>
+                <h3 className="font-bold text-gray-900 dark:text-slate-100">Loyal Customers</h3>
                 <span className="ml-auto text-sm text-gray-500">
                   {analysis.segments.loyal.length} customers
                 </span>
@@ -568,7 +568,7 @@ Sarah Williams,sarah@example.com,+919876543213,2024-05-01,12000,15,5`;
                   <div key={idx} className="bg-emerald-50 rounded-lg p-4 border border-emerald-100">
                     <div className="flex items-start justify-between mb-2">
                       <div>
-                        <p className="font-semibold text-gray-900">{customer.name}</p>
+                        <p className="font-semibold text-gray-900 dark:text-slate-100">{customer.name}</p>
                         <p className="text-sm text-gray-600">{customer.email}</p>
                       </div>
                       <span className="text-xs px-2 py-1 bg-emerald-100 text-emerald-700 rounded-full font-medium">
@@ -586,16 +586,16 @@ Sarah Williams,sarah@example.com,+919876543213,2024-05-01,12000,15,5`;
           </div>
 
           {/* Insights */}
-          <div className="bg-white rounded-2xl border border-gray-200 p-6">
+          <div className="bg-white rounded-2xl border border-gray-200 p-6 dark:bg-slate-900 dark:border-slate-800">
             <div className="flex items-center gap-3 mb-4">
               <BarChart3 size={20} className="text-blue-600" />
-              <h3 className="font-bold text-gray-900">Key Insights</h3>
+              <h3 className="font-bold text-gray-900 dark:text-slate-100">Key Insights</h3>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {analysis.insights.map((insight, idx) => (
                 <div key={idx} className="flex items-start gap-3 p-4 bg-blue-50 rounded-lg border border-blue-100">
                   <CheckCircle2 size={18} className="text-blue-600 shrink-0 mt-0.5" />
-                  <p className="text-sm text-gray-800">{insight}</p>
+                  <p className="text-sm text-gray-800 dark:text-slate-300">{insight}</p>
                 </div>
               ))}
             </div>

@@ -459,7 +459,7 @@ export const InstagramConnectionWizard: React.FC<InstagramConnectionWizardProps>
                             </div>
 
                             <motion.p
-                              className="text-lg text-gray-700 mt-8 mb-6 max-w-2xl mx-auto leading-relaxed"
+                              className="text-lg text-gray-700 mt-8 mb-6 max-w-2xl mx-auto leading-relaxed dark:text-slate-300"
                               initial={{ opacity: 0, y: 10 }}
                               animate={{ opacity: 1, y: 0 }}
                               transition={{ delay: 0.5 }}
@@ -487,7 +487,7 @@ export const InstagramConnectionWizard: React.FC<InstagramConnectionWizardProps>
                                   <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-500 flex items-center justify-center">
                                     <Info className="w-5 h-5 text-white" />
                                   </div>
-                                  <h3 className="font-bold text-gray-900 text-lg">What You'll Need</h3>
+                                  <h3 className="font-bold text-gray-900 text-lg dark:text-slate-100">What You'll Need</h3>
                                 </div>
                                 <ul className="space-y-3">
                                   {[
@@ -498,7 +498,7 @@ export const InstagramConnectionWizard: React.FC<InstagramConnectionWizardProps>
                                   ].map((item, i) => (
                                     <motion.li
                                       key={i}
-                                      className="flex items-center gap-3 text-gray-700"
+                                      className="flex items-center gap-3 text-gray-700 dark:text-slate-300"
                                       initial={{ opacity: 0, x: -10 }}
                                       animate={{ opacity: 1, x: 0 }}
                                       transition={{ delay: 0.7 + i * 0.1 }}
@@ -524,7 +524,7 @@ export const InstagramConnectionWizard: React.FC<InstagramConnectionWizardProps>
                                   <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-pink-500 to-orange-500 flex items-center justify-center">
                                     <Sparkles className="w-5 h-5 text-white" />
                                   </div>
-                                  <h3 className="font-bold text-gray-900 text-lg">What You'll Get</h3>
+                                  <h3 className="font-bold text-gray-900 text-lg dark:text-slate-100">What You'll Get</h3>
                                 </div>
                                 <ul className="space-y-3">
                                   {[
@@ -535,7 +535,7 @@ export const InstagramConnectionWizard: React.FC<InstagramConnectionWizardProps>
                                   ].map((item, i) => (
                                     <motion.li
                                       key={i}
-                                      className="flex items-center gap-3 text-gray-700"
+                                      className="flex items-center gap-3 text-gray-700 dark:text-slate-300"
                                       initial={{ opacity: 0, x: 10 }}
                                       animate={{ opacity: 1, x: 0 }}
                                       transition={{ delay: 0.8 + i * 0.1 }}
@@ -608,7 +608,7 @@ export const InstagramConnectionWizard: React.FC<InstagramConnectionWizardProps>
                                       className="mt-1"
                                     />
                                     <div className="flex-1">
-                                      <label htmlFor={`req-${index}`} className="font-semibold text-gray-900 cursor-pointer flex items-center gap-2">
+                                      <label htmlFor={`req-${index}`} className="font-semibold text-gray-900 cursor-pointer flex items-center gap-2 dark:text-slate-100">
                                         {req.title}
                                         {req.required && <span className="text-pink-500">*</span>}
                                       </label>
@@ -682,7 +682,7 @@ export const InstagramConnectionWizard: React.FC<InstagramConnectionWizardProps>
                                     <permission.icon className="w-6 h-6 text-white" />
                                   </div>
                                   <div className="flex-1">
-                                    <h3 className="font-semibold text-gray-900 mb-1">{permission.title}</h3>
+                                    <h3 className="font-semibold text-gray-900 mb-1 dark:text-slate-100">{permission.title}</h3>
                                     <p className="text-gray-600 text-sm leading-relaxed">{permission.description}</p>
                                   </div>
                                 </div>
@@ -759,7 +759,7 @@ export const InstagramConnectionWizard: React.FC<InstagramConnectionWizardProps>
                                   </div>
                                   <div className="flex-1">
                                     <div className="flex items-start justify-between gap-4 mb-2">
-                                      <h3 className="font-bold text-gray-900 text-lg">{feature.title}</h3>
+                                      <h3 className="font-bold text-gray-900 text-lg dark:text-slate-100">{feature.title}</h3>
                                       <Badge
                                         variant="secondary"
                                         className="text-xs px-3 py-1 bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700 border-0 font-semibold whitespace-nowrap"
@@ -836,13 +836,13 @@ export const InstagramConnectionWizard: React.FC<InstagramConnectionWizardProps>
                           >
                             <div className="absolute inset-0 bg-gradient-to-r from-purple-500/5 to-pink-500/5 rounded-2xl blur-xl" />
                             <div className="relative bg-white/90 backdrop-blur-sm p-8 rounded-2xl border border-gray-200/50 shadow-lg">
-                              <h3 className="font-bold text-gray-900 mb-6 text-lg flex items-center gap-2">
+                              <h3 className="font-bold text-gray-900 mb-6 text-lg flex items-center gap-2 dark:text-slate-100">
                                 <Zap className="w-5 h-5 text-purple-500" />
                                 Connection Summary
                               </h3>
                               <div className="grid md:grid-cols-2 gap-8">
                                 <div>
-                                  <h4 className="font-semibold text-gray-700 mb-4 flex items-center gap-2">
+                                  <h4 className="font-semibold text-gray-700 mb-4 flex items-center gap-2 dark:text-slate-300">
                                     <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-purple-500 to-indigo-500 flex items-center justify-center">
                                       <CheckCircle className="w-4 h-4 text-white" />
                                     </div>
@@ -862,7 +862,7 @@ export const InstagramConnectionWizard: React.FC<InstagramConnectionWizardProps>
                                   </ul>
                                 </div>
                                 <div>
-                                  <h4 className="font-semibold text-gray-700 mb-4 flex items-center gap-2">
+                                  <h4 className="font-semibold text-gray-700 mb-4 flex items-center gap-2 dark:text-slate-300">
                                     <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-pink-500 to-orange-500 flex items-center justify-center">
                                       <Sparkles className="w-4 h-4 text-white" />
                                     </div>
@@ -898,7 +898,7 @@ export const InstagramConnectionWizard: React.FC<InstagramConnectionWizardProps>
                                 onCheckedChange={(checked) => setAgreedToTerms(checked as boolean)}
                                 className="mt-1"
                               />
-                              <label htmlFor="terms" className="text-sm text-gray-700 cursor-pointer leading-relaxed">
+                              <label htmlFor="terms" className="text-sm text-gray-700 cursor-pointer leading-relaxed dark:text-slate-300">
                                 I agree to the{" "}
                                 <a href="#" className="text-purple-600 underline font-semibold hover:text-purple-700 transition-colors">
                                   Terms of Service
@@ -954,7 +954,7 @@ export const InstagramConnectionWizard: React.FC<InstagramConnectionWizardProps>
                     variant="outline"
                     onClick={handleBack}
                     disabled={isLoading}
-                    className="flex items-center gap-2 px-6 py-6 rounded-xl border-gray-300 hover:border-purple-300 hover:bg-purple-50 transition-all"
+                    className="flex items-center gap-2 px-6 py-6 rounded-xl border-gray-300 hover:border-purple-300 hover:bg-purple-50 transition-all dark:border-slate-700"
                   >
                     <ArrowLeft className="w-4 h-4" />
                     Back
@@ -972,7 +972,7 @@ export const InstagramConnectionWizard: React.FC<InstagramConnectionWizardProps>
                   variant="outline"
                   onClick={onCancel}
                   disabled={isLoading}
-                  className="px-6 py-6 rounded-xl border-gray-300 hover:border-gray-400 hover:bg-gray-50 transition-all"
+                  className="px-6 py-6 rounded-xl border-gray-300 hover:border-gray-400 hover:bg-gray-50 transition-all dark:border-slate-700"
                 >
                   Cancel
                 </Button>
@@ -1047,7 +1047,7 @@ export const InstagramConnectionWizard: React.FC<InstagramConnectionWizardProps>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="gap-3 pt-6">
-            <AlertDialogCancel className="rounded-xl px-6 py-5 border-gray-300 hover:bg-gray-50">
+            <AlertDialogCancel className="rounded-xl px-6 py-5 border-gray-300 hover:bg-gray-50 dark:border-slate-700">
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction

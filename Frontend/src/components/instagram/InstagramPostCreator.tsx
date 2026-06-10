@@ -101,7 +101,7 @@ export const InstagramPostCreator: React.FC<PostCreatorProps> = ({
         <div className="space-y-4">
           {/* Image URL Input */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Image URL</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2 dark:text-slate-300">Image URL</label>
             <Input
               placeholder="https://example.com/image.jpg"
               value={imageUrl}
@@ -109,7 +109,7 @@ export const InstagramPostCreator: React.FC<PostCreatorProps> = ({
               disabled={isLoading}
             />
             {imageUrl && (
-              <div className="mt-2 p-2 border border-gray-200 rounded-lg bg-gray-50">
+              <div className="mt-2 p-2 border border-gray-200 rounded-lg bg-gray-50 dark:border-slate-800 dark:bg-slate-900">
                 <img
                   src={imageUrl}
                   alt="Preview"
@@ -123,7 +123,7 @@ export const InstagramPostCreator: React.FC<PostCreatorProps> = ({
           {/* Caption Input */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label className="block text-sm font-medium text-gray-700">Caption</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-slate-300">Caption</label>
               <Button
                 variant="ghost"
                 size="sm"
@@ -139,7 +139,7 @@ export const InstagramPostCreator: React.FC<PostCreatorProps> = ({
             {showAIPrompt && (
               <div className="mb-4 p-4 bg-purple-50 border border-purple-200 rounded-lg space-y-3">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Topic</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1 dark:text-slate-300">Topic</label>
                   <Input
                     placeholder="e.g., coffee, coding, travel"
                     value={topic}
@@ -148,7 +148,7 @@ export const InstagramPostCreator: React.FC<PostCreatorProps> = ({
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Tone</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2 dark:text-slate-300">Tone</label>
                   <div className="flex gap-2 flex-wrap">
                     {tones.map((t) => (
                       <Badge
@@ -216,7 +216,7 @@ export const InstagramPostCreator: React.FC<PostCreatorProps> = ({
             <>
               {/* Schedule Time Input */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2 dark:text-slate-300">
                   Schedule Time
                 </label>
                 <Input

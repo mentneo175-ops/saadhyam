@@ -361,7 +361,7 @@ function ContentStudio() {
   };
 
   return (
-    <div className="min-h-full bg-white p-4 md:p-6 lg:p-8">
+    <div className="min-h-full bg-white p-4 md:p-6 lg:p-8 dark:bg-slate-900">
       {/* Clean Header */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
@@ -370,7 +370,7 @@ function ContentStudio() {
       >
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-1">
+            <h1 className="text-3xl font-bold text-gray-900 mb-1 dark:text-slate-100">
               Content Creator
             </h1>
             <p className="text-sm text-gray-600">
@@ -400,7 +400,7 @@ function ContentStudio() {
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.1 }}
-          className="bg-white rounded-2xl border border-gray-200/60 shadow-lg shadow-gray-100/50 p-6 space-y-6"
+          className="bg-white rounded-2xl border border-gray-200/60 shadow-lg shadow-gray-100/50 p-6 space-y-6 dark:bg-slate-900"
         >
           {/* Content Type Section */}
           <motion.div
@@ -408,7 +408,7 @@ function ContentStudio() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
           >
-            <p className="text-sm font-semibold text-gray-900 mb-3">
+            <p className="text-sm font-semibold text-gray-900 mb-3 dark:text-slate-100">
               Content Type
             </p>
             <div className="flex gap-2 flex-wrap">
@@ -439,7 +439,7 @@ function ContentStudio() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
           >
-            <p className="text-sm font-semibold text-gray-900 mb-3">
+            <p className="text-sm font-semibold text-gray-900 mb-3 dark:text-slate-100">
               Tone
             </p>
             <div className="flex gap-2 flex-wrap">
@@ -470,7 +470,7 @@ function ContentStudio() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
           >
-            <p className="text-sm font-semibold text-gray-900 mb-3">
+            <p className="text-sm font-semibold text-gray-900 mb-3 dark:text-slate-100">
               Language
             </p>
             <div className="flex gap-2 flex-wrap">
@@ -501,7 +501,7 @@ function ContentStudio() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
           >
-            <p className="text-sm font-semibold text-gray-900 mb-3">
+            <p className="text-sm font-semibold text-gray-900 mb-3 dark:text-slate-100">
               What do you want to create?
             </p>
             <div className="relative">
@@ -510,7 +510,7 @@ function ContentStudio() {
                 onChange={(e) => setPrompt(e.target.value)}
                 rows={6}
                 placeholder="E.g., Promote our new Diwali handbag collection with 30% off this weekend..."
-                className="w-full rounded-lg border border-gray-300 bg-white p-4 text-sm focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all placeholder:text-gray-400 resize-none"
+                className="w-full rounded-lg border border-gray-300 bg-white p-4 text-sm focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all placeholder:text-gray-400 resize-none dark:border-slate-700 dark:bg-slate-900"
               />
               <motion.div
                 className="absolute bottom-3 right-3 flex items-center gap-1 text-xs text-gray-400"
@@ -553,10 +553,10 @@ function ContentStudio() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.7 }}
-            className="pt-6 border-t border-gray-200"
+            className="pt-6 border-t border-gray-200 dark:border-slate-800"
           >
             <div className="flex items-center justify-between mb-4">
-              <p className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+              <p className="text-sm font-semibold text-gray-900 flex items-center gap-2 dark:text-slate-100">
                 <ImageIcon size={16} className="text-purple-600" />
                 Image Generation
               </p>
@@ -645,7 +645,7 @@ function ContentStudio() {
                   onChange={(e) => setImagePrompt(e.target.value)}
                   rows={3}
                   placeholder="Click 'Auto-generate' to create image prompt from your text..."
-                  className="w-full rounded-lg border border-gray-300 bg-white p-3 text-xs focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all placeholder:text-gray-400 resize-none"
+                  className="w-full rounded-lg border border-gray-300 bg-white p-3 text-xs focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all placeholder:text-gray-400 resize-none dark:border-slate-700 dark:bg-slate-900"
                 />
               </div>
 
@@ -655,7 +655,7 @@ function ContentStudio() {
                 whileTap={{ scale: 0.98 }}
                 onClick={handleGenerateImage}
                 disabled={imageLoading || !imagePrompt.trim()}
-                className="w-full h-11 bg-white border border-gray-300 hover:border-purple-400 hover:bg-purple-50 text-gray-700 font-medium rounded-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full h-11 bg-white border border-gray-300 hover:border-purple-400 hover:bg-purple-50 text-gray-700 font-medium rounded-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-slate-900 dark:border-slate-700 dark:text-slate-300"
               >
                 {imageLoading ? (
                   <>
@@ -678,10 +678,10 @@ function ContentStudio() {
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.2 }}
-          className="bg-white rounded-2xl border border-gray-200/60 shadow-lg shadow-gray-100/50 p-6 flex flex-col min-h-[600px]"
+          className="bg-white rounded-2xl border border-gray-200/60 shadow-lg shadow-gray-100/50 p-6 flex flex-col min-h-[600px] dark:bg-slate-900"
         >
           <div className="flex items-center justify-between mb-4">
-            <p className="text-sm font-semibold text-gray-900">
+            <p className="text-sm font-semibold text-gray-900 dark:text-slate-100">
               AI Output
             </p>
             <AnimatePresence>
@@ -721,18 +721,18 @@ function ContentStudio() {
                 className="space-y-4"
               >
                 <div className="flex items-center justify-between">
-                  <p className="text-xs font-semibold text-gray-700 flex items-center gap-2">
+                  <p className="text-xs font-semibold text-gray-700 flex items-center gap-2 dark:text-slate-300">
                     <ImageIcon size={14} className="text-purple-600" />
                     Generated Image
                   </p>
-                  <span className="text-xs text-gray-500 bg-white px-2 py-1 rounded-lg border border-gray-200">
+                  <span className="text-xs text-gray-500 bg-white px-2 py-1 rounded-lg border border-gray-200 dark:bg-slate-900 dark:border-slate-800">
                     {imageStyle} • {imageUseCase}
                   </span>
                 </div>
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="rounded-lg overflow-hidden border border-gray-300 shadow-sm"
+                  className="rounded-lg overflow-hidden border border-gray-300 shadow-sm dark:border-slate-700"
                 >
                   <img 
                     src={generatedImageUrl} 
@@ -749,7 +749,7 @@ function ContentStudio() {
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={handleDownloadImage}
-                    className="flex-1 px-3 py-2 bg-white border border-gray-300 hover:border-gray-400 text-gray-700 rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition-all"
+                    className="flex-1 px-3 py-2 bg-white border border-gray-300 hover:border-gray-400 text-gray-700 rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition-all dark:bg-slate-900 dark:border-slate-700 dark:text-slate-300"
                   >
                     <Download size={14} /> Download
                   </motion.button>
@@ -758,7 +758,7 @@ function ContentStudio() {
                     whileTap={{ scale: 0.98 }}
                     onClick={handleGenerateImage}
                     disabled={imageLoading}
-                    className="flex-1 px-3 py-2 bg-white border border-gray-300 hover:border-gray-400 text-gray-700 rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition-all disabled:opacity-50"
+                    className="flex-1 px-3 py-2 bg-white border border-gray-300 hover:border-gray-400 text-gray-700 rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition-all disabled:opacity-50 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-300"
                   >
                     <RefreshCcw size={14} /> Regenerate
                   </motion.button>
@@ -789,9 +789,9 @@ function ContentStudio() {
                 animate={{ opacity: 1, y: 0 }}
                 className="space-y-3"
               >
-                <p className="text-sm leading-relaxed whitespace-pre-line text-gray-800">{output}</p>
+                <p className="text-sm leading-relaxed whitespace-pre-line text-gray-800 dark:text-slate-300">{output}</p>
                 {isAIGenerated && (
-                  <p className="text-xs text-gray-500 mt-4 pt-4 border-t border-gray-200 flex items-center gap-2">
+                  <p className="text-xs text-gray-500 mt-4 pt-4 border-t border-gray-200 flex items-center gap-2 dark:border-slate-800">
                     <Sparkles size={12} className="text-purple-600" />
                     Generated in {language} with {tone.toLowerCase()} tone
                   </p>
@@ -804,7 +804,7 @@ function ContentStudio() {
                 className="flex flex-col items-center justify-center h-full text-center py-12"
               >
                 <Sparkles size={48} className="text-gray-300 mb-4" />
-                <p className="text-base font-medium text-gray-700 mb-2">
+                <p className="text-base font-medium text-gray-700 mb-2 dark:text-slate-300">
                   Your AI-generated content will appear here
                 </p>
                 <p className="text-sm text-gray-500">
@@ -828,7 +828,7 @@ function ContentStudio() {
                   whileTap={{ scale: 0.98 }}
                   onClick={handleCopy}
                   disabled={!output}
-                  className="flex-1 px-3 py-2 bg-white border border-gray-300 hover:border-gray-400 text-gray-700 rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition-all"
+                  className="flex-1 px-3 py-2 bg-white border border-gray-300 hover:border-gray-400 text-gray-700 rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition-all dark:bg-slate-900 dark:border-slate-700 dark:text-slate-300"
                 >
                   <Copy size={14} /> Copy
                 </motion.button>
@@ -837,7 +837,7 @@ function ContentStudio() {
                   whileTap={{ scale: 0.98 }}
                   onClick={handleGenerate}
                   disabled={loading || !prompt.trim()}
-                  className="flex-1 px-3 py-2 bg-white border border-gray-300 hover:border-gray-400 text-gray-700 rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition-all disabled:opacity-50"
+                  className="flex-1 px-3 py-2 bg-white border border-gray-300 hover:border-gray-400 text-gray-700 rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition-all disabled:opacity-50 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-300"
                 >
                   <RefreshCcw size={14} /> Regenerate
                 </motion.button>
@@ -845,7 +845,7 @@ function ContentStudio() {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   disabled
-                  className="flex-1 px-3 py-2 bg-gray-100 border border-gray-200 text-gray-400 rounded-lg text-sm font-medium flex items-center justify-center gap-2 cursor-not-allowed"
+                  className="flex-1 px-3 py-2 bg-gray-100 border border-gray-200 text-gray-400 rounded-lg text-sm font-medium flex items-center justify-center gap-2 cursor-not-allowed dark:bg-slate-800 dark:border-slate-800"
                 >
                   <Instagram size={14} /> Need Image
                 </motion.button>
@@ -860,21 +860,21 @@ function ContentStudio() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 10 }}
-                className="mt-4 pt-4 border-t border-gray-200"
+                className="mt-4 pt-4 border-t border-gray-200 dark:border-slate-800"
               >
-                <p className="text-xs font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                <p className="text-xs font-semibold text-gray-700 mb-2 flex items-center gap-2 dark:text-slate-300">
                   <MessageCircle size={12} className="text-purple-600" />
                   Text Content
                 </p>
-                <div className="rounded-lg bg-gray-50 border border-gray-200 p-3 mb-3">
-                  <p className="text-xs leading-relaxed whitespace-pre-line text-gray-700">{output}</p>
+                <div className="rounded-lg bg-gray-50 border border-gray-200 p-3 mb-3 dark:bg-slate-900 dark:border-slate-800">
+                  <p className="text-xs leading-relaxed whitespace-pre-line text-gray-700 dark:text-slate-300">{output}</p>
                 </div>
                 <div className="flex gap-2">
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={handleCopy}
-                    className="flex-1 px-3 py-2 bg-white border border-gray-300 hover:border-gray-400 text-gray-700 rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition-all"
+                    className="flex-1 px-3 py-2 bg-white border border-gray-300 hover:border-gray-400 text-gray-700 rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition-all dark:bg-slate-900 dark:border-slate-700 dark:text-slate-300"
                   >
                     <Copy size={14} /> Copy Text
                   </motion.button>

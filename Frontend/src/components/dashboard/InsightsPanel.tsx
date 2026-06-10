@@ -55,7 +55,7 @@ export function InsightsPanel({ businessAnalysis }: InsightsPanelProps) {
       if (part.startsWith('**') && part.endsWith('**')) {
         // Remove ** and render as bold
         const boldText = part.slice(2, -2);
-        return <strong key={idx} className="font-semibold text-gray-900">{boldText}</strong>;
+        return <strong key={idx} className="font-semibold text-gray-900 dark:text-slate-100">{boldText}</strong>;
       }
       return <span key={idx}>{part}</span>;
     });
@@ -130,11 +130,11 @@ export function InsightsPanel({ businessAnalysis }: InsightsPanelProps) {
   ] : [];
 
   return (
-    <aside className="hidden xl:flex flex-col gap-5 w-80 shrink-0 border-l border-gray-200 bg-gray-50 p-5 sticky top-16 self-start max-h-[calc(100vh-5rem)] overflow-y-auto">
+    <aside className="hidden xl:flex flex-col gap-5 w-80 shrink-0 border-l border-gray-200 bg-gray-50 p-5 sticky top-16 self-start max-h-[calc(100vh-5rem)] overflow-y-auto dark:border-slate-800 dark:bg-slate-900">
       <div>
         <div className="flex items-center justify-between mb-3">
           <div>
-            <h3 className="font-semibold text-gray-900">AI Insights</h3>
+            <h3 className="font-semibold text-gray-900 dark:text-slate-100">AI Insights</h3>
             <p className="text-xs text-gray-600">{lastUpdated}</p>
           </div>
           <span className={`h-2 w-2 rounded-full ${loading ? 'bg-amber-500' : 'bg-green-500'} animate-pulse`} />
@@ -147,16 +147,16 @@ export function InsightsPanel({ businessAnalysis }: InsightsPanelProps) {
               {[1, 2, 3].map((i) => (
                 <div
                   key={i}
-                  className="rounded-lg border border-gray-200 p-4 bg-white animate-pulse"
+                  className="rounded-lg border border-gray-200 p-4 bg-white animate-pulse dark:border-slate-800 dark:bg-slate-900"
                 >
                   <div className="flex items-center gap-2.5">
-                    <div className="h-9 w-9 rounded-lg bg-gray-200" />
+                    <div className="h-9 w-9 rounded-lg bg-gray-200 dark:bg-slate-700" />
                     <div className="flex-1 space-y-2">
-                      <div className="h-3 bg-gray-200 rounded w-24" />
-                      <div className="h-4 bg-gray-200 rounded w-16" />
+                      <div className="h-3 bg-gray-200 rounded w-24 dark:bg-slate-700" />
+                      <div className="h-4 bg-gray-200 rounded w-16 dark:bg-slate-700" />
                     </div>
                   </div>
-                  <div className="h-3 bg-gray-200 rounded w-full mt-2" />
+                  <div className="h-3 bg-gray-200 rounded w-full mt-2 dark:bg-slate-700" />
                 </div>
               ))}
             </>
@@ -165,7 +165,7 @@ export function InsightsPanel({ businessAnalysis }: InsightsPanelProps) {
             insights.map((it) => (
               <div
                 key={it.title}
-                className="rounded-lg border border-gray-200 p-4 bg-white hover:shadow-md transition-shadow"
+                className="rounded-lg border border-gray-200 p-4 bg-white hover:shadow-md transition-shadow dark:border-slate-800 dark:bg-slate-900"
               >
                 <div className="flex items-center gap-2.5">
                   <div className="h-9 w-9 rounded-lg bg-blue-50 flex items-center justify-center">
@@ -173,7 +173,7 @@ export function InsightsPanel({ businessAnalysis }: InsightsPanelProps) {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-xs text-gray-600">{it.title}</p>
-                    <p className="text-sm font-bold text-gray-900">{it.metric}</p>
+                    <p className="text-sm font-bold text-gray-900 dark:text-slate-100">{it.metric}</p>
                   </div>
                 </div>
                 <p className="text-xs text-gray-600 mt-2">{it.detail}</p>
@@ -190,18 +190,18 @@ export function InsightsPanel({ businessAnalysis }: InsightsPanelProps) {
       {/* Business Analysis Section */}
       {businessAnalysis ? (
         <div 
-          className="rounded-lg bg-white border border-gray-200 p-4 shadow-sm transition-all duration-300"
+          className="rounded-lg bg-white border border-gray-200 p-4 shadow-sm transition-all duration-300 dark:bg-slate-900 dark:border-slate-800"
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
         >
           <div className="flex items-center gap-2 mb-3">
             <Sparkles size={16} className="text-blue-900 animate-pulse" />
-            <p className="text-sm font-semibold text-gray-900">AI Business Analysis</p>
+            <p className="text-sm font-semibold text-gray-900 dark:text-slate-100">AI Business Analysis</p>
           </div>
           <p className="text-xs text-gray-600 mb-4">Personalized insights for your business</p>
           
           {/* Responsive 2x2 tab selector */}
-          <div className="grid grid-cols-2 gap-1 mb-4 bg-slate-100 p-1 rounded-xl border border-slate-200/50">
+          <div className="grid grid-cols-2 gap-1 mb-4 bg-slate-100 p-1 rounded-xl border border-slate-200/50 dark:bg-slate-800">
             <button
               onClick={() => setActiveAnalysisTab("strengths")}
               className={`py-2 px-1 text-[10px] sm:text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1 ${

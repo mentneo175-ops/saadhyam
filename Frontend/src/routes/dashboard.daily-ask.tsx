@@ -195,7 +195,7 @@ function DailyAskPage() {
         />
         <div className="flex flex-col items-center justify-center py-20">
           <Sparkles size={48} className="animate-spin text-pink-600 mb-4" />
-          <p className="text-lg font-semibold text-gray-900">Generating tasks...</p>
+          <p className="text-lg font-semibold text-gray-900 dark:text-slate-100">Generating tasks...</p>
           <p className="text-sm text-gray-600 mt-2">Creating your personalized action plan</p>
         </div>
       </div>
@@ -214,7 +214,7 @@ function DailyAskPage() {
           <div className="h-20 w-20 rounded-full bg-pink-100 flex items-center justify-center mb-6">
             <Sparkles size={40} className="text-pink-600 animate-pulse" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Generating Your Tasks...</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2 dark:text-slate-100">Generating Your Tasks...</h2>
           <p className="text-gray-600 mb-6 text-center max-w-md">
             We're creating personalized tasks based on your business profile.
           </p>
@@ -328,7 +328,7 @@ function DailyAskPage() {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.5 }}
-                className="shrink-0 p-3 rounded-xl bg-white hover:bg-purple-50 border-2 border-purple-200/60 hover:border-purple-400 shadow-sm hover:shadow-lg transition-all duration-300 disabled:opacity-50 relative overflow-hidden group"
+                className="shrink-0 p-3 rounded-xl bg-white hover:bg-purple-50 border-2 border-purple-200/60 hover:border-purple-400 shadow-sm hover:shadow-lg transition-all duration-300 disabled:opacity-50 relative overflow-hidden group dark:bg-slate-900"
                 title="Refresh tasks"
               >
                 {/* Button glow effect */}
@@ -377,7 +377,7 @@ function DailyAskPage() {
                   <Target size={16} className="text-white" />
                 </motion.div>
                 <div>
-                  <h3 className="font-bold text-base text-gray-900">Today's Progress</h3>
+                  <h3 className="font-bold text-base text-gray-900 dark:text-slate-100">Today's Progress</h3>
                   <p className="text-xs text-gray-600">{completedCount} of {totalTasks} tasks completed</p>
                 </div>
               </div>
@@ -407,7 +407,7 @@ function DailyAskPage() {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.4 }}
                   >
-                    <div className="text-xl font-bold text-gray-900">{completedCount}</div>
+                    <div className="text-xl font-bold text-gray-900 dark:text-slate-100">{completedCount}</div>
                     <div className="text-xs text-gray-600">Done</div>
                   </motion.div>
                   <motion.div 
@@ -493,7 +493,7 @@ function DailyAskPage() {
               </motion.div>
               <div>
                 <motion.h3 
-                  className="font-bold text-lg text-gray-900"
+                  className="font-bold text-lg text-gray-900 dark:text-slate-100"
                   animate={{ 
                     backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"]
                   }}
@@ -708,13 +708,13 @@ function DailyAskPage() {
               </div>
               <div className="flex-1">
                 <motion.h3 
-                  className="text-xl font-bold text-gray-900 mb-2"
+                  className="text-xl font-bold text-gray-900 mb-2 dark:text-slate-100"
                   animate={{ scale: [1, 1.05, 1] }}
                   transition={{ duration: 1, repeat: Infinity, repeatDelay: 2 }}
                 >
                   🎉 All Tasks Completed!
                 </motion.h3>
-                <p className="text-sm text-gray-700 mb-4 leading-relaxed">
+                <p className="text-sm text-gray-700 mb-4 leading-relaxed dark:text-slate-300">
                   Outstanding work! You've completed all your daily tasks. Keep up the momentum and check back tomorrow for new suggestions.
                 </p>
                 <motion.div
@@ -764,7 +764,7 @@ function DailyAskPage() {
               </motion.div>
             </div>
             <div className="flex-1">
-              <h3 className="text-base font-bold text-gray-900 mb-3">Pro Tips for Success</h3>
+              <h3 className="text-base font-bold text-gray-900 mb-3 dark:text-slate-100">Pro Tips for Success</h3>
               <ul className="space-y-2">
                 {[
                   "Complete at least 3 tasks daily for consistent growth and momentum",
@@ -791,7 +791,7 @@ function DailyAskPage() {
                     >
                       <CheckCircle2 size={16} className="text-purple-600" />
                     </motion.div>
-                    <span className="text-xs text-gray-700 leading-relaxed">
+                    <span className="text-xs text-gray-700 leading-relaxed dark:text-slate-300">
                       {tip}
                     </span>
                   </motion.li>

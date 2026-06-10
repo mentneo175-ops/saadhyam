@@ -137,7 +137,7 @@ export function TokenStatusBanner() {
                 size="sm"
                 onClick={handleRefresh}
                 disabled={refreshing}
-                className="bg-white hover:bg-gray-50 text-gray-900 border border-gray-300"
+                className="bg-white hover:bg-gray-50 text-gray-900 border border-gray-300 dark:bg-slate-900 dark:text-slate-100 dark:border-slate-700"
               >
                 {refreshing ? (
                   <>

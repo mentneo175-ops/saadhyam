@@ -188,7 +188,7 @@ function PartnershipAgentPage() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                className="text-2xl font-bold text-gray-900 mb-2"
+                className="text-2xl font-bold text-gray-900 mb-2 dark:text-slate-100"
               >
                 {loadingMessage}
               </motion.h2>

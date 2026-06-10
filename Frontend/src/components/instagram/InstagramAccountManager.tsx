@@ -69,14 +69,14 @@ export const InstagramAccountManager: React.FC<InstagramAccountManagerProps> = (
                 {accounts.map((account) => (
                   <div
                     key={account.id}
-                    className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50"
+                    className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 dark:border-slate-800"
                   >
                     <div className="flex items-center gap-3">
                       <div className="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-pink-400 to-orange-400 rounded-full">
                         <span className="text-white font-bold">📷</span>
                       </div>
                       <div>
-                        <p className="font-semibold text-gray-900">{account.ig_username}</p>
+                        <p className="font-semibold text-gray-900 dark:text-slate-100">{account.ig_username}</p>
                         <p className="text-sm text-gray-600">{account.page_name}</p>
                       </div>
                     </div>

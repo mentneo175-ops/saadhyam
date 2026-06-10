@@ -34,11 +34,11 @@ export function BusinessGrid({
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: index * 0.05 }}
             onClick={() => onSelectBusiness(business)}
-            className="group bg-white rounded-2xl border border-gray-200 hover:border-purple-300 hover:shadow-xl transition-all duration-200 overflow-hidden text-left"
+            className="group bg-white rounded-2xl border border-gray-200 hover:border-purple-300 hover:shadow-xl transition-all duration-200 overflow-hidden text-left dark:bg-slate-900 dark:border-slate-800"
           >
             {/* Business Icon/Logo */}
             <div className="h-32 bg-gradient-to-br from-purple-50 to-pink-50 flex items-center justify-center">
-              <div className="w-16 h-16 rounded-xl bg-white shadow-md flex items-center justify-center group-hover:scale-110 transition-transform">
+              <div className="w-16 h-16 rounded-xl bg-white shadow-md flex items-center justify-center group-hover:scale-110 transition-transform dark:bg-slate-900">
                 <Building2 className="w-8 h-8 text-purple-600" />
               </div>
             </div>
@@ -46,7 +46,7 @@ export function BusinessGrid({
             {/* Business Info */}
             <div className="p-5">
               {/* Name */}
-              <h3 className="text-lg font-bold text-gray-900 mb-2 line-clamp-1 group-hover:text-purple-600 transition-colors">
+              <h3 className="text-lg font-bold text-gray-900 mb-2 line-clamp-1 group-hover:text-purple-600 transition-colors dark:text-slate-100">
                 {business.name}
               </h3>
 
@@ -99,7 +99,7 @@ export function BusinessGrid({
           <button
             onClick={() => onPageChange(currentPage - 1)}
             disabled={currentPage === 1}
-            className="p-2 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="p-2 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors dark:border-slate-800"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
@@ -139,7 +139,7 @@ export function BusinessGrid({
           <button
             onClick={() => onPageChange(currentPage + 1)}
             disabled={currentPage === totalPages}
-            className="p-2 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="p-2 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors dark:border-slate-800"
           >
             <ChevronRight className="w-5 h-5" />
           </button>

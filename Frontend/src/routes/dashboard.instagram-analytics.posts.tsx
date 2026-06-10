@@ -131,47 +131,47 @@ function InstagramPosts() {
 
       {/* Stats Overview */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 animate-fade-in">
-        <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200 hover:shadow-lg transition-shadow duration-300">
+        <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200 hover:shadow-lg transition-shadow duration-300 dark:bg-slate-900 dark:border-slate-800">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm text-gray-600">Total Posts</span>
             <BarChart3 className="w-6 h-6 text-purple-600" />
           </div>
-          <p className="text-3xl font-bold text-gray-900">{posts.length}</p>
+          <p className="text-3xl font-bold text-gray-900 dark:text-slate-100">{posts.length}</p>
         </div>
         
-        <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200 hover:shadow-lg transition-shadow duration-300">
+        <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200 hover:shadow-lg transition-shadow duration-300 dark:bg-slate-900 dark:border-slate-800">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm text-gray-600">Avg Engagement</span>
             <TrendingUp className="w-6 h-6 text-green-600" />
           </div>
-          <p className="text-3xl font-bold text-gray-900">{avgEngagementRate.toFixed(1)}%</p>
+          <p className="text-3xl font-bold text-gray-900 dark:text-slate-100">{avgEngagementRate.toFixed(1)}%</p>
         </div>
         
-        <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200 hover:shadow-lg transition-shadow duration-300">
+        <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200 hover:shadow-lg transition-shadow duration-300 dark:bg-slate-900 dark:border-slate-800">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm text-gray-600">Viral Posts</span>
             <Zap className="w-6 h-6 text-yellow-500" />
           </div>
-          <p className="text-3xl font-bold text-gray-900">{viralPostsCount}</p>
+          <p className="text-3xl font-bold text-gray-900 dark:text-slate-100">{viralPostsCount}</p>
         </div>
       </div>
 
       {/* Post List */}
-      <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200 animate-slide-up">
+      <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200 animate-slide-up dark:bg-slate-900 dark:border-slate-800">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-2xl font-semibold text-gray-800">Posts</h2>
+          <h2 className="text-2xl font-semibold text-gray-800 dark:text-slate-300">Posts</h2>
           <div className="flex items-center space-x-4">
             <input 
               type="text" 
               placeholder="Search posts..." 
               value={searchQuery} 
               onChange={(e) => setSearchQuery(e.target.value)} 
-              className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+              className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-slate-700"
             />
             <select 
               value={filter} 
               onChange={(e) => setFilter(e.target.value as 'all' | 'top' | 'viral')} 
-              className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+              className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-slate-700"
             >
               <option value="all">All</option>
               <option value="top">Top</option>
@@ -180,7 +180,7 @@ function InstagramPosts() {
             <select 
               value={sortBy} 
               onChange={(e) => setSortBy(e.target.value as 'recent' | 'engagement' | 'likes')} 
-              className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+              className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 dark:border-slate-700"
             >
               <option value="recent">Most Recent</option>
               <option value="engagement">Engagement</option>
@@ -194,9 +194,9 @@ function InstagramPosts() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredPosts.map(post => (
-              <div key={post.id} className="bg-gray-50 p-4 rounded-lg shadow-md border border-gray-200 hover:shadow-lg transition-shadow duration-300">
+              <div key={post.id} className="bg-gray-50 p-4 rounded-lg shadow-md border border-gray-200 hover:shadow-lg transition-shadow duration-300 dark:bg-slate-900 dark:border-slate-800">
                 <img src={post.media_url} alt={post.caption} className="w-full h-48 object-cover rounded-md mb-4" />
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">{post.caption || 'No Caption'}</h3>
+                <h3 className="text-lg font-semibold text-gray-800 mb-2 dark:text-slate-300">{post.caption || 'No Caption'}</h3>
                 <p className="text-sm text-gray-600 mb-2">{formatDate(post.published_at)}</p>
                 <div className="flex items-center justify-between text-sm text-gray-600">
                   <span><Heart className="inline w-4 h-4 text-red-500" /> {formatNumber(post.like_count)}</span>

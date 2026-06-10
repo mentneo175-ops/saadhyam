@@ -348,11 +348,11 @@ function RadarPage() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         
         {/* Left Column: Interactive Radar Console Panel (Col-span 4) */}
-        <div className="lg:col-span-4 bg-zinc-950 text-zinc-300 rounded-3xl border border-zinc-900 shadow-2xl p-6 space-y-6 relative overflow-hidden animate-grid-glow">
+        <div className="lg:col-span-4 bg-zinc-950 text-zinc-300 rounded-3xl border border-zinc-900 shadow-2xl p-6 space-y-6 relative overflow-hidden animate-grid-glow dark:bg-slate-900 dark:border-slate-700">
           {/* Glowing scanner line underlay */}
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(139,92,246,0.06),transparent_70%)] pointer-events-none" />
           
-          <div className="flex items-center justify-between border-b border-zinc-900 pb-3 relative z-10">
+          <div className="flex items-center justify-between border-b border-zinc-900 pb-3 relative z-10 dark:border-slate-700">
             <div className="flex items-center gap-2">
               <div className="h-2 w-2 rounded-full bg-purple-500 animate-pulse" />
               <span className="text-xs font-bold uppercase tracking-wider text-purple-400">Radar Console</span>
@@ -424,9 +424,9 @@ function RadarPage() {
           </div>
 
           {/* Scrolling Realtime Logs inside the Console */}
-          <div className="border-t border-zinc-900 pt-4 space-y-2 relative z-10">
+          <div className="border-t border-zinc-900 pt-4 space-y-2 relative z-10 dark:border-slate-700">
             <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest px-1">Live Signal Feed</p>
-            <div className="h-44 bg-zinc-950/80 rounded-xl p-3 border border-zinc-900 font-mono text-[10px] text-purple-400/90 overflow-y-auto space-y-1.5 scrollbar-thin scrollbar-thumb-zinc-900 scrollbar-track-transparent">
+            <div className="h-44 bg-zinc-950/80 rounded-xl p-3 border border-zinc-900 font-mono text-[10px] text-purple-400/90 overflow-y-auto space-y-1.5 scrollbar-thin scrollbar-thumb-zinc-900 scrollbar-track-transparent dark:border-slate-700">
               {consoleLogs.length === 0 ? (
                 <span className="text-zinc-600 italic">No signals recorded. Trigger a scan to start signal feed.</span>
               ) : (

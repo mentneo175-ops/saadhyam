@@ -24,7 +24,7 @@ export function CategoryGrid({ categories, onSelectCategory }: CategoryGridProps
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: index * 0.05 }}
           onClick={() => onSelectCategory(category.id)}
-          className="group relative p-6 bg-white rounded-2xl border-2 border-gray-100 hover:border-purple-300 hover:shadow-lg transition-all duration-200 text-left"
+          className="group relative p-6 bg-white rounded-2xl border-2 border-gray-100 hover:border-purple-300 hover:shadow-lg transition-all duration-200 text-left dark:bg-slate-900 dark:border-slate-800"
         >
           {/* Icon */}
           <div
@@ -34,7 +34,7 @@ export function CategoryGrid({ categories, onSelectCategory }: CategoryGridProps
           </div>
 
           {/* Category Name */}
-          <h3 className="text-lg font-bold text-gray-900 mb-2 group-hover:text-purple-600 transition-colors">
+          <h3 className="text-lg font-bold text-gray-900 mb-2 group-hover:text-purple-600 transition-colors dark:text-slate-100">
             {category.name}
           </h3>
 

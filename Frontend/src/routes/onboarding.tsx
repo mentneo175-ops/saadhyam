@@ -368,7 +368,7 @@ function OnboardingPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-white to-pink-50 px-4">
         <div className="rounded-2xl border border-purple-100 bg-white/90 px-6 py-5 shadow-lg shadow-purple-100/50 backdrop-blur-md">
-          <p className="text-sm font-medium text-slate-700">Checking setup status...</p>
+          <p className="text-sm font-medium text-slate-700 dark:text-slate-300">Checking setup status...</p>
         </div>
       </div>
     );
@@ -417,7 +417,7 @@ function OnboardingPage() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -16 }}
                 transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                className="absolute flex items-center justify-center gap-2 text-sm font-semibold text-slate-700 bg-white border border-purple-100/80 px-5 py-3 rounded-full shadow-md shadow-purple-50/50 whitespace-nowrap"
+                className="absolute flex items-center justify-center gap-2 text-sm font-semibold text-slate-700 bg-white border border-purple-100/80 px-5 py-3 rounded-full shadow-md shadow-purple-50/50 whitespace-nowrap dark:text-slate-300 dark:bg-slate-900"
               >
                 <span className="relative flex h-2 w-2 shrink-0">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
@@ -467,7 +467,7 @@ function OnboardingPage() {
             <div className="absolute bottom-1/4 left-1/3 w-2 h-2 bg-yellow-500 rounded-full animate-ping" style={{ animationDelay: '0.6s' }}></div>
           </div>
           
-          <h2 className="text-4xl font-bold text-gray-900 mb-4 animate-fade-in-down">
+          <h2 className="text-4xl font-bold text-gray-900 mb-4 animate-fade-in-down dark:text-slate-100">
             All Set! 🎉
           </h2>
           <p className="text-gray-600 mb-8 text-lg animate-fade-in-up">
@@ -475,7 +475,7 @@ function OnboardingPage() {
           </p>
           
           {/* Progress bar */}
-          <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden shadow-inner animate-fade-in-up" style={{ animationDelay: '200ms' }}>
+          <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden shadow-inner animate-fade-in-up dark:bg-slate-700" style={{ animationDelay: '200ms' }}>
             <div 
               className="bg-gradient-to-r from-emerald-500 via-green-500 to-teal-500 h-3 rounded-full relative overflow-hidden"
               style={{ width: '100%', animation: 'slide-in-right 3s ease-out' }}
@@ -540,7 +540,7 @@ function OnboardingPage() {
             </div>
             
             {/* Welcome Text */}
-            <h1 className="text-5xl font-bold text-gray-900 mb-6 bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-pink-600 leading-tight">
+            <h1 className="text-5xl font-bold text-gray-900 mb-6 bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-pink-600 leading-tight dark:text-slate-100">
               Welcome to Saadhyam AI
             </h1>
             <p className="text-xl text-gray-600 mb-8 leading-relaxed">
@@ -553,7 +553,7 @@ function OnboardingPage() {
                 <span className="font-semibold text-purple-600">Step {currentStep} of 4</span>
                 <span className="font-semibold text-purple-600">{Math.round((currentStep / 4) * 100)}% complete</span>
               </div>
-              <div className="relative w-full bg-gray-200 rounded-full h-3 overflow-hidden shadow-inner">
+              <div className="relative w-full bg-gray-200 rounded-full h-3 overflow-hidden shadow-inner dark:bg-slate-700">
                 <div 
                   className="absolute inset-0 bg-gradient-to-r from-purple-500 via-purple-600 to-pink-500 h-3 rounded-full transition-all duration-700 ease-out"
                   style={{ width: `${(currentStep / 4) * 100}%` }}
@@ -616,7 +616,7 @@ function OnboardingPage() {
               key={`title-${currentStep}`}
               className="mb-6 animate-slide-in-right"
             >
-              <h2 className="text-2xl font-bold text-gray-900 mb-3">
+              <h2 className="text-2xl font-bold text-gray-900 mb-3 dark:text-slate-100">
                 {getStepTitle()}
               </h2>
               <p className="text-sm text-gray-600">
@@ -646,7 +646,7 @@ function OnboardingPage() {
                     onChange={(e) => handleInputChange(e.target.value, "name")}
                     onKeyPress={handleKeyPress}
                     placeholder={placeholder}
-                    className="w-full text-xl px-6 py-5 border-2 border-gray-200 rounded-2xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 outline-none transition-all duration-300 bg-gradient-to-br from-gray-50 to-white hover:border-purple-300 font-medium placeholder:text-gray-400 shadow-sm hover:shadow-md"
+                    className="w-full text-xl px-6 py-5 border-2 border-gray-200 rounded-2xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 outline-none transition-all duration-300 bg-gradient-to-br from-gray-50 to-white hover:border-purple-300 font-medium placeholder:text-gray-400 shadow-sm hover:shadow-md dark:border-slate-800"
                   />
                   <div className="absolute right-4 top-1/2 transform -translate-y-1/2 opacity-0 group-focus-within:opacity-100 transition-opacity duration-300">
                     <div className="w-1 h-6 bg-purple-500 animate-pulse rounded-full"></div>
@@ -698,7 +698,7 @@ function OnboardingPage() {
                     onChange={(e) => handleInputChange(e.target.value, "location")}
                     onKeyPress={handleKeyPress}
                     placeholder={placeholder}
-                    className="w-full text-xl px-6 py-5 border-2 border-gray-200 rounded-2xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 outline-none transition-all duration-300 bg-gradient-to-br from-gray-50 to-white hover:border-purple-300 font-medium placeholder:text-gray-400 shadow-sm hover:shadow-md"
+                    className="w-full text-xl px-6 py-5 border-2 border-gray-200 rounded-2xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 outline-none transition-all duration-300 bg-gradient-to-br from-gray-50 to-white hover:border-purple-300 font-medium placeholder:text-gray-400 shadow-sm hover:shadow-md dark:border-slate-800"
                   />
                   <div className="absolute right-4 top-1/2 transform -translate-y-1/2 opacity-0 group-focus-within:opacity-100 transition-opacity duration-300">
                     <div className="w-1 h-6 bg-purple-500 animate-pulse rounded-full"></div>
@@ -710,7 +710,7 @@ function OnboardingPage() {
                 <div className="space-y-6">
                   {/* Header Text */}
                   <div className="text-center mb-6">
-                    <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                    <h2 className="text-2xl font-bold text-gray-900 mb-2 dark:text-slate-100">
                       Tell us about your business
                     </h2>
                     <p className="text-sm text-gray-500">
@@ -725,7 +725,7 @@ function OnboardingPage() {
                       <button
                         type="button"
                         onClick={() => setActiveInputMethod("website")}
-                        className="w-full bg-white/90 backdrop-blur-sm rounded-2xl p-5 border-2 border-gray-200 hover:border-purple-300 hover:bg-gradient-to-br hover:from-purple-50/50 hover:to-pink-50/50 transition-all duration-300 hover:shadow-lg group text-left animate-fade-in-up"
+                        className="w-full bg-white/90 backdrop-blur-sm rounded-2xl p-5 border-2 border-gray-200 hover:border-purple-300 hover:bg-gradient-to-br hover:from-purple-50/50 hover:to-pink-50/50 transition-all duration-300 hover:shadow-lg group text-left animate-fade-in-up dark:border-slate-800"
                         style={{ animationDelay: '0ms' }}
                       >
                         <div className="flex items-center gap-4">
@@ -735,7 +735,7 @@ function OnboardingPage() {
                             </svg>
                           </div>
                           <div className="flex-1">
-                            <h3 className="text-base font-semibold text-gray-900 mb-0.5">
+                            <h3 className="text-base font-semibold text-gray-900 mb-0.5 dark:text-slate-100">
                               Paste Website URL
                             </h3>
                             <p className="text-sm text-gray-500">
@@ -749,7 +749,7 @@ function OnboardingPage() {
                       <button
                         type="button"
                         onClick={() => setActiveInputMethod("pdf")}
-                        className="w-full bg-white/90 backdrop-blur-sm rounded-2xl p-5 border-2 border-gray-200 hover:border-purple-300 hover:bg-gradient-to-br hover:from-purple-50/50 hover:to-pink-50/50 transition-all duration-300 hover:shadow-lg group text-left animate-fade-in-up"
+                        className="w-full bg-white/90 backdrop-blur-sm rounded-2xl p-5 border-2 border-gray-200 hover:border-purple-300 hover:bg-gradient-to-br hover:from-purple-50/50 hover:to-pink-50/50 transition-all duration-300 hover:shadow-lg group text-left animate-fade-in-up dark:border-slate-800"
                         style={{ animationDelay: '50ms' }}
                       >
                         <div className="flex items-center gap-4">
@@ -759,7 +759,7 @@ function OnboardingPage() {
                             </svg>
                           </div>
                           <div className="flex-1">
-                            <h3 className="text-base font-semibold text-gray-900 mb-0.5">
+                            <h3 className="text-base font-semibold text-gray-900 mb-0.5 dark:text-slate-100">
                               Upload PDF or Brochure
                             </h3>
                             <p className="text-sm text-gray-500">
@@ -773,7 +773,7 @@ function OnboardingPage() {
                       <button
                         type="button"
                         onClick={() => setActiveInputMethod("text")}
-                        className="w-full bg-white/90 backdrop-blur-sm rounded-2xl p-5 border-2 border-gray-200 hover:border-purple-300 hover:bg-gradient-to-br hover:from-purple-50/50 hover:to-pink-50/50 transition-all duration-300 hover:shadow-lg group text-left animate-fade-in-up"
+                        className="w-full bg-white/90 backdrop-blur-sm rounded-2xl p-5 border-2 border-gray-200 hover:border-purple-300 hover:bg-gradient-to-br hover:from-purple-50/50 hover:to-pink-50/50 transition-all duration-300 hover:shadow-lg group text-left animate-fade-in-up dark:border-slate-800"
                         style={{ animationDelay: '100ms' }}
                       >
                         <div className="flex items-center gap-4">
@@ -783,7 +783,7 @@ function OnboardingPage() {
                             </svg>
                           </div>
                           <div className="flex-1">
-                            <h3 className="text-base font-semibold text-gray-900 mb-0.5">
+                            <h3 className="text-base font-semibold text-gray-900 mb-0.5 dark:text-slate-100">
                               Type Business Details
                             </h3>
                             <p className="text-sm text-gray-500">
@@ -797,7 +797,7 @@ function OnboardingPage() {
                       <button
                         type="button"
                         onClick={() => setActiveInputMethod("voice")}
-                        className="w-full bg-white/90 backdrop-blur-sm rounded-2xl p-5 border-2 border-gray-200 hover:border-purple-300 hover:bg-gradient-to-br hover:from-purple-50/50 hover:to-pink-50/50 transition-all duration-300 hover:shadow-lg group text-left animate-fade-in-up"
+                        className="w-full bg-white/90 backdrop-blur-sm rounded-2xl p-5 border-2 border-gray-200 hover:border-purple-300 hover:bg-gradient-to-br hover:from-purple-50/50 hover:to-pink-50/50 transition-all duration-300 hover:shadow-lg group text-left animate-fade-in-up dark:border-slate-800"
                         style={{ animationDelay: '150ms' }}
                       >
                         <div className="flex items-center gap-4">
@@ -807,7 +807,7 @@ function OnboardingPage() {
                             </svg>
                           </div>
                           <div className="flex-1">
-                            <h3 className="text-base font-semibold text-gray-900 mb-0.5">
+                            <h3 className="text-base font-semibold text-gray-900 mb-0.5 dark:text-slate-100">
                               Record Voice
                             </h3>
                             <p className="text-sm text-gray-500">
@@ -972,7 +972,7 @@ function OnboardingPage() {
                 <Button
                   onClick={handleBack}
                   variant="outline"
-                  className="flex-1 py-6 text-lg font-semibold border-2 border-gray-300 text-gray-700 hover:border-purple-400 hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 hover:text-purple-700 rounded-2xl transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-sm hover:shadow-md group"
+                  className="flex-1 py-6 text-lg font-semibold border-2 border-gray-300 text-gray-700 hover:border-purple-400 hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 hover:text-purple-700 rounded-2xl transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-sm hover:shadow-md group dark:border-slate-700 dark:text-slate-300"
                 >
                   <ChevronLeft size={20} className="mr-2 group-hover:-translate-x-1 transition-transform duration-300" />
                   Back

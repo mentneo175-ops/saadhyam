@@ -91,7 +91,7 @@ export function WebsiteImport({ onTextExtracted, disabled }: WebsiteImportProps)
             </div>
             
             <div>
-              <h3 className="font-semibold text-gray-900 text-base">Website Import</h3>
+              <h3 className="font-semibold text-gray-900 text-base dark:text-slate-100">Website Import</h3>
               <p className="text-xs text-gray-600">Enter your website URL below</p>
             </div>
           </div>
@@ -104,7 +104,7 @@ export function WebsiteImport({ onTextExtracted, disabled }: WebsiteImportProps)
               onChange={(e) => setUrl(e.target.value)}
               onKeyDown={handleKeyPress}
               disabled={disabled || importing}
-              className="w-full h-12 text-base px-4 border-2 border-gray-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-100"
+              className="w-full h-12 text-base px-4 border-2 border-gray-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-100 dark:border-slate-700"
               autoFocus
             />
             

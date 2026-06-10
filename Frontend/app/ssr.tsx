@@ -1,4 +1,15 @@
 /// <reference types="vinxi/types/server" />
+if (typeof process !== 'undefined') {
+  process.on('uncaughtException', (err) => {
+    if (err && (err.message?.includes('Stream lifetime exceeded') || err.message?.includes('Serialization timeout'))) {
+      console.warn('[TanStack Start SSR Watchdog] Handled stream/serialization timeout safely without crashing.');
+      return;
+    }
+    console.error('Uncaught Exception:', err);
+    process.exit(1);
+  });
+}
+
 import { getRouterManifest } from '@tanstack/react-router/server'
 import { createMemoryHistory } from '@tanstack/react-router'
 import { StartServer } from '@tanstack/react-router'

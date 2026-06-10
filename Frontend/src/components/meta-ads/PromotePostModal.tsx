@@ -135,29 +135,29 @@ export function PromotePostModal({ isOpen, onClose, post, onSuccess }: PromotePo
 
         <div className="space-y-6">
           {/* Post Preview */}
-          <div className="flex gap-4 p-4 rounded-xl bg-linear-to-br from-purple-50 to-pink-50 border border-purple-200">
+          <div className="flex gap-4 p-4 rounded-xl bg-linear-to-br from-purple-50 to-pink-50 dark:bg-none dark:bg-slate-950 border border-purple-200 dark:border-slate-800">
             <img
               src={post.image_url}
               alt="Post"
               className="w-24 h-24 rounded-lg object-cover"
             />
             <div className="flex-1">
-              <p className="text-sm text-gray-600 line-clamp-3">{post.caption}</p>
+              <p className="text-sm text-gray-600 line-clamp-3 dark:text-slate-400">{post.caption}</p>
             </div>
           </div>
 
           {/* AI Recommendations Loading */}
           {loadingAI && (
-            <div className="p-6 rounded-xl bg-linear-to-br from-purple-100 to-pink-100 border-2 border-purple-300 text-center">
-              <Loader2 className="w-8 h-8 animate-spin mx-auto mb-3 text-purple-600" />
-              <p className="text-purple-900 font-semibold">AI is analyzing your post...</p>
-              <p className="text-sm text-purple-700">Generating audience and budget recommendations</p>
+            <div className="p-6 rounded-xl bg-linear-to-br from-purple-100 to-pink-100 dark:bg-none dark:bg-slate-950 border-2 border-purple-300 dark:border-slate-800 text-center shadow-inner">
+              <Loader2 className="w-8 h-8 animate-spin mx-auto mb-3 text-purple-600 dark:text-purple-400" />
+              <p className="text-purple-900 font-semibold dark:text-purple-300">AI is analyzing your post...</p>
+              <p className="text-sm text-purple-700 dark:text-purple-400">Generating audience and budget recommendations</p>
             </div>
           )}
 
           {/* AI Audience Recommendations */}
           {audienceRec && !loadingAI && (
-            <div className="p-4 rounded-xl bg-linear-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 space-y-3">
+            <div className="p-4 rounded-xl bg-linear-to-br from-blue-50 to-indigo-50 dark:bg-none dark:bg-blue-950/20 border-2 border-blue-200 dark:border-blue-900/50 space-y-3">
               <div className="flex items-center gap-2">
                 <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center">
                   <Users className="w-5 h-5 text-white" />
@@ -169,34 +169,34 @@ export function PromotePostModal({ isOpen, onClose, post, onSuccess }: PromotePo
                       {Math.round(audienceRec.confidence_score * 100)}% confident
                     </span>
                   </h3>
-                  <p className="text-sm text-gray-600">{audienceRec.reasoning}</p>
+                  <p className="text-sm text-gray-600 dark:text-slate-300">{audienceRec.reasoning}</p>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                <div className="p-3 rounded-lg bg-white/80 backdrop-blur-sm">
-                  <p className="text-xs text-gray-600">Age Range</p>
+                <div className="p-3 rounded-lg bg-white/80 backdrop-blur-sm dark:bg-slate-900/60">
+                  <p className="text-xs text-gray-600 dark:text-slate-400">Age Range</p>
                   <p className="font-semibold text-gray-900 dark:text-slate-100">
                     {audienceRec.recommended_age_min}-{audienceRec.recommended_age_max}
                   </p>
                 </div>
-                <div className="p-3 rounded-lg bg-white/80 backdrop-blur-sm">
-                  <p className="text-xs text-gray-600">Gender</p>
+                <div className="p-3 rounded-lg bg-white/80 backdrop-blur-sm dark:bg-slate-900/60">
+                  <p className="text-xs text-gray-600 dark:text-slate-400">Gender</p>
                   <p className="font-semibold text-gray-900 capitalize dark:text-slate-100">
                     {Array.isArray(audienceRec.recommended_genders)
                       ? audienceRec.recommended_genders.join(", ")
                       : String(audienceRec.recommended_genders || "all")}
                   </p>
                 </div>
-                <div className="p-3 rounded-lg bg-white/80 backdrop-blur-sm">
-                  <p className="text-xs text-gray-600">Est. Reach</p>
+                <div className="p-3 rounded-lg bg-white/80 backdrop-blur-sm dark:bg-slate-900/60">
+                  <p className="text-xs text-gray-600 dark:text-slate-400">Est. Reach</p>
                   <p className="font-semibold text-gray-900 dark:text-slate-100">
                     {audienceRec.estimated_reach_min.toLocaleString()}-
                     {audienceRec.estimated_reach_max.toLocaleString()}
                   </p>
                 </div>
-                <div className="p-3 rounded-lg bg-white/80 backdrop-blur-sm">
-                  <p className="text-xs text-gray-600">Engagement</p>
+                <div className="p-3 rounded-lg bg-white/80 backdrop-blur-sm dark:bg-slate-900/60">
+                  <p className="text-xs text-gray-600 dark:text-slate-400">Engagement</p>
                   <p className="font-semibold text-gray-900 dark:text-slate-100">
                     {(audienceRec.estimated_engagement_rate * 100).toFixed(1)}%
                   </p>
@@ -205,12 +205,12 @@ export function PromotePostModal({ isOpen, onClose, post, onSuccess }: PromotePo
 
               {audienceRec.recommended_interests.length > 0 && (
                 <div>
-                  <p className="text-xs text-gray-600 mb-2">Recommended Interests:</p>
+                  <p className="text-xs text-gray-600 dark:text-slate-400 mb-2">Recommended Interests:</p>
                   <div className="flex flex-wrap gap-2">
                     {audienceRec.recommended_interests.slice(0, 5).map((interest, idx) => (
                       <span
                         key={idx}
-                        className="px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-sm"
+                        className="px-3 py-1 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300 text-sm"
                       >
                         {interest.name}
                       </span>
@@ -223,38 +223,38 @@ export function PromotePostModal({ isOpen, onClose, post, onSuccess }: PromotePo
 
           {/* AI Budget Recommendations */}
           {budgetRec && !loadingAI && (
-            <div className="p-4 rounded-xl bg-linear-to-br from-green-50 to-emerald-50 border-2 border-green-200 space-y-3">
+            <div className="p-4 rounded-xl bg-linear-to-br from-green-50 to-emerald-50 dark:bg-none dark:bg-green-950/20 border-2 border-green-200 dark:border-green-900/50 space-y-3">
               <div className="flex items-center gap-2">
                 <div className="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center">
                   <DollarSign className="w-5 h-5 text-white" />
                 </div>
                 <div>
                   <h3 className="font-semibold text-gray-900 dark:text-slate-100">AI Budget Recommendations</h3>
-                  <p className="text-sm text-gray-600">{budgetRec.reasoning}</p>
+                  <p className="text-sm text-gray-600 dark:text-slate-300">{budgetRec.reasoning}</p>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                <div className="p-3 rounded-lg bg-white/80 backdrop-blur-sm">
-                  <p className="text-xs text-gray-600">Daily Budget</p>
+                <div className="p-3 rounded-lg bg-white/80 backdrop-blur-sm dark:bg-slate-900/60">
+                  <p className="text-xs text-gray-600 dark:text-slate-400">Daily Budget</p>
                   <p className="font-semibold text-gray-900 dark:text-slate-100">
                     ₹{budgetRec.recommended_daily_budget}
                   </p>
                 </div>
-                <div className="p-3 rounded-lg bg-white/80 backdrop-blur-sm">
-                  <p className="text-xs text-gray-600">Duration</p>
+                <div className="p-3 rounded-lg bg-white/80 backdrop-blur-sm dark:bg-slate-900/60">
+                  <p className="text-xs text-gray-600 dark:text-slate-400">Duration</p>
                   <p className="font-semibold text-gray-900 dark:text-slate-100">
                     {budgetRec.recommended_duration_days} days
                   </p>
                 </div>
-                <div className="p-3 rounded-lg bg-white/80 backdrop-blur-sm">
-                  <p className="text-xs text-gray-600">Total Budget</p>
+                <div className="p-3 rounded-lg bg-white/80 backdrop-blur-sm dark:bg-slate-900/60">
+                  <p className="text-xs text-gray-600 dark:text-slate-400">Total Budget</p>
                   <p className="font-semibold text-gray-900 dark:text-slate-100">
                     ₹{budgetRec.recommended_total_budget}
                   </p>
                 </div>
-                <div className="p-3 rounded-lg bg-white/80 backdrop-blur-sm">
-                  <p className="text-xs text-gray-600">Est. Clicks</p>
+                <div className="p-3 rounded-lg bg-white/80 backdrop-blur-sm dark:bg-slate-900/60">
+                  <p className="text-xs text-gray-600 dark:text-slate-400">Est. Clicks</p>
                   <p className="font-semibold text-gray-900 dark:text-slate-100">
                     {budgetRec.estimated_clicks_min}-{budgetRec.estimated_clicks_max}
                   </p>
@@ -305,7 +305,7 @@ export function PromotePostModal({ isOpen, onClose, post, onSuccess }: PromotePo
                   placeholder="500"
                 />
                 {budgetRec && (
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-gray-500 dark:text-slate-400">
                     AI suggests: ₹{budgetRec.recommended_daily_budget}
                   </p>
                 )}
@@ -320,7 +320,7 @@ export function PromotePostModal({ isOpen, onClose, post, onSuccess }: PromotePo
                   placeholder="7"
                 />
                 {budgetRec && (
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-gray-500 dark:text-slate-400">
                     AI suggests: {budgetRec.recommended_duration_days} days
                   </p>
                 )}
@@ -356,17 +356,17 @@ export function PromotePostModal({ isOpen, onClose, post, onSuccess }: PromotePo
 
           {/* Total Budget Display */}
           {dailyBudget && duration && (
-            <div className="p-4 rounded-xl bg-linear-to-r from-purple-100 to-pink-100 border-2 border-purple-300">
+            <div className="p-4 rounded-xl bg-linear-to-r from-purple-100 to-pink-100 dark:bg-none dark:bg-purple-950/30 border-2 border-purple-300 dark:border-purple-800/80">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Total Campaign Budget</p>
-                  <p className="text-2xl font-bold text-purple-900">
+                  <p className="text-sm text-gray-600 dark:text-slate-300">Total Campaign Budget</p>
+                  <p className="text-2xl font-bold text-purple-900 dark:text-purple-300">
                     ₹{(dailyBudget * duration).toLocaleString()}
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm text-gray-600">Estimated Reach</p>
-                  <p className="text-lg font-semibold text-purple-900">
+                  <p className="text-sm text-gray-600 dark:text-slate-300">Estimated Reach</p>
+                  <p className="text-lg font-semibold text-purple-900 dark:text-purple-300">
                     {budgetRec
                       ? `${budgetRec.estimated_reach_min.toLocaleString()}-${budgetRec.estimated_reach_max.toLocaleString()}`
                       : "Calculating..."}

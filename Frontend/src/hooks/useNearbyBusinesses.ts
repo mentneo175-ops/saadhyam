@@ -45,7 +45,26 @@ async function fetchNearbyBusinesses(
     }
 
     const data = await response.json();
-    return data.businesses || [];
+    const rawBusinesses = data.businesses || [];
+    return rawBusinesses.map((b: any) => ({
+      id: b.id,
+      name: b.name,
+      category: b.category,
+      logo: b.logo,
+      description: b.description,
+      location: b.location,
+      services: b.services,
+      employees: b.employees,
+      aiScore: b.ai_score ?? b.aiScore,
+      isPartner: b.is_partner ?? b.isPartner,
+      isVerified: b.is_verified ?? b.isVerified,
+      isSatellite: b.is_satellite ?? b.isSatellite,
+      source: b.source,
+      website: b.website,
+      connections: b.connections,
+      distance: b.distance,
+      distanceKm: b.distance_km ?? b.distanceKm,
+    }));
   } catch (error) {
     clearTimeout(timeoutId);
     if (error instanceof Error && error.name === 'AbortError') {

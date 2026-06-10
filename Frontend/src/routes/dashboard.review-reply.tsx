@@ -300,7 +300,7 @@ function ReviewReplyPage() {
             )}
           </div>
 
-          <div className="flex-1 rounded-xl bg-gradient-to-br from-[#F8F7FC] to-[#F3F1F9] border border-gray-200/60 p-5 mb-5 min-h-64">
+          <div className="flex-1 rounded-xl bg-gradient-to-br from-[#F8F7FC] to-[#F3F1F9] dark:from-slate-950 dark:to-slate-950/50 border border-gray-200/60 dark:border-slate-800 p-5 mb-5 min-h-64">
             {generatedReply ? (
               <p className="text-sm leading-relaxed text-gray-700 whitespace-pre-line dark:text-slate-300">{generatedReply}</p>
             ) : (

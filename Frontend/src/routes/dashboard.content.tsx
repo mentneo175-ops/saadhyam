@@ -712,7 +712,7 @@ function ContentStudio() {
             </motion.div>
           )}
           
-          <div className="flex-1 rounded-xl bg-gradient-to-br from-[#F8F7FC] to-[#F3F1F9] dark:from-slate-950 dark:to-slate-950/50 border border-gray-200/60 dark:border-slate-800 p-6 mb-4 min-h-[400px] overflow-auto">
+          <div className="flex-1 rounded-xl bg-gradient-to-br from-[#F8F7FC] to-[#F3F1F9] dark:bg-none dark:bg-slate-950 border border-gray-200/60 dark:border-slate-800 p-6 mb-4 min-h-[400px] overflow-auto">
             {/* Content */}
             {generatedImageUrl ? (
               <motion.div

@@ -230,7 +230,7 @@ function InstagramPage() {
       
       // If connected, load posts and trigger processing
       if (data.is_connected) {
-        loadPosts(false);
+        await loadPosts(false);
         triggerScheduledPostsProcessing();
         
         // Load AI settings

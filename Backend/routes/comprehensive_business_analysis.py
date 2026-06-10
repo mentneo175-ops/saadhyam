@@ -23,8 +23,45 @@ from services.comprehensive_business_analysis_service import (
     get_seo_google_maps_data,
     get_analysis_status
 )
+from fastapi.concurrency import run_in_threadpool
 
 logger = logging.getLogger(__name__)
+
+
+def get_or_create_analyzing_record(
+    user_id: int,
+    db: Session,
+    business_name: str,
+    business_type: str,
+    business_location: str,
+    business_description: str
+):
+    from db.models import BusinessAnalysis
+    existing = db.query(BusinessAnalysis).filter(
+        BusinessAnalysis.user_id == user_id
+    ).order_by(BusinessAnalysis.last_analyzed_at.desc()).first()
+
+    if existing and existing.analysis_status == "analyzing":
+        return "already_analyzing", existing.id
+
+    if existing:
+        existing.analysis_status = "analyzing"
+        db.commit()
+        analysis_id = existing.id
+    else:
+        new_analysis = BusinessAnalysis(
+            user_id=user_id,
+            analysis_status="analyzing",
+            business_name=business_name or "",
+            business_type=business_type or "",
+            location=business_location or "",
+            description=business_description or ""
+        )
+        db.add(new_analysis)
+        db.commit()
+        db.refresh(new_analysis)
+        analysis_id = new_analysis.id
+    return "started", analysis_id
 
 router = APIRouter(
     prefix="/api/comprehensive-analysis",
@@ -63,7 +100,7 @@ class BusinessAnalysisResponse(BaseModel):
     summary="Get latest business analysis (compatibility endpoint)",
     description="Returns the latest comprehensive business analysis for the user"
 )
-async def get_latest_analysis(
+def get_latest_analysis(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db_sync)
 ) -> BusinessAnalysisResponse:
@@ -121,38 +158,23 @@ async def trigger_analysis(
             detail="Please complete your business profile before analyzing"
         )
 
-    # Check for already-running analysis (fast DB query only)
-    from db.models import BusinessAnalysis
-    existing = db.query(BusinessAnalysis).filter(
-        BusinessAnalysis.user_id == current_user.id
-    ).order_by(BusinessAnalysis.last_analyzed_at.desc()).first()
+    # Check for already-running analysis or create new record in thread pool
+    status_action, analysis_id = await run_in_threadpool(
+        get_or_create_analyzing_record,
+        current_user.id,
+        db,
+        current_user.business_name,
+        current_user.business_type,
+        current_user.business_location,
+        current_user.business_description
+    )
 
-    if existing and existing.analysis_status == "analyzing":
+    if status_action == "already_analyzing":
         return TriggerAnalysisResponse(
             status="analyzing",
             message="Analysis is already in progress. Please wait...",
-            analysis_id=existing.id
+            analysis_id=analysis_id
         )
-
-    # Create / update the record and commit immediately so the UI sees it
-    from datetime import datetime
-    if existing:
-        existing.analysis_status = "analyzing"
-        db.commit()
-        analysis_id = existing.id
-    else:
-        new_analysis = BusinessAnalysis(
-            user_id=current_user.id,
-            analysis_status="analyzing",
-            business_name=current_user.business_name or "",
-            business_type=current_user.business_type or "",
-            location=current_user.business_location or "",
-            description=current_user.business_description or ""
-        )
-        db.add(new_analysis)
-        db.commit()
-        db.refresh(new_analysis)
-        analysis_id = new_analysis.id
 
     # Snapshot user data so the background task doesn't touch the
     # request-scoped SQLAlchemy session which will be closed after this request.
@@ -182,7 +204,7 @@ async def trigger_analysis(
     summary="Get analysis status",
     description="Check if analysis is pending, analyzing, completed, or error"
 )
-async def get_status(
+def get_status(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db_sync)
 ) -> AnalysisStatusResponse:
@@ -201,7 +223,7 @@ async def get_status(
     summary="Get Business Analysis data",
     description="Get strengths, weaknesses, opportunities, and local market insights"
 )
-async def get_business_analysis(
+def get_business_analysis(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db_sync)
 ) -> Dict[str, Any]:
@@ -265,7 +287,7 @@ async def get_competitor_analysis(
     summary="Get 30-Day Growth Plan",
     description="Get week-by-week growth plan for Dashboard"
 )
-async def get_growth_plan(
+def get_growth_plan(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db_sync)
 ) -> Dict[str, Any]:

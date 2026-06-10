@@ -3,7 +3,6 @@
  */
 
 import { apiClient } from "./api";
-import { env } from "@/config/env";
 import type {
   MetaConnectionStatus,
   AudienceRecommendation,
@@ -16,23 +15,13 @@ import type {
   CampaignStatus,
 } from "@/types/meta-ads";
 
-const BASE_URL = env.apiBaseUrl;
+const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 /**
  * Get Meta connection status
  */
 export async function getMetaConnectionStatus(): Promise<MetaConnectionStatus> {
-  const response = await fetch(`${BASE_URL}/auth/meta/status`, {
-    headers: {
-      Authorization: `Bearer ${localStorage.getItem("saadhyam_token")}`,
-    },
-  });
-
-  if (!response.ok) {
-    throw new Error("Failed to get Meta connection status");
-  }
-
-  return response.json();
+  return apiClient.get<MetaConnectionStatus>("/auth/meta/status");
 }
 
 /**
@@ -55,16 +44,7 @@ export function connectMetaAccount(): void {
  * Disconnect Meta account
  */
 export async function disconnectMetaAccount(): Promise<void> {
-  const response = await fetch(`${BASE_URL}/auth/meta/disconnect`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${localStorage.getItem("saadhyam_token")}`,
-    },
-  });
-
-  if (!response.ok) {
-    throw new Error("Failed to disconnect Meta account");
-  }
+  return apiClient.post("/auth/meta/disconnect");
 }
 
 /**
@@ -75,24 +55,11 @@ export async function getAudienceRecommendations(
   postHashtags?: string[],
   campaignObjective: string = "OUTCOME_ENGAGEMENT"
 ): Promise<{ success: boolean; recommendations: AudienceRecommendation }> {
-  const response = await fetch(`${BASE_URL}/meta-ads/ai/audience-recommendations`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${localStorage.getItem("saadhyam_token")}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      post_caption: postCaption,
-      post_hashtags: postHashtags,
-      campaign_objective: campaignObjective,
-    }),
+  return apiClient.post("/meta-ads/ai/audience-recommendations", {
+    post_caption: postCaption,
+    post_hashtags: postHashtags,
+    campaign_objective: campaignObjective,
   });
-
-  if (!response.ok) {
-    throw new Error("Failed to get audience recommendations");
-  }
-
-  return response.json();
 }
 
 /**
@@ -102,78 +69,31 @@ export async function getBudgetRecommendations(
   campaignObjective: string = "OUTCOME_ENGAGEMENT",
   targetAudienceSize?: number
 ): Promise<{ success: boolean; recommendations: BudgetRecommendation; currency: string }> {
-  const response = await fetch(`${BASE_URL}/meta-ads/ai/budget-recommendations`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${localStorage.getItem("saadhyam_token")}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      campaign_objective: campaignObjective,
-      target_audience_size: targetAudienceSize,
-    }),
+  return apiClient.post("/meta-ads/ai/budget-recommendations", {
+    campaign_objective: campaignObjective,
+    target_audience_size: targetAudienceSize,
   });
-
-  if (!response.ok) {
-    throw new Error("Failed to get budget recommendations");
-  }
-
-  return response.json();
 }
 
 /**
  * Promote Instagram post
  */
 export async function promotePost(request: PromotePostRequest): Promise<PromotePostResponse> {
-  const response = await fetch(`${BASE_URL}/meta-ads/promote-post`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${localStorage.getItem("saadhyam_token")}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(request),
-  });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.detail || "Failed to promote post");
-  }
-
-  return response.json();
+  return apiClient.post("/meta-ads/promote-post", request);
 }
 
 /**
  * Get all campaigns
  */
 export async function getCampaigns(): Promise<{ success: boolean; campaigns: Campaign[] }> {
-  const response = await fetch(`${BASE_URL}/meta-ads/campaigns`, {
-    headers: {
-      Authorization: `Bearer ${localStorage.getItem("saadhyam_token")}`,
-    },
-  });
-
-  if (!response.ok) {
-    throw new Error("Failed to get campaigns");
-  }
-
-  return response.json();
+  return apiClient.get("/meta-ads/campaigns");
 }
 
 /**
  * Get campaign details
  */
 export async function getCampaignDetails(campaignId: number): Promise<{ success: boolean; campaign: Campaign }> {
-  const response = await fetch(`${BASE_URL}/meta-ads/campaigns/${campaignId}`, {
-    headers: {
-      Authorization: `Bearer ${localStorage.getItem("saadhyam_token")}`,
-    },
-  });
-
-  if (!response.ok) {
-    throw new Error("Failed to get campaign details");
-  }
-
-  return response.json();
+  return apiClient.get(`/meta-ads/campaigns/${campaignId}`);
 }
 
 /**
@@ -183,20 +103,7 @@ export async function updateCampaignStatus(
   campaignId: number,
   status: CampaignStatus
 ): Promise<{ success: boolean; message: string }> {
-  const response = await fetch(`${BASE_URL}/meta-ads/campaigns/${campaignId}/status`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${localStorage.getItem("saadhyam_token")}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ status }),
-  });
-
-  if (!response.ok) {
-    throw new Error("Failed to update campaign status");
-  }
-
-  return response.json();
+  return apiClient.post(`/meta-ads/campaigns/${campaignId}/status`, { status });
 }
 
 /**
@@ -206,20 +113,7 @@ export async function getCampaignAnalytics(
   campaignId: number,
   datePreset: string = "last_7d"
 ): Promise<{ success: boolean; campaign_id: number; analytics: CampaignAnalytics }> {
-  const response = await fetch(
-    `${BASE_URL}/meta-ads/campaigns/${campaignId}/analytics?date_preset=${datePreset}`,
-    {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("saadhyam_token")}`,
-      },
-    }
-  );
-
-  if (!response.ok) {
-    throw new Error("Failed to get campaign analytics");
-  }
-
-  return response.json();
+  return apiClient.get(`/meta-ads/campaigns/${campaignId}/analytics?date_preset=${datePreset}`);
 }
 
 /**
@@ -230,15 +124,5 @@ export async function getDashboardSummary(): Promise<{
   summary: DashboardSummary;
   recent_campaigns: Campaign[];
 }> {
-  const response = await fetch(`${BASE_URL}/meta-ads/dashboard/summary`, {
-    headers: {
-      Authorization: `Bearer ${localStorage.getItem("saadhyam_token")}`,
-    },
-  });
-
-  if (!response.ok) {
-    throw new Error("Failed to get dashboard summary");
-  }
-
-  return response.json();
+  return apiClient.get("/meta-ads/dashboard/summary");
 }

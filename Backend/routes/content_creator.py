@@ -12,6 +12,7 @@ from utils.dependencies import get_current_user
 from utils.feature_gate import check_feature_access
 
 from services.content_creator_service import generate_content
+from fastapi.concurrency import run_in_threadpool
 
 logger = logging.getLogger(__name__)
 
@@ -145,8 +146,8 @@ async def generate_content_endpoint(
         data = request.model_dump()
         logger.info(f"   Normalized data: {data}")
         
-        # Generate content
-        result = generate_content(data)
+        # Generate content in a thread pool to avoid blocking the event loop
+        result = await run_in_threadpool(generate_content, data)
         
         if result["status"] == "error":
             logger.error(f"❌ Content generation failed: {result.get('message', 'Unknown error')}")

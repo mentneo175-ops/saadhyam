@@ -205,6 +205,9 @@ Curation means improving, organizing, and quality-checking data. This includes:
 ### Member 5 — Branding & WhatsApp Marketing
 **Scope:** Brand identity creation, brand positioning, brand voice, visual branding, brand storytelling, personal branding, brand consistency, WhatsApp Business setup, WhatsApp catalog, broadcast lists, WhatsApp automation, WhatsApp Business API, customer engagement through WhatsApp, WhatsApp marketing campaigns, WhatsApp community building.
 
+### Member 6 — Email Marketing, CRM, & Marketing Automation
+**Scope:** Email newsletters, automated email welcome series, promotional broadcasts, win-back campaigns, customer segmentation, lead scoring rules, automated lead follow-ups, e-commerce newsletter design, cold email outreach, Drip sequences, appointment automations, email list hygiene, and spam/compliance setup (SPF/DKIM/DMARC).
+
 ## Communication Flow
 
 
@@ -3579,11 +3582,11 @@ Share the handoff package folder with the training team lead. Schedule a 30-minu
 
 ## Total Conversation Target
 
-The team's goal is to create a minimum of 1,000 and a maximum of 1,200 high-quality training conversations in 30 days. The ideal target is 1,100 conversations, which provides a comfortable buffer above the 1,000 minimum.
+The team's goal is to create a minimum of 1,300 and a maximum of 1,500 high-quality training conversations in 30 days. The ideal target is 1,400 conversations, which provides a comfortable buffer above the 1,300 minimum.
 
 ## Per Member Target
 
-Each of the 5 team members is responsible for creating 200 to 240 conversations over the 30-day period. This breaks down to approximately 8 to 10 conversations per day during active creation days (Days 6 through 27). The coordinator will also contribute approximately 50 to 80 conversations, primarily focused on gap-filling and quality benchmark examples.
+Each of the 6 team members is responsible for creating 200 to 240 conversations over the 30-day period. This breaks down to approximately 8 to 10 conversations per day during active creation days (Days 6 through 27). The coordinator will also contribute approximately 50 to 80 conversations, primarily focused on gap-filling and quality benchmark examples.
 
 ## Breakdown by Category
 
@@ -3591,17 +3594,19 @@ The conversations should be distributed across categories as follows:
 
 | Category | Target Range | Percentage |
 |----------|-------------|------------|
-| Meta Ads | 150 to 180 | 15% |
-| Google Ads | 150 to 180 | 15% |
-| Instagram Marketing | 120 to 150 | 12% |
-| YouTube Marketing | 80 to 100 | 8% |
-| Local SEO | 100 to 130 | 10% |
-| Google Business Profile | 100 to 130 | 10% |
-| Branding | 120 to 150 | 12% |
-| WhatsApp Marketing | 100 to 130 | 10% |
-| Cross-Category Topics | 40 to 60 | 5% to 8% |
+| Meta Ads | 150 to 180 | 12% |
+| Google Ads | 150 to 180 | 12% |
+| Instagram Marketing | 120 to 150 | 10% |
+| YouTube Marketing | 80 to 100 | 7% |
+| Local SEO | 100 to 130 | 9% |
+| Google Business Profile | 100 to 130 | 9% |
+| Branding | 120 to 150 | 10% |
+| WhatsApp Marketing | 100 to 130 | 9% |
+| Email Marketing, CRM, & Automation | 150 to 180 | 12% |
+| Lead Generation & Acquisition | 100 to 130 | 9% |
+| Cross-Category Topics | 40 to 60 | 3% to 5% |
 
-These targets ensure balanced representation across all categories while allowing flexibility for naturally deeper categories like Meta Ads and Google Ads.
+These targets ensure balanced representation across all categories while allowing flexibility for naturally deeper categories like Meta Ads, Google Ads, and Email Marketing/CRM.
 
 ## Quality Goals
 

@@ -225,14 +225,7 @@ function InstagramPage() {
   const checkConnectionStatus = async () => {
     try {
       setConnectionLoading(true);
-      const token = localStorage.getItem("saadhyam_token");
-      const response = await fetch(`${env.apiBaseUrl}/settings/instagram/connection-status`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
-      const data = await response.json();
+      const data = await apiClient.getInstagramStatus();
       setConnectionStatus(data);
       
       // If connected, load posts and trigger processing
@@ -253,19 +246,9 @@ function InstagramPage() {
 
   const loadAISettings = async () => {
     try {
-      const token = localStorage.getItem("saadhyam_token");
-      const response = await fetch(`${env.apiBaseUrl}/settings`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        if (data?.posting_preferences?.auto_generate_captions) {
-          setAutoGenerateEnabled(data.posting_preferences.auto_generate_captions);
-        }
+      const data = await apiClient.get<any>("/settings");
+      if (data?.posting_preferences?.auto_generate_captions) {
+        setAutoGenerateEnabled(data.posting_preferences.auto_generate_captions);
       }
     } catch (error) {
       console.error("Failed to load AI settings:", error);
@@ -281,31 +264,19 @@ function InstagramPage() {
     try {
       setGeneratingCaption(true);
       
-      const response = await fetch(`${env.apiBaseUrl}/instagram/generate-caption`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("saadhyam_token")}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          topic: aiTopic,
-          tone: aiTone,
-        }),
+      const data = await apiClient.post<any>("/instagram/generate-caption", {
+        topic: aiTopic,
+        tone: aiTone,
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        setCaption(data.caption);
-        setShowAIDialog(false);
-        setAiTopic("");
-        toast.success("🤖 AI caption generated successfully!");
-      } else {
-        const errorData = await response.json();
-        toast.error(errorData.detail || "Failed to generate caption");
-      }
-    } catch (error) {
+      setCaption(data.caption);
+      setShowAIDialog(false);
+      setAiTopic("");
+      toast.success("🤖 AI caption generated successfully!");
+    } catch (error: any) {
       console.error("Error generating AI caption:", error);
-      toast.error("Failed to generate AI caption");
+      const errorMessage = error?.data?.detail || error?.message || "Failed to generate caption";
+      toast.error(errorMessage);
     } finally {
       setGeneratingCaption(false);
     }
@@ -376,27 +347,16 @@ function InstagramPage() {
   const handleDisconnectInstagram = async () => {
     try {
       setConnectionLoading(true);
-      const token = localStorage.getItem("saadhyam_token");
       
-      const response = await fetch(`${env.apiBaseUrl}/settings/instagram/disconnect`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
+      await apiClient.post("/settings/instagram/disconnect");
 
-      if (response.ok) {
-        toast.success("Instagram account disconnected successfully");
-        setConnectionStatus({ is_connected: false });
-        setPosts([]);
-      } else {
-        const errorData = await response.json();
-        toast.error(errorData.detail || "Failed to disconnect Instagram");
-      }
-    } catch (error) {
+      toast.success("Instagram account disconnected successfully");
+      setConnectionStatus({ is_connected: false });
+      setPosts([]);
+    } catch (error: any) {
       console.error("Error disconnecting Instagram:", error);
-      toast.error("Failed to disconnect Instagram");
+      const errorMessage = error?.data?.detail || error?.message || "Failed to disconnect Instagram";
+      toast.error(errorMessage);
     } finally {
       setConnectionLoading(false);
     }
@@ -429,65 +389,37 @@ function InstagramPage() {
       }
       
       console.log("Loading Instagram posts...");
-      const token = localStorage.getItem("saadhyam_token");
+      const data = await apiClient.get<any>("/instagram/posts");
+      console.log("Posts data received:", data);
       
-      if (!token) {
-        console.error("No auth token found");
-        setPosts([]);
-        return;
-      }
-      
-      const response = await fetch(`${env.apiBaseUrl}/instagram/posts`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
-      
-      console.log("Posts response status:", response.status);
-      
-      if (response.ok) {
-        const data = await response.json();
-        console.log("Posts data received:", data);
+      // Check if posts array exists (backend returns posts directly, not wrapped in success)
+      if (Array.isArray(data.posts)) {
+        // Sort posts by created_at descending (newest first)
+        const sortedPosts = data.posts.sort((a: InstagramPost, b: InstagramPost) => {
+          const dateA = new Date(a.created_at || a.posted_time || 0);
+          const dateB = new Date(b.created_at || b.posted_time || 0);
+          return dateB.getTime() - dateA.getTime();
+        });
         
-        // Check if posts array exists (backend returns posts directly, not wrapped in success)
-        if (Array.isArray(data.posts)) {
-          // Sort posts by created_at descending (newest first)
-          const sortedPosts = data.posts.sort((a: InstagramPost, b: InstagramPost) => {
-            const dateA = new Date(a.created_at || a.posted_time || 0);
-            const dateB = new Date(b.created_at || b.posted_time || 0);
-            return dateB.getTime() - dateA.getTime();
+        setPosts(sortedPosts);
+        console.log(`Loaded ${sortedPosts.length} posts successfully`);
+        
+        // Show success feedback for manual refresh
+        if (showRefreshLoader) {
+          toast.success(`Refreshed! Found ${sortedPosts.length} posts`, {
+            duration: 2000,
           });
-          
-          setPosts(sortedPosts);
-          console.log(`Loaded ${sortedPosts.length} posts successfully`);
-          
-          // Show success feedback for manual refresh
-          if (showRefreshLoader) {
-            toast.success(`Refreshed! Found ${sortedPosts.length} posts`, {
-              duration: 2000,
-            });
-          }
-          
-          if (sortedPosts.length === 0) {
-            console.log("No posts found for this user");
-          }
-        } else {
-          console.warn("Invalid response format:", data);
-          setPosts([]);
-          
-          if (data.error) {
-            console.error("Backend error:", data.error);
-          }
+        }
+        
+        if (sortedPosts.length === 0) {
+          console.log("No posts found for this user");
         }
       } else {
-        console.error("Failed to load posts:", response.status, response.statusText);
-        const errorData = await response.json().catch(() => ({}));
-        console.error("Error details:", errorData);
+        console.warn("Invalid response format:", data);
         setPosts([]);
         
-        if (response.status === 401) {
-          console.error("Authentication failed - token may be expired");
+        if (data.error) {
+          console.error("Backend error:", data.error);
         }
       }
     } catch (error) {
@@ -614,11 +546,8 @@ function InstagramPage() {
     setLoading(true);
     
     try {
-      const formData = new FormData();
-      formData.append("media", selectedImage); // Changed from "image" to "media"
-      formData.append("caption", caption);
+      let data: any;
 
-      let endpoint = "/instagram/upload-and-post";
       if (isScheduled) {
         if (!scheduledDate) {
           toast.error("Please select a scheduled date and time");
@@ -633,106 +562,91 @@ function InstagramPage() {
           return;
         }
         
-        endpoint = "/instagram/schedule-post";
-        
         // Convert IST to UTC
         const utcIsoString = convertISTtoUTC(scheduledDate, scheduledHour, scheduledMinute);
         
         console.log(`📅 IST time (local): ${formatTimeDisplay()}`);
         console.log(`🌍 UTC time (for backend): ${utcIsoString}`);
         
-        formData.append("scheduled_time", utcIsoString);
+        if (isVideo) {
+          toast.info("Uploading video... This may take a moment", {
+            duration: 5000,
+          });
+        }
+        
+        data = await apiClient.scheduleInstagramPost(selectedImage, caption, utcIsoString);
+      } else {
+        if (isVideo) {
+          toast.info("Uploading video... This may take a moment", {
+            duration: 5000,
+          });
+        }
+        
+        data = await apiClient.uploadAndPostInstagram(selectedImage, caption);
       }
 
-      console.log(`📤 Posting to: ${endpoint}`);
-      console.log(`📝 Caption: ${caption}`);
-      console.log(`${isVideo ? '🎥' : '🖼️'} Media: ${selectedImage.name} (${selectedImage.size} bytes)`);
-      
-      if (isVideo) {
-        toast.info("Uploading video... This may take a moment", {
-          duration: 5000,
-        });
-      }
-
-      const response = await fetch(`${env.apiBaseUrl}${endpoint}`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("saadhyam_token")}`,
-        },
-        body: formData,
-      });
-
-      console.log(`📥 Response status: ${response.status}`);
-      
-      const data = await response.json();
       console.log("📥 Response data:", data);
 
-      if (response.ok) {
-        console.log("✅ Post successful, showing success toast");
-        
-        // Always show a basic success message first
-        toast.success(`🎉 ${isVideo ? 'Video' : 'Image'} posted to Instagram successfully!`, {
-          duration: 4000,
-        });
-        
-        // Then show detailed message if available
-        if (data && data.message) {
-          setTimeout(() => {
-            toast.success(data.message, {
-              duration: 6000,
-              description: data.details ? 
-                `Posted to ${data.details.account} • ${data.details.posted_at}` : 
-                data.post?.instagram_post_id ? 
-                  `Post ID: ${data.post.instagram_post_id}` : 
-                  `Your ${isVideo ? 'video' : 'post'} is now live on Instagram!`
-            });
-          }, 500);
-        }
-        
-        console.log("Post successful:", data);
-        
-        // Show Instagram URL if available
-        if (data.post?.instagram_url) {
-          console.log("📱 Showing Instagram link toast");
-          setTimeout(() => {
-            toast.info("View your post on Instagram", {
-              duration: 8000,
-              description: "Click to open Instagram",
-              action: {
-                label: "Open Instagram",
-                onClick: () => window.open(data.post.instagram_url, '_blank')
-              }
-            });
-          }, 2000);
-        }
-        
-        // Reset form
-        setSelectedImage(null);
-        setImagePreview(null);
-        setUploadHelpMessage(null);
-        setCaption("");
-        setScheduledDate("");
-        setScheduledHour("12");
-        setScheduledMinute("00");
-        setIsScheduled(false);
-        if (fileInputRef.current) {
-          fileInputRef.current.value = "";
-        }
-        
-        // Reload posts with a small delay to ensure backend has processed
+      console.log("✅ Post successful, showing success toast");
+      
+      // Always show a basic success message first
+      toast.success(`🎉 ${isVideo ? 'Video' : 'Image'} posted to Instagram successfully!`, {
+        duration: 4000,
+      });
+      
+      // Then show detailed message if available
+      if (data && data.message) {
         setTimeout(() => {
-          console.log("🔄 Reloading posts...");
-          loadPosts(false); // Don't show refresh loader for automatic reload
-        }, 1500);
-      } else {
-        console.log("❌ Post failed, showing error toast");
-        const errorMessage = data.detail || data.message || `Failed to post ${isVideo ? 'video' : 'image'} to Instagram`;
-        toast.error(errorMessage);
-        console.error("Post failed:", data);
+          toast.success(data.message, {
+            duration: 6000,
+            description: data.details ? 
+              `Posted to ${data.details.account} • ${data.details.posted_at}` : 
+              data.post?.instagram_post_id ? 
+                `Post ID: ${data.post.instagram_post_id}` : 
+                `Your ${isVideo ? 'video' : 'post'} is now live on Instagram!`
+          });
+        }, 500);
       }
-    } catch (error) {
-      console.error("❌ Network error during post:", error);
-      toast.error("Network error: Failed to post to Instagram");
+      
+      console.log("Post successful:", data);
+      
+      // Show Instagram URL if available
+      if (data.post?.instagram_url) {
+        console.log("📱 Showing Instagram link toast");
+        setTimeout(() => {
+          toast.info("View your post on Instagram", {
+            duration: 8000,
+            description: "Click to open Instagram",
+            action: {
+              label: "Open Instagram",
+              onClick: () => window.open(data.post.instagram_url, '_blank')
+            }
+          });
+        }, 2000);
+      }
+      
+      // Reset form
+      setSelectedImage(null);
+      setImagePreview(null);
+      setUploadHelpMessage(null);
+      setCaption("");
+      setScheduledDate("");
+      setScheduledHour("12");
+      setScheduledMinute("00");
+      setIsScheduled(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+      
+      // Reload posts with a small delay to ensure backend has processed
+      setTimeout(() => {
+        console.log("🔄 Reloading posts...");
+        loadPosts(false); // Don't show refresh loader for automatic reload
+      }, 1500);
+    } catch (error: any) {
+      console.error("❌ Error during post:", error);
+      const errorMessage = error?.data?.detail || error?.message || `Failed to post ${isVideo ? 'video' : 'image'} to Instagram`;
+      toast.error(errorMessage);
     } finally {
       console.log("🏁 Post attempt finished");
       setLoading(false);
@@ -783,34 +697,18 @@ function InstagramPage() {
   const triggerScheduledPostsProcessing = async () => {
     try {
       console.log("🔄 Triggering scheduled posts processing...");
-      const token = localStorage.getItem("saadhyam_token");
+      const data = await apiClient.post<any>("/instagram/process-scheduled");
+      console.log("✅ Scheduled posts processed:", data);
       
-      if (!token) return;
-      
-      const response = await fetch(`${env.apiBaseUrl}/instagram/process-scheduled`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        console.log("✅ Scheduled posts processed:", data);
+      if (data.posted_count > 0) {
+        toast.success(`🎉 ${data.posted_count} scheduled post(s) posted!`, {
+          duration: 3000,
+        });
         
-        if (data.posted_count > 0) {
-          toast.success(`🎉 ${data.posted_count} scheduled post(s) posted!`, {
-            duration: 3000,
-          });
-          
-          // Reload posts after processing
-          setTimeout(() => {
-            loadPosts(false);
-          }, 1000);
-        }
-      } else {
-        console.error("Failed to process scheduled posts:", response.status);
+        // Reload posts after processing
+        setTimeout(() => {
+          loadPosts(false);
+        }, 1000);
       }
     } catch (error) {
       console.error("Error triggering scheduled posts processing:", error);

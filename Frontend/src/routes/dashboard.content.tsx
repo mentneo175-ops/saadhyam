@@ -295,87 +295,66 @@ function ContentStudio() {
         return;
       }
 
-      // Post to Instagram using the same method as Instagram dashboard
+      // Post to Instagram using the centralized apiClient
       const isVideo = mediaFile.type.startsWith("video/");
       console.log(`🚀 Posting ${isVideo ? 'video' : 'image'} to Instagram...`);
       console.log(`📝 Caption: ${caption}`);
       console.log(`${isVideo ? '🎥' : '🖼️'} Media: ${mediaFile.name} (${mediaFile.size} bytes)`);
 
-      const formData = new FormData();
-      formData.append("media", mediaFile); // Changed from "image" to "media"
-      formData.append("caption", caption);
-
-      const response = await fetch(`${env.apiBaseUrl}/instagram/upload-and-post`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("saadhyam_token")}`,
-        },
-        body: formData,
-      });
-
-      console.log(`📥 Response status: ${response.status}`);
-      
-      const data = await response.json();
+      const data = await apiClient.uploadAndPostInstagram(mediaFile, caption);
       console.log("📥 Response data:", data);
 
-      if (response.ok) {
-        console.log("✅ Post successful, showing success toast");
-        
-        // Always show a basic success message first (same as Instagram dashboard)
-        toast.success(`🎉 ${isVideo ? 'Video' : 'Image'} posted to Instagram successfully!`, {
-          duration: 4000,
-        });
-        
-        // Then show detailed message if available
-        if (data && data.message) {
-          setTimeout(() => {
-            toast.success(data.message, {
-              duration: 6000,
-              description: data.details ? 
-                `Posted to ${data.details.account} • ${data.details.posted_at}` : 
-                data.post?.instagram_post_id ? 
-                  `Post ID: ${data.post.instagram_post_id}` : 
-                  "Your post is now live on Instagram!"
-            });
-          }, 500);
-        }
-        
-        console.log("Post successful:", data);
-        
-        // Show Instagram URL if available
-        if (data.post?.instagram_url) {
-          console.log("📱 Showing Instagram link toast");
-          setTimeout(() => {
-            toast.info("View your post on Instagram", {
-              duration: 8000,
-              description: "Click to open Instagram",
-              action: {
-                label: "Open Instagram",
-                onClick: () => window.open(data.post.instagram_url, '_blank')
-              }
-            });
-          }, 2000);
-        }
-
-        // Clear the generated content after successful post
+      console.log("✅ Post successful, showing success toast");
+      
+      // Always show a basic success message first (same as Instagram dashboard)
+      toast.success(`🎉 ${isVideo ? 'Video' : 'Image'} posted to Instagram successfully!`, {
+        duration: 4000,
+      });
+      
+      // Then show detailed message if available
+      if (data && data.message) {
         setTimeout(() => {
-          setOutput("");
-          setGeneratedImageUrl("");
-          setImagePrompt("");
-          setNote("");
-          setIsAIGenerated(false);
-        }, 3000);
-
-      } else {
-        console.log("❌ Post failed, showing error toast");
-        const errorMessage = data.detail || data.message || "Failed to post to Instagram";
-        toast.error(errorMessage);
-        console.error("Post failed:", data);
+          toast.success(data.message, {
+            duration: 6000,
+            description: data.details ? 
+              `Posted to ${data.details.account} • ${data.details.posted_at}` : 
+              data.post?.instagram_post_id ? 
+                `Post ID: ${data.post.instagram_post_id}` : 
+                "Your post is now live on Instagram!"
+          });
+        }, 500);
+      }
+      
+      console.log("Post successful:", data);
+      
+      // Show Instagram URL if available
+      if (data.post?.instagram_url) {
+        console.log("📱 Showing Instagram link toast");
+        setTimeout(() => {
+          toast.info("View your post on Instagram", {
+            duration: 8000,
+            description: "Click to open Instagram",
+            action: {
+              label: "Open Instagram",
+              onClick: () => window.open(data.post.instagram_url, '_blank')
+            }
+          });
+        }, 2000);
       }
 
+      // Clear the generated content after successful post
+      setTimeout(() => {
+        setOutput("");
+        setGeneratedImageUrl("");
+        setImagePrompt("");
+        setNote("");
+        setIsAIGenerated(false);
+      }, 3000);
+
     } catch (error: any) {
-      console.error("❌ Network error during post:", error);
-      toast.error("Network error: Failed to post to Instagram");
+      console.error("❌ Error during post:", error);
+      const errorMessage = error?.data?.detail || error?.message || "Failed to post to Instagram";
+      toast.error(errorMessage);
     } finally {
       setInstagramLoading(false);
     }

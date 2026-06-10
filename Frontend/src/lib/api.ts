@@ -795,11 +795,37 @@ class ApiClient {
   // ============= INSTAGRAM INTEGRATION =============
 
   /**
+   * Post immediately to Instagram (Upload and post)
+   */
+  async uploadAndPostInstagram(mediaFile: File, caption: string): Promise<any> {
+    const formData = new FormData();
+    formData.append("media", mediaFile);
+    formData.append("caption", caption);
+
+    const authHeader = await this.getAuthHeader();
+    
+    const response = await fetch(`${this.baseUrl}/instagram/upload-and-post`, {
+      method: "POST",
+      headers: {
+        ...authHeader,
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new ApiError(response.status, errorData, errorData.detail || "Failed to post to Instagram");
+    }
+
+    return response.json();
+  }
+
+  /**
    * Schedule Instagram post
    */
-  async scheduleInstagramPost(imageFile: File, caption: string, scheduledTime: string): Promise<any> {
+  async scheduleInstagramPost(mediaFile: File, caption: string, scheduledTime: string): Promise<any> {
     const formData = new FormData();
-    formData.append("image", imageFile);
+    formData.append("media", mediaFile);
     formData.append("caption", caption);
     formData.append("scheduled_time", scheduledTime);
 
@@ -815,7 +841,7 @@ class ApiClient {
 
     if (!response.ok) {
       const errorData = await response.json();
-      throw new Error(errorData.detail || "Failed to schedule Instagram post");
+      throw new ApiError(response.status, errorData, errorData.detail || "Failed to schedule Instagram post");
     }
 
     return response.json();

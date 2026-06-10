@@ -17,6 +17,7 @@ from services.comprehensive_cache_service import (
     CACHE_PREFIX,
     CACHE_TTL
 )
+from fastapi.concurrency import run_in_threadpool
 
 logger = logging.getLogger(__name__)
 
@@ -482,6 +483,24 @@ def get_business_analysis_data(
         return None
 
 
+def fetch_competitor_analysis_from_db(user_id: int, db: Session):
+    analysis = db.query(BusinessAnalysis).filter(
+        BusinessAnalysis.user_id == user_id,
+        BusinessAnalysis.analysis_status == 'completed'
+    ).order_by(BusinessAnalysis.last_analyzed_at.desc()).first()
+    
+    if not analysis:
+        logger.info(f"[CompetitorAnalysisData] No completed analysis found, checking for any analysis with competitor data...")
+        analysis = db.query(BusinessAnalysis).filter(
+            BusinessAnalysis.user_id == user_id,
+            BusinessAnalysis.competitor_analysis.isnot(None)  # Has competitor data
+        ).order_by(BusinessAnalysis.last_analyzed_at.desc()).first()
+        
+        if analysis:
+            logger.info(f"[CompetitorAnalysisData] ✅ Found analysis with competitor data (status: {analysis.analysis_status})")
+    return analysis
+
+
 async def get_competitor_analysis_data(
     user_id: int,
     db: Session
@@ -515,22 +534,7 @@ async def get_competitor_analysis_data(
         logger.info(f"[CompetitorAnalysisData] 💾 Cache MISS - fetching from database")
         
         # Cache miss - fetch from database
-        # First try to get completed analysis
-        analysis = db.query(BusinessAnalysis).filter(
-            BusinessAnalysis.user_id == user_id,
-            BusinessAnalysis.analysis_status == 'completed'
-        ).order_by(BusinessAnalysis.last_analyzed_at.desc()).first()
-        
-        # If no completed analysis, try to get any analysis with competitor data
-        if not analysis:
-            logger.info(f"[CompetitorAnalysisData] No completed analysis found, checking for any analysis with competitor data...")
-            analysis = db.query(BusinessAnalysis).filter(
-                BusinessAnalysis.user_id == user_id,
-                BusinessAnalysis.competitor_analysis.isnot(None)  # Has competitor data
-            ).order_by(BusinessAnalysis.last_analyzed_at.desc()).first()
-            
-            if analysis:
-                logger.info(f"[CompetitorAnalysisData] ✅ Found analysis with competitor data (status: {analysis.analysis_status})")
+        analysis = await run_in_threadpool(fetch_competitor_analysis_from_db, user_id, db)
         
         if not analysis:
             return None
@@ -601,6 +605,24 @@ def get_growth_plan_data(
         return None
 
 
+def fetch_daily_suggestions_from_db(user_id: int, db: Session):
+    analysis = db.query(BusinessAnalysis).filter(
+        BusinessAnalysis.user_id == user_id,
+        BusinessAnalysis.analysis_status == 'completed'
+    ).order_by(BusinessAnalysis.last_analyzed_at.desc()).first()
+    
+    if not analysis:
+        logger.info(f"[DailySuggestionsData] No completed analysis found, checking for any analysis with daily suggestions...")
+        analysis = db.query(BusinessAnalysis).filter(
+            BusinessAnalysis.user_id == user_id,
+            BusinessAnalysis.daily_suggestions.isnot(None)  # Has daily suggestions
+        ).order_by(BusinessAnalysis.last_analyzed_at.desc()).first()
+        
+        if analysis:
+            logger.info(f"[DailySuggestionsData] ✅ Found analysis with daily suggestions (status: {analysis.analysis_status})")
+    return analysis
+
+
 async def get_daily_suggestions_data(
     user_id: int,
     db: Session
@@ -634,22 +656,7 @@ async def get_daily_suggestions_data(
         logger.info(f"[DailySuggestionsData] 💾 Cache MISS - fetching from database")
         
         # Cache miss - fetch from database
-        # First try to get completed analysis
-        analysis = db.query(BusinessAnalysis).filter(
-            BusinessAnalysis.user_id == user_id,
-            BusinessAnalysis.analysis_status == 'completed'
-        ).order_by(BusinessAnalysis.last_analyzed_at.desc()).first()
-        
-        # If no completed analysis, try to get any analysis with daily suggestions
-        if not analysis:
-            logger.info(f"[DailySuggestionsData] No completed analysis found, checking for any analysis with daily suggestions...")
-            analysis = db.query(BusinessAnalysis).filter(
-                BusinessAnalysis.user_id == user_id,
-                BusinessAnalysis.daily_suggestions.isnot(None)  # Has daily suggestions
-            ).order_by(BusinessAnalysis.last_analyzed_at.desc()).first()
-            
-            if analysis:
-                logger.info(f"[DailySuggestionsData] ✅ Found analysis with daily suggestions (status: {analysis.analysis_status})")
+        analysis = await run_in_threadpool(fetch_daily_suggestions_from_db, user_id, db)
         
         if not analysis:
             return None
@@ -670,6 +677,13 @@ async def get_daily_suggestions_data(
     except Exception as e:
         logger.error(f"[DailySuggestionsData] ❌ Error: {e}", exc_info=True)
         return None
+
+
+def fetch_seo_google_maps_from_db(user_id: int, db: Session):
+    return db.query(BusinessAnalysis).filter(
+        BusinessAnalysis.user_id == user_id,
+        BusinessAnalysis.analysis_status == 'completed'
+    ).order_by(BusinessAnalysis.last_analyzed_at.desc()).first()
 
 
 async def get_seo_google_maps_data(
@@ -705,10 +719,7 @@ async def get_seo_google_maps_data(
         logger.info(f"[SEOGoogleMapsData] 💾 Cache MISS - fetching from database")
         
         # Cache miss - fetch from database
-        analysis = db.query(BusinessAnalysis).filter(
-            BusinessAnalysis.user_id == user_id,
-            BusinessAnalysis.analysis_status == 'completed'
-        ).order_by(BusinessAnalysis.last_analyzed_at.desc()).first()
+        analysis = await run_in_threadpool(fetch_seo_google_maps_from_db, user_id, db)
         
         if not analysis:
             return None

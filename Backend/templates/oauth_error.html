@@ -89,7 +89,7 @@
             window.opener.postMessage({
                 type: 'INSTAGRAM_OAUTH_ERROR',
                 message: errorMessage
-            }, window.location.origin);
+            }, '*');
         }
 
         function closeWindow() {
@@ -106,7 +106,7 @@
                 // Tell parent to retry
                 window.opener.postMessage({
                     type: 'INSTAGRAM_OAUTH_RETRY'
-                }, window.location.origin);
+                }, '*');
                 window.close();
             } else {
                 window.location.href = '/dashboard/settings';

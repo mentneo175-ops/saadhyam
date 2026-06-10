@@ -95,7 +95,7 @@ function InstagramPage() {
     is_connected: false,
   });
   const [showConnectionWizard, setShowConnectionWizard] = useState(false);
-  const [connectionLoading, setConnectionLoading] = useState(false);
+  const [connectionLoading, setConnectionLoading] = useState(true);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [showSuccessPage, setShowSuccessPage] = useState(false);
   
@@ -311,14 +311,19 @@ function InstagramPage() {
 
       // Listen for messages from popup
       const messageListener = (event: MessageEvent) => {
-        if (event.origin !== env.apiBaseUrl) return;
+        const allowedOrigins = [
+          window.location.origin,
+          env.apiBaseUrl.replace(/\/+$/, "")
+        ];
+        if (!allowedOrigins.includes(event.origin)) return;
         
-        if (event.data.type === "instagram-auth-success") {
+        const type = event.data?.type;
+        if (type === "instagram-auth-success" || type === "INSTAGRAM_OAUTH_SUCCESS") {
           popup.close();
           toast.success("Instagram connected successfully!");
           checkConnectionStatus();
           window.removeEventListener("message", messageListener);
-        } else if (event.data.type === "instagram-auth-error") {
+        } else if (type === "instagram-auth-error" || type === "INSTAGRAM_OAUTH_ERROR") {
           popup.close();
           toast.error(event.data.message || "Failed to connect Instagram");
           window.removeEventListener("message", messageListener);
@@ -715,7 +720,9 @@ function InstagramPage() {
     }
   };
 
-  if (!mounted) return null;
+  if (!mounted) {
+    return <InstagramLoader />;
+  }
 
   // Show full-page loader while checking connection status
   if (connectionLoading) {

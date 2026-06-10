@@ -68,7 +68,7 @@
             window.opener.postMessage({
                 type: 'INSTAGRAM_OAUTH_SUCCESS',
                 message: 'Instagram connected successfully'
-            }, window.location.origin);
+            }, '*');
         }
 
         // Auto-close after 3 seconds

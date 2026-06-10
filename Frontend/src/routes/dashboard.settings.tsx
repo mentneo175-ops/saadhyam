@@ -152,8 +152,12 @@ function SettingsPage() {
 
     // Add message listener for OAuth popup
     const handleOAuthMessage = (event: MessageEvent) => {
-      // Only accept messages from our backend
-      if (event.origin !== env.apiBaseUrl) return;
+      // Accept messages from both frontend origin and api base url
+      const allowedOrigins = [
+        window.location.origin,
+        env.apiBaseUrl.replace(/\/+$/, "")
+      ];
+      if (!allowedOrigins.includes(event.origin)) return;
 
       if (event.data.type === "INSTAGRAM_OAUTH_SUCCESS") {
         toast.success("Instagram connected successfully!");

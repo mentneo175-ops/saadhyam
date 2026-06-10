@@ -5,6 +5,8 @@ from datetime import datetime
 from services.nearby_business_service import NearbyBusinessService
 from utils.dependencies import get_current_user
 from models.user import User
+from sqlalchemy.orm import Session
+from config.database import get_db_sync
 
 router = APIRouter(prefix="/api/b2b-network", tags=["B2B Network"])
 
@@ -72,13 +74,26 @@ async def get_nearby_businesses_for_user(
     category: Optional[str] = Query(None, description="Filter by category"),
     saadhyam_only: bool = Query(False, description="Show only Sadhyam users"),
     relevant_only: bool = Query(True, description="Show only relevant synergistic businesses"),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db_sync)
 ):
     """
     Get businesses in YOUR city (city-wide search) - SIMPLIFIED VERSION
     """
     try:
         print(f"🚀 B2B Network API called by user: {current_user.email} (relevant_only={relevant_only})")
+        
+        # 1. Extract all needed fields from current_user before closing DB session
+        user_id = current_user.id
+        user_business_type = current_user.business_type
+        user_business_location = current_user.business_location
+        user_latitude = current_user.latitude
+        user_longitude = current_user.longitude
+        user_business_services_raw = getattr(current_user, 'business_services', None)
+        
+        # 2. Release/Close database session immediately so the connection is not held open
+        # during the slow external API/Overpass requests
+        db.close()
         
         # Use the real service to fetch businesses
         service = NearbyBusinessService()
@@ -87,13 +102,13 @@ async def get_nearby_businesses_for_user(
         lat, lng = None, None
         
         # Try to get location from business_location JSON field first
-        if current_user.business_location:
+        if user_business_location:
             import json
             try:
-                if isinstance(current_user.business_location, str):
-                    location_data = json.loads(current_user.business_location)
+                if isinstance(user_business_location, str):
+                    location_data = json.loads(user_business_location)
                 else:
-                    location_data = current_user.business_location
+                    location_data = user_business_location
                 
                 lat = location_data.get("lat")
                 lng = location_data.get("lng")
@@ -101,9 +116,9 @@ async def get_nearby_businesses_for_user(
                 print(f"⚠️ Error parsing business_location: {e}")
         
         # Fallback to separate latitude/longitude columns
-        if lat is None and current_user.latitude is not None:
-            lat = current_user.latitude
-            lng = current_user.longitude
+        if lat is None and user_latitude is not None:
+            lat = user_latitude
+            lng = user_longitude
         
         # If no location set, return error immediately (don't use default)
         if lat is None:
@@ -125,7 +140,7 @@ async def get_nearby_businesses_for_user(
                     lng=lng,
                     radius=radius,
                     category=category,
-                    user_id=str(current_user.id),
+                    user_id=str(user_id),
                     saadhyam_only=saadhyam_only,
                     relevant_only=relevant_only
                 ),
@@ -137,22 +152,22 @@ async def get_nearby_businesses_for_user(
             businesses = await service._get_saadhyam_businesses(lat, lng, radius, category)
             
             # Apply B2B Synergy Matrix Filter to fallback if enabled
-            if relevant_only and current_user.business_type:
-                synergistic_cats = service.SYNERGY_MATRIX.get(current_user.business_type, [])
-                allowed_cats = set(synergistic_cats + [current_user.business_type])
+            if relevant_only and user_business_type:
+                synergistic_cats = service.SYNERGY_MATRIX.get(user_business_type, [])
+                allowed_cats = set(synergistic_cats + [user_business_type])
                 businesses = [b for b in businesses if b["category"] in allowed_cats]
             
             # Populate distance and compatibility metrics
-            user_lat = current_user.latitude if current_user.latitude else lat
-            user_lng = current_user.longitude if current_user.longitude else lng
-            user_services = [s.strip() for s in current_user.business_services.split(",") if s.strip()] if current_user.business_services else []
+            fallback_user_lat = user_latitude if user_latitude else lat
+            fallback_user_lng = user_longitude if user_longitude else lng
+            user_services = [s.strip() for s in user_business_services_raw.split(",") if s.strip()] if user_business_services_raw else []
             
             for b in businesses:
-                dist = service._calculate_distance(user_lat, user_lng, b["location"]["lat"], b["location"]["lng"])
+                dist = service._calculate_distance(fallback_user_lat, fallback_user_lng, b["location"]["lat"], b["location"]["lng"])
                 b["distance"] = round(dist)
                 b["distance_km"] = round(dist / 1000, 1)
                 b["ai_score"] = service._calculate_compatibility(
-                    user_category=current_user.business_type,
+                    user_category=user_business_type,
                     user_services=user_services,
                     candidate_category=b["category"],
                     candidate_services=b.get("services", [])

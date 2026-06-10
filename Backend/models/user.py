@@ -43,6 +43,7 @@ class User(Base):
     latitude = Column(Float, nullable=True)  # Latitude coordinate
     longitude = Column(Float, nullable=True)  # Longitude coordinate
     business_description = Column(Text, nullable=True)
+    business_services = Column(Text, nullable=True)
     business_setup_completed = Column(Boolean, default=False, nullable=False)
     
     # Business Input Sources (for edit functionality)

@@ -48,6 +48,7 @@ export function BusinessDetailPanel({
   // Check connection status on mount
   useEffect(() => {
     if (business.source === "saadhyam") {
+      setConnectionStatus(null);
       checkConnection();
     }
   }, [business.id]);
@@ -376,7 +377,16 @@ export function BusinessDetailPanel({
             {/* Only show chat for Sadhyam users */}
             {business.source === "saadhyam" ? (
               <>
-                {connectionStatus?.connected ? (
+                {connectionStatus === null ? (
+                  <Button
+                    variant="outline"
+                    className="flex-1 cursor-not-allowed opacity-60"
+                    disabled
+                  >
+                    <Clock className="w-4 h-4 mr-2 animate-spin" />
+                    Checking status...
+                  </Button>
+                ) : connectionStatus.connected ? (
                   <Button
                     variant="hero"
                     className="flex-1"
@@ -385,7 +395,7 @@ export function BusinessDetailPanel({
                   >
                     {getConnectButtonContent()}
                   </Button>
-                ) : connectionStatus?.pending && connectionStatus.sentByMe ? (
+                ) : connectionStatus.pending && connectionStatus.sentByMe ? (
                   <Button
                     variant="outline"
                     className="flex-1 cursor-not-allowed opacity-60"

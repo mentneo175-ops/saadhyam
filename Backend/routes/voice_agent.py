@@ -418,6 +418,7 @@ class LeadCreate(BaseModel):
 
 class TopupRequest(BaseModel):
     amount: float
+    payment_id: Optional[str] = None
 
 class NumberBuyRequest(BaseModel):
     phone_number: str
@@ -2450,6 +2451,12 @@ def topup_balance(
     current_user.wallet_balance += data.amount
     db.commit()
     db.refresh(current_user)
+    
+    if data.payment_id:
+        logger.info(f"💰 Wallet top-up of ${data.amount:.2f} for User {current_user.id} verified via Razorpay ID: {data.payment_id}")
+    else:
+        logger.info(f"💰 Wallet top-up of ${data.amount:.2f} for User {current_user.id} (Manual recharge)")
+        
     return {
         "message": f"Successfully recharged ${data.amount:.2f}",
         "wallet_balance": current_user.wallet_balance

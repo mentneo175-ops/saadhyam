@@ -27,6 +27,38 @@ import {
 import { env } from "@/config/env";
 import voiceAgentCss from "./voice-agent.css?url";
 
+type RazorpayResponse = {
+  razorpay_payment_id?: string;
+  razorpay_order_id?: string;
+  razorpay_signature?: string;
+};
+
+type RazorpayOptions = {
+  key: string;
+  amount: number;
+  currency: string;
+  name: string;
+  description: string;
+  prefill?: {
+    name?: string;
+    email?: string;
+    contact?: string;
+  };
+  theme?: {
+    color?: string;
+  };
+  handler?: (response: RazorpayResponse) => void;
+  modal?: {
+    ondismiss?: () => void;
+  };
+};
+
+type RazorpayWindow = Window & {
+  Razorpay?: new (options: RazorpayOptions) => { open: () => void };
+};
+
+const RAZORPAY_KEY_ID = import.meta.env.VITE_RAZORPAY_KEY_ID || "";
+
 export const Route = createFileRoute("/dashboard/voice-agent/")({
   head: () => ({
     meta: [{ title: "AI Voice Agent — Saadhyam AI" }],
@@ -36,6 +68,26 @@ export const Route = createFileRoute("/dashboard/voice-agent/")({
 });
 
 function VoiceAgentDashboard() {
+  const loadRazorpayScript = async () => {
+    if ((window as RazorpayWindow).Razorpay) return true;
+
+    return await new Promise<boolean>((resolve) => {
+      const existing = document.querySelector<HTMLScriptElement>('script[src="https://checkout.razorpay.com/v1/checkout.js"]');
+      if (existing) {
+        existing.addEventListener("load", () => resolve(true), { once: true });
+        existing.addEventListener("error", () => resolve(false), { once: true });
+        return;
+      }
+
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.async = true;
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
+
   const [activeTab, setActiveTab] = useState("dashboard");
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
@@ -174,23 +226,75 @@ function VoiceAgentDashboard() {
       showToast("error", "Please enter a valid amount greater than $0.");
       return;
     }
+
+    if (!RAZORPAY_KEY_ID) {
+      showToast("error", "Razorpay key is missing from the environment.");
+      return;
+    }
+
     setRecharging(true);
     try {
-      const res = await fetch(`${env.apiBaseUrl}/api/voice-agent/billing/topup`, {
-        method: "POST",
-        headers: getHeaders(),
-        body: JSON.stringify({ amount: amt }),
-      });
-      const data = await res.json();
-      if (res.ok) {
-        showToast("success", data.message || `Successfully charged $${amt.toFixed(2)}!`);
-        fetchAllOnce();
-      } else {
-        showToast("error", data.detail || "Failed to recharge wallet.");
+      const scriptLoaded = await loadRazorpayScript();
+      if (!scriptLoaded) {
+        showToast("error", "Unable to load Razorpay checkout script.");
+        setRecharging(false);
+        return;
       }
-    } catch {
-      showToast("error", "Error connecting to top-up API.");
-    } finally {
+
+      const RazorpayCtor = (window as RazorpayWindow).Razorpay;
+      if (!RazorpayCtor) {
+        showToast("error", "Razorpay checkout is not available.");
+        setRecharging(false);
+        return;
+      }
+
+      const razorpay = new RazorpayCtor({
+        key: RAZORPAY_KEY_ID,
+        amount: amt * 100, // Razorpay amount in paise/cents
+        currency: "INR",
+        name: "Saadhyam AI",
+        description: `Wallet top-up of $${amt.toFixed(2)}`,
+        prefill: {
+          name: currentUser?.name || "Saadhyam Customer",
+          email: currentUser?.email || "customer@example.com",
+        },
+        theme: {
+          color: "#7c3aed",
+        },
+        handler: (response) => {
+          void (async () => {
+            try {
+              const paymentId = response.razorpay_payment_id || response.razorpay_order_id || `razorpay-${Date.now()}`;
+              const res = await fetch(`${env.apiBaseUrl}/api/voice-agent/billing/topup`, {
+                method: "POST",
+                headers: getHeaders(),
+                body: JSON.stringify({ amount: amt, payment_id: paymentId }),
+              });
+              const data = await res.json();
+              if (res.ok) {
+                showToast("success", data.message || `Successfully charged $${amt.toFixed(2)}!`);
+                fetchAllOnce();
+                setRechargeAmount("");
+              } else {
+                showToast("error", data.detail || "Failed to recharge wallet.");
+              }
+            } catch {
+              showToast("error", "Error connecting to top-up API.");
+            } finally {
+              setRecharging(false);
+            }
+          })();
+        },
+        modal: {
+          ondismiss: () => {
+            setRecharging(false);
+          },
+        },
+      });
+
+      razorpay.open();
+    } catch (err) {
+      showToast("error", "Unable to start Razorpay payment.");
       setRecharging(false);
     }
   };

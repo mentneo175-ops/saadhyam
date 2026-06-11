@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import { LineChart, Line, ResponsiveContainer, Tooltip, XAxis } from 'recharts';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import { createFileRoute, Link } from '@tanstack/react-router';
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { dbLanding as db } from '../lib/firebase';
 import '../landing.css';
 
@@ -212,6 +212,11 @@ const LeadCaptureModal = ({ isOpen, onClose, onSuccess }: LeadCaptureModalProps)
       
       // Show success regardless
       setSubmitted(true);
+      try {
+        localStorage.setItem('saadhyam_registered', 'true');
+      } catch (e) {
+        console.warn("Storage error:", e);
+      }
       setTimeout(() => { 
         setSubmitted(false); 
         onSuccess();
@@ -1029,11 +1034,22 @@ const Footer = () => (
 function PreLandingPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [lang, setLang] = useState<'en' | 'hi' | 'te'>('en');
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    try {
+      if (localStorage.getItem('saadhyam_registered') === 'true') {
+        navigate({ to: '/main' });
+      }
+    } catch (e) {
+      console.warn("Storage error:", e);
+    }
+  }, [navigate]);
 
   return (
     <div className="landing-wrapper">
       <Navbar onOpenModal={() => setIsModalOpen(true)} lang={lang} setLang={setLang} />
-      <LeadCaptureModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSuccess={() => {}} />
+      <LeadCaptureModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSuccess={() => navigate({ to: "/main" })} />
       <Hero onOpenModal={() => setIsModalOpen(true)} lang={lang} />
       <AnimatedDashboardFlow />
       <AIAnalysis />

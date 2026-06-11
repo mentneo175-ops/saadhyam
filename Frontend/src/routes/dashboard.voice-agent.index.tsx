@@ -168,7 +168,7 @@ function VoiceAgentDashboard() {
   const [searchingNumbers, setSearchingNumbers] = useState(false);
   const [availableNumbers, setAvailableNumbers] = useState<any[]>([]);
   const [recharging, setRecharging] = useState(false);
-  const [rechargeAmount, setRechargeAmount] = useState("10.00");
+  const [rechargeAmount, setRechargeAmount] = useState("500.00");
   const [buyingNumber, setBuyingNumber] = useState<string | null>(null);
 
   const handleSearchNumbers = async (e?: React.FormEvent) => {
@@ -196,7 +196,7 @@ function VoiceAgentDashboard() {
   };
 
   const handleBuyNumber = async (phoneNumber: string) => {
-    if (!confirm(`Are you sure you want to lease/purchase ${phoneNumber} for $3.00?`)) return;
+    if (!confirm(`Are you sure you want to lease/purchase ${phoneNumber} for ₹250.00?`)) return;
     setBuyingNumber(phoneNumber);
     try {
       const res = await fetch(`${env.apiBaseUrl}/api/voice-agent/billing/numbers/buy`, {
@@ -223,7 +223,7 @@ function VoiceAgentDashboard() {
     e.preventDefault();
     const amt = parseFloat(rechargeAmount);
     if (isNaN(amt) || amt <= 0) {
-      showToast("error", "Please enter a valid amount greater than $0.");
+      showToast("error", "Please enter a valid amount greater than ₹0.");
       return;
     }
 
@@ -253,7 +253,7 @@ function VoiceAgentDashboard() {
         amount: amt * 100, // Razorpay amount in paise/cents
         currency: "INR",
         name: "Saadhyam AI",
-        description: `Wallet top-up of $${amt.toFixed(2)}`,
+        description: `Wallet top-up of ₹${amt.toFixed(2)}`,
         prefill: {
           name: currentUser?.name || "Saadhyam Customer",
           email: currentUser?.email || "customer@example.com",
@@ -272,7 +272,7 @@ function VoiceAgentDashboard() {
               });
               const data = await res.json();
               if (res.ok) {
-                showToast("success", data.message || `Successfully charged $${amt.toFixed(2)}!`);
+                showToast("success", data.message || `Successfully charged ₹${amt.toFixed(2)}!`);
                 fetchAllOnce();
                 setRechargeAmount("");
               } else {
@@ -1522,7 +1522,7 @@ function VoiceAgentDashboard() {
               <div>
                 <span className="text-secondary text-xs uppercase font-semibold tracking-wider">Total Wallet Credits</span>
                 <h2 className="gradient-text text-5xl font-black mt-2">
-                  ${currentUser?.wallet_balance !== undefined ? currentUser.wallet_balance.toFixed(2) : "0.00"}
+                  ₹{currentUser?.wallet_balance !== undefined ? currentUser.wallet_balance.toFixed(2) : "0.00"}
                 </h2>
               </div>
               <div className="mt-6 pt-4 border-t border-white/5 space-y-2 text-xs">
@@ -1532,11 +1532,11 @@ function VoiceAgentDashboard() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-secondary">Calling Rate:</span>
-                  <span className="text-accent font-semibold">$0.10 / minute</span>
+                  <span className="text-accent font-semibold">₹8.00 / minute</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-secondary">Number Rental:</span>
-                  <span className="text-accent-purple font-semibold">$3.00 / month</span>
+                  <span className="text-accent-purple font-semibold">₹250.00 / month</span>
                 </div>
               </div>
             </div>
@@ -1550,7 +1550,7 @@ function VoiceAgentDashboard() {
               
               {/* Quick Select Buttons */}
               <div className="grid grid-cols-3 gap-2 mt-2">
-                {["10.00", "20.00", "50.00"].map((val) => (
+                {["100.00", "500.00", "1000.00"].map((val) => (
                   <button
                     key={val}
                     type="button"
@@ -1561,7 +1561,7 @@ function VoiceAgentDashboard() {
                         : "bg-white/5 text-secondary hover:bg-white/10"
                     }`}
                   >
-                    +${parseInt(val)}
+                    +₹{parseInt(val)}
                   </button>
                 ))}
               </div>
@@ -1569,7 +1569,7 @@ function VoiceAgentDashboard() {
               {/* Form Input */}
               <form onSubmit={handleTopup} className="flex flex-col gap-3 mt-2">
                 <div className="form-group mb-0">
-                  <label className="form-label">Top-Up Amount ($)</label>
+                  <label className="form-label">Top-Up Amount (₹)</label>
                   <input
                     type="number"
                     step="0.01"
@@ -1685,7 +1685,7 @@ function VoiceAgentDashboard() {
                               <span>Leasing...</span>
                             </>
                           ) : (
-                            <span>Lease Number ($3.00)</span>
+                            <span>Lease Number (₹250.00)</span>
                           )}
                         </button>
                       </div>

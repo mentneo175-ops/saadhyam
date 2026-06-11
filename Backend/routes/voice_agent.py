@@ -2187,7 +2187,7 @@ async def twilio_status_callback(
                         # Calculate minutes rounded up: e.g. 5 seconds -> 1 min; 65 seconds -> 2 mins.
                         dur_secs = int(duration)
                         minutes = (dur_secs + 59) // 60 if dur_secs > 0 else 0
-                        charge_per_minute = 0.10
+                        charge_per_minute = 8.00
                         total_charge = minutes * charge_per_minute
                         
                         if total_charge > 0:
@@ -2197,7 +2197,7 @@ async def twilio_status_callback(
                                 user = db.query(User).filter(User.id == campaign.user_id).first()
                                 if user:
                                     user.wallet_balance = max(0.00, user.wallet_balance - total_charge)
-                                    logger.info(f"💰 Deducted ${total_charge:.2f} from User {user.id} wallet for {minutes} min call. New Balance: ${user.wallet_balance:.2f}")
+                                    logger.info(f"💰 Deducted ₹{total_charge:.2f} from User {user.id} wallet for {minutes} min call. New Balance: ₹{user.wallet_balance:.2f}")
                 elif status in ["failed", "busy", "no-answer", "canceled"]:
                     call.status = CallStatus.FAILED
                     call.call_outcome = status
@@ -2248,11 +2248,11 @@ def trigger_real_lead_call(
         )
 
     # 2. Wallet Balance Check
-    MINIMUM_BALANCE = 1.00
+    MINIMUM_BALANCE = 100.00
     if current_user.wallet_balance < MINIMUM_BALANCE:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Insufficient wallet balance. Minimum required is ${MINIMUM_BALANCE:.2f}, but current balance is ${current_user.wallet_balance:.2f}."
+            detail=f"Insufficient wallet balance. Minimum required is ₹{MINIMUM_BALANCE:.2f}, but current balance is ₹{current_user.wallet_balance:.2f}."
         )
 
     # 3. Active Twilio Number Check
@@ -2511,12 +2511,12 @@ def buy_number(
     db: Session = Depends(get_db_sync)
 ):
     from services.twilio_service import twilio_service
-    REGISTRATION_COST = 3.00
+    REGISTRATION_COST = 250.00
     
     if current_user.wallet_balance < REGISTRATION_COST:
         raise HTTPException(
             status_code=400,
-            detail=f"Insufficient balance. Leasing a number costs ${REGISTRATION_COST:.2f}, but your balance is ${current_user.wallet_balance:.2f}."
+            detail=f"Insufficient balance. Leasing a number costs ₹{REGISTRATION_COST:.2f}, but your balance is ₹{current_user.wallet_balance:.2f}."
         )
     
     if current_user not in db:

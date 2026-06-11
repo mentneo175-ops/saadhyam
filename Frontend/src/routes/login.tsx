@@ -190,10 +190,7 @@ function LoginPage() {
   return (
     <div
       data-auth-page
-      className="h-screen flex overflow-hidden"
-      style={{
-        background: 'linear-gradient(135deg, #F8F7FC 0%, #F3F1F9 50%, #EDE9F6 100%)',
-      }}
+      className="h-screen flex overflow-hidden bg-gradient-to-br from-[#F8F7FC] via-[#F3F1F9] to-[#EDE9F6] dark:from-[#090514] dark:via-[#120B24] dark:to-[#090514]"
     >
       {/* LEFT PANEL - Exact Reference Layout */}
       <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden h-full">
@@ -284,7 +281,7 @@ function LoginPage() {
               </div>
             </div>
             
-            <div className="inline-block px-4 py-2 rounded-full bg-[#F3EEFF] border border-[#E9D5FF]">
+            <div className="inline-block px-4 py-2 rounded-full bg-[#F3EEFF] border border-[#E9D5FF] dark:bg-[#8B5CF6]/10 dark:border-[#8B5CF6]/20">
               <p className="text-sm text-[#8B5CF6] font-medium flex items-center gap-2">
                 <span className="w-2 h-2 bg-[#8B5CF6] rounded-full"></span>
                 AI-Powered Growth Platform
@@ -298,7 +295,7 @@ function LoginPage() {
               AI that powers<br />
               your <span className="text-[#8B5CF6]">business growth</span>
             </h2>
-            <p className="text-lg text-gray-600 leading-relaxed max-w-md">
+            <p className="text-lg text-gray-600 dark:text-slate-300 leading-relaxed max-w-md">
               Smarter insights, automation and strategies<br />
               to scale your business faster.
             </p>
@@ -327,7 +324,7 @@ function LoginPage() {
                   </div>
                   <div>
                     <h3 className="text-base font-semibold text-gray-900 dark:text-slate-100">{feature.title}</h3>
-                    <p className="text-sm text-gray-600">{feature.desc}</p>
+                    <p className="text-sm text-gray-600 dark:text-slate-400">{feature.desc}</p>
                   </div>
                 </div>
               ))}
@@ -423,7 +420,7 @@ function LoginPage() {
               </div>
               <div>
                 <p className="text-sm font-semibold text-gray-900 dark:text-slate-100">Join 4,000+ businesses</p>
-                <p className="text-xs text-gray-600">growing with Saadhyam AI</p>
+                <p className="text-xs text-gray-600 dark:text-slate-400">growing with Saadhyam AI</p>
               </div>
             </div>
           </div>
@@ -445,7 +442,7 @@ function LoginPage() {
             <h2 className="text-4xl font-bold text-gray-900 mb-2 dark:text-slate-100">
               Welcome back! 👋
             </h2>
-            <p className="text-gray-600">Sign in to continue to Saadhyam AI</p>
+            <p className="text-gray-600 dark:text-slate-400">Sign in to continue to Saadhyam AI</p>
           </div>
 
           {/* Error Message */}
@@ -653,7 +650,7 @@ function LoginPage() {
             </form>
 
             {/* Sign Up Link */}
-            <p className="text-center text-sm text-gray-600 pt-4">
+            <p className="text-center text-sm text-gray-600 dark:text-slate-400 pt-4">
               New to Saadhyam AI?{" "}
               <button
                 onClick={() => navigate({ to: "/signup" })}
@@ -669,22 +666,22 @@ function LoginPage() {
               <div className="text-center">
                 <Shield className="w-6 h-6 text-[#8B5CF6] mx-auto mb-2" />
                 <p className="text-xs font-semibold text-gray-900 dark:text-slate-100">Secure & Private</p>
-                <p className="text-xs text-gray-500">Your data is 100% safe</p>
+                <p className="text-xs text-gray-500 dark:text-slate-400">Your data is 100% safe</p>
               </div>
               <div className="text-center">
                 <Rocket className="w-6 h-6 text-[#8B5CF6] mx-auto mb-2" />
                 <p className="text-xs font-semibold text-gray-900 dark:text-slate-100">14-Day Free Trial</p>
-                <p className="text-xs text-gray-500">No credit card required</p>
+                <p className="text-xs text-gray-500 dark:text-slate-400">No credit card required</p>
               </div>
               <div className="text-center">
                 <Headphones className="w-6 h-6 text-[#8B5CF6] mx-auto mb-2" />
                 <p className="text-xs font-semibold text-gray-900 dark:text-slate-100">24/7 Support</p>
-                <p className="text-xs text-gray-500">We're here to help</p>
+                <p className="text-xs text-gray-500 dark:text-slate-400">We're here to help</p>
               </div>
             </div>
 
             {/* Terms */}
-            <p className="text-xs text-gray-500 text-center pt-4">
+            <p className="text-xs text-gray-500 dark:text-slate-400 text-center pt-4">
               By continuing, you agree to our{" "}
               <a href="/terms" className="text-[#8B5CF6] hover:underline">Terms of Service</a>
               {" "}and{" "}

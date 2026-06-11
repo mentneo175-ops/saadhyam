@@ -53,30 +53,42 @@ export function PromotePostModal({ isOpen, onClose, post, onSuccess }: PromotePo
   const loadAIRecommendations = async () => {
     setLoadingAI(true);
     try {
+      console.log("🤖 Loading AI recommendations for post:", post);
       // Extract hashtags from caption
-      const hashtags = post.caption.match(/#\w+/g)?.map(tag => tag.slice(1)) || [];
+      const hashtags = post.caption?.match(/#\w+/g)?.map(tag => tag.slice(1)) || [];
+
+      console.log("🤖 Extracted hashtags:", hashtags);
 
       // Get AI recommendations in parallel
       const [audienceResult, budgetResult] = await Promise.all([
-        getAudienceRecommendations(post.caption, hashtags, objective),
+        getAudienceRecommendations(post.caption || "", hashtags, objective),
         getBudgetRecommendations(objective),
       ]);
 
-      if (audienceResult.success) {
+      console.log("🤖 Audience Result:", audienceResult);
+      console.log("🤖 Budget Result:", budgetResult);
+
+      if (audienceResult && audienceResult.success) {
         setAudienceRec(audienceResult.recommendations);
+      } else {
+        console.warn("⚠️ Audience recommendations success is false or result is empty:", audienceResult);
+        toast.warning("Audience recommendations could not be loaded");
       }
 
-      if (budgetResult.success) {
+      if (budgetResult && budgetResult.success) {
         setBudgetRec(budgetResult.recommendations);
         // Set default values from AI
         setDailyBudget(budgetResult.recommendations.recommended_daily_budget);
         setDuration(budgetResult.recommendations.recommended_duration_days);
+      } else {
+        console.warn("⚠️ Budget recommendations success is false or result is empty:", budgetResult);
+        toast.warning("Budget recommendations could not be loaded");
       }
 
       toast.success("🤖 AI recommendations generated!");
     } catch (error: any) {
-      toast.error("Failed to get AI recommendations");
-      console.error(error);
+      console.error("❌ Failed to get AI recommendations:", error);
+      toast.error(`Failed to get AI recommendations: ${error.message || JSON.stringify(error)}`);
     } finally {
       setLoadingAI(false);
     }

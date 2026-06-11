@@ -57,7 +57,15 @@ export function BusinessDetailPanel({
       // Extract numeric ID from "saadhyam-29" format
       const numericId = business.id.replace("saadhyam-", "");
       const data = await apiClient.get(`/api/b2b-chat/check-connection/${numericId}`);
-      setConnectionStatus(data);
+      if (data) {
+        setConnectionStatus({
+          connected: !!data.connected,
+          pending: !!data.pending,
+          roomId: data.room_id || data.roomId,
+          requestId: data.request_id || data.requestId,
+          sentByMe: data.sent_by_me !== undefined ? data.sent_by_me : data.sentByMe,
+        });
+      }
     } catch (error) {
       console.error("Error checking connection:", error);
     }

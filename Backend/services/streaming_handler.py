@@ -550,6 +550,9 @@ Provide your next direct script response now. Speak directly to the customer. Do
                             logger.info(f"👤 Customer (final): {transcript}")
                             self.transcript_lines.append(f"Customer: {transcript}")
                             
+                            # Cancel any previous generating or speaking task to prevent overlap/echo
+                            await self.stop_speaking()
+                            
                             # Start generation and speaking task in the background
                             self.response_task = asyncio.create_task(self.generate_and_speak(transcript))
 
@@ -1284,6 +1287,9 @@ Provide your next direct script response now. Speak directly to the customer. Do
                         if is_final:
                             logger.info(f"👤 Customer (final): {transcript}")
                             self.transcript_lines.append(f"Customer: {transcript}")
+                            
+                            # Cancel any previous generating or speaking task to prevent overlap/echo
+                            await self.stop_speaking()
                             
                             # Start generation and speaking task in the background
                             self.response_task = asyncio.create_task(self.generate_and_speak(transcript))

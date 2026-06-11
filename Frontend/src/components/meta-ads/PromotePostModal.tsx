@@ -48,7 +48,7 @@ export function PromotePostModal({ isOpen, onClose, post, onSuccess }: PromotePo
     if (isOpen) {
       loadAIRecommendations();
     }
-  }, [isOpen]);
+  }, [isOpen, objective]);
 
   const loadAIRecommendations = async () => {
     setLoadingAI(true);

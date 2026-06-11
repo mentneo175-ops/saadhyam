@@ -253,7 +253,7 @@ export function FeatureUpgradeGuard({ children }: FeatureUpgradeGuardProps) {
     <>
       {!isBannerDismissed && (
         <div 
-          className={`fixed top-20 right-6 z-40 max-w-md w-[calc(100vw-3rem)] sm:w-[420px] rounded-2xl border p-4 shadow-2xl backdrop-blur-lg animate-in fade-in slide-in-from-top-4 duration-300 ${
+          className={`fixed top-20 right-6 z-[100] max-w-md w-[calc(100vw-3rem)] sm:w-[420px] rounded-2xl border p-4 shadow-2xl backdrop-blur-lg animate-in fade-in slide-in-from-top-4 duration-300 ${
             bannerTone === "amber" 
               ? "border-amber-500/20 bg-amber-950/90 text-amber-100 shadow-amber-950/40" 
               : "border-purple-500/20 bg-purple-950/90 text-purple-100 shadow-purple-950/40"

@@ -22,11 +22,13 @@ class TwilioService:
             self._client = Client(self.account_sid, self.auth_token)
         return self._client
 
-    def trigger_outbound_call(self, customer_phone: str, call_id: int) -> dict:
+    def trigger_outbound_call(self, customer_phone: str, call_id: int, from_number: str = None) -> dict:
         """
         Trigger an outbound call using Twilio's Call API pointing to our TwiML callback endpoint.
         """
-        if not self.account_sid or not self.auth_token or not self.phone_number:
+        # Resolve caller ID (lease phone number or default settings number)
+        caller_id = from_number or self.phone_number
+        if not self.account_sid or not self.auth_token or not caller_id:
             logger.error("❌ Twilio credentials or phone number not configured in settings")
             return {"success": False, "message": "Twilio is not configured in settings"}
 
@@ -39,7 +41,7 @@ class TwilioService:
                 phone = f"+91{phone}"
 
         # Clean from number
-        from_number = self.phone_number.replace("-", "").replace(" ", "").strip()
+        from_number = caller_id.replace("-", "").replace(" ", "").strip()
         if not from_number.startswith("+") and not from_number.startswith("0"):
             if len(from_number) == 10:
                 from_number = f"+91{from_number}"

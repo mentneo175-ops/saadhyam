@@ -42,7 +42,7 @@ export function YouTubeChannelCard({ channel, onDisconnect, onRefresh }: YouTube
   };
 
   return (
-    <Card className="border border-purple-100/80 shadow-xs overflow-hidden bg-white dark:bg-slate-900">
+    <Card className="border border-purple-100/80 shadow-xs overflow-hidden bg-white dark:bg-slate-900 dark:border-slate-800">
       {/* Banner gradient */}
       <div className="h-20 bg-gradient-to-r from-[#5D2F8F] via-[#7C3AED] to-[#A855F7] relative" />
 
@@ -52,11 +52,11 @@ export function YouTubeChannelCard({ channel, onDisconnect, onRefresh }: YouTube
           <img
             src={channel.thumbnail_url}
             alt={channel.channel_title}
-            className="w-18 h-18 rounded-full border-4 border-white shadow-md bg-white object-cover shrink-0 select-none dark:bg-slate-900"
+            className="w-18 h-18 rounded-full border-4 border-white shadow-md bg-white object-cover shrink-0 select-none dark:bg-slate-900 dark:border-slate-800"
             onError={() => setImageFailed(true)}
           />
         ) : (
-          <div className="w-18 h-18 rounded-full border-4 border-white shadow-md bg-purple-50 flex items-center justify-center font-bold text-xl text-purple-700 shrink-0 select-none">
+          <div className="w-18 h-18 rounded-full border-4 border-white shadow-md bg-purple-50 flex items-center justify-center font-bold text-xl text-purple-700 shrink-0 select-none dark:bg-slate-900 dark:border-slate-800">
             {fallbackInitial}
           </div>
         )}
@@ -66,7 +66,7 @@ export function YouTubeChannelCard({ channel, onDisconnect, onRefresh }: YouTube
             {channel.channel_title}
           </h3>
           
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-green-50 border border-green-200 text-green-700 text-[10px] font-semibold rounded-full mt-1.5">
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-green-50 border border-green-200 text-green-700 text-[10px] font-semibold rounded-full mt-1.5 dark:bg-green-950/20 dark:border-green-900/30 dark:text-green-400">
             <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
             Connected
           </div>
@@ -100,7 +100,7 @@ export function YouTubeChannelCard({ channel, onDisconnect, onRefresh }: YouTube
             variant="outline" 
             size="sm" 
             onClick={onRefresh} 
-            className="w-full text-xs border-purple-100 text-purple-700 hover:bg-purple-50 hover:text-purple-800 flex items-center justify-center gap-1.5"
+            className="w-full text-xs border-purple-100 text-purple-700 hover:bg-purple-50 hover:text-purple-800 flex items-center justify-center gap-1.5 dark:border-purple-900/40 dark:text-purple-400 dark:hover:bg-purple-950/30 dark:hover:text-purple-300"
           >
             <RefreshCw className="w-3.5 h-3.5" />
             Sync Stats
@@ -111,7 +111,7 @@ export function YouTubeChannelCard({ channel, onDisconnect, onRefresh }: YouTube
               variant="outline" 
               size="sm" 
               asChild 
-              className="w-full text-xs border-purple-100 text-purple-700 hover:bg-purple-50 hover:text-purple-800"
+              className="w-full text-xs border-purple-100 text-purple-700 hover:bg-purple-50 hover:text-purple-800 dark:border-purple-900/40 dark:text-purple-400 dark:hover:bg-purple-950/30 dark:hover:text-purple-300"
             >
               <a
                 href={`https://www.youtube.com/channel/${channel.channel_id}`}
@@ -130,7 +130,7 @@ export function YouTubeChannelCard({ channel, onDisconnect, onRefresh }: YouTube
             size="sm"
             onClick={handleDisconnect}
             disabled={isDisconnecting}
-            className="w-full text-xs text-red-500 hover:bg-red-50 hover:text-red-600 flex items-center justify-center gap-1.5 mt-1"
+            className="w-full text-xs text-red-500 hover:bg-red-50 hover:text-red-600 flex items-center justify-center gap-1.5 mt-1 dark:hover:bg-red-950/20 dark:hover:text-red-400"
           >
             <Link2Off className="w-3.5 h-3.5" />
             {isDisconnecting ? "Disconnecting..." : "Disconnect"}

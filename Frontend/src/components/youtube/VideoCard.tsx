@@ -34,22 +34,22 @@ export function VideoCard({ video, onDelete }: VideoCardProps) {
   const getStatusBadge = () => {
     switch (video.status) {
       case "posted":
-        return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-green-50 text-green-700 border border-green-200">Published</span>;
+        return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-green-50 text-green-700 border border-green-200 dark:bg-green-950/20 dark:text-green-400 dark:border-green-900/30">Published</span>;
       case "scheduled":
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-950/20 dark:text-blue-400 dark:border-blue-900/30">
             <Clock className="w-2.5 h-2.5" /> Scheduled
           </span>
         );
       case "publishing":
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200 animate-pulse">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200 animate-pulse dark:bg-amber-950/20 dark:text-amber-400 dark:border-amber-900/30">
             <LoaderIcon className="w-2.5 h-2.5 animate-spin" /> Processing
           </span>
         );
       case "failed":
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-red-50 text-red-700 border border-red-200">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-red-50 text-red-700 border border-red-200 dark:bg-red-950/20 dark:text-red-400 dark:border-red-900/30">
             <AlertCircle className="w-2.5 h-2.5" /> Failed
           </span>
         );
@@ -69,7 +69,7 @@ export function VideoCard({ video, onDelete }: VideoCardProps) {
   };
 
   return (
-    <Card className="border border-slate-100/80 shadow-xs hover:shadow-md transition-all duration-300 rounded-xl overflow-hidden flex flex-col h-full bg-white group dark:bg-slate-900">
+    <Card className="border border-slate-100/80 shadow-xs hover:shadow-md transition-all duration-300 rounded-xl overflow-hidden flex flex-col h-full bg-white group dark:bg-slate-900 dark:border-slate-800">
       {/* Thumbnail */}
       <div className="relative aspect-video w-full bg-slate-100 overflow-hidden shrink-0 dark:bg-slate-800">
         {video.thumbnail_url ? (
@@ -102,7 +102,7 @@ export function VideoCard({ video, onDelete }: VideoCardProps) {
 
       {/* Card body */}
       <div className="p-4 flex flex-col flex-grow">
-        <h4 className="font-bold text-slate-800 text-sm line-clamp-2 leading-snug mb-3 group-hover:text-purple-700 transition-colors dark:text-slate-300" title={video.title}>
+        <h4 className="font-bold text-slate-800 text-sm line-clamp-2 leading-snug mb-3 group-hover:text-purple-700 transition-colors dark:text-slate-300 dark:group-hover:text-purple-400" title={video.title}>
           {video.title}
         </h4>
         
@@ -116,7 +116,7 @@ export function VideoCard({ video, onDelete }: VideoCardProps) {
 
         {/* Error message */}
         {video.status === "failed" && video.error_message && (
-          <div className="mb-3 p-2 bg-red-50 border border-red-100 rounded-lg text-[11px] text-red-600 flex items-start gap-1.5 leading-relaxed">
+          <div className="mb-3 p-2 bg-red-50 border border-red-100 rounded-lg text-[11px] text-red-600 flex items-start gap-1.5 leading-relaxed dark:bg-red-950/10 dark:border-red-900/30 dark:text-red-400">
             <AlertCircle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
             <span>{video.error_message}</span>
           </div>
@@ -146,7 +146,7 @@ export function VideoCard({ video, onDelete }: VideoCardProps) {
           <button
             onClick={handleDelete}
             disabled={isDeleting}
-            className="text-slate-400 hover:text-red-500 hover:bg-red-50 p-1.5 rounded-lg transition-colors disabled:opacity-50 shrink-0"
+            className="text-slate-400 hover:text-red-500 hover:bg-red-50 p-1.5 rounded-lg transition-colors disabled:opacity-50 shrink-0 dark:hover:bg-red-950/20 dark:hover:text-red-400"
             title="Delete video record"
           >
             <Trash2 className="w-3.5 h-3.5" />

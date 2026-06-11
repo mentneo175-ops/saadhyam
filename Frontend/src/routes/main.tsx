@@ -249,7 +249,15 @@ function Landing() {
 
     const loadPricing = async () => {
       try {
-        const response = await fetch(`/admin-api/api/public/billing-plans`, { cache: "no-store" });
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+        const response = await fetch(`/admin-api/api/public/billing-plans`, { 
+          cache: "no-store",
+          signal: controller.signal 
+        });
+        clearTimeout(timeoutId);
+
         if (!response.ok) {
           throw new Error("Failed to fetch live pricing");
         }

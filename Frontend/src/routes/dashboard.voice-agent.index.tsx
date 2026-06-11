@@ -110,6 +110,91 @@ function VoiceAgentDashboard() {
   const [deletingLeadId, setDeletingLeadId] = useState<number | null>(null);
   const [deletingAgentId, setDeletingAgentId] = useState<number | null>(null);
 
+  // ================= SAAS BILLING & WALLET STATE =================
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [areaCode, setAreaCode] = useState("");
+  const [searchingNumbers, setSearchingNumbers] = useState(false);
+  const [availableNumbers, setAvailableNumbers] = useState<any[]>([]);
+  const [recharging, setRecharging] = useState(false);
+  const [rechargeAmount, setRechargeAmount] = useState("10.00");
+  const [buyingNumber, setBuyingNumber] = useState<string | null>(null);
+
+  const handleSearchNumbers = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    setSearchingNumbers(true);
+    try {
+      const url = areaCode
+        ? `${env.apiBaseUrl}/api/voice-agent/billing/numbers/search?area_code=${areaCode}`
+        : `${env.apiBaseUrl}/api/voice-agent/billing/numbers/search`;
+      const res = await fetch(url, { headers: getHeaders() });
+      if (res.ok) {
+        const data = await res.json();
+        setAvailableNumbers(data);
+        if (data.length === 0) {
+          showToast("info", "No available phone numbers found for this area code.");
+        }
+      } else {
+        showToast("error", "Failed to search phone numbers.");
+      }
+    } catch {
+      showToast("error", "Error connecting to number search API.");
+    } finally {
+      setSearchingNumbers(false);
+    }
+  };
+
+  const handleBuyNumber = async (phoneNumber: string) => {
+    if (!confirm(`Are you sure you want to lease/purchase ${phoneNumber} for $3.00?`)) return;
+    setBuyingNumber(phoneNumber);
+    try {
+      const res = await fetch(`${env.apiBaseUrl}/api/voice-agent/billing/numbers/buy`, {
+        method: "POST",
+        headers: getHeaders(),
+        body: JSON.stringify({ phone_number: phoneNumber }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        showToast("success", data.message || `Successfully leased ${phoneNumber}!`);
+        fetchAllOnce();
+        setAvailableNumbers([]);
+      } else {
+        showToast("error", data.detail || "Failed to purchase number.");
+      }
+    } catch {
+      showToast("error", "Error connecting to purchase API.");
+    } finally {
+      setBuyingNumber(null);
+    }
+  };
+
+  const handleTopup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const amt = parseFloat(rechargeAmount);
+    if (isNaN(amt) || amt <= 0) {
+      showToast("error", "Please enter a valid amount greater than $0.");
+      return;
+    }
+    setRecharging(true);
+    try {
+      const res = await fetch(`${env.apiBaseUrl}/api/voice-agent/billing/topup`, {
+        method: "POST",
+        headers: getHeaders(),
+        body: JSON.stringify({ amount: amt }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        showToast("success", data.message || `Successfully charged $${amt.toFixed(2)}!`);
+        fetchAllOnce();
+      } else {
+        showToast("error", data.detail || "Failed to recharge wallet.");
+      }
+    } catch {
+      showToast("error", "Error connecting to top-up API.");
+    } finally {
+      setRecharging(false);
+    }
+  };
+
   // References
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const mediaRecorderRef = useRef<any>(null);
@@ -211,6 +296,7 @@ function VoiceAgentDashboard() {
       setArchivedCampaigns(payload.archived_campaigns || []);
       setLeads(payload.leads || []);
       setCallLogs(payload.sessions || []);
+      setCurrentUser(payload.user || null);
 
       console.log("🧩 fetchAllOnce successfully retrieved payload:", payload);
 
@@ -237,6 +323,7 @@ function VoiceAgentDashboard() {
           setArchivedCampaigns(snap.archived_campaigns || []);
           setLeads(snap.leads || []);
           setCallLogs(snap.sessions || []);
+          setCurrentUser(snap.user || null);
           setIsFallbackData(true);
           console.log("🧩 fetchAllOnce loaded fallback data from localStorage");
         }
@@ -1294,6 +1381,222 @@ function VoiceAgentDashboard() {
                   <div className="h-4 w-20 bg-white/5 rounded" />
                 </div>
               ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderBilling = () => {
+    return (
+      <div className="tab-pane animate-fade-in flex flex-col gap-6">
+        <div className="tab-header flex justify-between items-center mb-4">
+          <div>
+            <h1 className="gradient-text text-3xl font-bold">Billing & SaaS Wallet</h1>
+            <p className="text-secondary text-sm">
+              Manage your call credits, top up your wallet, and lease dialer caller ID phone numbers.
+            </p>
+          </div>
+          <button className="btn btn-secondary flex items-center gap-2" onClick={() => fetchAllOnce(true)}>
+            <Sparkles size={14} />
+            <span>Refresh Balance</span>
+          </button>
+        </div>
+
+        {/* Dashboard Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          
+          {/* Column 1: Wallet Status Card & Quick Top-Up */}
+          <div className="lg:col-span-1 flex flex-col gap-6">
+            
+            {/* Balance Widget Card */}
+            <div className="glass-card p-6 relative overflow-hidden flex flex-col justify-between min-h-[220px]" style={{
+              background: "linear-gradient(135deg, rgba(74, 158, 255, 0.15) 0%, rgba(179, 136, 255, 0.15) 100%)",
+              border: "1px solid rgba(74, 158, 255, 0.3)"
+            }}>
+              <div>
+                <span className="text-secondary text-xs uppercase font-semibold tracking-wider">Total Wallet Credits</span>
+                <h2 className="gradient-text text-5xl font-black mt-2">
+                  ${currentUser?.wallet_balance !== undefined ? currentUser.wallet_balance.toFixed(2) : "0.00"}
+                </h2>
+              </div>
+              <div className="mt-6 pt-4 border-t border-white/5 space-y-2 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-secondary">Active Number:</span>
+                  <span className="font-semibold text-primary">{currentUser?.leased_phone_number || "None Leased"}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-secondary">Calling Rate:</span>
+                  <span className="text-accent font-semibold">$0.10 / minute</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-secondary">Number Rental:</span>
+                  <span className="text-accent-purple font-semibold">$3.00 / month</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Top Up / Recharge Card */}
+            <div className="glass-card p-6 flex flex-col gap-4">
+              <h3 className="text-base font-semibold text-primary flex items-center gap-2">
+                <Zap size={16} className="text-accent" />
+                <span>Recharge Wallet</span>
+              </h3>
+              
+              {/* Quick Select Buttons */}
+              <div className="grid grid-cols-3 gap-2 mt-2">
+                {["10.00", "20.00", "50.00"].map((val) => (
+                  <button
+                    key={val}
+                    type="button"
+                    onClick={() => setRechargeAmount(val)}
+                    className={`btn text-xs font-semibold py-2 px-3 ${
+                      rechargeAmount === val
+                        ? "bg-accent/15 text-accent border border-accent/40"
+                        : "bg-white/5 text-secondary hover:bg-white/10"
+                    }`}
+                  >
+                    +${parseInt(val)}
+                  </button>
+                ))}
+              </div>
+
+              {/* Form Input */}
+              <form onSubmit={handleTopup} className="flex flex-col gap-3 mt-2">
+                <div className="form-group mb-0">
+                  <label className="form-label">Top-Up Amount ($)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="1"
+                    value={rechargeAmount}
+                    onChange={(e) => setRechargeAmount(e.target.value)}
+                    className="form-input w-full"
+                    placeholder="Enter amount"
+                    required
+                  />
+                </div>
+                
+                <button
+                  type="submit"
+                  disabled={recharging}
+                  className="btn btn-primary w-full mt-2"
+                >
+                  {recharging ? (
+                    <>
+                      <Loader2 size={16} className="animate-spin text-white" />
+                      <span>Processing Recharge...</span>
+                    </>
+                  ) : (
+                    <span>Add Credits</span>
+                  )}
+                </button>
+              </form>
+            </div>
+          </div>
+
+          {/* Column 2: Twilio Phone Number Search & Purchase (Lease) */}
+          <div className="lg:col-span-2 flex flex-col gap-6">
+            <div className="glass-card p-6 flex flex-col gap-4 flex-1">
+              <div className="flex justify-between items-start">
+                <div>
+                  <h3 className="text-base font-semibold text-primary flex items-center gap-2">
+                    <Phone size={16} className="text-accent-purple" />
+                    <span>Lease Dialer Numbers</span>
+                  </h3>
+                  <p className="text-secondary text-xs mt-1">
+                    Search and acquire numbers in real-time. Purchased numbers are automatically configured as your Caller ID.
+                  </p>
+                </div>
+                {currentUser?.leased_phone_number && (
+                  <div className="bg-accent-green/10 text-accent-green border border-accent-green/30 px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1.5">
+                    <Check size={12} />
+                    <span>Number Active</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Search Form */}
+              <form onSubmit={handleSearchNumbers} className="flex gap-3 mt-2 items-end">
+                <div className="form-group mb-0 flex-1">
+                  <label className="form-label">US Area Code (Optional)</label>
+                  <input
+                    type="text"
+                    maxLength={3}
+                    pattern="[0-9]*"
+                    value={areaCode}
+                    onChange={(e) => setAreaCode(e.target.value.replace(/\D/g, ""))}
+                    className="form-input w-full"
+                    placeholder="e.g. 650, 415, 212"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={searchingNumbers}
+                  className="btn btn-secondary flex items-center gap-2 h-[42px] px-6"
+                >
+                  {searchingNumbers ? (
+                    <Loader2 size={16} className="animate-spin" />
+                  ) : (
+                    <Phone size={16} />
+                  )}
+                  <span>Search Inventory</span>
+                </button>
+              </form>
+
+              {/* Number Results */}
+              <div className="flex-1 flex flex-col justify-center mt-4">
+                {searchingNumbers ? (
+                  <div className="flex flex-col items-center justify-center py-12 gap-3">
+                    <Loader2 size={36} className="animate-spin text-accent-purple" />
+                    <span className="text-secondary text-xs">Querying Twilio Available Inventory...</span>
+                  </div>
+                ) : availableNumbers.length > 0 ? (
+                  <div className="flex flex-col gap-2 overflow-y-auto max-h-[350px] pr-2">
+                    {availableNumbers.map((num) => (
+                      <div
+                        key={num.phone_number}
+                        className="flex items-center justify-between p-3 bg-white/5 border border-white/5 rounded-xl hover:border-white/10 transition-all"
+                      >
+                        <div className="flex flex-col gap-0.5">
+                          <span className="text-sm font-semibold text-primary">{num.friendly_name}</span>
+                          <span className="text-secondary text-[10px] uppercase tracking-wider font-semibold">
+                            {num.region}, {num.iso_country} &bull; Local Outbound
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          disabled={buyingNumber !== null}
+                          onClick={() => handleBuyNumber(num.phone_number)}
+                          className="btn btn-primary text-xs py-1.5 px-4 font-bold flex items-center gap-1.5"
+                          style={{
+                            background: "linear-gradient(135deg, var(--accent-purple) 0%, #7C3AED 100%)",
+                            boxShadow: "0 4px 12px rgba(124, 58, 237, 0.25)"
+                          }}
+                        >
+                          {buyingNumber === num.phone_number ? (
+                            <>
+                              <Loader2 size={12} className="animate-spin" />
+                              <span>Leasing...</span>
+                            </>
+                          ) : (
+                            <span>Lease Number ($3.00)</span>
+                          )}
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-12 text-center border border-dashed border-white/5 rounded-2xl bg-white/[0.01]">
+                    <PhoneOff size={32} className="text-muted mb-3" />
+                    <h4 className="text-secondary text-sm font-semibold">No Phone Numbers Loaded</h4>
+                    <p className="text-muted text-xs max-w-sm mt-1">
+                      Enter an area code and click Search to check live dialer number options.
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -2640,6 +2943,17 @@ function VoiceAgentDashboard() {
             </button>
             <button
               className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-medium transition-all ${
+                activeTab === "billing"
+                  ? "bg-accent/15 text-accent border border-accent/30"
+                  : "text-secondary hover:bg-white/5 border border-transparent"
+              }`}
+              onClick={() => setActiveTab("billing")}
+            >
+              <Zap size={14} />
+              <span>Billing & Wallet</span>
+            </button>
+            <button
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-medium transition-all ${
                 activeTab === "agents"
                   ? "bg-accent/15 text-accent border border-accent/30"
                   : "text-secondary hover:bg-white/5 border border-transparent"
@@ -2659,6 +2973,7 @@ function VoiceAgentDashboard() {
         {activeTab === "campaigns" && (isLoadingDashboard ? renderCampaignsSkeleton() : renderCampaigns())}
         {activeTab === "crm" && (isLoadingDashboard ? renderCRMSkeleton() : renderCRM())}
         {activeTab === "calls" && (isLoadingDashboard ? renderCallLogsSkeleton() : renderCallLogs())}
+        {activeTab === "billing" && renderBilling()}
         {activeTab === "agents" && (isLoadingDashboard ? renderAgentsSkeleton() : renderAgents())}
       </main>
 

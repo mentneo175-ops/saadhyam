@@ -416,6 +416,13 @@ class LeadCreate(BaseModel):
     status: Optional[str] = "pending"
 
 
+class TopupRequest(BaseModel):
+    amount: float
+
+class NumberBuyRequest(BaseModel):
+    phone_number: str
+
+
 # ==================== ROUTE ENDPOINTS ====================
 
 @router.get("/health")
@@ -1023,6 +1030,12 @@ def get_dashboard_overview(
                 "archived_campaigns": archived,
                 "leads": leads,
                 "sessions": sessions,
+                "user": {
+                    "id": current_user.id,
+                    "email": current_user.email,
+                    "wallet_balance": current_user.wallet_balance,
+                    "leased_phone_number": current_user.leased_phone_number,
+                }
             }
         except Exception as e:
             logger.warning(f"Database query attempt {attempt + 1} failed in get_dashboard_overview: {e}")
@@ -2169,6 +2182,21 @@ async def twilio_status_callback(
                     call.status = CallStatus.COMPLETED
                     if duration:
                         call.duration = int(duration)
+                        
+                        # Calculate minutes rounded up: e.g. 5 seconds -> 1 min; 65 seconds -> 2 mins.
+                        dur_secs = int(duration)
+                        minutes = (dur_secs + 59) // 60 if dur_secs > 0 else 0
+                        charge_per_minute = 0.10
+                        total_charge = minutes * charge_per_minute
+                        
+                        if total_charge > 0:
+                            # Fetch campaign and user to deduct the balance
+                            campaign = db.query(VoiceCampaign).filter(VoiceCampaign.id == call.campaign_id).first()
+                            if campaign:
+                                user = db.query(User).filter(User.id == campaign.user_id).first()
+                                if user:
+                                    user.wallet_balance = max(0.00, user.wallet_balance - total_charge)
+                                    logger.info(f"💰 Deducted ${total_charge:.2f} from User {user.id} wallet for {minutes} min call. New Balance: ${user.wallet_balance:.2f}")
                 elif status in ["failed", "busy", "no-answer", "canceled"]:
                     call.status = CallStatus.FAILED
                     call.call_outcome = status
@@ -2211,12 +2239,40 @@ def trigger_real_lead_call(
     Bridge route: Triggers a real outbound phone call (Twilio/Exotel) for a lead
     by auto-provisioning the required VoiceCampaign, VoiceContact, and VoiceCall records.
     """
-    # 1. Fetch Lead
+    # 1. User Permissions Check
+    if not current_user.is_active or current_user.is_suspended:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access denied. User account is inactive or suspended."
+        )
+
+    # 2. Wallet Balance Check
+    MINIMUM_BALANCE = 1.00
+    if current_user.wallet_balance < MINIMUM_BALANCE:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Insufficient wallet balance. Minimum required is ${MINIMUM_BALANCE:.2f}, but current balance is ${current_user.wallet_balance:.2f}."
+        )
+
+    # 3. Active Twilio Number Check
+    from services.twilio_service import twilio_service
+    from config.settings import settings
+    
+    # Resolve Caller ID (leased phone number, falling back to server default)
+    from_number = current_user.leased_phone_number or settings.TWILIO_PHONE_NUMBER
+
+    if settings.TWILIO_ACCOUNT_SID and settings.TWILIO_AUTH_TOKEN and not from_number:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No active Twilio dialer number configured. Please lease/buy a Twilio phone number first."
+        )
+        
+    # 4. Fetch Lead
     lead = db.query(Lead).filter(Lead.id == lead_id).first()
     if not lead:
         raise HTTPException(status_code=404, detail="Lead not found")
         
-    # 2. Fetch Campaign details
+    # 5. Fetch Campaign details
     campaign_id = lead.campaign_id
     campaign = None
     if campaign_id:
@@ -2235,8 +2291,9 @@ def trigger_real_lead_call(
     agent_languages = agent.languages if agent else "te,en"
     agent_voice_id = agent.voice_id if agent else "TX3LPaxmHKxFdv7VOQHJ"
     
-    # 3. Resolve or Create VoiceCampaign (legacy model)
+    # 6. Resolve or Create VoiceCampaign (legacy model)
     from models.voice_agent import VoiceCampaign, VoiceContact, VoiceCall, Language, CampaignStatus, CallStatus
+    
     voice_campaign = db.query(VoiceCampaign).filter(VoiceCampaign.name == campaign_name).first()
     if not voice_campaign:
         lang = Language.ENGLISH
@@ -2260,8 +2317,26 @@ def trigger_real_lead_call(
         db.add(voice_campaign)
         db.commit()
         db.refresh(voice_campaign)
-        
-    # 4. Resolve or Create VoiceContact (legacy model)
+    else:
+        # Check campaign ownership permissions
+        if voice_campaign.user_id != current_user.id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Access denied. You do not have permission to trigger calls for this campaign."
+            )
+
+    # 7. Campaign limits / Rate limits check (Max 5 concurrent calls per campaign)
+    concurrent_calls = db.query(VoiceCall).filter(
+        VoiceCall.campaign_id == voice_campaign.id,
+        VoiceCall.status.in_([CallStatus.CALLING, CallStatus.CONNECTED])
+    ).count()
+    if concurrent_calls >= 5:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Campaign concurrency limit reached. Maximum of 5 concurrent calls is allowed per campaign. Currently active: {concurrent_calls}."
+        )
+
+    # 8. Resolve or Create VoiceContact (legacy model)
     voice_contact = db.query(VoiceContact).filter(
         and_(
             VoiceContact.campaign_id == voice_campaign.id,
@@ -2280,7 +2355,7 @@ def trigger_real_lead_call(
         db.commit()
         db.refresh(voice_contact)
         
-    # 5. Create VoiceCall record
+    # 9. Create VoiceCall record
     voice_call = VoiceCall(
         campaign_id=voice_campaign.id,
         contact_id=voice_contact.id,
@@ -2291,18 +2366,16 @@ def trigger_real_lead_call(
     db.commit()
     db.refresh(voice_call)
     
-    # 6. Trigger Twilio or Exotel call
-    from services.twilio_service import twilio_service
+    # 10. Trigger Twilio or Exotel call
     from services.exotel_service import exotel_service
-    from config.settings import settings
     
-    has_twilio = bool(settings.TWILIO_ACCOUNT_SID and settings.TWILIO_AUTH_TOKEN and settings.TWILIO_PHONE_NUMBER)
+    has_twilio = bool(settings.TWILIO_ACCOUNT_SID and settings.TWILIO_AUTH_TOKEN and from_number)
     has_exotel = bool(settings.EXOTEL_SID and settings.EXOTEL_API_KEY and settings.EXOPHONE_NUMBER)
     
     if has_twilio:
         voice_call.status = CallStatus.CALLING
         db.commit()
-        res = twilio_service.trigger_outbound_call(lead.phone, voice_call.id)
+        res = twilio_service.trigger_outbound_call(lead.phone, voice_call.id, from_number=from_number)
         if res["success"]:
             voice_call.call_sid = res["exotel_call_sid"]
             
@@ -2319,7 +2392,7 @@ def trigger_real_lead_call(
             lead.status = "called"
             
             db.commit()
-            return {"success": True, "call_id": voice_call.id, "provider": "twilio", "call_sid": res["exotel_call_sid"]}
+            return {"success": True, "call_id": voice_call.id, "provider": "twilio", "call_sid": res["exotel_call_sid"], "from_number": from_number}
         else:
             voice_call.status = CallStatus.FAILED
             voice_call.call_outcome = "failed_trigger"
@@ -2356,8 +2429,132 @@ def trigger_real_lead_call(
     else:
         raise HTTPException(
             status_code=400, 
-            detail="No calling credentials (Twilio/Exotel) configured on the backend. Please setup credentials in settings."
+            detail="No calling credentials (Twilio/Exotel) configured on the backend. Please setup credentials in settings or buy a Twilio number."
         )
+
+
+# ==================== BILLING ENDPOINTS ====================
+
+@router.post("/voice-agent/billing/topup")
+def topup_balance(
+    data: TopupRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db_sync)
+):
+    if data.amount <= 0:
+        raise HTTPException(status_code=400, detail="Amount must be greater than zero")
+    
+    if current_user not in db:
+        current_user = db.merge(current_user)
+        
+    current_user.wallet_balance += data.amount
+    db.commit()
+    db.refresh(current_user)
+    return {
+        "message": f"Successfully recharged ${data.amount:.2f}",
+        "wallet_balance": current_user.wallet_balance
+    }
+
+
+@router.get("/voice-agent/billing/numbers/search")
+def search_numbers(
+    area_code: Optional[str] = None,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db_sync)
+):
+    from services.twilio_service import twilio_service
+    try:
+        if not twilio_service.account_sid or not twilio_service.auth_token:
+            logger.info("Twilio credentials missing, returning mock numbers for search.")
+            mock_numbers = [
+                {"phone_number": f"+1{area_code or '650'}5550101", "friendly_name": f"({area_code or '650'}) 555-0101", "region": "CA", "iso_country": "US"},
+                {"phone_number": f"+1{area_code or '650'}5550102", "friendly_name": f"({area_code or '650'}) 555-0102", "region": "CA", "iso_country": "US"},
+                {"phone_number": f"+1{area_code or '650'}5550103", "friendly_name": f"({area_code or '650'}) 555-0103", "region": "CA", "iso_country": "US"},
+            ]
+            return mock_numbers
+        
+        kwargs = {}
+        if area_code:
+            kwargs["area_code"] = area_code
+        
+        numbers = twilio_service.client.available_phone_numbers('US').local.list(limit=10, **kwargs)
+        result = []
+        for num in numbers:
+            result.append({
+                "phone_number": num.phone_number,
+                "friendly_name": num.friendly_name,
+                "region": num.region,
+                "iso_country": num.iso_country
+            })
+        return result
+    except Exception as e:
+        logger.error(f"Error searching Twilio numbers: {e}")
+        mock_numbers = [
+            {"phone_number": f"+1{area_code or '650'}5550101", "friendly_name": f"({area_code or '650'}) 555-0101", "region": "CA", "iso_country": "US"},
+            {"phone_number": f"+1{area_code or '650'}5550102", "friendly_name": f"({area_code or '650'}) 555-0102", "region": "CA", "iso_country": "US"},
+            {"phone_number": f"+1{area_code or '650'}5550103", "friendly_name": f"({area_code or '650'}) 555-0103", "region": "CA", "iso_country": "US"},
+        ]
+        return mock_numbers
+
+
+@router.post("/voice-agent/billing/numbers/buy")
+def buy_number(
+    data: NumberBuyRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db_sync)
+):
+    from services.twilio_service import twilio_service
+    REGISTRATION_COST = 3.00
+    
+    if current_user.wallet_balance < REGISTRATION_COST:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Insufficient balance. Leasing a number costs ${REGISTRATION_COST:.2f}, but your balance is ${current_user.wallet_balance:.2f}."
+        )
+    
+    if current_user not in db:
+        current_user = db.merge(current_user)
+        
+    try:
+        if not twilio_service.account_sid or not twilio_service.auth_token:
+            logger.info(f"Twilio credentials missing, simulating purchase of {data.phone_number}")
+            purchased_number = data.phone_number
+        else:
+            twiml_url = f"{settings.BACKEND_URL.rstrip('/')}/api/voice-agent/webhooks/twilio-status"
+            incoming_number = twilio_service.client.incoming_phone_numbers.create(
+                phone_number=data.phone_number,
+                voice_url=twiml_url,
+                voice_method="POST"
+            )
+            purchased_number = incoming_number.phone_number
+            
+        current_user.wallet_balance -= REGISTRATION_COST
+        current_user.leased_phone_number = purchased_number
+        db.commit()
+        db.refresh(current_user)
+        
+        return {
+            "message": f"Successfully purchased {purchased_number}!",
+            "leased_phone_number": current_user.leased_phone_number,
+            "wallet_balance": current_user.wallet_balance
+        }
+    except Exception as e:
+        logger.error(f"Error buying Twilio number: {e}")
+        if settings.ENVIRONMENT == "development" or "test" in settings.ENVIRONMENT:
+            current_user.wallet_balance -= REGISTRATION_COST
+            current_user.leased_phone_number = data.phone_number
+            db.commit()
+            db.refresh(current_user)
+            return {
+                "message": f"Successfully purchased {data.phone_number} (Simulated/Development Mode)!",
+                "leased_phone_number": current_user.leased_phone_number,
+                "wallet_balance": current_user.wallet_balance
+            }
+        raise HTTPException(
+            status_code=500,
+            detail=f"Twilio purchase failed: {str(e)}"
+        )
+
 
 
 

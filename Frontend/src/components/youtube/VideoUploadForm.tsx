@@ -292,11 +292,11 @@ export function VideoUploadForm({ channelDbId, onSubmit }: VideoUploadFormProps)
   };
 
   return (
-    <Card className="border border-purple-100 shadow-xs bg-white rounded-2xl overflow-hidden dark:bg-slate-900">
+    <Card className="border border-purple-100 shadow-xs bg-white rounded-2xl overflow-hidden dark:bg-slate-900 dark:border-slate-800">
       <div className="h-1.5 bg-gradient-to-r from-purple-500 to-indigo-500 w-full" />
       <CardContent className="p-6 md:p-8">
         <h3 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2 border-b border-slate-50 pb-4 dark:text-slate-300 dark:border-slate-700">
-          <Video className="w-5 h-5 text-purple-600" />
+          <Video className="w-5 h-5 text-purple-600 dark:text-purple-400" />
           Upload & Publish Video
         </h3>
 
@@ -318,7 +318,7 @@ export function VideoUploadForm({ channelDbId, onSubmit }: VideoUploadFormProps)
               value={videoUrl}
               onChange={(e) => setVideoUrl(e.target.value)}
               placeholder="Paste public video URL (e.g. Cloudinary, S3) or local file path"
-              className="w-full bg-slate-50/70 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all dark:border-slate-800 dark:text-slate-300"
+              className="w-full bg-slate-50/70 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all dark:bg-slate-950/30 dark:border-slate-800 dark:text-slate-300"
             />
             <div className="mt-3.5 bg-slate-50 border border-dashed border-slate-200 rounded-xl p-3.5 dark:bg-slate-900 dark:border-slate-800">
               <input
@@ -354,7 +354,7 @@ export function VideoUploadForm({ channelDbId, onSubmit }: VideoUploadFormProps)
               value={thumbnailUrl}
               onChange={(e) => setThumbnailUrl(e.target.value)}
               placeholder="Paste a thumbnail image URL (optional)"
-              className="w-full bg-slate-50/70 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all dark:border-slate-800 dark:text-slate-300"
+              className="w-full bg-slate-50/70 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all dark:bg-slate-950/30 dark:border-slate-800 dark:text-slate-300"
             />
             <div className="mt-3.5 bg-slate-50 border border-dashed border-slate-200 rounded-xl p-3.5 dark:bg-slate-900 dark:border-slate-800">
               <input
@@ -374,26 +374,26 @@ export function VideoUploadForm({ channelDbId, onSubmit }: VideoUploadFormProps)
                 Title (max 100 characters)
               </label>
               <button
-                type="button"
-                onClick={handleGenerateTitles}
-                disabled={isGeneratingTitles}
-                className="flex items-center gap-1.5 text-xs font-semibold text-purple-600 hover:text-purple-700 bg-purple-50 hover:bg-purple-100/70 px-2.5 py-1.5 rounded-lg transition-all disabled:opacity-50"
-              >
-                {isGeneratingTitles ? (
-                  <Loader2 className="w-3 h-3 animate-spin text-purple-600" />
-                ) : (
-                  <Sparkles className="w-3 h-3 text-purple-600" />
-                )}
-                AI Titles
-              </button>
-            </div>
+                 type="button"
+                 onClick={handleGenerateTitles}
+                 disabled={isGeneratingTitles}
+                 className="flex items-center gap-1.5 text-xs font-semibold text-purple-600 hover:text-purple-700 bg-purple-50 hover:bg-purple-100/70 px-2.5 py-1.5 rounded-lg transition-all disabled:opacity-50 dark:bg-purple-950/30 dark:text-purple-400 dark:hover:bg-purple-900/30"
+               >
+                 {isGeneratingTitles ? (
+                   <Loader2 className="w-3 h-3 animate-spin text-purple-600 dark:text-purple-400" />
+                 ) : (
+                   <Sparkles className="w-3 h-3 text-purple-600 dark:text-purple-400" />
+                 )}
+                 AI Titles
+               </button>
+             </div>
             <input
               type="text"
               maxLength={100}
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Enter an engaging title for your video"
-              className="w-full bg-slate-50/70 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all dark:border-slate-800 dark:text-slate-300"
+              className="w-full bg-slate-50/70 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all dark:bg-slate-950/30 dark:border-slate-800 dark:text-slate-300"
             />
           </div>
 
@@ -404,26 +404,26 @@ export function VideoUploadForm({ channelDbId, onSubmit }: VideoUploadFormProps)
                 Description (max 5000 characters)
               </label>
               <button
-                type="button"
-                onClick={handleGenerateDescription}
-                disabled={isGeneratingDesc}
-                className="flex items-center gap-1.5 text-xs font-semibold text-purple-600 hover:text-purple-700 bg-purple-50 hover:bg-purple-100/70 px-2.5 py-1.5 rounded-lg transition-all disabled:opacity-50"
-              >
-                {isGeneratingDesc ? (
-                  <Loader2 className="w-3 h-3 animate-spin text-purple-600" />
-                ) : (
-                  <Wand2 className="w-3 h-3 text-purple-600" />
-                )}
-                AI SEO Description
-              </button>
-            </div>
+                 type="button"
+                 onClick={handleGenerateDescription}
+                 disabled={isGeneratingDesc}
+                 className="flex items-center gap-1.5 text-xs font-semibold text-purple-600 hover:text-purple-700 bg-purple-50 hover:bg-purple-100/70 px-2.5 py-1.5 rounded-lg transition-all disabled:opacity-50 dark:bg-purple-950/30 dark:text-purple-400 dark:hover:bg-purple-900/30"
+               >
+                 {isGeneratingDesc ? (
+                   <Loader2 className="w-3 h-3 animate-spin text-purple-600 dark:text-purple-400" />
+                 ) : (
+                   <Wand2 className="w-3 h-3 text-purple-600 dark:text-purple-400" />
+                 )}
+                 AI SEO Description
+               </button>
+             </div>
             <textarea
               maxLength={5000}
               rows={5}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Provide a detailed video description including timestamps, links, and hashtags..."
-              className="w-full bg-slate-50/70 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all resize-y dark:border-slate-800 dark:text-slate-300"
+              className="w-full bg-slate-50/70 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all resize-y dark:bg-slate-950/30 dark:border-slate-800 dark:text-slate-300"
             />
           </div>
 
@@ -434,25 +434,25 @@ export function VideoUploadForm({ channelDbId, onSubmit }: VideoUploadFormProps)
                 Keywords / Tags
               </label>
               <button
-                type="button"
-                onClick={handleGenerateTags}
-                disabled={isGeneratingTags}
-                className="flex items-center gap-1.5 text-xs font-semibold text-purple-600 hover:text-purple-700 bg-purple-50 hover:bg-purple-100/70 px-2.5 py-1.5 rounded-lg transition-all disabled:opacity-50"
-              >
-                {isGeneratingTags ? (
-                  <Loader2 className="w-3 h-3 animate-spin text-purple-600" />
-                ) : (
-                  <Tag className="w-3 h-3 text-purple-600" />
-                )}
-                AI Keywords
-              </button>
-            </div>
+                 type="button"
+                 onClick={handleGenerateTags}
+                 disabled={isGeneratingTags}
+                 className="flex items-center gap-1.5 text-xs font-semibold text-purple-600 hover:text-purple-700 bg-purple-50 hover:bg-purple-100/70 px-2.5 py-1.5 rounded-lg transition-all disabled:opacity-50 dark:bg-purple-950/30 dark:text-purple-400 dark:hover:bg-purple-900/30"
+               >
+                 {isGeneratingTags ? (
+                   <Loader2 className="w-3 h-3 animate-spin text-purple-600 dark:text-purple-400" />
+                 ) : (
+                   <Tag className="w-3 h-3 text-purple-600 dark:text-purple-400" />
+                 )}
+                 AI Keywords
+               </button>
+             </div>
             <input
               type="text"
               value={tags}
               onChange={(e) => setTags(e.target.value)}
               placeholder="marketing, business, guide, ai (comma separated)"
-              className="w-full bg-slate-50/70 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all dark:border-slate-800 dark:text-slate-300"
+              className="w-full bg-slate-50/70 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all dark:bg-slate-950/30 dark:border-slate-800 dark:text-slate-300"
             />
           </div>
 
@@ -465,7 +465,7 @@ export function VideoUploadForm({ channelDbId, onSubmit }: VideoUploadFormProps)
               <select
                 value={privacyStatus}
                 onChange={(e) => setPrivacyStatus(e.target.value)}
-                className="w-full bg-slate-50/70 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all dark:border-slate-800 dark:text-slate-300"
+                className="w-full bg-slate-50/70 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all dark:bg-slate-950/30 dark:border-slate-800 dark:text-slate-300"
               >
                 <option value="public">Public (Everyone can watch)</option>
                 <option value="unlisted">Unlisted (Anyone with link)</option>
@@ -491,16 +491,16 @@ export function VideoUploadForm({ channelDbId, onSubmit }: VideoUploadFormProps)
 
           {/* Date Time Picker if scheduled */}
           {isScheduled && (
-            <div className="p-4 bg-purple-50/30 border border-purple-100/50 rounded-xl space-y-2">
-              <label className="text-xs font-bold text-purple-700 uppercase tracking-wider flex items-center gap-1.5">
-                <Calendar className="w-4 h-4 text-purple-600" />
+            <div className="p-4 bg-purple-50/30 border border-purple-100/50 rounded-xl space-y-2 dark:bg-purple-950/10 dark:border-purple-900/30">
+              <label className="text-xs font-bold text-purple-700 uppercase tracking-wider flex items-center gap-1.5 dark:text-purple-400">
+                <Calendar className="w-4 h-4 text-purple-600 dark:text-purple-400" />
                 Scheduled Time (Local/UTC)
               </label>
               <input
                 type="datetime-local"
                 value={scheduledTime}
                 onChange={(e) => setScheduledTime(e.target.value)}
-                className="w-full bg-white border border-purple-200/80 rounded-xl px-4 py-3 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all dark:bg-slate-900 dark:text-slate-300"
+                className="w-full bg-white border border-purple-200/80 rounded-xl px-4 py-3 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all dark:bg-slate-950/30 dark:border-purple-900/30 dark:text-slate-300"
               />
             </div>
           )}
@@ -543,7 +543,7 @@ export function VideoUploadForm({ channelDbId, onSubmit }: VideoUploadFormProps)
                       setTitle(t);
                       setShowTitlesModal(false);
                     }}
-                    className="w-full text-left p-3.5 rounded-xl border border-slate-100 bg-slate-50 hover:border-purple-300 text-sm text-slate-700 hover:bg-purple-50/20 hover:text-purple-900 transition-all font-medium dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300"
+                    className="w-full text-left p-3.5 rounded-xl border border-slate-100 bg-slate-50 hover:border-purple-300 text-sm text-slate-700 hover:bg-purple-50/20 hover:text-purple-900 transition-all font-medium dark:border-slate-800 dark:bg-slate-950/50 dark:hover:bg-purple-950/30 dark:hover:text-purple-300 dark:text-slate-300"
                   >
                     {t}
                   </button>

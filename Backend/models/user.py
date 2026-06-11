@@ -64,6 +64,10 @@ class User(Base):
     # Generated Website
     last_generated_website_id = Column(String(36), nullable=True)  # UUID of last generated website
     
+    # Wallet & Dialer Provisioning
+    wallet_balance = Column(Float, default=0.00, nullable=False)
+    leased_phone_number = Column(String(50), nullable=True)
+    
     # Privacy & Sharing Controls
     analysis_sharing = Column(String(50), default="private", nullable=False)  # 'private' | 'anonymous' | 'public'
     share_business_data = Column(Boolean, default=False, nullable=False)  # Allow sharing with similar businesses

@@ -32,6 +32,15 @@ export default defineConfig({
         target: "http://127.0.0.1:8082",
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/admin-api/, ""),
+        configure: (proxy, _options) => {
+          proxy.on("error", (err, _req, res) => {
+            console.warn("Proxy error connecting to Admin API:", err.message);
+            if (!res.headersSent && typeof res.writeHead === "function") {
+              res.writeHead(502, { "Content-Type": "application/json" });
+              res.end(JSON.stringify({ error: "Admin API connection refused" }));
+            }
+          });
+        },
       },
     },
   },

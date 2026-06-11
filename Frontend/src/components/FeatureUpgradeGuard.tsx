@@ -58,7 +58,12 @@ export function FeatureUpgradeGuard({ children }: FeatureUpgradeGuardProps) {
     const fetchFlags = async () => {
       try {
         const adminUrl = getAdminApiBaseUrl();
-        const res = await fetch(`${adminUrl}/api/features/public`);
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
+        const res = await fetch(`${adminUrl}/api/features/public`, {
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
         if (res.ok && active) {
           const flags = await res.json();
           const routeKey = getGlobalFeatureKey(location.pathname);
@@ -111,7 +116,12 @@ export function FeatureUpgradeGuard({ children }: FeatureUpgradeGuardProps) {
           params.set("user_id", String(user.id));
         }
         params.set("plan_key", currentPlanKey);
-        const evaluateResponse = await fetch(`${adminUrl}/api/features/${routeKey}/evaluate?${params.toString()}`);
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
+        const evaluateResponse = await fetch(`${adminUrl}/api/features/${routeKey}/evaluate?${params.toString()}`, {
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
         if (!evaluateResponse.ok) {
           throw new Error(`Quota evaluation failed with ${evaluateResponse.status}`);
         }
@@ -138,6 +148,8 @@ export function FeatureUpgradeGuard({ children }: FeatureUpgradeGuardProps) {
           }
         }
 
+        const eventController = new AbortController();
+        const eventTimeoutId = setTimeout(() => eventController.abort(), 3000);
         await fetch(`${adminUrl}/api/admin/analytics/feature-usage/event`, {
           method: "POST",
           headers: {
@@ -152,7 +164,9 @@ export function FeatureUpgradeGuard({ children }: FeatureUpgradeGuardProps) {
               email: user?.email,
             },
           }),
+          signal: eventController.signal
         });
+        clearTimeout(eventTimeoutId);
       } catch (err) {
         if (active) {
           console.error("Failed to evaluate or record feature usage", err);

@@ -8,6 +8,36 @@ import tsconfigPaths from "vite-tsconfig-paths";
 
 const rootDir = path.dirname(fileURLToPath(import.meta.url));
 
+// Prevent unhandled stream/serialization/network errors from crashing the dev server process
+if (typeof process !== "undefined") {
+  process.on("uncaughtException", (err) => {
+    if (
+      err &&
+      (err.message?.includes("Stream lifetime exceeded") ||
+        err.message?.includes("Serialization timeout") ||
+        err.message?.includes("Unhandled 'error' event") ||
+        err.message?.includes("ECONNREFUSED"))
+    ) {
+      console.warn("[Vite Watchdog] Prevented crash from stream/connection error:", err.message);
+      return;
+    }
+    console.error("Uncaught Exception:", err);
+  });
+
+  process.on("unhandledRejection", (reason) => {
+    const msg = reason instanceof Error ? reason.message : String(reason);
+    if (
+      msg.includes("Stream lifetime exceeded") ||
+      msg.includes("Serialization timeout") ||
+      msg.includes("ECONNREFUSED")
+    ) {
+      console.warn("[Vite Watchdog] Prevented crash from unhandled rejection:", msg);
+      return;
+    }
+    console.warn("Unhandled Rejection:", reason);
+  });
+}
+
 export default defineConfig({
   plugins: [tanstackStart(), react(), tailwindcss(), tsconfigPaths()],
   resolve: {

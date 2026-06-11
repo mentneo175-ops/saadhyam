@@ -1,12 +1,23 @@
 /// <reference types="vinxi/types/server" />
 if (typeof process !== 'undefined') {
   process.on('uncaughtException', (err) => {
-    if (err && (err.message?.includes('Stream lifetime exceeded') || err.message?.includes('Serialization timeout'))) {
-      console.warn('[TanStack Start SSR Watchdog] Handled stream/serialization timeout safely without crashing.');
+    const isDev = process.env.NODE_ENV !== 'production';
+    const isTimeoutOrNetwork = err && (
+      err.message?.includes('Stream lifetime exceeded') || 
+      err.message?.includes('Serialization timeout') ||
+      err.message?.includes('Unhandled') ||
+      err.message?.includes('ECONNREFUSED')
+    );
+    
+    if (isTimeoutOrNetwork) {
+      console.warn('[TanStack Start SSR Watchdog] Handled stream/serialization/network error safely without crashing:', err.message);
       return;
     }
+    
     console.error('Uncaught Exception:', err);
-    process.exit(1);
+    if (!isDev) {
+      process.exit(1);
+    }
   });
 }
 

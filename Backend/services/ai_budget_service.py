@@ -139,8 +139,39 @@ IMPORTANT:
 - Budget should be affordable for small businesses
 """
             
-            response = self.model.generate_content(prompt)
-            result_text = response.text.strip()
+            try:
+                response = self.model.generate_content(prompt)
+                result_text = response.text.strip()
+            except Exception as gemini_err:
+                logger.warning(f"⚠️ Gemini generation failed for budget: {gemini_err}. Trying Groq fallback...")
+                from groq import Groq
+                groq_api_key = os.getenv("GROQ_API_KEY")
+                if not groq_api_key:
+                    from config.settings import settings
+                    groq_api_key = settings.GROQ_API_KEY
+                
+                if groq_api_key:
+                    try:
+                        client = Groq(api_key=groq_api_key)
+                        model_name = os.getenv("GROQ_CONTENT_MODEL", "llama-3.3-70b-versatile")
+                        logger.info(f"🚀 Calling Groq API with model {model_name} as fallback for budget recommendations...")
+                        chat_completion = client.chat.completions.create(
+                            messages=[
+                                {"role": "system", "content": f"You are a professional Meta Ads budget specialist. Return ONLY valid JSON in the currency requested and no markdown formatting."},
+                                {"role": "user", "content": prompt}
+                            ],
+                            model=model_name,
+                            temperature=0.2,
+                            response_format={"type": "json_object"}
+                        )
+                        result_text = chat_completion.choices[0].message.content.strip()
+                        logger.info("✅ Groq API budget recommendations fallback successful!")
+                    except Exception as groq_err:
+                        logger.error(f"❌ Groq fallback failed for budget: {groq_err}")
+                        raise gemini_err
+                else:
+                    logger.warning("⚠️ Groq API key not configured, cannot fall back to Groq.")
+                    raise gemini_err
             
             # Clean markdown formatting if present
             if result_text.startswith("```json"):

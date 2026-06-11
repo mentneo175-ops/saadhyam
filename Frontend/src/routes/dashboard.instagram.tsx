@@ -118,6 +118,7 @@ function InstagramPage() {
   const [scheduledMinute, setScheduledMinute] = useState("00");
   
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const isCheckingStatusRef = useRef(false);
 
   // Helper function to convert IST to UTC
   const convertISTtoUTC = (date: string, hour: string, minute: string): string => {
@@ -225,7 +226,10 @@ function InstagramPage() {
   }, []);
 
   const checkConnectionStatus = async () => {
+    if (isCheckingStatusRef.current) return;
+    isCheckingStatusRef.current = true;
     const startTime = Date.now();
+    let isAborted = false;
     try {
       setConnectionLoading(true);
       setConnectionError(null);
@@ -243,6 +247,7 @@ function InstagramPage() {
     } catch (error: any) {
       if (error?.message?.includes("aborted") || error?.name === "AbortError") {
         console.log("ℹ️ Instagram connection check request was aborted. Ignoring.");
+        isAborted = true;
         return;
       }
       console.error("Failed to check Instagram connection:", error);
@@ -251,13 +256,16 @@ function InstagramPage() {
       );
       setConnectionStatus({ is_connected: false, connection_error: "Failed to check connection" });
     } finally {
-      // Ensure minimum loading duration of 800ms
-      const elapsedTime = Date.now() - startTime;
-      const remainingTime = Math.max(0, 800 - elapsedTime);
-      if (remainingTime > 0) {
-        await new Promise((resolve) => setTimeout(resolve, remainingTime));
+      if (!isAborted) {
+        // Ensure minimum loading duration of 800ms
+        const elapsedTime = Date.now() - startTime;
+        const remainingTime = Math.max(0, 800 - elapsedTime);
+        if (remainingTime > 0) {
+          await new Promise((resolve) => setTimeout(resolve, remainingTime));
+        }
+        setConnectionLoading(false);
       }
-      setConnectionLoading(false);
+      isCheckingStatusRef.current = false;
     }
   };
 

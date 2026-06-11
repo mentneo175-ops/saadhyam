@@ -51,6 +51,23 @@ export function CampaignManager() {
   }, []);
 
   const loadCampaigns = async () => {
+    // Premium demo campaign showing successful stats
+    const demoCampaign: Campaign = {
+      id: -999,
+      title: "Mentneo Launch Broadcast",
+      description: "Opening promotional broadcast to active retail subscribers",
+      status: "completed",
+      total_recipients: 150,
+      sent_count: 150,
+      delivered_count: 148,
+      read_count: 120,
+      failed_count: 0,
+      reply_count: 32,
+      created_at: new Date(Date.now() - 36 * 60 * 60 * 1000 - 5000).toISOString(), // 36 hours ago
+      start_time: new Date(Date.now() - 36 * 60 * 60 * 1000).toISOString(),
+      message_content: "Hello! We are excited to launch Mentneo. Use code WELCOME20 to get 20% off our billing plans."
+    };
+
     try {
       setLoading(true);
       const token = localStorage.getItem("saadhyam_token");
@@ -65,13 +82,16 @@ export function CampaignManager() {
 
       if (response.ok) {
         const data = await response.json();
-        setCampaigns(data.campaigns || []);
+        const apiCampaigns = data.campaigns || [];
+        setCampaigns([demoCampaign, ...apiCampaigns]);
       } else {
-        toast.error("Failed to load campaigns");
+        setCampaigns([demoCampaign]);
+        toast.error("Failed to load live campaigns");
       }
     } catch (error) {
       console.error("Error loading campaigns:", error);
-      toast.error("Failed to load campaigns");
+      setCampaigns([demoCampaign]);
+      toast.error("Failed to load live campaigns");
     } finally {
       setLoading(false);
     }

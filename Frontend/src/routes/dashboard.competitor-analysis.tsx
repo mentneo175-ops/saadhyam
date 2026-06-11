@@ -45,11 +45,41 @@ export const Route = createFileRoute("/dashboard/competitor-analysis")({
 
 // Color cycling for suggestion cards
 const CARD_PALETTES = [
-  { border: "border-violet-500/30", glow: "shadow-violet-500/20", icon: "bg-violet-500/15 text-violet-300", badge: "bg-violet-500/10 text-violet-300", dot: "bg-violet-400" },
-  { border: "border-cyan-500/30", glow: "shadow-cyan-500/20", icon: "bg-cyan-500/15 text-cyan-300", badge: "bg-cyan-500/10 text-cyan-300", dot: "bg-cyan-400" },
-  { border: "border-indigo-500/30", glow: "shadow-indigo-500/20", icon: "bg-indigo-500/15 text-indigo-300", badge: "bg-indigo-500/10 text-indigo-300", dot: "bg-indigo-400" },
-  { border: "border-fuchsia-500/30", glow: "shadow-fuchsia-500/20", icon: "bg-fuchsia-500/15 text-fuchsia-300", badge: "bg-fuchsia-500/10 text-fuchsia-300", dot: "bg-fuchsia-400" },
-  { border: "border-emerald-500/30", glow: "shadow-emerald-500/20", icon: "bg-emerald-500/15 text-emerald-300", badge: "bg-emerald-500/10 text-emerald-300", dot: "bg-emerald-400" },
+  {
+    border: "border-violet-200 dark:border-violet-500/30",
+    glow: "shadow-violet-500/10",
+    icon: "bg-violet-50 text-violet-600 dark:bg-violet-500/15 dark:text-violet-300",
+    badge: "bg-violet-50 text-violet-600 dark:bg-violet-500/10 dark:text-violet-300",
+    dot: "bg-violet-400"
+  },
+  {
+    border: "border-cyan-200 dark:border-cyan-500/30",
+    glow: "shadow-cyan-500/10",
+    icon: "bg-cyan-50 text-cyan-600 dark:bg-cyan-500/15 dark:text-cyan-300",
+    badge: "bg-cyan-50 text-cyan-600 dark:bg-cyan-500/10 dark:text-cyan-300",
+    dot: "bg-cyan-400"
+  },
+  {
+    border: "border-indigo-200 dark:border-indigo-500/30",
+    glow: "shadow-indigo-500/10",
+    icon: "bg-indigo-50 text-indigo-600 dark:bg-indigo-500/15 dark:text-indigo-300",
+    badge: "bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-300",
+    dot: "bg-indigo-400"
+  },
+  {
+    border: "border-fuchsia-200 dark:border-fuchsia-500/30",
+    glow: "shadow-fuchsia-500/10",
+    icon: "bg-fuchsia-50 text-fuchsia-600 dark:bg-fuchsia-500/15 dark:text-fuchsia-300",
+    badge: "bg-fuchsia-50 text-fuchsia-600 dark:bg-fuchsia-500/10 dark:text-fuchsia-300",
+    dot: "bg-fuchsia-400"
+  },
+  {
+    border: "border-emerald-200 dark:border-emerald-500/30",
+    glow: "shadow-emerald-500/10",
+    icon: "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-300",
+    badge: "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-300",
+    dot: "bg-emerald-400"
+  },
 ];
 
 function CompetitorIntelligencePage() {
@@ -349,31 +379,31 @@ function CompetitorIntelligencePage() {
       <div className="p-4 md:p-6 space-y-7 max-w-7xl mx-auto">
 
         {/* ── Header ── */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-white/5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-200 dark:border-white/5">
           <div className="space-y-1">
-            <h1 className="text-xl font-extrabold text-white tracking-tight flex items-center gap-2.5">
-              <span className="h-8 w-8 rounded-xl bg-violet-500/15 border border-violet-500/30 flex items-center justify-center">
-                <Brain size={16} className="text-violet-400" />
+            <h1 className="text-xl font-extrabold text-slate-900 dark:text-white tracking-tight flex items-center gap-2.5">
+              <span className="h-8 w-8 rounded-xl bg-violet-100/70 border border-violet-200/60 dark:bg-violet-500/15 dark:border-violet-500/30 flex items-center justify-center">
+                <Brain size={16} className="text-violet-600 dark:text-violet-400" />
               </span>
               Competitor Intelligence AI
-              <span className="text-xs font-medium text-zinc-500 hidden sm:inline">— Market Strategist</span>
+              <span className="text-xs font-medium text-slate-450 dark:text-zinc-500 hidden sm:inline">— Market Strategist</span>
             </h1>
-            <p className="text-xs text-zinc-500 pl-1">
+            <p className="text-xs text-slate-600 dark:text-zinc-400 pl-1">
               Track ads, pricing, reviews &amp; social signals for competitors in{" "}
-              <span className="text-violet-400 font-semibold capitalize">{businessType}</span>
+              <span className="text-violet-600 dark:text-violet-400 font-semibold capitalize">{businessType}</span>
             </p>
           </div>
 
           <div className="flex items-center gap-2">
             {competitors.length > 0 && (
-              <span className="px-3 py-1.5 rounded-xl bg-violet-500/10 border border-violet-500/20 text-violet-400 text-[11px] font-bold flex items-center gap-1.5">
+              <span className="px-3 py-1.5 rounded-xl bg-violet-50 border border-violet-100 text-violet-600 dark:bg-violet-500/10 dark:border-violet-500/20 dark:text-violet-400 text-[11px] font-bold flex items-center gap-1.5">
                 <Activity size={11} />
                 {competitors.length} Monitored
               </span>
             )}
             <button
               onClick={() => setShowManual((v) => !v)}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-white/5 border border-white/10 text-zinc-300 text-[11px] font-bold hover:bg-white/8 hover:border-violet-500/30 transition-all"
+              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-zinc-300 text-[11px] font-bold hover:bg-slate-100 dark:hover:bg-white/8 hover:border-violet-300 dark:hover:border-violet-500/30 transition-all"
             >
               <PenSquare size={12} />
               Manual Add
@@ -384,14 +414,14 @@ function CompetitorIntelligencePage() {
 
         {/* ── Manual Add Form (collapsible) ── */}
         {showManual && (
-          <div className="cai-fadeinup bg-white/3 border border-violet-500/20 rounded-2xl p-5 space-y-4">
-            <h3 className="text-[11px] font-bold uppercase tracking-widest text-violet-400 flex items-center gap-1.5">
+          <div className="cai-fadeinup bg-slate-50/50 dark:bg-white/3 border border-violet-200 dark:border-violet-500/20 rounded-2xl p-5 space-y-4">
+            <h3 className="text-[11px] font-bold uppercase tracking-widest text-violet-600 dark:text-violet-400 flex items-center gap-1.5">
               <Plus size={13} />
               Add Competitor Manually
             </h3>
             <form onSubmit={handleManualSubmit} className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-600" size={12} />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 dark:text-zinc-600" size={12} />
                 <input
                   type="text"
                   placeholder="Competitor name *"
@@ -403,18 +433,18 @@ function CompetitorIntelligencePage() {
                   }}
                   onFocus={() => { setManualSuggestions(allSuggestions); setShowDropdown(true); }}
                   onBlur={() => setTimeout(() => setShowDropdown(false), 160)}
-                  className="w-full text-xs bg-white/5 border border-white/10 rounded-xl pl-8 pr-3 py-2.5 outline-none focus:border-violet-500/50 text-white placeholder:text-zinc-600"
+                  className="w-full text-xs bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl pl-8 pr-3 py-2.5 outline-none focus:border-violet-500/50 text-slate-950 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-600"
                   required
                 />
                 {showDropdown && manualSuggestions.length > 0 && (
-                  <div className="absolute z-50 top-full mt-1 left-0 right-0 bg-[#0d1117] border border-violet-500/20 rounded-xl shadow-2xl overflow-hidden">
+                  <div className="absolute z-50 top-full mt-1 left-0 right-0 bg-white dark:bg-[#0d1117] border border-slate-200 dark:border-violet-500/20 rounded-xl shadow-2xl overflow-hidden">
                     <div className="max-h-40 overflow-y-auto">
                       {manualSuggestions.slice(0, 7).map((s, i) => (
                         <button
                           key={i}
                           type="button"
                           onMouseDown={() => { setFormName(s); setShowDropdown(false); }}
-                          className="w-full text-left px-3 py-2 text-[11px] font-semibold text-zinc-300 hover:bg-violet-500/10 flex items-center gap-2 transition-colors"
+                          className="w-full text-left px-3 py-2 text-[11px] font-semibold text-slate-700 dark:text-zinc-300 hover:bg-violet-500/10 flex items-center gap-2 transition-colors"
                         >
                           <span className="h-1.5 w-1.5 rounded-full bg-violet-400 shrink-0" />
                           {s}
@@ -426,13 +456,13 @@ function CompetitorIntelligencePage() {
               </div>
 
               <div className="relative">
-                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-600" size={12} />
+                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 dark:text-zinc-600" size={12} />
                 <input
                   type="text"
                   placeholder="Location (optional)"
                   value={formLoc}
                   onChange={(e) => setFormLoc(e.target.value)}
-                  className="w-full text-xs bg-white/5 border border-white/10 rounded-xl pl-8 pr-3 py-2.5 outline-none focus:border-violet-500/50 text-white placeholder:text-zinc-600"
+                  className="w-full text-xs bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl pl-8 pr-3 py-2.5 outline-none focus:border-violet-500/50 text-slate-950 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-600"
                 />
               </div>
 
@@ -462,7 +492,7 @@ function CompetitorIntelligencePage() {
             {suggestionsLoading ? (
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
                 {Array.from({ length: 10 }).map((_, i) => (
-                  <div key={i} className="h-28 bg-white/3 border border-white/5 rounded-2xl animate-pulse" style={{ animationDelay: `${i * 80}ms` }} />
+                  <div key={i} className="h-28 bg-slate-50 dark:bg-white/3 border border-slate-100 dark:border-white/5 rounded-2xl animate-pulse" style={{ animationDelay: `${i * 80}ms` }} />
                 ))}
               </div>
             ) : (
@@ -474,7 +504,7 @@ function CompetitorIntelligencePage() {
                   return (
                     <div
                       key={name}
-                      className={`cai-suggestion-card relative overflow-hidden rounded-2xl border bg-white/3 p-4 flex flex-col gap-3 ${palette.border} ${monitored ? "opacity-50" : "cursor-pointer hover:bg-white/6"}`}
+                      className={`cai-suggestion-card relative overflow-hidden rounded-2xl border bg-white dark:bg-white/3 p-4 flex flex-col gap-3 shadow-sm hover:shadow-md hover:border-violet-500/30 transition-all ${palette.border} ${monitored ? "opacity-50" : "cursor-pointer hover:bg-slate-50 dark:hover:bg-white/6"}`}
                       style={{
                         opacity: suggestionsVisible[i] ? 1 : 0,
                         animation: suggestionsVisible[i] ? `cai-fadeinup 0.45s cubic-bezier(.22,1,.36,1) ${i * 60}ms both` : "none",
@@ -488,8 +518,8 @@ function CompetitorIntelligencePage() {
                       </div>
 
                       <div className="space-y-1 flex-1">
-                        <p className="text-xs font-bold text-white leading-tight line-clamp-2">{name}</p>
-                        <p className="text-[9px] text-zinc-600 capitalize">{businessType}</p>
+                        <p className="text-xs font-bold text-slate-900 dark:text-slate-100 leading-tight line-clamp-2">{name}</p>
+                        <p className="text-[9px] text-zinc-500 dark:text-zinc-400 capitalize">{businessType}</p>
                       </div>
 
                       {monitored ? (
@@ -524,16 +554,16 @@ function CompetitorIntelligencePage() {
 
             {/* Left: tracked list */}
             <div className="lg:col-span-3 space-y-2">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-600 px-1 flex items-center gap-1.5">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-zinc-400 px-1 flex items-center gap-1.5">
                 <Users size={11} />
                 Monitored ({competitors.length})
               </p>
 
               {competitors.length === 0 ? (
-                <div className="rounded-2xl border border-white/5 bg-white/2 p-6 text-center space-y-2">
-                  <AlertCircle className="mx-auto text-zinc-700" size={24} />
-                  <p className="text-[11px] text-zinc-600">No competitors tracked yet.</p>
-                  <p className="text-[10px] text-zinc-700">Click Monitor on a suggestion above to start.</p>
+                <div className="rounded-2xl border border-slate-200 bg-slate-50 dark:border-white/5 dark:bg-white/2 p-6 text-center space-y-2">
+                  <AlertCircle className="mx-auto text-zinc-400 dark:text-zinc-700" size={24} />
+                  <p className="text-[11px] text-slate-500 dark:text-zinc-400">No competitors tracked yet.</p>
+                  <p className="text-[10px] text-slate-500 dark:text-zinc-50">Click Monitor on a suggestion above to start.</p>
                 </div>
               ) : (
                 <div className="space-y-1.5 max-h-[420px] overflow-y-auto pr-0.5">
@@ -545,20 +575,20 @@ function CompetitorIntelligencePage() {
                         onClick={() => setSelectedId(c.id)}
                         className={`cai-suggestion-card flex items-center justify-between p-3 rounded-xl border cursor-pointer ${
                           isSelected
-                            ? "bg-violet-500/10 border-violet-500/40 shadow-lg shadow-violet-500/10"
-                            : "bg-white/3 border-white/5 hover:bg-white/5 hover:border-violet-500/20"
+                            ? "bg-violet-500/10 border-violet-500/40 shadow-lg shadow-violet-500/10 dark:bg-violet-500/10 dark:border-violet-500/40"
+                            : "bg-white border-slate-200 hover:bg-slate-50 hover:border-violet-500/20 dark:bg-white/3 dark:border-white/5 dark:hover:bg-white/5 dark:hover:border-violet-500/20"
                         }`}
                       >
                         <div className="space-y-0.5 truncate pr-2">
-                          <p className={`text-xs font-bold truncate ${isSelected ? "text-violet-300" : "text-zinc-200"}`}>{c.name}</p>
-                          <div className="flex items-center gap-2 text-[9px] text-zinc-600">
+                          <p className={`text-xs font-bold truncate ${isSelected ? "text-violet-700 dark:text-violet-300" : "text-slate-800 dark:text-zinc-200"}`}>{c.name}</p>
+                          <div className="flex items-center gap-2 text-[9px] text-zinc-500 dark:text-zinc-400">
                             {c.location && <span className="flex items-center gap-0.5"><MapPin size={8} />{c.location}</span>}
-                            <span className={`font-bold ${isSelected ? "text-violet-400" : "text-zinc-500"}`}>{c.activity_score}%</span>
+                            <span className={`font-bold ${isSelected ? "text-violet-600 dark:text-violet-400" : "text-zinc-500"}`}>{c.activity_score}%</span>
                           </div>
                         </div>
                         <button
                           onClick={(e) => { e.stopPropagation(); handleDelete(c.id, c.name); }}
-                          className="p-1.5 rounded-lg hover:bg-red-500/15 text-zinc-700 hover:text-red-400 transition-colors shrink-0"
+                          className="p-1.5 rounded-lg hover:bg-red-500/15 text-zinc-600 dark:text-zinc-700 hover:text-red-400 transition-colors shrink-0"
                         >
                           <Trash2 size={11} />
                         </button>
@@ -572,21 +602,21 @@ function CompetitorIntelligencePage() {
             {/* Right: detail panel */}
             <div className="lg:col-span-9">
               {!selectedComp ? (
-                <div className="rounded-2xl border border-white/5 bg-white/2 p-16 text-center space-y-3">
+                <div className="rounded-2xl border border-slate-200 bg-slate-50 dark:border-white/5 dark:bg-white/2 p-16 text-center space-y-3">
                   <div className="h-14 w-14 rounded-2xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center mx-auto">
-                    <Brain size={22} className="text-violet-400" />
+                    <Brain size={22} className="text-violet-600 dark:text-violet-400" />
                   </div>
-                  <p className="text-sm font-bold text-zinc-400">Select a tracked competitor to view intelligence</p>
-                  <p className="text-xs text-zinc-700">Click Monitor on any suggestion card to start tracking</p>
+                  <p className="text-sm font-bold text-slate-800 dark:text-zinc-400">Select a tracked competitor to view intelligence</p>
+                  <p className="text-xs text-slate-500 dark:text-zinc-500">Click Monitor on any suggestion card to start tracking</p>
                 </div>
               ) : (
                 <div className="space-y-4 cai-fadeinup">
 
                   {/* Profile card */}
-                  <div className="bg-white/3 border border-white/8 rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div className="bg-white border border-slate-200 dark:bg-white/3 dark:border-white/8 rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
                     <div className="space-y-2">
                       <div className="flex flex-wrap items-center gap-2">
-                        <h2 className="text-base font-extrabold text-white">{selectedComp.name}</h2>
+                        <h2 className="text-base font-extrabold text-slate-900 dark:text-white">{selectedComp.name}</h2>
                         {selectedComp.website_or_social && (
                           <a href={selectedComp.website_or_social} target="_blank" rel="noopener noreferrer"
                             className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-lg bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 hover:underline">
@@ -595,37 +625,39 @@ function CompetitorIntelligencePage() {
                         )}
                       </div>
                       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-zinc-500 font-medium">
-                        {selectedComp.location && <span className="flex items-center gap-1"><MapPin size={10} className="text-zinc-600" />{selectedComp.location}</span>}
-                        <span>Sentiment: <span className="text-emerald-400 font-bold">{selectedComp.review_sentiment || "N/A"}</span></span>
-                        <span>Pricing: <span className="text-amber-400 font-bold">{selectedComp.pricing_trend || "Stable"}</span></span>
+                        {selectedComp.location && <span className="flex items-center gap-1"><MapPin size={10} className="text-zinc-450" />{selectedComp.location}</span>}
+                        <span>Sentiment: <span className="text-emerald-600 dark:text-emerald-400 font-bold">{selectedComp.review_sentiment || "N/A"}</span></span>
+                        <span>Pricing: <span className="text-amber-600 dark:text-amber-400 font-bold">{selectedComp.pricing_trend || "Stable"}</span></span>
                       </div>
                     </div>
 
                     {/* Score ring */}
                     <div className="flex items-center gap-3 bg-violet-500/8 border border-violet-500/20 px-4 py-3 rounded-2xl shrink-0 cai-glow-pulse">
-                      <div className="relative h-11 w-11 rounded-full flex items-center justify-center">
-                        <span className="text-sm font-extrabold text-violet-400 z-10">{selectedComp.activity_score}</span>
-                        <svg className="absolute inset-0 h-full w-full -rotate-90">
-                          <circle cx="22" cy="22" r="18" stroke="rgba(124,58,237,0.15)" strokeWidth="3" fill="transparent" />
-                          <circle cx="22" cy="22" r="18" stroke="rgb(124,58,237)" strokeWidth="3" fill="transparent"
-                            strokeDasharray={113}
-                            strokeDashoffset={113 - (113 * selectedComp.activity_score) / 100}
-                            className="transition-all duration-1000"
-                            style={{ transform: "translate(2px,2px)" }}
-                          />
+                      <div className="relative h-12 w-12 shrink-0">
+                        <svg className="w-full h-full" viewBox="0 0 100 100">
+                          <g transform="rotate(-90 50 50)">
+                            <circle cx="50" cy="50" r="40" stroke="rgba(124,58,237,0.12)" strokeWidth="8" fill="transparent" />
+                            <circle cx="50" cy="50" r="40" stroke="rgb(124,58,237)" strokeWidth="8" fill="transparent"
+                              strokeDasharray={251.3}
+                              strokeDashoffset={251.3 - (251.3 * selectedComp.activity_score) / 100}
+                              className="transition-all duration-1000"
+                            />
+                          </g>
                         </svg>
+                        <div className="absolute inset-0 flex items-center justify-center text-xs font-extrabold text-violet-600 dark:text-violet-400 z-10">
+                          {selectedComp.activity_score}
+                        </div>
                       </div>
                       <div>
-                        <p className="text-[9px] font-bold uppercase tracking-wider text-zinc-600">Activity</p>
-                        <p className="text-[11px] font-bold text-zinc-300">
+                        <p className="text-[9px] font-bold uppercase tracking-wider text-slate-500 dark:text-zinc-400">Activity</p>
+                        <p className="text-[11px] font-bold text-slate-800 dark:text-zinc-300">
                           {selectedComp.activity_score >= 80 ? "Highly Active" : selectedComp.activity_score >= 60 ? "Moderate" : "Low Signals"}
                         </p>
                       </div>
                     </div>
                   </div>
-
                   {/* Tab nav */}
-                  <div className="bg-white/3 border border-white/6 p-1.5 rounded-xl flex flex-wrap gap-1">
+                  <div className="bg-slate-100/70 border border-slate-200 dark:bg-white/3 dark:border-white/6 p-1.5 rounded-xl flex flex-wrap gap-1">
                     {[
                       { id: "snapshot", label: "Overview", icon: Activity },
                       { id: "marketing", label: "Ads & Social", icon: Megaphone },
@@ -639,7 +671,7 @@ function CompetitorIntelligencePage() {
                         className={`px-3 py-2 rounded-lg text-[11px] font-bold flex items-center gap-1.5 transition-all ${
                           activeTab === id
                             ? "bg-violet-600 text-white shadow-lg shadow-violet-600/20"
-                            : "text-zinc-500 hover:text-zinc-300 hover:bg-white/5"
+                            : "text-zinc-500 hover:text-zinc-800 hover:bg-zinc-200/50 dark:hover:text-zinc-300 dark:hover:bg-white/5"
                         }`}
                       >
                         <Icon size={12} />
@@ -654,16 +686,16 @@ function CompetitorIntelligencePage() {
                     {/* SNAPSHOT */}
                     {activeTab === "snapshot" && (
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="bg-white/3 border border-white/6 rounded-2xl p-4 space-y-3">
-                          <h4 className="text-[10px] font-bold uppercase tracking-widest text-violet-400 flex items-center gap-1.5">
+                        <div className="bg-white dark:bg-white/3 border border-slate-200 dark:border-white/6 rounded-2xl p-4 space-y-3 shadow-sm">
+                          <h4 className="text-[10px] font-bold uppercase tracking-widest text-violet-600 dark:text-violet-400 flex items-center gap-1.5">
                             <TrendingUp size={11} /> Active Offers & Promos
                           </h4>
                           {selectedComp.trending_offers.length === 0 ? (
-                            <p className="text-[11px] text-zinc-600 italic">No visible offers recently.</p>
+                            <p className="text-[11px] text-slate-500 dark:text-zinc-600 italic">No visible offers recently.</p>
                           ) : (
                             <div className="space-y-2">
                               {selectedComp.trending_offers.map((offer, i) => (
-                                <div key={i} className="flex items-start gap-2 p-2.5 rounded-xl bg-violet-500/5 border border-violet-500/10 text-[11px] font-medium text-zinc-300">
+                                <div key={i} className="flex items-start gap-2 p-2.5 rounded-xl bg-violet-50 border border-violet-200 text-[11px] font-medium text-slate-700 dark:bg-violet-500/5 dark:border-violet-500/10 dark:text-zinc-300">
                                   <span className="h-1.5 w-1.5 rounded-full bg-violet-400 shrink-0 mt-1" />
                                   {offer}
                                 </div>
@@ -672,35 +704,35 @@ function CompetitorIntelligencePage() {
                           )}
                         </div>
 
-                        <div className="bg-white/3 border border-white/6 rounded-2xl p-4 space-y-3">
-                          <h4 className="text-[10px] font-bold uppercase tracking-widest text-emerald-400 flex items-center gap-1.5">
+                        <div className="bg-white dark:bg-white/3 border border-slate-200 dark:border-white/6 rounded-2xl p-4 space-y-3 shadow-sm">
+                          <h4 className="text-[10px] font-bold uppercase tracking-widest text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
                             <DollarSign size={11} /> Pricing Positioning
                           </h4>
-                          <div className="flex justify-between items-center bg-emerald-500/5 border border-emerald-500/10 p-3 rounded-xl">
-                            <span className="text-[11px] text-zinc-500">Pricing Level:</span>
-                            <span className="text-[11px] font-extrabold text-emerald-400 uppercase">{selectedComp.pricing_trend || "Stable"}</span>
+                          <div className="flex justify-between items-center bg-emerald-50 border border-emerald-200 dark:bg-emerald-500/5 dark:border-emerald-500/10 p-3 rounded-xl">
+                            <span className="text-[11px] text-slate-500 dark:text-zinc-500 font-semibold">Pricing Level:</span>
+                            <span className="text-[11px] font-extrabold text-emerald-600 dark:text-emerald-400 uppercase">{selectedComp.pricing_trend || "Stable"}</span>
                           </div>
-                          <p className="text-[11px] text-zinc-500 leading-relaxed">{selectedComp.pricing_data?.summary || "No pricing data available."}</p>
+                          <p className="text-[11px] text-slate-600 dark:text-zinc-500 leading-relaxed">{selectedComp.pricing_data?.summary || "No pricing data available."}</p>
                         </div>
 
-                        <div className="md:col-span-2 bg-white/3 border border-white/6 rounded-2xl p-4 space-y-3">
-                          <h4 className="text-[10px] font-bold uppercase tracking-widest text-cyan-400 flex items-center gap-1.5">
+                        <div className="md:col-span-2 bg-white dark:bg-white/3 border border-slate-200 dark:border-white/6 rounded-2xl p-4 space-y-3 shadow-sm">
+                          <h4 className="text-[10px] font-bold uppercase tracking-widest text-cyan-600 dark:text-cyan-400 flex items-center gap-1.5">
                             <TrendingUp size={11} /> Market Demand & Search Spikes
                           </h4>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
-                              <p className="text-[9px] font-bold text-zinc-700 uppercase tracking-widest mb-1">Search Spike Signals</p>
-                              <p className="text-[11px] text-zinc-300 font-medium">{selectedComp.demand_data?.search_trends || "Stable search trends"}</p>
+                              <p className="text-[9px] font-bold text-slate-500 dark:text-zinc-700 uppercase tracking-widest mb-1">Search Spike Signals</p>
+                              <p className="text-[11px] text-slate-800 dark:text-zinc-300 font-medium">{selectedComp.demand_data?.search_trends || "Stable search trends"}</p>
                             </div>
                             <div>
-                              <p className="text-[9px] font-bold text-zinc-700 uppercase tracking-widest mb-1">Buying Intent</p>
-                              <p className="text-[11px] text-zinc-300 font-medium">{selectedComp.demand_data?.buying_behavior || "Direct booking patterns"}</p>
+                              <p className="text-[9px] font-bold text-slate-500 dark:text-zinc-700 uppercase tracking-widest mb-1">Buying Intent</p>
+                              <p className="text-[11px] text-slate-800 dark:text-zinc-300 font-medium">{selectedComp.demand_data?.buying_behavior || "Direct booking patterns"}</p>
                             </div>
                           </div>
                           {selectedComp.demand_data?.market_demand_signals && (
-                            <ul className="space-y-1.5 pt-2 border-t border-white/5">
+                            <ul className="space-y-1.5 pt-2 border-t border-slate-200 dark:border-white/5">
                               {selectedComp.demand_data.market_demand_signals.map((sig, i) => (
-                                <li key={i} className="text-[11px] text-zinc-400 flex items-start gap-1.5">
+                                <li key={i} className="text-[11px] text-slate-600 dark:text-zinc-400 flex items-start gap-1.5">
                                   <span className="text-cyan-500 shrink-0">•</span>{sig}
                                 </li>
                               ))}
@@ -713,8 +745,8 @@ function CompetitorIntelligencePage() {
                     {/* MARKETING */}
                     {activeTab === "marketing" && (
                       <div className="space-y-4">
-                        <div className="bg-white/3 border border-white/6 rounded-2xl p-4 space-y-4">
-                          <h3 className="text-[10px] font-bold uppercase tracking-widest text-violet-400 flex items-center gap-1.5 border-b border-white/5 pb-3">
+                        <div className="bg-white dark:bg-white/3 border border-slate-200 dark:border-white/6 rounded-2xl p-4 space-y-4 shadow-sm">
+                          <h3 className="text-[10px] font-bold uppercase tracking-widest text-violet-600 dark:text-violet-400 flex items-center gap-1.5 border-b border-slate-200 dark:border-white/5 pb-3">
                             <Megaphone size={12} /> Ads & Local Promotions
                           </h3>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -724,36 +756,36 @@ function CompetitorIntelligencePage() {
                               { label: "Instagram Promotions", data: selectedComp.ads_data?.instagram_promotions },
                               { label: "Local Promotions", data: selectedComp.ads_data?.local_promotions },
                             ].map(({ label, data }) => (
-                              <div key={label} className="p-3.5 rounded-xl bg-white/2 border border-white/5 space-y-2">
-                                <p className="text-[9px] font-bold text-zinc-600 uppercase tracking-widest">{label}</p>
+                              <div key={label} className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 dark:bg-white/2 dark:border-white/5 space-y-2 shadow-xs">
+                                <p className="text-[9px] font-bold text-slate-500 dark:text-zinc-400 uppercase tracking-widest">{label}</p>
                                 {data && data.length > 0 ? data.map((ad, i) => (
-                                  <p key={i} className="text-[11px] text-zinc-300 font-medium">{ad}</p>
-                                )) : <p className="text-[11px] text-zinc-700 italic">None detected.</p>}
+                                  <p key={i} className="text-[11px] text-slate-800 dark:text-zinc-300 font-medium">{ad}</p>
+                                )) : <p className="text-[11px] text-slate-400 dark:text-zinc-700 italic">None detected.</p>}
                               </div>
                             ))}
                           </div>
-                          <div className="border-t border-white/5 pt-3">
-                            <p className="text-[9px] font-bold text-zinc-700 uppercase tracking-widest mb-1">Ad Strategy Summary</p>
-                            <p className="text-[11px] text-zinc-500 leading-relaxed">{selectedComp.ads_data?.summary || "No significant promotions detected."}</p>
+                          <div className="border-t border-slate-200 dark:border-white/5 pt-3">
+                            <p className="text-[9px] font-bold text-slate-500 dark:text-zinc-700 uppercase tracking-widest mb-1">Ad Strategy Summary</p>
+                            <p className="text-[11px] text-slate-600 dark:text-zinc-400 leading-relaxed">{selectedComp.ads_data?.summary || "No significant promotions detected."}</p>
                           </div>
                         </div>
 
-                        <div className="bg-white/3 border border-white/6 rounded-2xl p-4 space-y-3">
-                          <h3 className="text-[10px] font-bold uppercase tracking-widest text-cyan-400 flex items-center gap-1.5 border-b border-white/5 pb-3">
+                        <div className="bg-white dark:bg-white/3 border border-slate-200 dark:border-white/6 rounded-2xl p-4 space-y-3 shadow-sm">
+                          <h3 className="text-[10px] font-bold uppercase tracking-widest text-cyan-600 dark:text-cyan-400 flex items-center gap-1.5 border-b border-slate-200 dark:border-white/5 pb-3">
                             <Share2 size={12} /> Social Media Performance
                           </h3>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
-                              <p className="text-[9px] font-bold text-zinc-700 uppercase tracking-widest mb-1">Follower Growth</p>
-                              <p className="text-[11px] text-zinc-300 font-medium">{selectedComp.social_data?.follower_growth || "No updates"}</p>
+                              <p className="text-[9px] font-bold text-slate-500 dark:text-zinc-700 uppercase tracking-widest mb-1">Follower Growth</p>
+                              <p className="text-[11px] text-slate-800 dark:text-zinc-300 font-medium">{selectedComp.social_data?.follower_growth || "No updates"}</p>
                             </div>
                             <div>
-                              <p className="text-[9px] font-bold text-zinc-700 uppercase tracking-widest mb-1">Engagement Trends</p>
-                              <p className="text-[11px] text-zinc-300 font-medium">{selectedComp.social_data?.engagement_trends || "Moderate activity"}</p>
+                              <p className="text-[9px] font-bold text-slate-500 dark:text-zinc-700 uppercase tracking-widest mb-1">Engagement Trends</p>
+                              <p className="text-[11px] text-slate-800 dark:text-zinc-300 font-medium">{selectedComp.social_data?.engagement_trends || "Moderate activity"}</p>
                             </div>
                           </div>
-                          <div className="border-t border-white/5 pt-3">
-                            <p className="text-[11px] text-zinc-500 leading-relaxed">{selectedComp.social_data?.summary || "No social indicators."}</p>
+                          <div className="border-t border-slate-200 dark:border-white/5 pt-3">
+                            <p className="text-[11px] text-slate-600 dark:text-zinc-400 leading-relaxed">{selectedComp.social_data?.summary || "No social indicators."}</p>
                           </div>
                         </div>
                       </div>
@@ -762,8 +794,8 @@ function CompetitorIntelligencePage() {
                     {/* PRICING */}
                     {activeTab === "pricing" && (
                       <div className="space-y-4">
-                        <div className="bg-white/3 border border-white/6 rounded-2xl p-4 space-y-3">
-                          <h3 className="text-[10px] font-bold uppercase tracking-widest text-amber-400 flex items-center gap-1.5 border-b border-white/5 pb-3">
+                        <div className="bg-white dark:bg-white/3 border border-slate-200 dark:border-white/6 rounded-2xl p-4 space-y-3 shadow-sm">
+                          <h3 className="text-[10px] font-bold uppercase tracking-widest text-amber-600 dark:text-amber-400 flex items-center gap-1.5 border-b border-slate-200 dark:border-white/5 pb-3">
                             <Zap size={12} /> Offers & Discounts
                           </h3>
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -772,27 +804,27 @@ function CompetitorIntelligencePage() {
                               { label: "Bundle Packs", data: selectedComp.offers_data?.bundle_offers },
                               { label: "Limited-Time Deals", data: selectedComp.offers_data?.limited_time_deals },
                             ].map(({ label, data }) => (
-                              <div key={label} className="p-3.5 rounded-xl bg-white/2 border border-white/5 space-y-2">
-                                <p className="text-[9px] font-bold text-zinc-600 uppercase tracking-widest">{label}</p>
+                              <div key={label} className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 dark:bg-white/2 dark:border-white/5 space-y-2 shadow-xs">
+                                <p className="text-[9px] font-bold text-slate-500 dark:text-zinc-400 uppercase tracking-widest">{label}</p>
                                 {data && data.length > 0 ? data.map((d, i) => (
-                                  <p key={i} className="text-[11px] text-zinc-300 font-medium">{d}</p>
-                                )) : <p className="text-[11px] text-zinc-700 italic">None detected.</p>}
+                                  <p key={i} className="text-[11px] text-slate-800 dark:text-zinc-300 font-medium">{d}</p>
+                                )) : <p className="text-[11px] text-slate-400 dark:text-zinc-700 italic">None detected.</p>}
                               </div>
                             ))}
                           </div>
                         </div>
 
-                        <div className="bg-white/3 border border-white/6 rounded-2xl p-4 space-y-3">
-                          <h3 className="text-[10px] font-bold uppercase tracking-widest text-emerald-400 flex items-center gap-1.5 border-b border-white/5 pb-3">
+                        <div className="bg-white dark:bg-white/3 border border-slate-200 dark:border-white/6 rounded-2xl p-4 space-y-3 shadow-sm">
+                          <h3 className="text-[10px] font-bold uppercase tracking-widest text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5 border-b border-slate-200 dark:border-white/5 pb-3">
                             <DollarSign size={12} /> Pricing Shift Monitor
                           </h3>
-                          <div className="p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/10 space-y-2">
-                            <p className="text-[9px] font-bold text-emerald-500 uppercase tracking-widest">Detected Price Changes</p>
+                          <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 dark:bg-emerald-500/5 dark:border-emerald-500/10 space-y-2">
+                            <p className="text-[9px] font-bold text-emerald-600 dark:text-emerald-500 uppercase tracking-widest">Detected Price Changes</p>
                             {selectedComp.pricing_data?.price_changes && selectedComp.pricing_data.price_changes.length > 0
                               ? selectedComp.pricing_data.price_changes.map((c, i) => (
-                                <p key={i} className="text-[11px] text-zinc-300 font-medium">{c}</p>
+                                <p key={i} className="text-[11px] text-slate-800 dark:text-zinc-300 font-medium">{c}</p>
                               ))
-                              : <p className="text-[11px] text-zinc-600 italic">No recent pricing adjustments detected.</p>}
+                              : <p className="text-[11px] text-slate-500 dark:text-zinc-600 italic">No recent pricing adjustments detected.</p>}
                           </div>
                         </div>
                       </div>
@@ -800,36 +832,36 @@ function CompetitorIntelligencePage() {
 
                     {/* REVIEWS */}
                     {activeTab === "reviews" && (
-                      <div className="bg-white/3 border border-white/6 rounded-2xl p-4 space-y-4">
-                        <h3 className="text-[10px] font-bold uppercase tracking-widest text-violet-400 flex items-center gap-1.5 border-b border-white/5 pb-3">
+                      <div className="bg-white dark:bg-white/3 border border-slate-200 dark:border-white/6 rounded-2xl p-4 space-y-4 shadow-sm">
+                        <h3 className="text-[10px] font-bold uppercase tracking-widest text-violet-600 dark:text-violet-400 flex items-center gap-1.5 border-b border-slate-200 dark:border-white/5 pb-3">
                           <MessageSquare size={12} /> Reviews Sentiment & Patterns
                         </h3>
 
-                        <div className="flex items-center justify-between p-3.5 rounded-xl bg-violet-500/5 border border-violet-500/15">
-                          <span className="text-[11px] text-zinc-500 font-medium">Aggregate Sentiment:</span>
-                          <span className="text-sm font-extrabold text-violet-300 flex items-center gap-1.5">
+                        <div className="flex items-center justify-between p-3.5 rounded-xl bg-violet-50 border border-violet-200 dark:bg-violet-500/5 dark:border-violet-500/15">
+                          <span className="text-[11px] text-slate-500 dark:text-zinc-500 font-medium">Aggregate Sentiment:</span>
+                          <span className="text-sm font-extrabold text-violet-700 dark:text-violet-300 flex items-center gap-1.5">
                             <Star className="text-yellow-400 fill-yellow-400" size={13} />
                             {selectedComp.review_sentiment || "Stable"}
                           </span>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div className="p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/10 space-y-3">
-                            <p className="text-[9px] font-bold text-emerald-400 uppercase tracking-widest flex items-center gap-1"><CheckCircle size={10} /> Positive Patterns</p>
+                          <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 dark:bg-emerald-500/5 dark:border-emerald-500/10 space-y-3">
+                            <p className="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest flex items-center gap-1"><CheckCircle size={10} /> Positive Patterns</p>
                             {selectedComp.reviews_data?.positive_patterns?.length > 0
-                              ? <ul className="space-y-1.5">{selectedComp.reviews_data.positive_patterns.map((p, i) => <li key={i} className="text-[11px] text-zinc-300 flex items-start gap-1.5"><span className="text-emerald-500 shrink-0">•</span>{p}</li>)}</ul>
-                              : <p className="text-[11px] text-zinc-700 italic">None recorded.</p>}
+                              ? <ul className="space-y-1.5">{selectedComp.reviews_data.positive_patterns.map((p, i) => <li key={i} className="text-[11px] text-slate-800 dark:text-zinc-300 flex items-start gap-1.5"><span className="text-emerald-500 shrink-0">•</span>{p}</li>)}</ul>
+                              : <p className="text-[11px] text-slate-400 dark:text-zinc-700 italic">None recorded.</p>}
                           </div>
-                          <div className="p-4 rounded-xl bg-red-500/5 border border-red-500/10 space-y-3">
-                            <p className="text-[9px] font-bold text-red-400 uppercase tracking-widest flex items-center gap-1"><AlertCircle size={10} /> Negative Patterns</p>
+                          <div className="p-4 rounded-xl bg-red-50 border border-red-200 dark:bg-red-500/5 dark:border-red-500/10 space-y-3">
+                            <p className="text-[9px] font-bold text-red-650 dark:text-red-400 uppercase tracking-widest flex items-center gap-1"><AlertCircle size={10} /> Negative Patterns</p>
                             {selectedComp.reviews_data?.negative_patterns?.length > 0
-                              ? <ul className="space-y-1.5">{selectedComp.reviews_data.negative_patterns.map((p, i) => <li key={i} className="text-[11px] text-zinc-300 flex items-start gap-1.5"><span className="text-red-500 shrink-0">•</span>{p}</li>)}</ul>
-                              : <p className="text-[11px] text-zinc-700 italic">None recorded.</p>}
+                              ? <ul className="space-y-1.5">{selectedComp.reviews_data.negative_patterns.map((p, i) => <li key={i} className="text-[11px] text-slate-800 dark:text-zinc-300 flex items-start gap-1.5"><span className="text-red-500 shrink-0">•</span>{p}</li>)}</ul>
+                              : <p className="text-[11px] text-slate-400 dark:text-zinc-700 italic">None recorded.</p>}
                           </div>
                         </div>
 
-                        <div className="border-t border-white/5 pt-3">
-                          <p className="text-[11px] text-zinc-500 leading-relaxed">{selectedComp.reviews_data?.summary || "No review intelligence collected."}</p>
+                        <div className="border-t border-slate-200 dark:border-white/5 pt-3">
+                          <p className="text-[11px] text-slate-650 dark:text-zinc-400 leading-relaxed">{selectedComp.reviews_data?.summary || "No review intelligence collected."}</p>
                         </div>
                       </div>
                     )}
@@ -837,32 +869,32 @@ function CompetitorIntelligencePage() {
                     {/* RECOMMENDATIONS */}
                     {activeTab === "recommendations" && (
                       <div className="space-y-3">
-                        <div className="flex items-center justify-between border-b border-white/5 pb-3">
-                          <h3 className="text-[10px] font-bold uppercase tracking-widest text-violet-400 flex items-center gap-1.5">
+                        <div className="flex items-center justify-between border-b border-slate-200 dark:border-white/5 pb-3">
+                          <h3 className="text-[10px] font-bold uppercase tracking-widest text-violet-600 dark:text-violet-400 flex items-center gap-1.5">
                             <Sparkles size={11} className="animate-pulse" /> AI Recommendation Engine
                           </h3>
-                          <span className="text-[9px] font-mono text-zinc-700 uppercase">Threat Analysis Active</span>
+                          <span className="text-[9px] font-mono text-zinc-500 dark:text-zinc-700 uppercase">Threat Analysis Active</span>
                         </div>
 
                         {selectedComp.recommendations.length === 0 ? (
-                          <div className="bg-white/2 border border-white/5 rounded-2xl p-10 text-center">
-                            <AlertCircle className="mx-auto text-zinc-700 mb-2" size={28} />
-                            <p className="text-[11px] font-bold text-zinc-500">No threat alerts generated.</p>
+                          <div className="bg-slate-50 border border-slate-200 rounded-2xl p-10 text-center dark:bg-white/2 dark:border-white/5">
+                            <AlertCircle className="mx-auto text-zinc-400 dark:text-zinc-700 mb-2" size={28} />
+                            <p className="text-[11px] font-bold text-slate-500 dark:text-zinc-500">No threat alerts generated.</p>
                           </div>
                         ) : (
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                             {selectedComp.recommendations.map((rec, i) => (
-                              <div key={i} className="cai-suggestion-card bg-white/2 border border-white/6 rounded-2xl p-4 space-y-3 hover:border-violet-500/25 flex flex-col justify-between">
+                              <div key={i} className="cai-suggestion-card bg-white dark:bg-white/2 border border-slate-200 dark:border-white/6 rounded-2xl p-4 space-y-3 hover:border-violet-500/25 flex flex-col justify-between shadow-sm">
                                 <div className="space-y-2">
                                   <div className="flex items-start justify-between gap-2">
-                                    <p className="text-xs font-bold text-white leading-snug">{rec.title}</p>
+                                    <p className="text-xs font-bold text-slate-900 dark:text-white leading-snug">{rec.title}</p>
                                     {renderPriorityBadge(rec.priority)}
                                   </div>
-                                  <p className="text-[11px] text-zinc-500 leading-relaxed">{rec.description}</p>
+                                  <p className="text-[11px] text-slate-600 dark:text-zinc-400 leading-relaxed">{rec.description}</p>
                                 </div>
-                                <div className="flex items-center justify-between pt-2 border-t border-white/5">
-                                  <span className="text-[9px] font-bold text-zinc-700 uppercase tracking-widest">{rec.category}</span>
-                                  <button className="text-[10px] font-bold text-violet-400 hover:text-violet-300 flex items-center gap-1 transition-colors">
+                                <div className="flex items-center justify-between pt-2 border-t border-slate-200 dark:border-white/5">
+                                  <span className="text-[9px] font-bold text-slate-500 dark:text-zinc-700 uppercase tracking-widest">{rec.category}</span>
+                                  <button className="text-[10px] font-bold text-violet-600 hover:text-violet-500 flex items-center gap-1 transition-colors">
                                     {rec.action} <ArrowRight size={10} />
                                   </button>
                                 </div>

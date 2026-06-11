@@ -190,6 +190,7 @@ function B2BChatPage() {
   const [newMessage, setNewMessage] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
+  const [messagesLoading, setMessagesLoading] = useState(false);
   const [sendingMessage, setSendingMessage] = useState(false);
   const [pendingRequests, setPendingRequests] = useState<ConnectionRequest[]>([]);
   const [showRequests, setShowRequests] = useState(false);
@@ -251,12 +252,15 @@ function B2BChatPage() {
   }, []);
 
   const loadMessages = useCallback(async (roomId: string) => {
+    setMessagesLoading(true);
     try {
       const data = await apiClient.get<any[]>(`/api/b2b-chat/rooms/${roomId}/messages`);
       const formatted = data.map((msg: any) => ({ ...msg, id: String(msg.id) }));
       setMessages(formatted);
     } catch (error) {
       console.error("Error loading messages:", error);
+    } finally {
+      setMessagesLoading(false);
     }
   }, []);
 
@@ -443,6 +447,7 @@ function B2BChatPage() {
   }, []);
   useEffect(() => {
     if (selectedRoom && socketRef.current) {
+      setMessages([]);
       loadMessages(selectedRoom.id);
       socketRef.current.emit("join_conversation", {
         conversation_id: selectedRoom.id,
@@ -634,7 +639,7 @@ function B2BChatPage() {
   };
 
   return (
-    <div data-b2b-chat-container className="flex h-[calc(100vh-3.5rem)] lg:h-[calc(100vh-4.0rem)] w-full overflow-hidden bg-[#f3f0f8] dark:bg-[#080512]">
+    <div data-b2b-chat-container className="flex flex-1 min-h-0 w-full overflow-hidden bg-[#f3f0f8] dark:bg-[#080512]">
       {/* Sidebar - Chat List */}
       <div className={`w-full md:w-[380px] flex-shrink-0 border-r border-purple-100/50 dark:border-purple-950/30 bg-[#faf9fc] dark:bg-[#0e0a1f] flex flex-col h-full z-20 ${
         selectedRoom ? "hidden md:flex" : "flex"
@@ -892,7 +897,11 @@ function B2BChatPage() {
 
             {/* Chat Messages Area */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-invisible z-10">
-              {messages.length === 0 ? (
+              {messagesLoading ? (
+                <div className="flex h-full items-center justify-center">
+                  <Loader2 className="h-8 w-8 animate-spin text-purple-600 dark:text-purple-400" />
+                </div>
+              ) : messages.length === 0 ? (
                 <div className="flex h-full items-center justify-center text-center">
                   <div className="bg-white/80 dark:bg-[#18132e]/85 backdrop-blur-sm rounded-xl p-6 shadow-sm max-w-sm border border-purple-100/40 dark:border-purple-950/30">
                     <MessageCircle className="mx-auto mb-3 h-10 w-10 text-purple-500" />

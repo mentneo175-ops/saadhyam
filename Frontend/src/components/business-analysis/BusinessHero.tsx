@@ -223,12 +223,12 @@ export function HealthScoreWidget({ score }: { score: number }) {
           transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
         />
 
-        <div className="relative flex flex-col items-end gap-1">
-          <div className="relative flex h-34 w-34 items-center justify-center self-end">
+        <div className="relative flex flex-col items-center justify-center gap-1 w-full h-full">
+          <div className="relative flex h-40 w-40 items-center justify-center self-center">
             <svg
-              width="136"
-              height="136"
-              className="-rotate-90"
+              width="160"
+              height="160"
+              className="overflow-visible"
               style={{ filter: "drop-shadow(0 0 14px oklch(0.72 0.14 320 / 0.4))" }}
             >
               <defs>
@@ -245,28 +245,30 @@ export function HealthScoreWidget({ score }: { score: number }) {
                   </feMerge>
                 </filter>
               </defs>
-              <circle
-                cx="60"
-                cy="60"
-                r="44"
-                fill="none"
-                stroke="rgba(255,255,255,0.12)"
-                strokeWidth="4.5"
-              />
-              <motion.circle
-                cx="60"
-                cy="60"
-                r="44"
-                fill="none"
-                stroke={`url(#${ringGrad})`}
-                strokeWidth="4.5"
-                strokeLinecap="round"
-                strokeDasharray={circumference}
-                filter={`url(#${ringGlow})`}
-                initial={{ strokeDashoffset: circumference }}
-                animate={{ strokeDashoffset: offset }}
-                transition={{ duration: 1, delay: 0.35, ease: [0.16, 1, 0.3, 1] }}
-              />
+              <g transform="rotate(-90 80 80)">
+                <circle
+                  cx="80"
+                  cy="80"
+                  r="44"
+                  fill="none"
+                  stroke="rgba(255,255,255,0.12)"
+                  strokeWidth="4.5"
+                />
+                <motion.circle
+                  cx="80"
+                  cy="80"
+                  r="44"
+                  fill="none"
+                  stroke={`url(#${ringGrad})`}
+                  strokeWidth="4.5"
+                  strokeLinecap="round"
+                  strokeDasharray={circumference}
+                  filter={`url(#${ringGlow})`}
+                  initial={{ strokeDashoffset: circumference }}
+                  animate={{ strokeDashoffset: offset }}
+                  transition={{ duration: 1, delay: 0.35, ease: [0.16, 1, 0.3, 1] }}
+                />
+              </g>
             </svg>
             <motion.div
               className="absolute inset-0 flex flex-col items-center justify-center"

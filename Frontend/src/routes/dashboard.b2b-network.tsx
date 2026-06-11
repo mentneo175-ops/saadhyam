@@ -9,8 +9,8 @@ export const Route = createFileRoute("/dashboard/b2b-network")({
 
 function B2BNetworkPage() {
   return (
-    <div className="flex flex-col h-full">
-      <div className="p-4 md:p-6">
+    <div className="relative flex flex-col h-full">
+      <div className="p-4 md:p-6 relative z-50">
         <PageHeader
           title="B2B Network"
           subtitle="Discover and connect with nearby businesses"

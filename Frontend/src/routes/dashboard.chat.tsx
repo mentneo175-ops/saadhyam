@@ -177,7 +177,7 @@ function ChatPage() {
   };
 
   return (
-    <div className="flex h-[calc(100vh-4rem)] bg-background">
+    <div className="flex flex-1 min-h-0 w-full bg-background overflow-hidden">
       {/* Chat Rooms List */}
       <div className="w-80 border-r border-border bg-card">
         <div className="p-4 border-b border-border">

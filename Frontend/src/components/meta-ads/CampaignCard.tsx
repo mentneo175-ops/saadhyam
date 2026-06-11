@@ -30,13 +30,13 @@ export function CampaignCard({ campaign, onUpdate, onViewDetails }: CampaignCard
   const getStatusColor = (status: CampaignStatus) => {
     switch (status) {
       case "ACTIVE":
-        return "bg-green-500/15 text-green-700 border-green-200";
+        return "bg-green-500/15 text-green-700 dark:text-green-400 border-green-200 dark:border-green-900/50";
       case "PAUSED":
-        return "bg-yellow-500/15 text-yellow-700 border-yellow-200";
+        return "bg-yellow-500/15 text-yellow-700 dark:text-yellow-400 border-yellow-200 dark:border-yellow-900/50";
       case "DELETED":
-        return "bg-red-500/15 text-red-700 border-red-200";
+        return "bg-red-500/15 text-red-700 dark:text-red-400 border-red-200 dark:border-red-900/50";
       default:
-        return "bg-gray-500/15 text-gray-700 border-gray-200";
+        return "bg-gray-500/15 text-gray-700 dark:text-gray-400 border-gray-200 dark:border-gray-800";
     }
   };
 
@@ -71,7 +71,7 @@ export function CampaignCard({ campaign, onUpdate, onViewDetails }: CampaignCard
   };
 
   return (
-    <Card className="group hover:shadow-lg transition-all duration-300 border-2 hover:border-purple-200 bg-white/80 backdrop-blur-sm">
+    <Card className="group hover:shadow-lg transition-all duration-300 border border-border/80 dark:border-slate-800 hover:border-purple-200 dark:hover:border-purple-900 bg-card backdrop-blur-sm shadow-sm">
       <CardContent className="p-6">
         <div className="space-y-4">
           {/* Header */}
@@ -84,7 +84,7 @@ export function CampaignCard({ campaign, onUpdate, onViewDetails }: CampaignCard
                 <Badge variant="outline" className={getStatusColor(campaign.status)}>
                   {campaign.status}
                 </Badge>
-                <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                <Badge variant="outline" className="bg-blue-50 dark:bg-blue-950/20 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-900/50">
                   {getObjectiveLabel(campaign.objective)}
                 </Badge>
               </div>
@@ -125,17 +125,17 @@ export function CampaignCard({ campaign, onUpdate, onViewDetails }: CampaignCard
           </div>
 
           {/* Budget */}
-          <div className="flex items-center justify-between p-3 rounded-lg bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200">
+          <div className="flex items-center justify-between p-3 rounded-lg bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/10 border border-purple-200 dark:border-purple-900/50">
             <div>
-              <p className="text-xs text-gray-600">Daily Budget</p>
-              <p className="text-lg font-bold text-purple-900">
+              <p className="text-xs text-gray-600 dark:text-gray-400">Daily Budget</p>
+              <p className="text-lg font-bold text-purple-900 dark:text-purple-200">
                 ₹{campaign.daily_budget?.toLocaleString() || "0"}
               </p>
             </div>
             {campaign.ai_recommendations?.budget && (
               <div className="text-right">
-                <p className="text-xs text-gray-600">Est. Reach</p>
-                <p className="text-sm font-semibold text-purple-900">
+                <p className="text-xs text-gray-600 dark:text-gray-400">Est. Reach</p>
+                <p className="text-sm font-semibold text-purple-900 dark:text-purple-200">
                   {campaign.ai_recommendations.budget.estimated_reach_min.toLocaleString()}-
                   {campaign.ai_recommendations.budget.estimated_reach_max.toLocaleString()}
                 </p>
@@ -145,23 +145,23 @@ export function CampaignCard({ campaign, onUpdate, onViewDetails }: CampaignCard
 
           {/* AI Confidence Score */}
           {campaign.ai_recommendations?.audience && (
-            <div className="flex items-center gap-2 p-2 rounded-lg bg-blue-50 border border-blue-200">
-              <TrendingUp className="w-4 h-4 text-blue-600" />
-              <span className="text-xs text-blue-700">
+            <div className="flex items-center gap-2 p-2 rounded-lg bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/50">
+              <TrendingUp className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+              <span className="text-xs text-blue-700 dark:text-blue-300">
                 AI Confidence: {Math.round(campaign.ai_recommendations.audience.confidence_score * 100)}%
               </span>
             </div>
           )}
 
           {/* Created Date */}
-          <div className="text-xs text-gray-500">
+          <div className="text-xs text-muted-foreground">
             Created {new Date(campaign.created_at).toLocaleDateString()}
           </div>
 
           {/* View Details Button */}
           <Button
             variant="outline"
-            className="w-full group-hover:bg-purple-50 group-hover:border-purple-300 transition-colors"
+            className="w-full group-hover:bg-purple-50 dark:group-hover:bg-purple-950/20 group-hover:border-purple-300 dark:group-hover:border-purple-800 transition-all duration-200"
             onClick={() => onViewDetails && onViewDetails(campaign)}
           >
             <Eye className="w-4 h-4 mr-2" />

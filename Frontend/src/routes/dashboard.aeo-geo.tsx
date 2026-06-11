@@ -477,13 +477,13 @@ function AEOGEOPage() {
 
   if (isLoading) {
     return (
-      <div className="p-4 md:p-6 bg-slate-950 text-slate-100 min-h-screen space-y-6 dark:bg-slate-900">
-        <div className="flex items-center justify-between pb-4 border-b border-slate-800 dark:border-slate-700">
+      <div className="p-4 md:p-6 bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 min-h-screen space-y-6">
+        <div className="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800 dark:border-slate-700">
           <div>
             <h1 className="text-2xl font-bold tracking-tight bg-gradient-to-r from-purple-400 via-pink-400 to-indigo-400 bg-clip-text text-transparent">
               Saadhyam AI Visibility Engine™
             </h1>
-            <p className="text-sm text-slate-400 mt-1">Answer Engine (AEO) + Generative Engine (GEO) Operating System</p>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Answer Engine (AEO) + Generative Engine (GEO) Operating System</p>
           </div>
         </div>
         <Loader text="Initializing Visibility Engine & Auto-Pilot..." className="py-32" />
@@ -494,8 +494,8 @@ function AEOGEOPage() {
   // Onboarding state - if no business analysis has been run yet
   if (overview && overview.business_analysis?.status === "not_started") {
     return (
-      <div className="p-4 md:p-6 bg-slate-950 text-slate-100 min-h-screen space-y-6 flex flex-col justify-center items-center dark:bg-slate-900">
-        <div className="max-w-2xl w-full bg-slate-900 border border-purple-500/30 rounded-2xl p-8 text-center shadow-[0_0_50px_rgba(168,85,247,0.15)] relative overflow-hidden dark:bg-slate-900">
+      <div className="p-4 md:p-6 bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 min-h-screen space-y-6 flex flex-col justify-center items-center">
+        <div className="max-w-2xl w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-purple-500/30 rounded-2xl p-8 text-center shadow-[0_0_50px_rgba(168,85,247,0.15)] relative overflow-hidden">
           <div className="absolute -top-10 -left-10 w-40 h-40 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
           <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
           
@@ -503,7 +503,7 @@ function AEOGEOPage() {
           <h2 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-purple-400 to-indigo-400 bg-clip-text text-transparent mb-4">
             Initialize Saadhyam AI Visibility Engine™
           </h2>
-          <p className="text-slate-300 text-lg mb-8 leading-relaxed">
+          <p className="text-slate-700 dark:text-slate-300 text-lg mb-8 leading-relaxed">
             Welcome to the growth operating system. To begin optimizing your business online presence for modern search engines like Gemini, ChatGPT, and Google Maps, run your initial deep scan now.
           </p>
           <Button variant="hero" size="lg" onClick={handleRunFullScan} className="px-8 py-6 text-lg bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-semibold rounded-xl shadow-lg shadow-purple-600/30 hover:scale-105 transition-all">
@@ -519,9 +519,9 @@ function AEOGEOPage() {
   }
 
   return (
-    <div className="p-4 md:p-6 bg-slate-950 text-slate-100 min-h-screen space-y-6 dark:bg-slate-900">
+    <div className="p-4 md:p-6 bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 min-h-screen space-y-6">
       {/* Sleek Dark Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-slate-800 relative dark:border-slate-700">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-slate-200 dark:border-slate-800 relative dark:border-slate-700">
         <div className="absolute -top-6 -left-6 w-32 h-32 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
         <div>
           <div className="flex items-center gap-2">
@@ -532,7 +532,7 @@ function AEOGEOPage() {
               Growth OS
             </span>
           </div>
-          <p className="text-sm text-slate-400 flex items-center gap-2 mt-1">
+          <p className="text-sm text-slate-500 dark:text-slate-400 flex items-center gap-2 mt-1">
             <Sparkles size={14} className="text-purple-400" />
             AI Visibility & Brand Authority Optimization with Google Search Grounding
           </p>
@@ -563,74 +563,89 @@ function AEOGEOPage() {
       {overview && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Main Combine Score Card */}
-          <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 flex items-center justify-between shadow-[0_4px_30px_rgba(0,0,0,0.4)] backdrop-blur-md relative overflow-hidden group hover:border-purple-500/40 transition-all duration-300 dark:border-slate-700">
+          <div className="bg-white/80 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 flex items-center justify-between shadow-[0_4px_30px_rgba(0,0,0,0.4)] backdrop-blur-md relative overflow-hidden group hover:border-purple-500/40 transition-all duration-300 dark:border-slate-700">
             <div className="absolute top-0 right-0 w-24 h-24 bg-purple-500/5 rounded-full blur-2xl group-hover:bg-purple-500/10 transition-all" />
             <div>
-              <h2 className="text-slate-400 text-sm font-semibold tracking-wider uppercase mb-1">Visibility (AEO+GEO)</h2>
+              <h2 className="text-slate-500 dark:text-slate-400 text-sm font-semibold tracking-wider uppercase mb-1">Visibility (AEO+GEO)</h2>
               <div className="text-4xl font-extrabold text-purple-400 tracking-tight">{overview.aeo_geo_score}</div>
               <p className="text-xs text-slate-500 mt-2 flex items-center gap-1">
                 <TrendingUp size={12} className="text-green-500" />
                 <span>Optimal Search Readiness</span>
               </p>
             </div>
-            <div className="relative flex items-center justify-center">
-              <svg className="w-20 h-20 transform -rotate-90">
-                <circle cx="40" cy="40" r="32" stroke="rgba(30, 41, 59, 0.8)" strokeWidth="6" fill="transparent" />
-                <circle
-                  cx="40"
-                  cy="40"
-                  r="32"
-                  stroke="url(#purpleGrad)"
-                  strokeWidth="6"
-                  fill="transparent"
-                  strokeDasharray={`${2 * Math.PI * 32}`}
-                  strokeDashoffset={`${2 * Math.PI * 32 * (1 - overview.aeo_geo_score / 100)}`}
-                  strokeLinecap="round"
-                />
+            <div className="relative flex w-20 h-20 items-center justify-center shrink-0">
+              <svg
+                viewBox="0 0 100 100"
+                className="w-full h-full"
+              >
                 <defs>
-                  <linearGradient id="purpleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <linearGradient id="aeoGeoPurpleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
                     <stop offset="0%" stopColor="#a855f7" />
                     <stop offset="100%" stopColor="#ec4899" />
                   </linearGradient>
                 </defs>
+                <g transform="rotate(-90 50 50)">
+                  <circle
+                    cx="50"
+                    cy="50"
+                    r="40"
+                    stroke="rgba(139, 92, 246, 0.08)" dark:stroke="rgba(255, 255, 255, 0.08)"
+                    strokeWidth="8"
+                    fill="transparent"
+                  />
+                  <circle
+                    cx="50"
+                    cy="50"
+                    r="40"
+                    stroke="url(#aeoGeoPurpleGrad)"
+                    strokeWidth="8"
+                    fill="transparent"
+                    strokeLinecap="round"
+                    strokeDasharray="251.3"
+                    strokeDashoffset={251.3 - (251.3 * overview.aeo_geo_score) / 100}
+                    className="transition-all duration-1000"
+                  />
+                </g>
               </svg>
-              <div className="absolute text-xs font-bold text-slate-200">{overview.aeo_geo_score}%</div>
+              <div className="absolute inset-0 flex items-center justify-center text-sm font-extrabold text-slate-800 dark:text-slate-200">
+                {overview.aeo_geo_score}%
+              </div>
             </div>
           </div>
 
           {/* AEO Breakdown */}
-          <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 shadow-[0_4px_30px_rgba(0,0,0,0.4)] backdrop-blur-md relative overflow-hidden group hover:border-pink-500/40 transition-all duration-300 dark:border-slate-700">
-            <h2 className="text-slate-400 text-sm font-semibold tracking-wider uppercase mb-3">AEO Core Parameters</h2>
+          <div className="bg-white/80 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-[0_4px_30px_rgba(0,0,0,0.4)] backdrop-blur-md relative overflow-hidden group hover:border-pink-500/40 transition-all duration-300 dark:border-slate-700">
+            <h2 className="text-slate-500 dark:text-slate-400 text-sm font-semibold tracking-wider uppercase mb-3">AEO Core Parameters</h2>
             <div className="space-y-2">
               <div className="flex justify-between items-center text-xs">
-                <span className="text-slate-400">FAQ Readiness</span>
+                <span className="text-slate-500 dark:text-slate-400">FAQ Readiness</span>
                 <span className="text-green-400 font-bold">Active</span>
               </div>
               <div className="flex justify-between items-center text-xs">
-                <span className="text-slate-400">Voice Search Optimization</span>
+                <span className="text-slate-500 dark:text-slate-400">Voice Search Optimization</span>
                 <span className="text-purple-400 font-bold">85%</span>
               </div>
               <div className="flex justify-between items-center text-xs">
-                <span className="text-slate-400">Local Search Structured Data</span>
+                <span className="text-slate-500 dark:text-slate-400">Local Search Structured Data</span>
                 <span className="text-pink-400 font-bold">Detected</span>
               </div>
             </div>
           </div>
 
           {/* GEO Breakdown */}
-          <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 shadow-[0_4px_30px_rgba(0,0,0,0.4)] backdrop-blur-md relative overflow-hidden group hover:border-indigo-500/40 transition-all duration-300 dark:border-slate-700">
-            <h2 className="text-slate-400 text-sm font-semibold tracking-wider uppercase mb-3">GEO Brand Authority</h2>
+          <div className="bg-white/80 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-[0_4px_30px_rgba(0,0,0,0.4)] backdrop-blur-md relative overflow-hidden group hover:border-indigo-500/40 transition-all duration-300 dark:border-slate-700">
+            <h2 className="text-slate-500 dark:text-slate-400 text-sm font-semibold tracking-wider uppercase mb-3">GEO Brand Authority</h2>
             <div className="space-y-2">
               <div className="flex justify-between items-center text-xs">
-                <span className="text-slate-400">Citation Probability</span>
+                <span className="text-slate-500 dark:text-slate-400">Citation Probability</span>
                 <span className="text-indigo-400 font-bold">High</span>
               </div>
               <div className="flex justify-between items-center text-xs">
-                <span className="text-slate-400">Brand Visibility Score</span>
+                <span className="text-slate-500 dark:text-slate-400">Brand Visibility Score</span>
                 <span className="text-pink-400 font-bold">78/100</span>
               </div>
               <div className="flex justify-between items-center text-xs">
-                <span className="text-slate-400">Recommendation Readiness</span>
+                <span className="text-slate-500 dark:text-slate-400">Recommendation Readiness</span>
                 <span className="text-green-400 font-bold">Optimal</span>
               </div>
             </div>
@@ -639,7 +654,7 @@ function AEOGEOPage() {
       )}
 
       {/* Command Tabs Navigation */}
-      <div className="flex flex-wrap gap-2 border-b border-slate-800 pb-2 dark:border-slate-700">
+      <div className="flex flex-wrap gap-2 border-b border-slate-200 dark:border-slate-800 pb-2 dark:border-slate-700">
         {[
           { id: "overview", label: "Overview", icon: Activity },
           { id: "aeo", label: "AEO Analysis", icon: Code },
@@ -659,8 +674,8 @@ function AEOGEOPage() {
               onClick={() => setActiveTab(tab.id as TabType)}
               className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold tracking-wider border transition-all ${
                 activeTab === tab.id
-                  ? "bg-purple-600/25 border-purple-500/80 text-purple-300 shadow-[0_0_15px_rgba(168,85,247,0.15)]"
-                  : "bg-slate-900/60 border-slate-800 text-slate-400 hover:text-slate-200 hover:bg-slate-900"
+                  ? "bg-purple-50 dark:bg-purple-600/25 border-purple-200 dark:border-purple-500/80 text-purple-700 dark:text-purple-300 shadow-sm dark:shadow-[0_0_15px_rgba(168,85,247,0.15)]"
+                  : "bg-white/80 dark:bg-slate-900/60 border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-900"
               }`}
             >
               <Icon size={14} />
@@ -678,32 +693,32 @@ function AEOGEOPage() {
           {/* Health Summary Cards */}
           {dailyReport && dailyReport.scores ? (
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="bg-slate-900/40 border border-slate-800 rounded-2xl p-4 dark:border-slate-700">
-                <div className="text-slate-400 text-xs font-medium uppercase mb-1">Visibility Score</div>
+              <div className="bg-white/60 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 dark:border-slate-700">
+                <div className="text-slate-500 dark:text-slate-400 text-xs font-medium uppercase mb-1">Visibility Score</div>
                 <div className="text-2xl font-bold text-purple-400">{dailyReport.scores.visibility_score}%</div>
               </div>
-              <div className="bg-slate-900/40 border border-slate-800 rounded-2xl p-4 dark:border-slate-700">
-                <div className="text-slate-400 text-xs font-medium uppercase mb-1">Growth Score</div>
+              <div className="bg-white/60 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 dark:border-slate-700">
+                <div className="text-slate-500 dark:text-slate-400 text-xs font-medium uppercase mb-1">Growth Score</div>
                 <div className="text-2xl font-bold text-green-400">{dailyReport.scores.growth_score}%</div>
               </div>
-              <div className="bg-slate-900/40 border border-slate-800 rounded-2xl p-4 dark:border-slate-700">
-                <div className="text-slate-400 text-xs font-medium uppercase mb-1">Demand Score</div>
+              <div className="bg-white/60 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 dark:border-slate-700">
+                <div className="text-slate-500 dark:text-slate-400 text-xs font-medium uppercase mb-1">Demand Score</div>
                 <div className="text-2xl font-bold text-blue-400">{dailyReport.scores.demand_score}%</div>
               </div>
-              <div className="bg-slate-900/40 border border-slate-800 rounded-2xl p-4 dark:border-slate-700">
-                <div className="text-slate-400 text-xs font-medium uppercase mb-1">Competitor Activity</div>
+              <div className="bg-white/60 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 dark:border-slate-700">
+                <div className="text-slate-500 dark:text-slate-400 text-xs font-medium uppercase mb-1">Competitor Activity</div>
                 <div className="text-2xl font-bold text-pink-400">{dailyReport.scores.competitor_activity_score}%</div>
               </div>
             </div>
           ) : (
-            <div className="bg-slate-900/40 border border-slate-800 rounded-2xl p-4 text-slate-500 text-center py-6 text-xs dark:border-slate-700">
+            <div className="bg-white/60 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 text-slate-500 text-center py-6 text-xs dark:border-slate-700">
               Calculate metrics by running scan...
             </div>
           )}
 
           {/* Quick Action Bar */}
-          <div className="bg-slate-900/40 border border-slate-800 rounded-2xl p-6 dark:border-slate-700">
-            <h3 className="text-base font-semibold mb-4 text-slate-200">Visibility Quick Actions</h3>
+          <div className="bg-white/60 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 dark:border-slate-700">
+            <h3 className="text-base font-semibold mb-4 text-slate-800 dark:text-slate-200">Visibility Quick Actions</h3>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <button
                 onClick={handleRunFullScan}
@@ -732,22 +747,22 @@ function AEOGEOPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Live Profile summary */}
             {overview.business_analysis && (
-              <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 space-y-4 dark:border-slate-700">
+              <div className="bg-white/80 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 space-y-4 dark:border-slate-700">
                 <div className="flex items-center gap-2">
                   <Target size={20} className="text-purple-400" />
-                  <h3 className="text-lg font-bold text-slate-200">Business Profile Status</h3>
+                  <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200">Business Profile Status</h3>
                 </div>
                 <div className="space-y-3">
                   <div>
-                    <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Overview</h4>
-                    <p className="text-sm text-slate-300 mt-1">{overview.business_analysis.business_summary}</p>
+                    <h4 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Overview</h4>
+                    <p className="text-sm text-slate-700 dark:text-slate-300 mt-1">{overview.business_analysis.business_summary}</p>
                   </div>
                   {overview.business_analysis.authority_topics.length > 0 && (
                     <div>
-                      <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Authority Topics</h4>
+                      <h4 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Authority Topics</h4>
                       <div className="flex flex-wrap gap-1.5">
                         {overview.business_analysis.authority_topics.map((t, idx) => (
-                          <span key={idx} className="bg-slate-880 border border-slate-700 text-slate-300 px-2 py-0.5 rounded-md text-[10px] dark:bg-slate-900 dark:border-slate-700">
+                          <span key={idx} className="bg-slate-100 dark:bg-slate-800 border border-slate-300 text-slate-700 dark:text-slate-300 px-2 py-0.5 rounded-md text-[10px] dark:bg-slate-900 dark:border-slate-700">
                             {t}
                           </span>
                         ))}
@@ -759,25 +774,25 @@ function AEOGEOPage() {
             )}
 
             {/* Simple stats logs */}
-            <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between dark:border-slate-700">
+            <div className="bg-white/80 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 flex flex-col justify-between dark:border-slate-700">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-bold text-slate-200">Activity Overview</h3>
+                <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200">Activity Overview</h3>
               </div>
               <div className="space-y-4 text-xs">
-                <div className="flex justify-between items-center pb-2 border-b border-slate-800 dark:border-slate-700">
-                  <span className="text-slate-400">Total Search Questions</span>
+                <div className="flex justify-between items-center pb-2 border-b border-slate-200 dark:border-slate-800 dark:border-slate-700">
+                  <span className="text-slate-500 dark:text-slate-400">Total Search Questions</span>
                   <span className="text-purple-400 font-bold">{questions.length}</span>
                 </div>
-                <div className="flex justify-between items-center pb-2 border-b border-slate-800 dark:border-slate-700">
-                  <span className="text-slate-400">Answered & Optimized Content</span>
+                <div className="flex justify-between items-center pb-2 border-b border-slate-200 dark:border-slate-800 dark:border-slate-700">
+                  <span className="text-slate-500 dark:text-slate-400">Answered & Optimized Content</span>
                   <span className="text-pink-400 font-bold">{content.length}</span>
                 </div>
-                <div className="flex justify-between items-center pb-2 border-b border-slate-800 dark:border-slate-700">
-                  <span className="text-slate-400">Local Schema Markups</span>
+                <div className="flex justify-between items-center pb-2 border-b border-slate-200 dark:border-slate-800 dark:border-slate-700">
+                  <span className="text-slate-500 dark:text-slate-400">Local Schema Markups</span>
                   <span className="text-indigo-400 font-bold">{overview.schemas?.total || 0}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-slate-400">Active Opportunities</span>
+                  <span className="text-slate-500 dark:text-slate-400">Active Opportunities</span>
                   <span className="text-green-400 font-bold">{opportunities.length}</span>
                 </div>
               </div>
@@ -792,9 +807,9 @@ function AEOGEOPage() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2 space-y-6">
               {/* Question list */}
-              <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 dark:border-slate-700">
+              <div className="bg-white/80 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 dark:border-slate-700">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-bold text-slate-200">Discovered Voice & Search Questions</h3>
+                  <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200">Discovered Voice & Search Questions</h3>
                   <Button variant="outline" size="sm" onClick={handleDiscoverQuestions} disabled={isDiscovering}>
                     <Search size={14} className="mr-1.5" />
                     Discover More
@@ -805,17 +820,17 @@ function AEOGEOPage() {
                 ) : (
                   <div className="space-y-3 max-h-[400px] overflow-y-auto scrollbar-thin">
                     {questions.map((q) => (
-                      <div key={q.id} className="bg-slate-950/60 border border-slate-800 rounded-xl p-4 flex items-start justify-between gap-4 dark:border-slate-700">
+                      <div key={q.id} className="bg-slate-50/60 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 rounded-xl p-4 flex items-start justify-between gap-4 dark:border-slate-700">
                         <div className="space-y-1.5">
-                          <p className="text-sm font-semibold text-slate-200">{q.question}</p>
+                          <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">{q.question}</p>
                           <div className="flex flex-wrap gap-2 text-[10px]">
-                            <span className="bg-purple-950/40 text-purple-300 border border-purple-500/20 px-2 py-0.5 rounded">
+                            <span className="bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-500/20 px-2 py-0.5 rounded font-medium">
                               {q.category}
                             </span>
-                            <span className="bg-indigo-950/40 text-indigo-300 border border-indigo-500/20 px-2 py-0.5 rounded">
+                            <span className="bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-500/20 px-2 py-0.5 rounded font-medium">
                               {q.intent}
                             </span>
-                            <span className="text-slate-400">Priority {q.priority}</span>
+                            <span className="text-slate-500 dark:text-slate-400">Priority {q.priority}</span>
                           </div>
                         </div>
                         {q.status === "pending" && (
@@ -831,10 +846,10 @@ function AEOGEOPage() {
               </div>
 
               {/* Semantic search */}
-              <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 space-y-4 dark:border-slate-700">
+              <div className="bg-white/80 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 space-y-4 dark:border-slate-700">
                 <div className="flex items-center gap-2">
                   <Sparkles size={18} className="text-purple-400" />
-                  <h3 className="text-sm font-semibold text-slate-200">Semantic Search</h3>
+                  <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200">Semantic Search</h3>
                 </div>
                 <div className="flex gap-2">
                   <input
@@ -842,7 +857,7 @@ function AEOGEOPage() {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Search client intent e.g., best facials for glow"
-                    className="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-purple-500 text-slate-100 dark:bg-slate-900 dark:border-slate-700"
+                    className="flex-1 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-purple-500 text-slate-900 dark:text-slate-100 dark:bg-slate-900 dark:border-slate-700"
                   />
                   <Button size="sm" onClick={handleSemanticSearch} disabled={isSearching} className="bg-purple-600 hover:bg-purple-500">
                     Search
@@ -851,9 +866,9 @@ function AEOGEOPage() {
                 {searchResults.length > 0 && (
                   <div className="space-y-2 mt-4">
                     {searchResults.map((r, idx) => (
-                      <div key={idx} className="bg-slate-950 border border-slate-800 rounded-lg p-3 text-xs flex justify-between dark:bg-slate-900 dark:border-slate-700">
+                      <div key={idx} className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg p-3 text-xs flex justify-between dark:bg-slate-900 dark:border-slate-700">
                         <div>
-                          <p className="font-semibold text-slate-200">{r.text}</p>
+                          <p className="font-semibold text-slate-800 dark:text-slate-200">{r.text}</p>
                           <span className="text-slate-500 text-[10px]">{r.metadata.category}</span>
                         </div>
                         <span className="text-purple-400 font-bold">{Math.round(r.score * 100)}% Match</span>
@@ -865,20 +880,20 @@ function AEOGEOPage() {
             </div>
 
             {/* Structured Schema lists */}
-            <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 space-y-6 dark:border-slate-700">
-              <h3 className="text-base font-bold text-slate-200">AEO Schema Checker</h3>
+            <div className="bg-white/80 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 space-y-6 dark:border-slate-700">
+              <h3 className="text-base font-bold text-slate-800 dark:text-slate-200">AEO Schema Checker</h3>
               <div className="space-y-4">
                 <div className="flex items-center gap-3">
                   <CheckCircle2 size={18} className="text-green-500" />
                   <div>
-                    <div className="text-xs font-semibold text-slate-200">FAQ Schema</div>
+                    <div className="text-xs font-semibold text-slate-800 dark:text-slate-200">FAQ Schema</div>
                     <div className="text-[10px] text-slate-500">JSON-LD generated</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
                   <CheckCircle2 size={18} className="text-green-500" />
                   <div>
-                    <div className="text-xs font-semibold text-slate-200">LocalBusiness Schema</div>
+                    <div className="text-xs font-semibold text-slate-800 dark:text-slate-200">LocalBusiness Schema</div>
                     <div className="text-[10px] text-slate-500">Structured markup available</div>
                   </div>
                 </div>
@@ -893,33 +908,33 @@ function AEOGEOPage() {
         <div className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Score lists */}
-            <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 space-y-4 col-span-2 dark:border-slate-700">
-              <h3 className="text-lg font-bold text-slate-200">GEO Authority Indicators</h3>
+            <div className="bg-white/80 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 space-y-4 col-span-2 dark:border-slate-700">
+              <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200">GEO Authority Indicators</h3>
               <div className="space-y-4">
                 <div>
                   <div className="flex justify-between text-xs mb-1">
-                    <span className="text-slate-400">Brand Authority Mention Rate</span>
+                    <span className="text-slate-500 dark:text-slate-400">Brand Authority Mention Rate</span>
                     <span className="text-indigo-400 font-bold">75%</span>
                   </div>
-                  <div className="h-1.5 bg-slate-850 rounded-full overflow-hidden dark:bg-slate-900">
+                  <div className="h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden dark:bg-slate-900">
                     <div className="h-full bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full" style={{ width: "75%" }} />
                   </div>
                 </div>
                 <div>
                   <div className="flex justify-between text-xs mb-1">
-                    <span className="text-slate-400">Online Mentions Quality</span>
+                    <span className="text-slate-500 dark:text-slate-400">Online Mentions Quality</span>
                     <span className="text-pink-400 font-bold">82%</span>
                   </div>
-                  <div className="h-1.5 bg-slate-850 rounded-full overflow-hidden dark:bg-slate-900">
+                  <div className="h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden dark:bg-slate-900">
                     <div className="h-full bg-gradient-to-r from-pink-500 to-purple-500 rounded-full" style={{ width: "82%" }} />
                   </div>
                 </div>
                 <div>
                   <div className="flex justify-between text-xs mb-1">
-                    <span className="text-slate-400">AI Recommendation Potential</span>
+                    <span className="text-slate-500 dark:text-slate-400">AI Recommendation Potential</span>
                     <span className="text-green-400 font-bold">Optimal</span>
                   </div>
-                  <div className="h-1.5 bg-slate-850 rounded-full overflow-hidden dark:bg-slate-900">
+                  <div className="h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden dark:bg-slate-900">
                     <div className="h-full bg-gradient-to-r from-green-500 to-emerald-500 rounded-full" style={{ width: "90%" }} />
                   </div>
                 </div>
@@ -927,15 +942,15 @@ function AEOGEOPage() {
             </div>
 
             {/* GEO parameters card */}
-            <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 space-y-4 dark:border-slate-700">
-              <h3 className="text-base font-bold text-slate-200">Generative Citations</h3>
-              <p className="text-xs text-slate-400">
+            <div className="bg-white/80 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 space-y-4 dark:border-slate-700">
+              <h3 className="text-base font-bold text-slate-800 dark:text-slate-200">Generative Citations</h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
                 AI engines like Gemini use high trust signals, semantic entities, and local citations to answer user queries.
               </p>
-              <div className="bg-slate-950 p-4 border border-slate-800 rounded-xl space-y-2 text-xs dark:bg-slate-900 dark:border-slate-700">
+              <div className="bg-slate-50 dark:bg-slate-950 p-4 border border-slate-200 dark:border-slate-800 rounded-xl space-y-2 text-xs dark:bg-slate-900 dark:border-slate-700">
                 <div className="text-[10px] text-slate-500 font-bold uppercase">Semantic Entities Detected</div>
                 {overview && overview.business_analysis?.semantic_entities?.brand?.map((b, i) => (
-                  <span key={i} className="inline-block bg-slate-800/80 border border-slate-700 px-2 py-0.5 rounded text-[10px] text-slate-300 mr-1.5 mb-1.5 dark:border-slate-700">
+                  <span key={i} className="inline-block bg-slate-800/80 border border-slate-300 px-2 py-0.5 rounded text-[10px] text-slate-700 dark:text-slate-300 mr-1.5 mb-1.5 dark:border-slate-700">
                     {b}
                   </span>
                 ))}
@@ -950,8 +965,8 @@ function AEOGEOPage() {
         <div className="space-y-6">
           <div className="flex items-center justify-between pb-2">
             <div>
-              <h3 className="text-lg font-bold text-slate-200">Opportunity Radar</h3>
-              <p className="text-xs text-slate-400">Proactively scans local demand, seasonal trends, and vendor possibilities.</p>
+              <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200">Opportunity Radar</h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Proactively scans local demand, seasonal trends, and vendor possibilities.</p>
             </div>
             <Button size="sm" variant="outline" onClick={() => getToken() && fetchOpportunityRadar(getToken())} disabled={isLoadingRadar}>
               <RefreshCw size={12} className={`mr-1 ${isLoadingRadar ? "animate-spin" : ""}`} />
@@ -962,22 +977,22 @@ function AEOGEOPage() {
           {isLoadingRadar ? (
             <div className="flex flex-col items-center justify-center py-20 gap-4">
               <Loader2 className="w-10 h-10 text-purple-500 animate-spin" />
-              <div className="text-slate-400 text-xs tracking-widest uppercase">Radar scanning local market...</div>
+              <div className="text-slate-500 dark:text-slate-400 text-xs tracking-widest uppercase">Radar scanning local market...</div>
             </div>
           ) : opportunities.length === 0 ? (
-            <div className="bg-slate-900 border border-slate-850 rounded-2xl p-8 text-center text-slate-500 text-xs dark:bg-slate-900 dark:border-slate-700">
+            <div className="bg-white border border-slate-200 dark:border-slate-855 rounded-2xl p-8 text-center text-slate-500 text-xs dark:bg-slate-900 dark:border-slate-700">
               No opportunities found. Click "Rescan Radar" to trigger.
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {opportunities.map((opp, idx) => (
-                <div key={idx} className="bg-slate-900 border border-slate-800 rounded-2xl p-5 hover:border-purple-500/40 hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between relative overflow-hidden group dark:bg-slate-900 dark:border-slate-700">
+                <div key={idx} className="bg-white border border-slate-200 dark:border-slate-800 rounded-2xl p-5 hover:border-purple-500/40 hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between relative overflow-hidden group dark:bg-slate-900 dark:border-slate-700">
                   <div className="absolute top-0 right-0 bg-purple-500/10 border-l border-b border-purple-500/20 text-purple-300 text-[10px] uppercase px-2.5 py-1 rounded-bl-xl font-bold tracking-wider">
                     {opp.category}
                   </div>
                   <div>
-                    <h4 className="text-base font-bold text-slate-100 mb-2 mt-2">{opp.title}</h4>
-                    <p className="text-xs text-slate-400 leading-relaxed mb-4">{opp.description}</p>
+                    <h4 className="text-base font-bold text-slate-900 dark:text-slate-100 mb-2 mt-2">{opp.title}</h4>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mb-4">{opp.description}</p>
                   </div>
                   <div className="space-y-3">
                     <div className="flex justify-between items-center text-xs pb-3 border-b border-slate-800/80">
@@ -1015,8 +1030,8 @@ function AEOGEOPage() {
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-lg font-bold text-slate-200">Customer Demand Intelligence</h3>
-              <p className="text-xs text-slate-400">High-intent search trends and product/service demand signals.</p>
+              <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200">Customer Demand Intelligence</h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400">High-intent search trends and product/service demand signals.</p>
             </div>
           </div>
 
@@ -1026,8 +1041,8 @@ function AEOGEOPage() {
             <div className="space-y-6">
               {/* Trends bar charts */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 lg:col-span-2 space-y-4 dark:bg-slate-900 dark:border-slate-700">
-                  <h4 className="text-sm font-semibold text-slate-200 mb-2">Search Query Volumes & Growth (%)</h4>
+                <div className="bg-white border border-slate-200 dark:border-slate-800 rounded-2xl p-6 lg:col-span-2 space-y-4 dark:bg-slate-900 dark:border-slate-700">
+                  <h4 className="text-sm font-semibold text-slate-800 dark:text-slate-200 mb-2">Search Query Volumes & Growth (%)</h4>
                   <div className="h-64 w-full">
                     <ResponsiveContainer width="100%" height="100%">
                       <RechartsBarChart data={demandData.search_trends || []} margin={{ top: 20, right: 20, left: -20, bottom: 5 }}>
@@ -1042,17 +1057,17 @@ function AEOGEOPage() {
                   </div>
                 </div>
 
-                <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4 dark:bg-slate-900 dark:border-slate-700">
-                  <h4 className="text-sm font-semibold text-slate-200">Seasonal Buying Behavior</h4>
-                  <p className="text-xs text-slate-300 leading-relaxed bg-slate-950 p-4 border border-slate-800 rounded-xl dark:bg-slate-900 dark:border-slate-700">
+                <div className="bg-white border border-slate-200 dark:border-slate-800 rounded-2xl p-6 space-y-4 dark:bg-slate-900 dark:border-slate-700">
+                  <h4 className="text-sm font-semibold text-slate-800 dark:text-slate-200">Seasonal Buying Behavior</h4>
+                  <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed bg-slate-50 dark:bg-slate-950 p-4 border border-slate-200 dark:border-slate-800 rounded-xl dark:bg-slate-900 dark:border-slate-700">
                     {demandData.seasonal_buying_behavior}
                   </p>
                   
                   <div className="pt-2">
-                    <h5 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Customer Interest Signals</h5>
+                    <h5 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Customer Interest Signals</h5>
                     <div className="flex flex-wrap gap-1.5">
                       {demandData.customer_interests?.map((item: string, idx: number) => (
-                        <span key={idx} className="bg-slate-880 border border-slate-850 text-slate-300 px-2.5 py-1 rounded-lg text-xs dark:bg-slate-900 dark:border-slate-700">
+                        <span key={idx} className="bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-855 text-slate-700 dark:text-slate-300 px-2.5 py-1 rounded-lg text-xs dark:bg-slate-900 dark:border-slate-700">
                           {item}
                         </span>
                       ))}
@@ -1064,14 +1079,14 @@ function AEOGEOPage() {
               {/* Demand Lists grid */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* High Demand Services */}
-                <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-3 dark:bg-slate-900 dark:border-slate-700">
+                <div className="bg-white border border-slate-200 dark:border-slate-800 rounded-2xl p-5 space-y-3 dark:bg-slate-900 dark:border-slate-700">
                   <div className="flex items-center gap-2 text-green-400 font-bold text-sm">
                     <Flame size={16} />
                     <span>High-Demand Services</span>
                   </div>
                   <ul className="space-y-2 text-xs">
                     {demandData.high_demand_services?.map((s: string, idx: number) => (
-                      <li key={idx} className="bg-slate-950 p-3 rounded-lg border border-slate-850 text-slate-200 font-medium dark:bg-slate-900 dark:border-slate-700">
+                      <li key={idx} className="bg-slate-50 dark:bg-slate-950 p-3 rounded-lg border border-slate-200 dark:border-slate-855 text-slate-800 dark:text-slate-200 font-medium dark:bg-slate-900 dark:border-slate-700">
                         {s}
                       </li>
                     ))}
@@ -1079,14 +1094,14 @@ function AEOGEOPage() {
                 </div>
 
                 {/* Declining Areas */}
-                <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-3 dark:bg-slate-900 dark:border-slate-700">
+                <div className="bg-white border border-slate-200 dark:border-slate-800 rounded-2xl p-5 space-y-3 dark:bg-slate-900 dark:border-slate-700">
                   <div className="flex items-center gap-2 text-red-400 font-bold text-sm">
                     <ShieldAlert size={16} />
                     <span>Declining Interest Areas</span>
                   </div>
                   <ul className="space-y-2 text-xs">
                     {demandData.declining_demand_areas?.map((s: string, idx: number) => (
-                      <li key={idx} className="bg-slate-950 p-3 rounded-lg border border-slate-850 text-slate-350 dark:bg-slate-900 dark:border-slate-700">
+                      <li key={idx} className="bg-slate-50 dark:bg-slate-950 p-3 rounded-lg border border-slate-200 dark:border-slate-855 text-slate-600 dark:text-slate-350 dark:bg-slate-900 dark:border-slate-700">
                         {s}
                       </li>
                     ))}
@@ -1094,14 +1109,14 @@ function AEOGEOPage() {
                 </div>
 
                 {/* Emerging Opportunities */}
-                <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-3 dark:bg-slate-900 dark:border-slate-700">
+                <div className="bg-white border border-slate-200 dark:border-slate-800 rounded-2xl p-5 space-y-3 dark:bg-slate-900 dark:border-slate-700">
                   <div className="flex items-center gap-2 text-purple-400 font-bold text-sm">
                     <Sparkles size={16} />
                     <span>Emerging Needs</span>
                   </div>
                   <ul className="space-y-2 text-xs">
                     {demandData.emerging_opportunities?.map((s: string, idx: number) => (
-                      <li key={idx} className="bg-slate-950 p-3 rounded-lg border border-slate-850 text-slate-200 dark:bg-slate-900 dark:border-slate-700">
+                      <li key={idx} className="bg-slate-50 dark:bg-slate-950 p-3 rounded-lg border border-slate-200 dark:border-slate-855 text-slate-800 dark:text-slate-200 dark:bg-slate-900 dark:border-slate-700">
                         {s}
                       </li>
                     ))}
@@ -1120,23 +1135,23 @@ function AEOGEOPage() {
         <div className="space-y-6">
           <div className="flex items-center justify-between pb-2">
             <div>
-              <h3 className="text-lg font-bold text-slate-200">Growth Recommendations</h3>
-              <p className="text-xs text-slate-400">Actionable advice priority sorted by business impact.</p>
+              <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200">Growth Recommendations</h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Actionable advice priority sorted by business impact.</p>
             </div>
           </div>
 
           {overview.business_analysis?.recommendations && overview.business_analysis.recommendations.length > 0 ? (
             <div className="space-y-4">
               {overview.business_analysis.recommendations.map((rec, idx) => (
-                <div key={idx} className="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:border-purple-500/30 transition-all dark:bg-slate-900 dark:border-slate-700">
+                <div key={idx} className="bg-white border border-slate-200 dark:border-slate-800 rounded-2xl p-5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:border-purple-500/30 transition-all dark:bg-slate-900 dark:border-slate-700">
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
                       <span className="bg-red-500/20 text-red-400 border border-red-500/30 text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded">
                         High Priority
                       </span>
-                      <span className="text-[10px] text-slate-400">Impact: High</span>
+                      <span className="text-[10px] text-slate-500 dark:text-slate-400">Impact: High</span>
                     </div>
-                    <p className="text-sm font-semibold text-slate-200 pt-1">{rec}</p>
+                    <p className="text-sm font-semibold text-slate-800 dark:text-slate-200 pt-1">{rec}</p>
                   </div>
                   <Button size="sm" onClick={() => handleGenerateAutoContent(rec)} className="bg-purple-600 hover:bg-purple-500 h-8 rounded-lg text-xs">
                     Create Campaign
@@ -1155,8 +1170,8 @@ function AEOGEOPage() {
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-lg font-bold text-slate-200">Auto Content Generator</h3>
-              <p className="text-xs text-slate-400">Deploy templates directly to Facebook, Instagram, YouTube and website channels.</p>
+              <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200">Auto Content Generator</h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Deploy templates directly to Facebook, Instagram, YouTube and website channels.</p>
             </div>
             <Button size="sm" onClick={() => handleGenerateAutoContent()} disabled={isGeneratingAutoContent}>
               <RefreshCw size={12} className={`mr-1.5 ${isGeneratingAutoContent ? "animate-spin" : ""}`} />
@@ -1169,19 +1184,19 @@ function AEOGEOPage() {
           ) : autoContent ? (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Social Media Content */}
-              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4 dark:bg-slate-900 dark:border-slate-700">
-                <div className="flex items-center gap-2 font-bold text-slate-200 text-sm">
+              <div className="bg-white border border-slate-200 dark:border-slate-800 rounded-2xl p-5 space-y-4 dark:bg-slate-900 dark:border-slate-700">
+                <div className="flex items-center gap-2 font-bold text-slate-800 dark:text-slate-200 text-sm">
                   <Share2 size={16} className="text-purple-400" />
                   <span>Social Media Copy</span>
                 </div>
                 
                 {autoContent.social_media && (
                   <div className="space-y-4 text-xs">
-                    <div className="bg-slate-950 p-3 border border-slate-850 rounded-xl relative group dark:bg-slate-900 dark:border-slate-700">
+                    <div className="bg-slate-50 dark:bg-slate-950 p-3 border border-slate-200 dark:border-slate-855 rounded-xl relative group dark:bg-slate-900 dark:border-slate-700">
                       <div className="text-[10px] font-bold uppercase text-slate-500 mb-1">Instagram Feed</div>
-                      <p className="text-slate-300 text-xs whitespace-pre-line leading-relaxed mb-8">{autoContent.social_media.instagram}</p>
+                      <p className="text-slate-700 dark:text-slate-300 text-xs whitespace-pre-line leading-relaxed mb-8">{autoContent.social_media.instagram}</p>
                       <div className="absolute bottom-2 right-2 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onClick={() => copyToClipboard(autoContent.social_media.instagram)} className="bg-slate-800 hover:bg-slate-700 text-slate-300 p-1.5 rounded-lg dark:bg-slate-900">
+                        <button onClick={() => copyToClipboard(autoContent.social_media.instagram)} className="bg-slate-100 dark:bg-slate-800 hover:bg-slate-700 text-slate-700 dark:text-slate-300 p-1.5 rounded-lg dark:bg-slate-900">
                           <Copy size={12} />
                         </button>
                         <button onClick={() => openPublishingHub("instagram", autoContent.social_media.instagram, "Instagram Post")} className="bg-purple-600 hover:bg-purple-500 text-white text-[10px] font-bold px-2 py-1 rounded-md">
@@ -1190,9 +1205,9 @@ function AEOGEOPage() {
                       </div>
                     </div>
 
-                    <div className="bg-slate-950 p-3 border border-slate-850 rounded-xl relative group dark:bg-slate-900 dark:border-slate-700">
+                    <div className="bg-slate-50 dark:bg-slate-950 p-3 border border-slate-200 dark:border-slate-855 rounded-xl relative group dark:bg-slate-900 dark:border-slate-700">
                       <div className="text-[10px] font-bold uppercase text-slate-500 mb-1">Instagram Reels / YouTube Shorts</div>
-                      <p className="text-slate-350 whitespace-pre-line leading-relaxed mb-8">{autoContent.social_media.reels}</p>
+                      <p className="text-slate-600 dark:text-slate-350 whitespace-pre-line leading-relaxed mb-8">{autoContent.social_media.reels}</p>
                       <div className="absolute bottom-2 right-2 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button onClick={() => openPublishingHub("youtube", autoContent.social_media.reels, "Reels / Video Hook")} className="bg-purple-600 hover:bg-purple-500 text-white text-[10px] font-bold px-2 py-1 rounded-md">
                           Publish
@@ -1200,11 +1215,11 @@ function AEOGEOPage() {
                       </div>
                     </div>
 
-                    <div className="bg-slate-950 p-3 border border-slate-850 rounded-xl relative group dark:bg-slate-900 dark:border-slate-700">
+                    <div className="bg-slate-50 dark:bg-slate-950 p-3 border border-slate-200 dark:border-slate-855 rounded-xl relative group dark:bg-slate-900 dark:border-slate-700">
                       <div className="text-[10px] font-bold uppercase text-slate-500 mb-1">Facebook Post</div>
-                      <p className="text-slate-300 whitespace-pre-line leading-relaxed mb-8">{autoContent.social_media.facebook}</p>
+                      <p className="text-slate-700 dark:text-slate-300 whitespace-pre-line leading-relaxed mb-8">{autoContent.social_media.facebook}</p>
                       <div className="absolute bottom-2 right-2 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onClick={() => copyToClipboard(autoContent.social_media.facebook)} className="bg-slate-800 hover:bg-slate-700 text-slate-300 p-1.5 rounded-lg dark:bg-slate-900">
+                        <button onClick={() => copyToClipboard(autoContent.social_media.facebook)} className="bg-slate-100 dark:bg-slate-800 hover:bg-slate-700 text-slate-700 dark:text-slate-300 p-1.5 rounded-lg dark:bg-slate-900">
                           <Copy size={12} />
                         </button>
                         <button onClick={() => openPublishingHub("facebook", autoContent.social_media.facebook, "Facebook Update")} className="bg-purple-600 hover:bg-purple-500 text-white text-[10px] font-bold px-2 py-1 rounded-md">
@@ -1217,19 +1232,19 @@ function AEOGEOPage() {
               </div>
 
               {/* Marketing Content */}
-              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4 dark:bg-slate-900 dark:border-slate-700">
-                <div className="flex items-center gap-2 font-bold text-slate-200 text-sm">
+              <div className="bg-white border border-slate-200 dark:border-slate-800 rounded-2xl p-5 space-y-4 dark:bg-slate-900 dark:border-slate-700">
+                <div className="flex items-center gap-2 font-bold text-slate-800 dark:text-slate-200 text-sm">
                   <Megaphone size={16} className="text-pink-400" />
                   <span>Marketing & Ad Campaigns</span>
                 </div>
 
                 {autoContent.marketing && (
                   <div className="space-y-4 text-xs">
-                    <div className="bg-slate-950 p-3 border border-slate-850 rounded-xl relative group dark:bg-slate-900 dark:border-slate-700">
+                    <div className="bg-slate-50 dark:bg-slate-950 p-3 border border-slate-200 dark:border-slate-855 rounded-xl relative group dark:bg-slate-900 dark:border-slate-700">
                       <div className="text-[10px] font-bold uppercase text-slate-500 mb-1">WhatsApp Campaign Template</div>
-                      <p className="text-slate-300 whitespace-pre-line leading-relaxed mb-8">{autoContent.marketing.whatsapp_campaign}</p>
+                      <p className="text-slate-700 dark:text-slate-300 whitespace-pre-line leading-relaxed mb-8">{autoContent.marketing.whatsapp_campaign}</p>
                       <div className="absolute bottom-2 right-2 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onClick={() => copyToClipboard(autoContent.marketing.whatsapp_campaign)} className="bg-slate-800 hover:bg-slate-700 text-slate-300 p-1.5 rounded-lg dark:bg-slate-900">
+                        <button onClick={() => copyToClipboard(autoContent.marketing.whatsapp_campaign)} className="bg-slate-100 dark:bg-slate-800 hover:bg-slate-700 text-slate-700 dark:text-slate-300 p-1.5 rounded-lg dark:bg-slate-900">
                           <Copy size={12} />
                         </button>
                         <button onClick={() => openPublishingHub("facebook", autoContent.marketing.whatsapp_campaign, "WhatsApp Broadcast")} className="bg-purple-600 hover:bg-purple-500 text-white text-[10px] font-bold px-2 py-1 rounded-md">
@@ -1238,11 +1253,11 @@ function AEOGEOPage() {
                       </div>
                     </div>
 
-                    <div className="bg-slate-950 p-3 border border-slate-850 rounded-xl relative group dark:bg-slate-900 dark:border-slate-700">
+                    <div className="bg-slate-50 dark:bg-slate-950 p-3 border border-slate-200 dark:border-slate-855 rounded-xl relative group dark:bg-slate-900 dark:border-slate-700">
                       <div className="text-[10px] font-bold uppercase text-slate-500 mb-1">Google/Meta Ad Copy</div>
-                      <p className="text-slate-300 whitespace-pre-line leading-relaxed mb-8">{autoContent.marketing.ad_copy}</p>
+                      <p className="text-slate-700 dark:text-slate-300 whitespace-pre-line leading-relaxed mb-8">{autoContent.marketing.ad_copy}</p>
                       <div className="absolute bottom-2 right-2 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onClick={() => copyToClipboard(autoContent.marketing.ad_copy)} className="bg-slate-800 hover:bg-slate-700 text-slate-300 p-1.5 rounded-lg dark:bg-slate-900">
+                        <button onClick={() => copyToClipboard(autoContent.marketing.ad_copy)} className="bg-slate-100 dark:bg-slate-800 hover:bg-slate-700 text-slate-700 dark:text-slate-300 p-1.5 rounded-lg dark:bg-slate-900">
                           <Copy size={12} />
                         </button>
                         <button onClick={() => openPublishingHub("facebook", autoContent.marketing.ad_copy, "Ad Campaign")} className="bg-purple-600 hover:bg-purple-500 text-white text-[10px] font-bold px-2 py-1 rounded-md">
@@ -1251,7 +1266,7 @@ function AEOGEOPage() {
                       </div>
                     </div>
 
-                    <div className="bg-slate-950 p-3 border border-slate-850 rounded-xl dark:bg-slate-900 dark:border-slate-700">
+                    <div className="bg-slate-50 dark:bg-slate-950 p-3 border border-slate-200 dark:border-slate-855 rounded-xl dark:bg-slate-900 dark:border-slate-700">
                       <div className="text-[10px] font-bold uppercase text-slate-500 mb-1">Proposed Campaign Outline</div>
                       <p className="text-slate-355 whitespace-pre-line leading-relaxed">{autoContent.marketing.campaign_ideas}</p>
                     </div>
@@ -1260,21 +1275,21 @@ function AEOGEOPage() {
               </div>
 
               {/* SEO Content */}
-              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4 dark:bg-slate-900 dark:border-slate-700">
-                <div className="flex items-center gap-2 font-bold text-slate-200 text-sm">
+              <div className="bg-white border border-slate-200 dark:border-slate-800 rounded-2xl p-5 space-y-4 dark:bg-slate-900 dark:border-slate-700">
+                <div className="flex items-center gap-2 font-bold text-slate-800 dark:text-slate-200 text-sm">
                   <Code size={16} className="text-indigo-400" />
                   <span>SEO & AEO Assets</span>
                 </div>
 
                 {autoContent.seo_aeo && (
                   <div className="space-y-4 text-xs">
-                    <div className="bg-slate-950 p-3 border border-slate-850 rounded-xl relative group dark:bg-slate-900 dark:border-slate-700">
+                    <div className="bg-slate-50 dark:bg-slate-950 p-3 border border-slate-200 dark:border-slate-855 rounded-xl relative group dark:bg-slate-900 dark:border-slate-700">
                       <div className="text-[10px] font-bold uppercase text-slate-500 mb-1">Local Business FAQs</div>
                       <div className="space-y-3 mt-1.5 mb-8">
                         {autoContent.seo_aeo.faqs?.map((f: any, idx: number) => (
                           <div key={idx} className="pb-2 border-b border-slate-900 last:border-0 last:pb-0 dark:border-slate-700">
-                            <p className="font-semibold text-slate-200">Q: {f.question}</p>
-                            <p className="text-slate-400 mt-0.5">A: {f.answer}</p>
+                            <p className="font-semibold text-slate-800 dark:text-slate-200">Q: {f.question}</p>
+                            <p className="text-slate-500 dark:text-slate-400 mt-0.5">A: {f.answer}</p>
                           </div>
                         ))}
                       </div>
@@ -1285,20 +1300,20 @@ function AEOGEOPage() {
                       </div>
                     </div>
 
-                    <div className="bg-slate-950 p-3 border border-slate-850 rounded-xl dark:bg-slate-900 dark:border-slate-700">
+                    <div className="bg-slate-50 dark:bg-slate-950 p-3 border border-slate-200 dark:border-slate-855 rounded-xl dark:bg-slate-900 dark:border-slate-700">
                       <div className="text-[10px] font-bold uppercase text-slate-500 mb-1">Blog Ideas</div>
-                      <ul className="list-disc pl-4 space-y-1.5 mt-1 text-slate-350">
+                      <ul className="list-disc pl-4 space-y-1.5 mt-1 text-slate-600 dark:text-slate-350">
                         {autoContent.seo_aeo.blog_ideas?.map((t: string, idx: number) => (
                           <li key={idx}>{t}</li>
                         ))}
                       </ul>
                     </div>
 
-                    <div className="bg-slate-950 p-3 border border-slate-850 rounded-xl relative group dark:bg-slate-900 dark:border-slate-700">
+                    <div className="bg-slate-50 dark:bg-slate-950 p-3 border border-slate-200 dark:border-slate-855 rounded-xl relative group dark:bg-slate-900 dark:border-slate-700">
                       <div className="text-[10px] font-bold uppercase text-slate-500 mb-1">Google Bio/Service Description</div>
-                      <p className="text-slate-350 leading-relaxed mb-8">{autoContent.seo_aeo.service_descriptions}</p>
+                      <p className="text-slate-600 dark:text-slate-350 leading-relaxed mb-8">{autoContent.seo_aeo.service_descriptions}</p>
                       <div className="absolute bottom-2 right-2 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onClick={() => copyToClipboard(autoContent.seo_aeo.service_descriptions)} className="bg-slate-800 hover:bg-slate-700 text-slate-300 p-1.5 rounded-lg dark:bg-slate-900">
+                        <button onClick={() => copyToClipboard(autoContent.seo_aeo.service_descriptions)} className="bg-slate-100 dark:bg-slate-800 hover:bg-slate-700 text-slate-700 dark:text-slate-300 p-1.5 rounded-lg dark:bg-slate-900">
                           <Copy size={12} />
                         </button>
                         <button onClick={() => openPublishingHub("website", autoContent.seo_aeo.service_descriptions, "Business Profile Description")} className="bg-purple-600 hover:bg-purple-500 text-white text-[10px] font-bold px-2 py-1 rounded-md">
@@ -1311,7 +1326,7 @@ function AEOGEOPage() {
               </div>
             </div>
           ) : (
-            <div className="bg-slate-900 border border-slate-855 rounded-2xl p-8 text-center text-slate-500 text-xs dark:bg-slate-900 dark:border-slate-700">
+            <div className="bg-white border border-slate-200 dark:border-slate-855 rounded-2xl p-8 text-center text-slate-500 text-xs dark:bg-slate-900 dark:border-slate-700">
               No content package found. Click "Regenerate Package" or select an opportunity from the radar to start.
             </div>
           )}
@@ -1321,34 +1336,34 @@ function AEOGEOPage() {
       {/* Tab 8 — Growth Autopilot Mode */}
       {activeTab === "autopilot" && (
         <div className="space-y-6">
-          <div className="bg-slate-900 border border-purple-500/30 rounded-2xl p-6 relative overflow-hidden dark:bg-slate-900">
+          <div className="bg-white border border-purple-500/30 rounded-2xl p-6 relative overflow-hidden dark:bg-slate-900">
             <div className="absolute top-0 right-0 bg-purple-500/10 text-purple-300 text-xs font-bold uppercase px-3 py-1.5 rounded-bl-2xl border-l border-b border-purple-500/20">
               Active Autopilot Status
             </div>
             <div className="flex items-center gap-3">
               <Zap className="text-purple-400 w-8 h-8 animate-pulse" />
               <div>
-                <h3 className="text-lg font-bold text-slate-200">Growth Autopilot Mode</h3>
-                <p className="text-xs text-slate-400">Actively drafting campaigns, marketing messages, and SEO descriptions for instant deployment.</p>
+                <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200">Growth Autopilot Mode</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400">Actively drafting campaigns, marketing messages, and SEO descriptions for instant deployment.</p>
               </div>
             </div>
           </div>
 
           {/* Autopilot Auto-Publish Automation Settings */}
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4 dark:bg-slate-900 dark:border-slate-700">
+          <div className="bg-white border border-slate-200 dark:border-slate-800 rounded-2xl p-6 space-y-4 dark:bg-slate-900 dark:border-slate-700">
             <div className="flex items-center justify-between">
               <div>
                 <h4 className="text-sm font-bold text-slate-250">Autopilot Auto-Publish Channels</h4>
-                <p className="text-[11px] text-slate-400">Configure which connected platforms Saadhyam AI should automatically publish growth updates to.</p>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400">Configure which connected platforms Saadhyam AI should automatically publish growth updates to.</p>
               </div>
               {isSavingSettings && <span className="text-[10px] text-purple-400 font-bold animate-pulse">Saving changes...</span>}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {/* Instagram */}
-              <div className="bg-slate-950 p-4 border border-slate-850 rounded-xl flex items-center justify-between dark:bg-slate-900 dark:border-slate-700">
+              <div className="bg-slate-50 dark:bg-slate-950 p-4 border border-slate-200 dark:border-slate-855 rounded-xl flex items-center justify-between dark:bg-slate-900 dark:border-slate-700">
                 <div>
-                  <div className="text-xs font-bold text-slate-200">Instagram Feed & Reels</div>
+                  <div className="text-xs font-bold text-slate-800 dark:text-slate-200">Instagram Feed & Reels</div>
                   <div className="text-[10px] text-slate-500 font-medium">Auto-deploy content updates</div>
                 </div>
                 <button
@@ -1367,9 +1382,9 @@ function AEOGEOPage() {
               </div>
 
               {/* Facebook */}
-              <div className="bg-slate-950 p-4 border border-slate-850 rounded-xl flex items-center justify-between dark:bg-slate-900 dark:border-slate-700">
+              <div className="bg-slate-50 dark:bg-slate-950 p-4 border border-slate-200 dark:border-slate-855 rounded-xl flex items-center justify-between dark:bg-slate-900 dark:border-slate-700">
                 <div>
-                  <div className="text-xs font-bold text-slate-200">Facebook Page</div>
+                  <div className="text-xs font-bold text-slate-800 dark:text-slate-200">Facebook Page</div>
                   <div className="text-[10px] text-slate-500 font-medium">Auto-post campaign copies</div>
                 </div>
                 <button
@@ -1388,9 +1403,9 @@ function AEOGEOPage() {
               </div>
 
               {/* YouTube */}
-              <div className="bg-slate-950 p-4 border border-slate-850 rounded-xl flex items-center justify-between dark:bg-slate-900 dark:border-slate-700">
+              <div className="bg-slate-50 dark:bg-slate-950 p-4 border border-slate-200 dark:border-slate-855 rounded-xl flex items-center justify-between dark:bg-slate-900 dark:border-slate-700">
                 <div>
-                  <div className="text-xs font-bold text-slate-200">YouTube Channel</div>
+                  <div className="text-xs font-bold text-slate-800 dark:text-slate-200">YouTube Channel</div>
                   <div className="text-[10px] text-slate-500 font-medium">Auto-publish generated videos</div>
                 </div>
                 <button
@@ -1409,9 +1424,9 @@ function AEOGEOPage() {
               </div>
 
               {/* Google */}
-              <div className="bg-slate-950 p-4 border border-slate-850 rounded-xl flex items-center justify-between dark:bg-slate-900 dark:border-slate-700">
+              <div className="bg-slate-50 dark:bg-slate-950 p-4 border border-slate-200 dark:border-slate-855 rounded-xl flex items-center justify-between dark:bg-slate-900 dark:border-slate-700">
                 <div>
-                  <div className="text-xs font-bold text-slate-200">Google Business Profile</div>
+                  <div className="text-xs font-bold text-slate-800 dark:text-slate-200">Google Business Profile</div>
                   <div className="text-[10px] text-slate-500 font-medium">Auto-post local business updates</div>
                 </div>
                 <button
@@ -1430,9 +1445,9 @@ function AEOGEOPage() {
               </div>
 
               {/* Website */}
-              <div className="bg-slate-950 p-4 border border-slate-850 rounded-xl flex items-center justify-between dark:bg-slate-900 dark:border-slate-700">
+              <div className="bg-slate-50 dark:bg-slate-950 p-4 border border-slate-200 dark:border-slate-855 rounded-xl flex items-center justify-between dark:bg-slate-900 dark:border-slate-700">
                 <div>
-                  <div className="text-xs font-bold text-slate-200">Website Blog AI</div>
+                  <div className="text-xs font-bold text-slate-800 dark:text-slate-200">Website Blog AI</div>
                   <div className="text-[10px] text-slate-500 font-medium">Auto-insert blog updates</div>
                 </div>
                 <button
@@ -1458,22 +1473,22 @@ function AEOGEOPage() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Ready Campaigns & SMS */}
               <div className="space-y-6">
-                <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4 dark:bg-slate-900 dark:border-slate-700">
-                  <div className="flex items-center gap-2 font-bold text-slate-200 text-sm">
+                <div className="bg-white border border-slate-200 dark:border-slate-800 rounded-2xl p-6 space-y-4 dark:bg-slate-900 dark:border-slate-700">
+                  <div className="flex items-center gap-2 font-bold text-slate-800 dark:text-slate-200 text-sm">
                     <Megaphone size={16} className="text-purple-400" />
                     <span>Ready campaigns (1-Click Setup)</span>
                   </div>
 
                   <div className="space-y-4">
                     {autopilotData.ready_campaigns?.map((c: any, idx: number) => (
-                      <div key={idx} className="bg-slate-950 p-4 border border-slate-850 rounded-xl space-y-2 relative group dark:bg-slate-900 dark:border-slate-700">
+                      <div key={idx} className="bg-slate-50 dark:bg-slate-950 p-4 border border-slate-200 dark:border-slate-855 rounded-xl space-y-2 relative group dark:bg-slate-900 dark:border-slate-700">
                         <div className="flex justify-between items-center text-xs">
                           <span className="font-bold text-purple-300">{c.title}</span>
-                          <span className="bg-slate-850 text-slate-450 px-2 py-0.5 rounded text-[10px] dark:bg-slate-900">{c.channel}</span>
+                          <span className="bg-slate-200 dark:bg-slate-800 text-slate-450 px-2 py-0.5 rounded text-[10px] dark:bg-slate-900">{c.channel}</span>
                         </div>
-                        <p className="text-xs text-slate-400">Objective: {c.objective}</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">Objective: {c.objective}</p>
                         <div className="text-[10px] text-slate-500 font-bold uppercase">Setup Steps</div>
-                        <ul className="list-decimal pl-4 text-xs text-slate-350 space-y-1 mb-8">
+                        <ul className="list-decimal pl-4 text-xs text-slate-600 dark:text-slate-350 space-y-1 mb-8">
                           {c.steps?.map((step: string, sIdx: number) => (
                             <li key={sIdx}>{step}</li>
                           ))}
@@ -1491,18 +1506,18 @@ function AEOGEOPage() {
                   </div>
                 </div>
 
-                <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4 dark:bg-slate-900 dark:border-slate-700">
-                  <div className="flex items-center gap-2 font-bold text-slate-200 text-sm">
+                <div className="bg-white border border-slate-200 dark:border-slate-800 rounded-2xl p-6 space-y-4 dark:bg-slate-900 dark:border-slate-700">
+                  <div className="flex items-center gap-2 font-bold text-slate-800 dark:text-slate-200 text-sm">
                     <Share2 size={16} className="text-indigo-400" />
                     <span>Marketing SMS & WhatsApp Promos</span>
                   </div>
 
                   <div className="space-y-4 text-xs">
-                    <div className="bg-slate-950 p-3 border border-slate-850 rounded-xl relative group dark:bg-slate-900 dark:border-slate-700">
+                    <div className="bg-slate-50 dark:bg-slate-950 p-3 border border-slate-200 dark:border-slate-855 rounded-xl relative group dark:bg-slate-900 dark:border-slate-700">
                       <div className="text-[10px] font-bold text-slate-500 uppercase mb-1">WhatsApp Broadcast 1</div>
-                      <p className="text-slate-350 mb-8">{autopilotData.ready_marketing_messages?.whatsapp?.[0]}</p>
+                      <p className="text-slate-600 dark:text-slate-350 mb-8">{autopilotData.ready_marketing_messages?.whatsapp?.[0]}</p>
                       <div className="absolute bottom-2 right-2 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onClick={() => copyToClipboard(autopilotData.ready_marketing_messages?.whatsapp?.[0] || "")} className="bg-slate-800 hover:bg-slate-700 text-slate-300 p-1.5 rounded-lg dark:bg-slate-900">
+                        <button onClick={() => copyToClipboard(autopilotData.ready_marketing_messages?.whatsapp?.[0] || "")} className="bg-slate-100 dark:bg-slate-800 hover:bg-slate-700 text-slate-700 dark:text-slate-300 p-1.5 rounded-lg dark:bg-slate-900">
                           <Copy size={12} />
                         </button>
                         <button onClick={() => openPublishingHub("facebook", autopilotData.ready_marketing_messages?.whatsapp?.[0] || "", "WhatsApp broadcast")} className="bg-purple-600 hover:bg-purple-500 text-white text-[10px] font-bold px-2 py-1 rounded-md">
@@ -1511,11 +1526,11 @@ function AEOGEOPage() {
                       </div>
                     </div>
 
-                    <div className="bg-slate-950 p-3 border border-slate-850 rounded-xl relative group dark:bg-slate-900 dark:border-slate-700">
+                    <div className="bg-slate-50 dark:bg-slate-950 p-3 border border-slate-200 dark:border-slate-855 rounded-xl relative group dark:bg-slate-900 dark:border-slate-700">
                       <div className="text-[10px] font-bold text-slate-500 uppercase mb-1">SMS Campaign 1</div>
-                      <p className="text-slate-350 mb-8">{autopilotData.ready_marketing_messages?.sms?.[0]}</p>
+                      <p className="text-slate-600 dark:text-slate-350 mb-8">{autopilotData.ready_marketing_messages?.sms?.[0]}</p>
                       <div className="absolute bottom-2 right-2 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onClick={() => copyToClipboard(autopilotData.ready_marketing_messages?.sms?.[0] || "")} className="bg-slate-800 hover:bg-slate-700 text-slate-300 p-1.5 rounded-lg dark:bg-slate-900">
+                        <button onClick={() => copyToClipboard(autopilotData.ready_marketing_messages?.sms?.[0] || "")} className="bg-slate-100 dark:bg-slate-800 hover:bg-slate-700 text-slate-700 dark:text-slate-300 p-1.5 rounded-lg dark:bg-slate-900">
                           <Copy size={12} />
                         </button>
                         <button onClick={() => openPublishingHub("facebook", autopilotData.ready_marketing_messages?.sms?.[0] || "", "SMS alert")} className="bg-purple-600 hover:bg-purple-500 text-white text-[10px] font-bold px-2 py-1 rounded-md">
@@ -1529,25 +1544,25 @@ function AEOGEOPage() {
 
               {/* Ready Blog outline & Google map bio */}
               <div className="space-y-6">
-                <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4 dark:bg-slate-900 dark:border-slate-700">
-                  <div className="flex items-center gap-2 font-bold text-slate-200 text-sm">
+                <div className="bg-white border border-slate-200 dark:border-slate-800 rounded-2xl p-6 space-y-4 dark:bg-slate-900 dark:border-slate-700">
+                  <div className="flex items-center gap-2 font-bold text-slate-800 dark:text-slate-200 text-sm">
                     <BookOpen size={16} className="text-green-400" />
                     <span>Autopilot Ready Blog Post Draft</span>
                   </div>
 
                   {autopilotData.ready_blog_draft && (
-                    <div className="bg-slate-950 p-4 border border-slate-855 rounded-xl space-y-3 text-xs relative group dark:bg-slate-900 dark:border-slate-700">
+                    <div className="bg-slate-50 dark:bg-slate-950 p-4 border border-slate-200 dark:border-slate-855 rounded-xl space-y-3 text-xs relative group dark:bg-slate-900 dark:border-slate-700">
                       <div>
                         <div className="text-[10px] text-slate-500 font-bold uppercase">Blog Title</div>
-                        <h4 className="font-bold text-slate-200 text-sm mt-0.5">{autopilotData.ready_blog_draft.title}</h4>
+                        <h4 className="font-bold text-slate-800 dark:text-slate-200 text-sm mt-0.5">{autopilotData.ready_blog_draft.title}</h4>
                       </div>
                       <div>
                         <div className="text-[10px] text-slate-500 font-bold uppercase">Meta Description</div>
-                        <p className="text-slate-400 mt-0.5">{autopilotData.ready_blog_draft.meta_description}</p>
+                        <p className="text-slate-500 dark:text-slate-400 mt-0.5">{autopilotData.ready_blog_draft.meta_description}</p>
                       </div>
                       <div>
                         <div className="text-[10px] text-slate-500 font-bold uppercase">Content Preview</div>
-                        <div className="text-slate-300 max-h-32 overflow-y-auto scrollbar-thin mt-1 prose prose-invert prose-sm mb-8" dangerouslySetInnerHTML={{ __html: autopilotData.ready_blog_draft.content }} />
+                        <div className="text-slate-700 dark:text-slate-300 max-h-32 overflow-y-auto scrollbar-thin mt-1 prose prose-invert prose-sm mb-8" dangerouslySetInnerHTML={{ __html: autopilotData.ready_blog_draft.content }} />
                       </div>
                       <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button onClick={() => openPublishingHub("website", autopilotData.ready_blog_draft.content, autopilotData.ready_blog_draft.title)} className="bg-purple-600 hover:bg-purple-500 text-white text-[10px] font-bold px-2 py-1 rounded-md">
@@ -1558,19 +1573,19 @@ function AEOGEOPage() {
                   )}
                 </div>
 
-                <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4 dark:bg-slate-900 dark:border-slate-700">
-                  <div className="flex items-center gap-2 font-bold text-slate-200 text-sm">
+                <div className="bg-white border border-slate-200 dark:border-slate-800 rounded-2xl p-6 space-y-4 dark:bg-slate-900 dark:border-slate-700">
+                  <div className="flex items-center gap-2 font-bold text-slate-800 dark:text-slate-200 text-sm">
                     <UserCheck size={16} className="text-pink-400" />
                     <span>Google Business & Social Bio Optimizer</span>
                   </div>
 
                   {autopilotData.ready_business_description && (
                     <div className="space-y-3 text-xs">
-                      <div className="bg-slate-950 p-3 border border-slate-850 rounded-xl relative group dark:bg-slate-900 dark:border-slate-700">
+                      <div className="bg-slate-50 dark:bg-slate-950 p-3 border border-slate-200 dark:border-slate-855 rounded-xl relative group dark:bg-slate-900 dark:border-slate-700">
                         <div className="text-[10px] text-slate-500 font-bold uppercase mb-1">Google Maps Profile (Bio)</div>
-                        <p className="text-slate-350 mb-8">{autopilotData.ready_business_description.google_business}</p>
+                        <p className="text-slate-600 dark:text-slate-350 mb-8">{autopilotData.ready_business_description.google_business}</p>
                         <div className="absolute bottom-2 right-2 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button onClick={() => copyToClipboard(autopilotData.ready_business_description.google_business)} className="bg-slate-800 hover:bg-slate-700 text-slate-300 p-1.5 rounded-lg dark:bg-slate-900">
+                          <button onClick={() => copyToClipboard(autopilotData.ready_business_description.google_business)} className="bg-slate-100 dark:bg-slate-800 hover:bg-slate-700 text-slate-700 dark:text-slate-300 p-1.5 rounded-lg dark:bg-slate-900">
                             <Copy size={12} />
                           </button>
                           <button onClick={() => openPublishingHub("website", autopilotData.ready_business_description.google_business, "Google Maps profile bio")} className="bg-purple-600 hover:bg-purple-500 text-white text-[10px] font-bold px-2 py-1 rounded-md">
@@ -1579,11 +1594,11 @@ function AEOGEOPage() {
                         </div>
                       </div>
 
-                      <div className="bg-slate-950 p-3 border border-slate-850 rounded-xl relative group dark:bg-slate-900 dark:border-slate-700">
+                      <div className="bg-slate-50 dark:bg-slate-950 p-3 border border-slate-200 dark:border-slate-855 rounded-xl relative group dark:bg-slate-900 dark:border-slate-700">
                         <div className="text-[10px] text-slate-500 font-bold uppercase mb-1">150-char Social Bio</div>
-                        <p className="text-slate-350 font-medium mb-8">{autopilotData.ready_business_description.social_bio}</p>
+                        <p className="text-slate-600 dark:text-slate-350 font-medium mb-8">{autopilotData.ready_business_description.social_bio}</p>
                         <div className="absolute bottom-2 right-2 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button onClick={() => copyToClipboard(autopilotData.ready_business_description.social_bio)} className="bg-slate-800 hover:bg-slate-700 text-slate-300 p-1.5 rounded-lg dark:bg-slate-900">
+                          <button onClick={() => copyToClipboard(autopilotData.ready_business_description.social_bio)} className="bg-slate-100 dark:bg-slate-800 hover:bg-slate-700 text-slate-700 dark:text-slate-300 p-1.5 rounded-lg dark:bg-slate-900">
                             <Copy size={12} />
                           </button>
                           <button onClick={() => openPublishingHub("instagram", autopilotData.ready_business_description.social_bio, "Instagram bio")} className="bg-purple-600 hover:bg-purple-500 text-white text-[10px] font-bold px-2 py-1 rounded-md">
@@ -1597,7 +1612,7 @@ function AEOGEOPage() {
               </div>
             </div>
           ) : (
-            <div className="bg-slate-900 border border-slate-850 rounded-2xl p-8 text-center text-slate-500 text-xs dark:bg-slate-900 dark:border-slate-700">
+            <div className="bg-white border border-slate-200 dark:border-slate-855 rounded-2xl p-8 text-center text-slate-500 text-xs dark:bg-slate-900 dark:border-slate-700">
               Autopilot not run yet. Press "Autopilot Mode" at the top to draft growth campaigns.
             </div>
           )}
@@ -1609,8 +1624,8 @@ function AEOGEOPage() {
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-lg font-bold text-slate-200">Daily Business Health Report</h3>
-              <p className="text-xs text-slate-400">Your daily dashboard of opportunities, competitor update summary, and critical tasks.</p>
+              <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200">Daily Business Health Report</h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Your daily dashboard of opportunities, competitor update summary, and critical tasks.</p>
             </div>
             <Button size="sm" variant="outline" onClick={() => getToken() && fetchDailyReport(getToken())} disabled={isLoadingReport}>
               <RefreshCw size={12} className={`mr-1.5 ${isLoadingReport ? "animate-spin" : ""}`} />
@@ -1623,15 +1638,15 @@ function AEOGEOPage() {
           ) : dailyReport ? (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Daily status scores */}
-              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 lg:col-span-2 space-y-6 dark:bg-slate-900 dark:border-slate-700">
-                <div className="flex items-center justify-between pb-3 border-b border-slate-800 dark:border-slate-700">
-                  <h4 className="font-bold text-slate-200 text-sm">Today's Health Metrics</h4>
+              <div className="bg-white border border-slate-200 dark:border-slate-800 rounded-2xl p-6 lg:col-span-2 space-y-6 dark:bg-slate-900 dark:border-slate-700">
+                <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800 dark:border-slate-700">
+                  <h4 className="font-bold text-slate-800 dark:text-slate-200 text-sm">Today's Health Metrics</h4>
                   <span className="text-[10px] text-slate-500 font-bold uppercase">{dailyReport.date}</span>
                 </div>
                 
                 {dailyReport.scores && (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="bg-slate-950 p-4 border border-slate-855 rounded-xl flex justify-between items-center dark:bg-slate-900 dark:border-slate-700">
+                    <div className="bg-slate-50 dark:bg-slate-950 p-4 border border-slate-200 dark:border-slate-855 rounded-xl flex justify-between items-center dark:bg-slate-900 dark:border-slate-700">
                       <div>
                         <div className="text-[10px] font-bold text-slate-500 uppercase">Search Visibility</div>
                         <div className="text-lg font-bold text-purple-400 mt-0.5">AEO+GEO Optimized</div>
@@ -1639,7 +1654,7 @@ function AEOGEOPage() {
                       <span className="text-2xl font-black text-purple-500">{dailyReport.scores.visibility_score}%</span>
                     </div>
 
-                    <div className="bg-slate-950 p-4 border border-slate-855 rounded-xl flex justify-between items-center dark:bg-slate-900 dark:border-slate-700">
+                    <div className="bg-slate-50 dark:bg-slate-950 p-4 border border-slate-200 dark:border-slate-855 rounded-xl flex justify-between items-center dark:bg-slate-900 dark:border-slate-700">
                       <div>
                         <div className="text-[10px] font-bold text-slate-500 uppercase">Growth Autopilot Score</div>
                         <div className="text-lg font-bold text-green-400 mt-0.5">Proactive Campaigns</div>
@@ -1647,7 +1662,7 @@ function AEOGEOPage() {
                       <span className="text-2xl font-black text-green-500">{dailyReport.scores.growth_score}%</span>
                     </div>
 
-                    <div className="bg-slate-950 p-4 border border-slate-855 rounded-xl flex justify-between items-center dark:bg-slate-900 dark:border-slate-700">
+                    <div className="bg-slate-50 dark:bg-slate-950 p-4 border border-slate-200 dark:border-slate-855 rounded-xl flex justify-between items-center dark:bg-slate-900 dark:border-slate-700">
                       <div>
                         <div className="text-[10px] font-bold text-slate-500 uppercase">Demand Pulse</div>
                         <div className="text-lg font-bold text-blue-400 mt-0.5">High Query Volumes</div>
@@ -1655,7 +1670,7 @@ function AEOGEOPage() {
                       <span className="text-2xl font-black text-blue-500">{dailyReport.scores.demand_score}%</span>
                     </div>
 
-                    <div className="bg-slate-950 p-4 border border-slate-855 rounded-xl flex justify-between items-center dark:bg-slate-900 dark:border-slate-700">
+                    <div className="bg-slate-50 dark:bg-slate-950 p-4 border border-slate-200 dark:border-slate-855 rounded-xl flex justify-between items-center dark:bg-slate-900 dark:border-slate-700">
                       <div>
                         <div className="text-[10px] font-bold text-slate-500 uppercase">Competitor Activity</div>
                         <div className="text-lg font-bold text-pink-400 mt-0.5">Stable Market Position</div>
@@ -1667,12 +1682,12 @@ function AEOGEOPage() {
 
                 {/* Top opportunities list */}
                 <div className="pt-2">
-                  <h5 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Top Opportunities for Today</h5>
+                  <h5 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">Top Opportunities for Today</h5>
                   <div className="space-y-3">
                     {dailyReport.opportunities?.map((opp: any, idx: number) => (
-                      <div key={idx} className="bg-slate-950/60 border border-slate-855 rounded-xl p-4 flex justify-between items-center text-xs dark:border-slate-700">
+                      <div key={idx} className="bg-slate-50/60 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-855 rounded-xl p-4 flex justify-between items-center text-xs dark:border-slate-700">
                         <div>
-                          <p className="font-semibold text-slate-200">{opp.title}</p>
+                          <p className="font-semibold text-slate-800 dark:text-slate-200">{opp.title}</p>
                           <p className="text-slate-500 mt-0.5">{opp.description}</p>
                         </div>
                         <span className="text-green-400 font-bold shrink-0 ml-4">{opp.estimated_value}</span>
@@ -1684,28 +1699,28 @@ function AEOGEOPage() {
 
               {/* Competitor updates & actions */}
               <div className="space-y-6">
-                <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4 dark:bg-slate-900 dark:border-slate-700">
-                  <div className="flex items-center gap-2 font-bold text-slate-200 text-sm">
+                <div className="bg-white border border-slate-200 dark:border-slate-800 rounded-2xl p-6 space-y-4 dark:bg-slate-900 dark:border-slate-700">
+                  <div className="flex items-center gap-2 font-bold text-slate-800 dark:text-slate-200 text-sm">
                     <Activity size={16} className="text-pink-400" />
                     <span>Competitor Updates</span>
                   </div>
                   <ul className="space-y-3 text-xs">
                     {dailyReport.competitor_updates?.map((u: string, idx: number) => (
-                      <li key={idx} className="bg-slate-950 p-3 border border-slate-850 rounded-xl text-slate-300 dark:bg-slate-900 dark:border-slate-700">
+                      <li key={idx} className="bg-slate-50 dark:bg-slate-950 p-3 border border-slate-200 dark:border-slate-855 rounded-xl text-slate-700 dark:text-slate-300 dark:bg-slate-900 dark:border-slate-700">
                         {u}
                       </li>
                     ))}
                   </ul>
                 </div>
 
-                <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4 dark:bg-slate-900 dark:border-slate-700">
-                  <div className="flex items-center gap-2 font-bold text-slate-200 text-sm">
+                <div className="bg-white border border-slate-200 dark:border-slate-800 rounded-2xl p-6 space-y-4 dark:bg-slate-900 dark:border-slate-700">
+                  <div className="flex items-center gap-2 font-bold text-slate-800 dark:text-slate-200 text-sm">
                     <CheckSquare size={16} className="text-green-400" />
                     <span>Top Actions Recommended</span>
                   </div>
                   <ul className="space-y-3 text-xs">
                     {dailyReport.recommended_actions?.map((act: string, idx: number) => (
-                      <li key={idx} className="bg-slate-950 p-3 border border-slate-850 rounded-xl text-slate-250 flex gap-2.5 items-start relative group dark:bg-slate-900 dark:border-slate-700">
+                      <li key={idx} className="bg-slate-50 dark:bg-slate-950 p-3 border border-slate-200 dark:border-slate-855 rounded-xl text-slate-250 flex gap-2.5 items-start relative group dark:bg-slate-900 dark:border-slate-700">
                         <CheckSquare size={14} className="text-green-500 shrink-0 mt-0.5" />
                         <span className="pr-12">{act}</span>
                         <div className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -1729,12 +1744,12 @@ function AEOGEOPage() {
       {activeTab === "blogs" && (
         <div className="space-y-6">
           {/* Auto Blogger Section */}
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4 dark:bg-slate-900 dark:border-slate-700">
+          <div className="bg-white border border-slate-200 dark:border-slate-800 rounded-2xl p-6 space-y-4 dark:bg-slate-900 dark:border-slate-700">
             <div className="flex items-center gap-2">
               <PenTool size={18} className="text-purple-400" />
-              <h3 className="text-sm font-semibold text-slate-200">Generate New Grounded Blog Post</h3>
+              <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200">Generate New Grounded Blog Post</h3>
             </div>
-            <p className="text-xs text-slate-400 leading-relaxed">
+            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
               Generates high-quality blog posts containing structural headings, introductions, CTA links, and FAQs using search trends and business categories.
             </p>
             <div className="flex gap-2">
@@ -1744,7 +1759,7 @@ function AEOGEOPage() {
                 onChange={(e) => setBlogTopic(e.target.value)}
                 onKeyPress={(e) => e.key === "Enter" && !isGeneratingBlog && handleGenerateBlog()}
                 placeholder="Enter blog topic e.g., Best winter styling guides"
-                className="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:ring-1 focus:ring-purple-500 text-slate-100 dark:bg-slate-900 dark:border-slate-700"
+                className="flex-1 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:ring-1 focus:ring-purple-500 text-slate-900 dark:text-slate-100 dark:bg-slate-900 dark:border-slate-700"
                 disabled={isGeneratingBlog}
               />
               <Button onClick={handleGenerateBlog} disabled={isGeneratingBlog} className="bg-purple-600 hover:bg-purple-500">
@@ -1754,7 +1769,7 @@ function AEOGEOPage() {
           </div>
 
           {/* Filter list */}
-          <div className="flex items-center justify-between pb-2 border-b border-slate-800 dark:border-slate-700">
+          <div className="flex items-center justify-between pb-2 border-b border-slate-200 dark:border-slate-800 dark:border-slate-700">
             <div className="flex gap-4 text-xs font-semibold">
               <button onClick={() => setBlogFilter("all")} className={`pb-1 ${blogFilter === "all" ? "text-purple-400 border-b border-purple-400" : "text-slate-400"}`}>
                 All Blogs ({blogs.length})
@@ -1776,15 +1791,15 @@ function AEOGEOPage() {
               {blogs
                 .filter(b => blogFilter === "all" ? true : blogFilter === "published" ? b.is_published : !b.is_published)
                 .map((blog) => (
-                  <div key={blog.id} className="bg-slate-900 border border-slate-800 rounded-2xl p-5 hover:border-purple-500/20 transition-all flex flex-col justify-between dark:bg-slate-900 dark:border-slate-700">
+                  <div key={blog.id} className="bg-white border border-slate-200 dark:border-slate-800 rounded-2xl p-5 hover:border-purple-500/20 transition-all flex flex-col justify-between dark:bg-slate-900 dark:border-slate-700">
                     <div>
                       <div className="flex justify-between items-start mb-2">
-                        <h4 className="text-base font-bold text-slate-100 line-clamp-1">{blog.title}</h4>
+                        <h4 className="text-base font-bold text-slate-900 dark:text-slate-100 line-clamp-1">{blog.title}</h4>
                         <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${blog.is_published ? "bg-green-500/20 text-green-400" : "bg-slate-800 text-slate-400"}`}>
                           {blog.is_published ? "Published" : "Draft"}
                         </span>
                       </div>
-                      <p className="text-xs text-slate-400 line-clamp-2 leading-relaxed mb-4">{blog.meta_description}</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed mb-4">{blog.meta_description}</p>
                       
                       <div className="flex flex-wrap gap-3 text-[10px] text-slate-500 mb-4">
                         <span>{blog.reading_time} min read</span>
@@ -1818,22 +1833,22 @@ function AEOGEOPage() {
       {/* Blog Preview Modal */}
       {selectedBlog && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4" onClick={() => setSelectedBlog(null)}>
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[85vh] overflow-y-auto dark:bg-slate-900 dark:border-slate-700" onClick={e => e.stopPropagation()}>
-            <div className="sticky top-0 bg-slate-900 border-b border-slate-800 p-5 flex items-center justify-between z-10 dark:bg-slate-900 dark:border-slate-700">
+          <div className="bg-white border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[85vh] overflow-y-auto dark:bg-slate-900 dark:border-slate-700" onClick={e => e.stopPropagation()}>
+            <div className="sticky top-0 bg-white border-b border-slate-200 dark:border-slate-800 p-5 flex items-center justify-between z-10 dark:bg-slate-900 dark:border-slate-700">
               <div>
-                <h2 className="text-lg font-bold text-slate-200">Blog Article Preview</h2>
-                <p className="text-xs text-slate-400">{selectedBlog.is_published ? "Published to website" : "Draft document"}</p>
+                <h2 className="text-lg font-bold text-slate-800 dark:text-slate-200">Blog Article Preview</h2>
+                <p className="text-xs text-slate-500 dark:text-slate-400">{selectedBlog.is_published ? "Published to website" : "Draft document"}</p>
               </div>
-              <button onClick={() => setSelectedBlog(null)} className="text-slate-400 hover:text-slate-200 text-2xl font-semibold">×</button>
+              <button onClick={() => setSelectedBlog(null)} className="text-slate-500 dark:text-slate-400 hover:text-slate-200 text-2xl font-semibold">×</button>
             </div>
 
-            <div className="p-6 space-y-6 text-xs text-slate-300">
+            <div className="p-6 space-y-6 text-xs text-slate-700 dark:text-slate-300">
               <div>
-                <h1 className="text-2xl font-black text-slate-100">{selectedBlog.title}</h1>
-                <p className="text-slate-400 mt-2 italic">{selectedBlog.meta_description}</p>
+                <h1 className="text-2xl font-black text-slate-900 dark:text-slate-100">{selectedBlog.title}</h1>
+                <p className="text-slate-500 dark:text-slate-400 mt-2 italic">{selectedBlog.meta_description}</p>
               </div>
 
-              <div className="flex gap-4 text-[10px] text-slate-500 pb-4 border-b border-slate-800 dark:border-slate-700">
+              <div className="flex gap-4 text-[10px] text-slate-500 pb-4 border-b border-slate-200 dark:border-slate-800 dark:border-slate-700">
                 <span>Reading Time: {selectedBlog.reading_time} min</span>
                 <span>Word Count: {selectedBlog.word_count} words</span>
                 <span>Category: {selectedBlog.category}</span>
@@ -1841,28 +1856,28 @@ function AEOGEOPage() {
 
               {selectedBlog.seo_keywords && selectedBlog.seo_keywords.length > 0 && (
                 <div>
-                  <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Target SEO Keywords</h4>
+                  <h4 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Target SEO Keywords</h4>
                   <div className="flex flex-wrap gap-1.5">
                     {selectedBlog.seo_keywords.map((k, i) => (
-                      <span key={i} className="bg-slate-850 border border-slate-800 px-2 py-0.5 rounded text-[10px] text-slate-300 dark:bg-slate-900 dark:border-slate-700">{k}</span>
+                      <span key={i} className="bg-slate-200 dark:bg-slate-800 border border-slate-200 dark:border-slate-800 px-2 py-0.5 rounded text-[10px] text-slate-700 dark:text-slate-300 dark:bg-slate-900 dark:border-slate-700">{k}</span>
                     ))}
                   </div>
                 </div>
               )}
 
-              <div className="space-y-4 prose prose-invert max-w-none text-slate-300">
+              <div className="space-y-4 prose prose-invert max-w-none text-slate-700 dark:text-slate-300">
                 <div dangerouslySetInnerHTML={{ __html: selectedBlog.introduction }} />
                 <div dangerouslySetInnerHTML={{ __html: selectedBlog.main_content }} />
                 <div dangerouslySetInnerHTML={{ __html: selectedBlog.conclusion }} />
               </div>
 
               {selectedBlog.faq && selectedBlog.faq.length > 0 && (
-                <div className="pt-4 border-t border-slate-800 space-y-3 dark:border-slate-700">
-                  <h4 className="text-sm font-bold text-slate-200">Frequently Asked Questions</h4>
+                <div className="pt-4 border-t border-slate-200 dark:border-slate-800 space-y-3 dark:border-slate-700">
+                  <h4 className="text-sm font-bold text-slate-800 dark:text-slate-200">Frequently Asked Questions</h4>
                   {selectedBlog.faq.map((item, i) => (
-                    <div key={i} className="bg-slate-950 p-4 border border-slate-855 rounded-xl dark:bg-slate-900 dark:border-slate-700">
-                      <p className="font-bold text-slate-200">Q: {item.question}</p>
-                      <p className="text-slate-400 mt-1">A: {item.answer}</p>
+                    <div key={i} className="bg-slate-50 dark:bg-slate-950 p-4 border border-slate-200 dark:border-slate-855 rounded-xl dark:bg-slate-900 dark:border-slate-700">
+                      <p className="font-bold text-slate-800 dark:text-slate-200">Q: {item.question}</p>
+                      <p className="text-slate-500 dark:text-slate-400 mt-1">A: {item.answer}</p>
                     </div>
                   ))}
                 </div>
@@ -1880,21 +1895,21 @@ function AEOGEOPage() {
 
         return (
           <div className="fixed inset-0 bg-black/85 flex items-center justify-center z-50 p-4" onClick={() => setIsPublishingHubOpen(false)}>
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl max-w-xl w-full p-6 relative overflow-hidden dark:bg-slate-900 dark:border-slate-700" onClick={e => e.stopPropagation()}>
+            <div className="bg-white border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl max-w-xl w-full p-6 relative overflow-hidden dark:bg-slate-900 dark:border-slate-700" onClick={e => e.stopPropagation()}>
               <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/5 rounded-full blur-3xl pointer-events-none" />
               
-              <div className="flex items-center justify-between pb-4 border-b border-slate-800 mb-4 dark:border-slate-700">
+              <div className="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800 mb-4 dark:border-slate-700">
                 <div className="flex items-center gap-2">
                   <Share2 className="text-purple-400 w-5 h-5" />
-                  <h3 className="text-lg font-bold text-slate-100">Publishing Command Hub</h3>
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">Publishing Command Hub</h3>
                 </div>
-                <button onClick={() => setIsPublishingHubOpen(false)} className="text-slate-400 hover:text-slate-200 text-xl font-bold">×</button>
+                <button onClick={() => setIsPublishingHubOpen(false)} className="text-slate-500 dark:text-slate-400 hover:text-slate-200 text-xl font-bold">×</button>
               </div>
 
               <div className="space-y-4">
-                <div className="bg-slate-950 p-4 border border-slate-850 rounded-xl space-y-1 dark:bg-slate-900 dark:border-slate-700">
+                <div className="bg-slate-50 dark:bg-slate-950 p-4 border border-slate-200 dark:border-slate-855 rounded-xl space-y-1 dark:bg-slate-900 dark:border-slate-700">
                   <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Target platform</div>
-                  <div className="text-sm font-bold text-slate-200 capitalize flex items-center justify-between">
+                  <div className="text-sm font-bold text-slate-800 dark:text-slate-200 capitalize flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <span className={`h-2 w-2 rounded-full ${isConnected ? "bg-green-500 animate-pulse" : "bg-red-500"}`} />
                       {publishingPlatform} integration
@@ -1906,11 +1921,11 @@ function AEOGEOPage() {
                 </div>
 
                 {!isConnected && (
-                  <div className="bg-red-500/5 border border-red-500/20 rounded-xl p-4 flex gap-3 text-xs text-slate-350">
+                  <div className="bg-red-500/5 border border-red-500/20 rounded-xl p-4 flex gap-3 text-xs text-slate-600 dark:text-slate-350">
                     <AlertCircle className="text-red-400 shrink-0 w-5 h-5" />
                     <div className="space-y-2 flex-1">
-                      <p className="font-bold text-slate-200">Integration Required</p>
-                      <p className="text-slate-400">
+                      <p className="font-bold text-slate-800 dark:text-slate-200">Integration Required</p>
+                      <p className="text-slate-500 dark:text-slate-400">
                         Your {publishingPlatform} channel is not linked yet. You must link it before direct publishing is enabled.
                       </p>
                       <Button
@@ -1929,7 +1944,7 @@ function AEOGEOPage() {
 
                 <div className="space-y-1 text-xs">
                   <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Content Payload</div>
-                  <div className="bg-slate-950/60 p-3 border border-slate-855 rounded-xl max-h-32 overflow-y-auto text-slate-350 leading-relaxed font-medium dark:border-slate-700">
+                  <div className="bg-slate-50/60 dark:bg-slate-950/60 p-3 border border-slate-200 dark:border-slate-855 rounded-xl max-h-32 overflow-y-auto text-slate-600 dark:text-slate-350 leading-relaxed font-medium dark:border-slate-700">
                     {publishingContent}
                   </div>
                 </div>
@@ -1938,7 +1953,7 @@ function AEOGEOPage() {
                 {publishingStatus !== "idle" && (
                   <div className="space-y-1.5 text-xs font-mono">
                     <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">API Logs console</div>
-                    <div className="bg-slate-950 border border-slate-850 rounded-xl p-3.5 h-36 overflow-y-auto space-y-1.5 text-[11px] text-indigo-300 dark:bg-slate-900 dark:border-slate-700">
+                    <div className="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-855 rounded-xl p-3.5 h-36 overflow-y-auto space-y-1.5 text-[11px] text-indigo-300 dark:bg-slate-900 dark:border-slate-700">
                       {publishLogs.map((log, i) => {
                         let color = "text-indigo-400";
                         if (log.startsWith("[SUCCESS]")) color = "text-green-400";
@@ -1950,7 +1965,7 @@ function AEOGEOPage() {
                         );
                       })}
                       {isDeploying && (
-                        <div className="flex items-center gap-1.5 text-slate-400">
+                        <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
                           <span className="h-1.5 w-1.5 bg-slate-400 rounded-full animate-bounce dark:bg-slate-900" />
                           <span className="h-1.5 w-1.5 bg-slate-400 rounded-full animate-bounce [animation-delay:0.2s] dark:bg-slate-900" />
                           <span className="h-1.5 w-1.5 bg-slate-400 rounded-full animate-bounce [animation-delay:0.4s] dark:bg-slate-900" />
@@ -1961,8 +1976,8 @@ function AEOGEOPage() {
                 )}
 
                 {/* Actions footer */}
-                <div className="flex items-center gap-3 pt-4 border-t border-slate-800 dark:border-slate-700">
-                  <Button variant="outline" onClick={() => setIsPublishingHubOpen(false)} className="flex-1 text-xs font-bold rounded-xl h-10 border-slate-800 text-slate-400 hover:bg-slate-850 dark:border-slate-700">
+                <div className="flex items-center gap-3 pt-4 border-t border-slate-200 dark:border-slate-800 dark:border-slate-700">
+                  <Button variant="outline" onClick={() => setIsPublishingHubOpen(false)} className="flex-1 text-xs font-bold rounded-xl h-10 border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-850 dark:border-slate-700">
                     Cancel
                   </Button>
                   

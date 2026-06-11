@@ -1037,7 +1037,8 @@ async def publish_to_platform(
                                 description=content,
                                 tags=["saadhyam", "ai"],
                                 category_id="22",
-                                privacy_status="public"
+                                privacy_status="public",
+                                refresh_token=social_account.refresh_token
                             )
                             
                             if upload_result.get("success"):

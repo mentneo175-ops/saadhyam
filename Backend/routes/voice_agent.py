@@ -295,8 +295,8 @@ def speak_elevenlabs(text: str, output_filename: str, voice_id: Optional[str] = 
     else:
         primary_voice_id = voice_id
         
-    if ELEVENLABS_USE_FALLBACK and primary_voice_id != "hpp4J3VqNfWAUOO0d1Us":
-        primary_voice_id = "hpp4J3VqNfWAUOO0d1Us"
+    if ELEVENLABS_USE_FALLBACK and primary_voice_id != "EXAVITQu4vr4xnSDxMaL":
+        primary_voice_id = "EXAVITQu4vr4xnSDxMaL"
         
     url = f"https://api.elevenlabs.io/v1/text-to-speech/{primary_voice_id}"
     
@@ -319,10 +319,10 @@ def speak_elevenlabs(text: str, output_filename: str, voice_id: Optional[str] = 
             except Exception:
                 pass
                 
-        if is_free_restriction and primary_voice_id != "hpp4J3VqNfWAUOO0d1Us":
+        if is_free_restriction and primary_voice_id != "EXAVITQu4vr4xnSDxMaL":
             logger.warning(f"⚠️ Voice ID {primary_voice_id} failed due to ElevenLabs Free Tier API restrictions. Falling back to Bella.")
             ELEVENLABS_USE_FALLBACK = True
-            fallback_voice = "hpp4J3VqNfWAUOO0d1Us"
+            fallback_voice = "EXAVITQu4vr4xnSDxMaL"
             url = f"https://api.elevenlabs.io/v1/text-to-speech/{fallback_voice}"
             response = requests.post(url, json=payload, headers=headers)
             
@@ -395,7 +395,7 @@ class AIAgentCreate(BaseModel):
     name: str
     role: str
     prompt: str
-    voice_id: Optional[str] = "hpp4J3VqNfWAUOO0d1Us"
+    voice_id: Optional[str] = "EXAVITQu4vr4xnSDxMaL"
     languages: Optional[str] = "te,en"
     whatsapp_threshold: Optional[int] = 70
 
@@ -425,7 +425,7 @@ def health_check():
         "openai_configured": bool(OPENAI_API_KEY),
         "gemini_active": bool(GEMINI_API_KEY),
         "elevenlabs_active": bool(os.getenv("ELEVENLABS_API_KEY", "")),
-        "eleven_voice_id": os.getenv("ELEVENLABS_VOICE_ID", "hpp4J3VqNfWAUOO0d1Us"),
+        "eleven_voice_id": os.getenv("ELEVENLABS_VOICE_ID", "EXAVITQu4vr4xnSDxMaL"),
         "eleven_model_id": "eleven_v3"
     }
 
@@ -909,7 +909,7 @@ def get_analytics_overview(
 
 
 
-@router.get("/dashboard/overview")
+@router.get("/voice-agent/dashboard/overview")
 def get_dashboard_overview(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db_sync)
@@ -1063,7 +1063,7 @@ def get_sessions(
 
 
 # ==================== VOICE SESSION ENDPOINTS ====================
-@router.post("/start")
+@router.post("/voice-agent/start")
 def start_voice_session(
     req: StartSessionRequest,
     current_user: User = Depends(get_current_user),
@@ -1197,7 +1197,7 @@ def start_voice_session(
     }
 
 
-@router.post("/turn")
+@router.post("/voice-agent/turn")
 def voice_agent_turn(
     session_id: str = Form(...),
     customer_audio: UploadFile = File(...),
@@ -1494,7 +1494,7 @@ def voice_agent_turn(
     }
 
 
-@router.post("/end")
+@router.post("/voice-agent/end")
 def end_voice_session(
     session_id: str = Form(...),
     current_user: User = Depends(get_current_user),
@@ -1620,7 +1620,7 @@ def end_voice_session(
 
 
 # ==================== WEBSOCKET LIVE VOICE ENGINE ====================
-@router.websocket("/live")
+@router.websocket("/voice-agent/live")
 async def voice_agent_live(websocket: WebSocket):
     await websocket.accept()
     session_id = websocket.query_params.get("session_id")
@@ -1983,7 +1983,7 @@ async def voice_agent_live(websocket: WebSocket):
 
 
 # ==================== EXOTEL WEBSOCKET & WEBHOOK ENDPOINTS ====================
-@router.websocket("/stream/{call_id}")
+@router.websocket("/voice-agent/stream/{call_id}")
 async def exotel_stream_endpoint(websocket: WebSocket, call_id: int):
     """
     WebSocket endpoint for Exotel's bidirectional audio streaming
@@ -2019,7 +2019,7 @@ async def exotel_stream_endpoint(websocket: WebSocket, call_id: int):
             pass
 
 
-@router.post("/webhooks/exotel-status")
+@router.post("/voice-agent/webhooks/exotel-status")
 async def exotel_status_callback(
     request: Request = None,
     db: Session = Depends(get_db_sync)
@@ -2077,7 +2077,7 @@ async def exotel_status_callback(
 
 
 # ==================== TWILIO CALL START, STREAM & STATUS WEBHOOKS ====================
-@router.post("/webhooks/twilio-call-start/{call_id}")
+@router.post("/voice-agent/webhooks/twilio-call-start/{call_id}")
 async def twilio_call_start(call_id: int):
     """
     Returns TwiML instructions directing Twilio to establish a media stream
@@ -2112,7 +2112,7 @@ async def twilio_call_start(call_id: int):
     return Response(content=twiml_response, media_type="application/xml")
 
 
-@router.websocket("/twilio-stream/{call_id}")
+@router.websocket("/voice-agent/twilio-stream/{call_id}")
 async def twilio_stream_endpoint(websocket: WebSocket, call_id: int):
     """
     WebSocket endpoint for Twilio Media Streams (real-time mu-law audio connection).
@@ -2144,7 +2144,7 @@ async def twilio_stream_endpoint(websocket: WebSocket, call_id: int):
             pass
 
 
-@router.post("/webhooks/twilio-status")
+@router.post("/voice-agent/webhooks/twilio-status")
 async def twilio_status_callback(
     request: Request = None,
     db: Session = Depends(get_db_sync)
@@ -2201,7 +2201,7 @@ async def twilio_status_callback(
         return {"status": "error", "message": str(e)}
 
 
-@router.post("/leads/{lead_id}/call-real")
+@router.post("/voice-agent/leads/{lead_id}/call-real")
 def trigger_real_lead_call(
     lead_id: int,
     current_user: User = Depends(get_current_user),

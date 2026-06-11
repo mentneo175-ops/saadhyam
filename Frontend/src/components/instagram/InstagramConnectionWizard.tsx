@@ -233,7 +233,7 @@ export const InstagramConnectionWizard: React.FC<InstagramConnectionWizardProps>
   return (
     <>
       <motion.div
-        className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 relative overflow-hidden"
+        className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 relative overflow-hidden"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.6 }}
@@ -285,7 +285,7 @@ export const InstagramConnectionWizard: React.FC<InstagramConnectionWizardProps>
                   Connect Instagram
                 </motion.h1>
                 <motion.p
-                  className="text-gray-600 mt-1"
+                  className="text-gray-600 dark:text-slate-400 mt-1"
                   initial={{ x: -20, opacity: 0 }}
                   animate={{ x: 0, opacity: 1 }}
                   transition={{ delay: 0.4 }}
@@ -342,7 +342,7 @@ export const InstagramConnectionWizard: React.FC<InstagramConnectionWizardProps>
                   <div
                     className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold transition-all duration-300 ${step.id <= currentStep
                       ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg scale-110'
-                      : 'bg-white/60 text-gray-400 backdrop-blur-sm'
+                      : 'bg-white/60 text-gray-400 backdrop-blur-sm dark:bg-slate-800/60 dark:text-slate-450'
                       }`}
                   >
                     {step.id < currentStep ? (
@@ -365,7 +365,7 @@ export const InstagramConnectionWizard: React.FC<InstagramConnectionWizardProps>
               exit={{ opacity: 0, y: -20, scale: 0.95 }}
               transition={{ duration: 0.4, ease: "easeOut" }}
             >
-              <Card className="border-0 shadow-2xl bg-white/80 backdrop-blur-xl overflow-hidden">
+              <Card className="border-0 shadow-2xl bg-white/80 backdrop-blur-xl overflow-hidden dark:bg-slate-900/80 dark:border dark:border-slate-850">
                 {/* Gradient Top Border */}
                 <div className="h-1 bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500" />
 
@@ -401,10 +401,10 @@ export const InstagramConnectionWizard: React.FC<InstagramConnectionWizardProps>
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2 }}
                   >
-                    <CardTitle className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-3">
+                    <CardTitle className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 dark:from-slate-100 dark:to-slate-200 bg-clip-text text-transparent mb-3">
                       {currentStepData?.title}
                     </CardTitle>
-                    <CardDescription className="text-lg text-gray-600 max-w-2xl mx-auto">
+                    <CardDescription className="text-lg text-gray-600 dark:text-slate-400 max-w-2xl mx-auto">
                       {currentStepData?.subtitle}
                     </CardDescription>
                   </motion.div>
@@ -482,7 +482,7 @@ export const InstagramConnectionWizard: React.FC<InstagramConnectionWizardProps>
                               whileHover={{ y: -4 }}
                             >
                               <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-indigo-500/10 rounded-2xl blur-xl group-hover:blur-2xl transition-all" />
-                              <div className="relative bg-white/90 backdrop-blur-sm p-8 rounded-2xl border border-purple-200/50 shadow-lg hover:shadow-xl transition-all">
+                              <div className="relative bg-white/90 dark:bg-slate-800/80 backdrop-blur-sm p-8 rounded-2xl border border-purple-200/50 dark:border-slate-700/50 shadow-lg hover:shadow-xl transition-all">
                                 <div className="flex items-center gap-3 mb-4">
                                   <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-500 flex items-center justify-center">
                                     <Info className="w-5 h-5 text-white" />
@@ -519,7 +519,7 @@ export const InstagramConnectionWizard: React.FC<InstagramConnectionWizardProps>
                               whileHover={{ y: -4 }}
                             >
                               <div className="absolute inset-0 bg-gradient-to-br from-pink-500/10 to-orange-500/10 rounded-2xl blur-xl group-hover:blur-2xl transition-all" />
-                              <div className="relative bg-white/90 backdrop-blur-sm p-8 rounded-2xl border border-pink-200/50 shadow-lg hover:shadow-xl transition-all">
+                              <div className="relative bg-white/90 dark:bg-slate-800/80 backdrop-blur-sm p-8 rounded-2xl border border-pink-200/50 dark:border-slate-700/50 shadow-lg hover:shadow-xl transition-all">
                                 <div className="flex items-center gap-3 mb-4">
                                   <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-pink-500 to-orange-500 flex items-center justify-center">
                                     <Sparkles className="w-5 h-5 text-white" />
@@ -557,14 +557,14 @@ export const InstagramConnectionWizard: React.FC<InstagramConnectionWizardProps>
                             transition={{ delay: 1.2 }}
                           >
                             <div className="absolute inset-0 bg-gradient-to-r from-amber-500/10 to-orange-500/10 rounded-2xl blur-xl" />
-                            <div className="relative bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200/50 p-6 rounded-2xl backdrop-blur-sm">
+                            <div className="relative bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20 border border-amber-200/50 dark:border-amber-900/30 p-6 rounded-2xl backdrop-blur-sm">
                               <div className="flex items-start gap-4">
                                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center flex-shrink-0 shadow-lg">
                                   <AlertTriangle className="w-5 h-5 text-white" />
                                 </div>
                                 <div className="flex-1">
-                                  <h4 className="font-bold text-amber-900 mb-2 text-lg">Important Note</h4>
-                                  <p className="text-amber-800 leading-relaxed">
+                                  <h4 className="font-bold text-amber-900 dark:text-amber-200 mb-2 text-lg">Important Note</h4>
+                                  <p className="text-amber-800 dark:text-amber-300 leading-relaxed">
                                     This process requires a <span className="font-semibold">Business Instagram account</span>. Personal accounts cannot be connected.
                                     Don't worry - we'll show you how to convert your account if needed.
                                   </p>
@@ -599,7 +599,7 @@ export const InstagramConnectionWizard: React.FC<InstagramConnectionWizardProps>
                                 transition={{ delay: index * 0.1 }}
                               >
                                 <div className="absolute inset-0 bg-gradient-to-r from-purple-500/5 to-pink-500/5 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
-                                <div className="relative bg-white/90 backdrop-blur-sm border border-gray-200/50 rounded-2xl p-6 hover:shadow-lg transition-all">
+                                <div className="relative bg-white/90 dark:bg-slate-800/80 backdrop-blur-sm border border-gray-200/50 dark:border-slate-700/50 rounded-2xl p-6 hover:shadow-lg transition-all">
                                   <div className="flex items-start gap-4">
                                     <Checkbox
                                       id={`req-${index}`}
@@ -612,9 +612,9 @@ export const InstagramConnectionWizard: React.FC<InstagramConnectionWizardProps>
                                         {req.title}
                                         {req.required && <span className="text-pink-500">*</span>}
                                       </label>
-                                      <p className="text-gray-600 text-sm mt-2 leading-relaxed">{req.description}</p>
-                                      <div className="mt-3 p-4 bg-gradient-to-br from-purple-50 to-indigo-50 rounded-xl border border-purple-100/50">
-                                        <p className="text-purple-800 text-sm leading-relaxed">
+                                      <p className="text-gray-600 dark:text-slate-400 text-sm mt-2 leading-relaxed">{req.description}</p>
+                                      <div className="mt-3 p-4 bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-950/20 dark:to-indigo-950/20 rounded-xl border border-purple-100/50 dark:border-purple-900/30">
+                                        <p className="text-purple-800 dark:text-purple-300 text-sm leading-relaxed">
                                           <strong className="font-semibold">How to check:</strong> {req.helpText}
                                         </p>
                                       </div>
@@ -632,14 +632,14 @@ export const InstagramConnectionWizard: React.FC<InstagramConnectionWizardProps>
                               animate={{ opacity: 1, scale: 1 }}
                             >
                               <div className="absolute inset-0 bg-gradient-to-r from-orange-500/10 to-amber-500/10 rounded-2xl blur-xl" />
-                              <div className="relative bg-gradient-to-br from-orange-50 to-amber-50 border border-orange-200/50 p-6 rounded-2xl">
+                              <div className="relative bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/20 dark:to-amber-950/20 border border-orange-200/50 dark:border-orange-900/30 p-6 rounded-2xl">
                                 <div className="flex items-start gap-4">
                                   <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center flex-shrink-0">
                                     <AlertTriangle className="w-5 h-5 text-white" />
                                   </div>
                                   <div>
-                                    <h4 className="font-bold text-orange-900 mb-2">Need Help?</h4>
-                                    <p className="text-orange-800 text-sm leading-relaxed">
+                                    <h4 className="font-bold text-orange-900 dark:text-orange-200 mb-2">Need Help?</h4>
+                                    <p className="text-orange-800 dark:text-orange-300 text-sm leading-relaxed">
                                       If your account doesn't meet these requirements,{" "}
                                       <a href="#" className="underline font-semibold hover:text-orange-900 transition-colors">
                                         click here for step-by-step setup instructions
@@ -677,13 +677,13 @@ export const InstagramConnectionWizard: React.FC<InstagramConnectionWizardProps>
                                 whileHover={{ x: 4 }}
                               >
                                 <div className="absolute inset-0 bg-gradient-to-r from-purple-500/5 to-pink-500/5 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
-                                <div className="relative flex items-start gap-5 p-6 bg-white/90 backdrop-blur-sm border border-gray-200/50 rounded-2xl hover:shadow-lg transition-all">
+                                <div className="relative flex items-start gap-5 p-6 bg-white/90 dark:bg-slate-800/80 backdrop-blur-sm border border-gray-200/50 dark:border-slate-700/50 rounded-2xl hover:shadow-lg transition-all">
                                   <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg">
                                     <permission.icon className="w-6 h-6 text-white" />
                                   </div>
                                   <div className="flex-1">
                                     <h3 className="font-semibold text-gray-900 mb-1 dark:text-slate-100">{permission.title}</h3>
-                                    <p className="text-gray-600 text-sm leading-relaxed">{permission.description}</p>
+                                    <p className="text-gray-600 dark:text-slate-400 text-sm leading-relaxed">{permission.description}</p>
                                   </div>
                                 </div>
                               </motion.div>
@@ -697,8 +697,8 @@ export const InstagramConnectionWizard: React.FC<InstagramConnectionWizardProps>
                             transition={{ delay: 0.5 }}
                           >
                             <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/10 to-green-500/10 rounded-2xl blur-xl" />
-                            <div className="relative bg-gradient-to-br from-emerald-50 to-green-50 border border-emerald-200/50 p-8 rounded-2xl">
-                              <h3 className="font-bold text-emerald-900 mb-4 flex items-center gap-3 text-lg">
+                            <div className="relative bg-gradient-to-br from-emerald-50 to-green-50 dark:from-emerald-950/20 dark:to-green-950/20 border border-emerald-200/50 dark:border-emerald-900/30 p-8 rounded-2xl">
+                              <h3 className="font-bold text-emerald-900 dark:text-emerald-200 mb-4 flex items-center gap-3 text-lg">
                                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-green-500 flex items-center justify-center shadow-lg">
                                   <Shield className="w-5 h-5 text-white" />
                                 </div>
@@ -714,7 +714,7 @@ export const InstagramConnectionWizard: React.FC<InstagramConnectionWizardProps>
                                 ].map((item, i) => (
                                   <motion.li
                                     key={i}
-                                    className="flex items-center gap-3 text-emerald-800"
+                                    className="flex items-center gap-3 text-emerald-800 dark:text-emerald-300"
                                     initial={{ opacity: 0, x: -10 }}
                                     animate={{ opacity: 1, x: 0 }}
                                     transition={{ delay: 0.6 + i * 0.1 }}
@@ -753,7 +753,7 @@ export const InstagramConnectionWizard: React.FC<InstagramConnectionWizardProps>
                                 whileHover={{ y: -4, scale: 1.02 }}
                               >
                                 <div className="absolute inset-0 bg-gradient-to-r from-orange-500/10 to-pink-500/10 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
-                                <div className="relative flex items-start gap-5 p-6 bg-white/90 backdrop-blur-sm border border-gray-200/50 rounded-2xl hover:shadow-xl transition-all">
+                                <div className="relative flex items-start gap-5 p-6 bg-white/90 dark:bg-slate-800/80 backdrop-blur-sm border border-gray-200/50 dark:border-slate-700/50 rounded-2xl hover:shadow-xl transition-all">
                                   <div className="w-14 h-14 bg-gradient-to-br from-orange-500 to-pink-500 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg">
                                     <span className="text-white font-bold text-lg">{index + 1}</span>
                                   </div>
@@ -767,7 +767,7 @@ export const InstagramConnectionWizard: React.FC<InstagramConnectionWizardProps>
                                         {feature.benefit}
                                       </Badge>
                                     </div>
-                                    <p className="text-gray-600 leading-relaxed">{feature.description}</p>
+                                    <p className="text-gray-600 dark:text-slate-400 leading-relaxed">{feature.description}</p>
                                   </div>
                                 </div>
                               </motion.div>
@@ -781,14 +781,14 @@ export const InstagramConnectionWizard: React.FC<InstagramConnectionWizardProps>
                             transition={{ delay: 0.8 }}
                           >
                             <div className="absolute inset-0 bg-gradient-to-r from-pink-500/10 to-orange-500/10 rounded-2xl blur-xl" />
-                            <div className="relative bg-gradient-to-br from-pink-50 via-purple-50 to-orange-50 border border-pink-200/50 p-8 rounded-2xl">
+                            <div className="relative bg-gradient-to-br from-pink-50 via-purple-50 to-orange-50 dark:from-pink-955/20 dark:to-purple-955/20 dark:to-orange-955/20 border border-pink-200/50 dark:border-pink-900/30 p-8 rounded-2xl">
                               <div className="flex items-start gap-4">
                                 <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-pink-500 to-orange-500 flex items-center justify-center flex-shrink-0 shadow-lg">
                                   <TrendingUp className="w-6 h-6 text-white" />
                                 </div>
                                 <div>
-                                  <h3 className="font-bold text-pink-900 mb-2 text-lg">Ready to Transform Your Instagram?</h3>
-                                  <p className="text-pink-800 leading-relaxed">
+                                  <h3 className="font-bold text-pink-900 dark:text-pink-200 mb-2 text-lg">Ready to Transform Your Instagram?</h3>
+                                  <p className="text-pink-800 dark:text-pink-300 leading-relaxed">
                                     Join thousands of businesses already using our AI-powered tools to create engaging content,
                                     grow their audience, and save hours of manual work every week.
                                   </p>
@@ -835,7 +835,7 @@ export const InstagramConnectionWizard: React.FC<InstagramConnectionWizardProps>
                             transition={{ delay: 0.2 }}
                           >
                             <div className="absolute inset-0 bg-gradient-to-r from-purple-500/5 to-pink-500/5 rounded-2xl blur-xl" />
-                            <div className="relative bg-white/90 backdrop-blur-sm p-8 rounded-2xl border border-gray-200/50 shadow-lg">
+                            <div className="relative bg-white/90 dark:bg-slate-800/80 backdrop-blur-sm p-8 rounded-2xl border border-gray-200/50 dark:border-slate-700/50 shadow-lg">
                               <h3 className="font-bold text-gray-900 mb-6 text-lg flex items-center gap-2 dark:text-slate-100">
                                 <Zap className="w-5 h-5 text-purple-500" />
                                 Connection Summary
@@ -854,7 +854,7 @@ export const InstagramConnectionWizard: React.FC<InstagramConnectionWizardProps>
                                       "Facebook Page Connected",
                                       "Admin Access Confirmed"
                                     ].map((item, i) => (
-                                      <li key={i} className="flex items-center gap-3 text-gray-600">
+                                      <li key={i} className="flex items-center gap-3 text-gray-600 dark:text-slate-300">
                                         <div className="w-1.5 h-1.5 rounded-full bg-gradient-to-r from-purple-500 to-indigo-500" />
                                         <span>{item}</span>
                                       </li>
@@ -874,7 +874,7 @@ export const InstagramConnectionWizard: React.FC<InstagramConnectionWizardProps>
                                       "Smart Scheduling",
                                       "Performance Analytics"
                                     ].map((item, i) => (
-                                      <li key={i} className="flex items-center gap-3 text-gray-600">
+                                      <li key={i} className="flex items-center gap-3 text-gray-600 dark:text-slate-300">
                                         <div className="w-1.5 h-1.5 rounded-full bg-gradient-to-r from-pink-500 to-orange-500" />
                                         <span>{item}</span>
                                       </li>
@@ -891,7 +891,7 @@ export const InstagramConnectionWizard: React.FC<InstagramConnectionWizardProps>
                             animate={{ opacity: 1 }}
                             transition={{ delay: 0.4 }}
                           >
-                            <div className="flex items-start gap-4 p-5 bg-white/90 backdrop-blur-sm rounded-2xl border border-gray-200/50">
+                            <div className="flex items-start gap-4 p-5 bg-white/90 dark:bg-slate-850/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 dark:border-slate-700/50">
                               <Checkbox
                                 id="terms"
                                 checked={agreedToTerms}
@@ -919,8 +919,8 @@ export const InstagramConnectionWizard: React.FC<InstagramConnectionWizardProps>
                               animate={{ opacity: 1, scale: 1 }}
                             >
                               <div className="absolute inset-0 bg-gradient-to-r from-amber-500/10 to-orange-500/10 rounded-2xl blur-xl" />
-                              <div className="relative bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200/50 p-5 rounded-2xl">
-                                <p className="text-amber-800 text-sm leading-relaxed">
+                              <div className="relative bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20 border border-amber-200/50 dark:border-amber-900/30 p-5 rounded-2xl">
+                                <p className="text-amber-800 dark:text-amber-300 text-sm leading-relaxed">
                                   Please agree to the terms and conditions to continue with the connection.
                                 </p>
                               </div>
@@ -954,7 +954,7 @@ export const InstagramConnectionWizard: React.FC<InstagramConnectionWizardProps>
                     variant="outline"
                     onClick={handleBack}
                     disabled={isLoading}
-                    className="flex items-center gap-2 px-6 py-6 rounded-xl border-gray-300 hover:border-purple-300 hover:bg-purple-50 transition-all dark:border-slate-700"
+                    className="flex items-center gap-2 px-6 py-6 rounded-xl border-gray-300 hover:border-purple-300 hover:bg-purple-50 dark:hover:bg-purple-900/20 dark:hover:text-purple-400 transition-all dark:border-slate-700"
                   >
                     <ArrowLeft className="w-4 h-4" />
                     Back
@@ -972,7 +972,7 @@ export const InstagramConnectionWizard: React.FC<InstagramConnectionWizardProps>
                   variant="outline"
                   onClick={onCancel}
                   disabled={isLoading}
-                  className="px-6 py-6 rounded-xl border-gray-300 hover:border-gray-400 hover:bg-gray-50 transition-all dark:border-slate-700"
+                  className="px-6 py-6 rounded-xl border-gray-300 hover:border-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800 transition-all dark:border-slate-700"
                 >
                   Cancel
                 </Button>
@@ -1030,18 +1030,18 @@ export const InstagramConnectionWizard: React.FC<InstagramConnectionWizardProps>
 
       {/* Premium Confirmation Dialog */}
       <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-        <AlertDialogContent className="border-0 shadow-2xl bg-white/95 backdrop-blur-xl">
+        <AlertDialogContent className="border-0 shadow-2xl bg-white/95 dark:bg-slate-900/95 dark:border dark:border-slate-800 backdrop-blur-xl">
           <div className="h-1 bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 absolute top-0 left-0 right-0 rounded-t-lg" />
           <AlertDialogHeader className="pt-6">
             <AlertDialogTitle className="flex items-center gap-3 text-xl">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-pink-500 to-orange-500 flex items-center justify-center shadow-lg">
                 <Instagram className="w-5 h-5 text-white" />
               </div>
-              <span className="bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-gray-900 to-gray-700 dark:from-slate-100 dark:to-slate-200 bg-clip-text text-transparent">
                 Connect Instagram Account
               </span>
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-gray-600 leading-relaxed pt-2">
+            <AlertDialogDescription className="text-gray-600 dark:text-slate-400 leading-relaxed pt-2">
               You'll be redirected to Instagram to authorize the connection.
               This will open a new window where you can safely log in and grant permissions.
             </AlertDialogDescription>

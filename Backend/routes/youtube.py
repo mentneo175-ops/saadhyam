@@ -1,4 +1,5 @@
 import logging
+from typing import Optional, List, Tuple
 from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -80,7 +81,7 @@ async def cleanup_cloudinary_assets(video) -> None:
         await delete_cloudinary_asset(video.thumbnail_public_id, "image")
 
 
-async def get_valid_youtube_token(db: AsyncSession, channel) -> str:
+async def get_valid_youtube_token(db: AsyncSession, channel) -> tuple[str, Optional[str]]:
     """Ensure we have a valid non-expired access token for YouTube."""
     social_account = await InstagramCRUD.get_social_account(db, channel.social_account_id)
     if not social_account:
@@ -104,7 +105,7 @@ async def get_valid_youtube_token(db: AsyncSession, channel) -> str:
         else:
             logger.error(f"❌ Failed to refresh YouTube token: {refresh_res.get('error')}")
             
-    return social_account.access_token
+    return social_account.access_token, social_account.refresh_token
 
 
 @router.post(
@@ -145,7 +146,7 @@ async def post_immediately(
 
     try:
         # 3. Get valid access token
-        access_token = await get_valid_youtube_token(db, channel)
+        access_token, refresh_token = await get_valid_youtube_token(db, channel)
 
         # 4. Update status to publishing
         await youtube_crud.update_video_status(db, video.id, "publishing")
@@ -158,7 +159,8 @@ async def post_immediately(
             description=request.description or "",
             tags=request.tags,
             category_id=request.category_id or "22",
-            privacy_status=request.privacy_status
+            privacy_status=request.privacy_status,
+            refresh_token=refresh_token
         )
 
         if not upload_result.get("success"):
@@ -280,8 +282,8 @@ async def get_videos(
                 if not channel:
                     continue
 
-                access_token = await get_valid_youtube_token(db, channel)
-                live_stats = await youtube_service.get_video_analytics(access_token, video.video_id)
+                access_token, refresh_token = await get_valid_youtube_token(db, channel)
+                live_stats = await youtube_service.get_video_analytics(access_token, video.video_id, refresh_token=refresh_token)
                 if live_stats.get("success"):
                     video.view_count = live_stats.get("views", video.view_count)
                     video.like_count = live_stats.get("likes", video.like_count)
@@ -345,9 +347,9 @@ async def delete_video_record(
         channel = await youtube_crud.get_channel_by_id(db, video.channel_id)
         if channel:
             try:
-                access_token = await get_valid_youtube_token(db, channel)
+                access_token, refresh_token = await get_valid_youtube_token(db, channel)
                 # Call delete in background
-                await youtube_service.delete_video(access_token, video.video_id)
+                await youtube_service.delete_video(access_token, video.video_id, refresh_token=refresh_token)
                 logger.info(f"Deleted video {video.video_id} from YouTube")
             except Exception as ex:
                 logger.error(f"Failed to delete video from YouTube API: {ex}")
@@ -383,10 +385,10 @@ async def get_channel_analytics(
         )
 
     try:
-        access_token = await get_valid_youtube_token(db, channel)
+        access_token, refresh_token = await get_valid_youtube_token(db, channel)
         
         # 1. Fetch channel stats directly from YouTube
-        chan_info = await youtube_service.get_channel_info(access_token)
+        chan_info = await youtube_service.get_channel_info(access_token, refresh_token=refresh_token)
         if not chan_info.get("success"):
             raise Exception(chan_info.get("error", "Error fetching stats"))
             
@@ -398,7 +400,7 @@ async def get_channel_analytics(
         await db.commit()
         
         # 2. Retrieve video metrics to aggregate likes and comments
-        videos_info = await youtube_service.list_videos(access_token, channel.uploads_playlist_id, max_results=10)
+        videos_info = await youtube_service.list_videos(access_token, channel.uploads_playlist_id, max_results=10, refresh_token=refresh_token)
         total_likes = 0
         total_comments = 0
         

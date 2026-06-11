@@ -2,6 +2,7 @@ import httpx
 from typing import List, Optional, Dict
 from datetime import datetime
 import math
+import json
 
 class NearbyBusinessService:
     """
@@ -38,6 +39,8 @@ class NearbyBusinessService:
         "Hospitality": ["Hospitality", "Retail", "Marketing", "Entertainment", "Transportation"],
         "Transportation": ["Transportation", "Manufacturing", "Retail", "Technology", "Hospitality"],
         "Entertainment": ["Entertainment", "Marketing", "Hospitality", "Retail"],
+        "E-commerce": ["Technology", "Marketing", "Consulting", "Retail", "Transportation", "Other"],
+        "Health": ["Healthcare", "Consulting", "Technology", "Education", "Retail"],
         "Other": ["Technology", "Marketing", "Consulting", "Retail", "Finance", "Hospitality"]
     }
 
@@ -98,6 +101,23 @@ class NearbyBusinessService:
         """
         Get businesses from Saadhyam network and external sources with synergy filtering and matchmaking
         """
+        # 1. Try to fetch from Redis cache first
+        lat_r = round(lat, 3)
+        lng_r = round(lng, 3)
+        cache_key = f"b2b_network:{lat_r}:{lng_r}:{radius}:{category}:{saadhyam_only}:{relevant_only}:{user_id}"
+        
+        redis_client = None
+        try:
+            from services.redis_service import get_redis_client
+            redis_client = await get_redis_client()
+            if redis_client:
+                cached_val = await redis_client.get(cache_key)
+                if cached_val:
+                    print("🚀 B2B Network Cache HIT!")
+                    return json.loads(cached_val)
+        except Exception as cache_err:
+            print(f"⚠️ Cache read error: {cache_err}")
+
         user_category = None
         user_services = []
         
@@ -133,8 +153,8 @@ class NearbyBusinessService:
         if not saadhyam_only:
             print(f"🌍 Attempting to fetch external businesses from Overpass API...")
             try:
-                city_radius = 50000  # 50km covers most cities
-                external_businesses = await self._get_external_businesses(lat, lng, city_radius, category)
+                search_radius = min(radius, 8000)  # Cap at 8km to ensure fast response times
+                external_businesses = await self._get_external_businesses(lat, lng, search_radius, category)
                 print(f"✅ Got {len(external_businesses)} external businesses")
             except Exception as e:
                 print(f"⚠️  Overpass API failed: {e}")
@@ -176,6 +196,24 @@ class NearbyBusinessService:
         # STEP 4: Sort by distance
         businesses.sort(key=lambda b: b["distance"])
         
+        # STEP 5: Cap the results to prevent huge payloads and frontend lag
+        if len(businesses) > 100:
+            partners = [b for b in businesses if b.get("is_partner")]
+            externals = [b for b in businesses if not b.get("is_partner")]
+            # Keep all partners, and fill the rest with closest externals up to 100 total
+            allowed_externals = max(0, 100 - len(partners))
+            businesses = partners + externals[:allowed_externals]
+            # Re-sort by distance
+            businesses.sort(key=lambda b: b["distance"])
+        
+        # Save to cache for 5 minutes (300 seconds)
+        try:
+            if redis_client:
+                await redis_client.setex(cache_key, 300, json.dumps(businesses))
+                print("✅ B2B Network Cache SET")
+        except Exception as cache_err:
+            print(f"⚠️ Cache write error: {cache_err}")
+
         print(f"📍 Final result: {len(businesses)} total businesses")
         return businesses
     
@@ -291,7 +329,7 @@ class NearbyBusinessService:
                             "Content-Type": "text/plain",
                             "User-Agent": "SaadhyamBusinessDiscoveryApp/1.0 (saikiranmain1708@gmail.com)"
                         },  # MUST be text/plain and have a descriptive User-Agent
-                        timeout=15.0  # Reduced from 60s to 15s
+                        timeout=5.0  # Reduced from 15s to 5s to prevent frontend timeouts
                     )
                     
                     if response.status_code == 200:

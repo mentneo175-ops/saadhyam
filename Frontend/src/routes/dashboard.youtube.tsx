@@ -120,6 +120,7 @@ function YouTubeDashboard() {
 
   const [activeTab, setActiveTab] = useState<TabId>("upload");
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [isConnecting, setIsConnecting] = useState(false);
 
   /* fetch channels */
   useEffect(() => {
@@ -231,11 +232,13 @@ function YouTubeDashboard() {
 
   /* connect YouTube */
   const handleConnectYouTube = async () => {
+    setIsConnecting(true);
     try {
       const res = await fetch(`${env.apiBaseUrl}/api/youtube/auth/connect`);
       const data = await res.json();
       if (!data.oauth_url) {
         toast.error("OAuth URL not received");
+        setIsConnecting(false);
         return;
       }
       const w = 600,
@@ -247,16 +250,22 @@ function YouTubeDashboard() {
       );
       if (!popup) {
         toast.error("Popup blocked! Please allow popups for this site.");
+        setIsConnecting(false);
         return;
       }
+
+      let timer: any = null;
+
       const listener = async (event: MessageEvent) => {
         if (event.origin !== window.location.origin) return;
         if (event.data.type === "youtube-oauth-success") {
-          popup.close();
+          if (timer) clearInterval(timer);
           window.removeEventListener("message", listener);
+          popup.close();
           const token = localStorage.getItem("saadhyam_token");
           if (!token) {
             toast.error("Please sign in again before connecting YouTube.", { id: "yt-connect" });
+            setIsConnecting(false);
             return;
           }
           toast.loading("Completing connection...", { id: "yt-connect" });
@@ -280,19 +289,33 @@ function YouTubeDashboard() {
             toast.error(formatErrorMessage(err, "Connection failed during API exchange"), {
               id: "yt-connect",
             });
+          } finally {
+            setIsConnecting(false);
           }
         }
         if (event.data.type === "youtube-oauth-error") {
-          popup.close();
+          if (timer) clearInterval(timer);
           window.removeEventListener("message", listener);
+          popup.close();
           toast.error(
             `Authorization failed: ${formatErrorMessage(event.data.error, "Unknown OAuth error")}`,
           );
+          setIsConnecting(false);
         }
       };
+
       window.addEventListener("message", listener);
+
+      timer = setInterval(() => {
+        if (popup.closed) {
+          clearInterval(timer);
+          window.removeEventListener("message", listener);
+          setIsConnecting(false);
+        }
+      }, 1000);
     } catch {
       toast.error("Failed to start Google connection flow");
+      setIsConnecting(false);
     }
   };
 
@@ -376,29 +399,45 @@ function YouTubeDashboard() {
           subtitle="Manage your YouTube channel, publish videos, and view live analytics."
         />
 
-        <Card className="border border-purple-100 shadow-xl shadow-purple-50/20 max-w-xl mx-auto w-full overflow-hidden bg-white/70 backdrop-blur-sm">
+        <Card className="border border-purple-100 dark:border-slate-800 shadow-xl shadow-purple-50/20 dark:shadow-none max-w-xl mx-auto w-full overflow-hidden bg-white/70 dark:bg-slate-950/40 backdrop-blur-sm">
           <div className="h-2 bg-gradient-to-r from-purple-600 via-pink-500 to-indigo-600" />
           <CardContent className="py-12 px-6 md:px-10 text-center flex flex-col items-center">
-            <div className="w-16 h-16 rounded-2xl bg-red-50 flex items-center justify-center mb-6 shadow-inner ring-4 ring-red-50/50">
+            <div className="w-16 h-16 rounded-2xl bg-red-50 dark:bg-red-950/20 flex items-center justify-center mb-6 shadow-inner ring-4 ring-red-50/50 dark:ring-red-900/30">
               <Youtube className="w-9 h-9 text-red-500 animate-pulse" />
             </div>
 
-            <h2 className="text-2xl font-bold text-slate-800 mb-3 tracking-tight dark:text-slate-300">
+            <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-3 tracking-tight">
               Connect your YouTube Channel
             </h2>
 
-            <p className="text-slate-600 mb-8 max-w-sm text-sm leading-relaxed">
+            <p className="text-slate-600 dark:text-slate-400 mb-8 max-w-sm text-sm leading-relaxed">
               Link your channel to upload videos, schedule content, and track performance analytics
               — all in one native dashboard.
             </p>
 
             <Button
               onClick={handleConnectYouTube}
-              className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-medium rounded-xl shadow-lg shadow-purple-200 px-8 py-6 text-base group transition-all duration-300 hover:shadow-purple-300 hover:scale-[1.02] active:scale-[0.98]"
+              disabled={isConnecting}
+              className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-medium rounded-xl shadow-lg shadow-purple-200 dark:shadow-purple-950/50 px-8 py-6 text-base group transition-all duration-300 hover:shadow-purple-300 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-75 disabled:pointer-events-none"
             >
-              <Plus className="w-5 h-5 mr-2 transition-transform group-hover:rotate-90" />
-              Sign in with Google
+              {isConnecting ? (
+                <>
+                  <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                  Connecting in popup...
+                </>
+              ) : (
+                <>
+                  <Plus className="w-5 h-5 mr-2 transition-transform group-hover:rotate-90" />
+                  Sign in with Google
+                </>
+              )}
             </Button>
+
+            {isConnecting && (
+              <p className="text-xs text-purple-600 dark:text-purple-400 mt-4 animate-pulse font-medium">
+                Please complete the authorization in the opened popup...
+              </p>
+            )}
           </CardContent>
         </Card>
       </div>

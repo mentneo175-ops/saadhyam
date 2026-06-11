@@ -45,10 +45,10 @@ export function SEOPageHeader({
           <Sparkles className="h-3 w-3" />
           AI-Powered Growth
         </span>
-        <h1 className="mt-3 text-2xl font-bold tracking-tight text-white md:text-3xl">
+        <h1 className="mt-3 text-2xl font-bold tracking-tight text-slate-900 dark:text-white md:text-3xl">
           {title}
         </h1>
-        <p className="mt-1 text-sm text-slate-400">{subtitle}</p>
+        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{subtitle}</p>
         {lastUpdated && (
           <p className="mt-2 flex items-center gap-1 text-xs text-slate-500">
             <Clock className="h-3 w-3" />
@@ -97,7 +97,7 @@ export function SEOTabSwitcher({
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.05 }}
-      className="inline-flex flex-wrap gap-1 rounded-2xl border border-slate-800 bg-slate-950/60 p-1 shadow-[0_4px_30px_rgba(0,0,0,0.3)] backdrop-blur-md dark:border-slate-700"
+      className="inline-flex flex-wrap gap-1 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-100/60 dark:bg-slate-950/60 p-1 shadow-[0_4px_30px_rgba(0,0,0,0.3)] backdrop-blur-md dark:border-slate-700"
     >
       {tabs.map((tab) => {
         const Icon = tab.icon;
@@ -109,13 +109,13 @@ export function SEOTabSwitcher({
             onClick={() => onTabChange(tab.id)}
             className={cn(
               "relative flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-colors cursor-pointer",
-              isActive ? "text-white" : "text-slate-400 hover:text-slate-200",
+              isActive ? "text-slate-900 dark:text-white" : "text-slate-500 dark:text-slate-400 hover:text-slate-200",
             )}
           >
             {isActive && (
               <motion.span
                 layoutId="seo-tab-pill"
-                className="absolute inset-0 rounded-xl bg-slate-900 border border-slate-800 dark:bg-slate-900 dark:border-slate-700"
+                className="absolute inset-0 rounded-xl bg-white border border-slate-200 dark:border-slate-800 dark:bg-slate-900 dark:border-slate-700"
                 transition={{ type: "spring", stiffness: 380, damping: 32 }}
               />
             )}
@@ -154,7 +154,7 @@ export function SectionCard({
       transition={{ delay, duration: 0.32 }}
       whileHover={{ y: -2 }}
       className={cn(
-        "rounded-2xl border border-slate-800 bg-slate-900/60 p-5 shadow-[0_4px_30px_rgba(0,0,0,0.4)] backdrop-blur-md transition-all hover:border-slate-700 md:p-6",
+        "rounded-2xl border border-slate-200 dark:border-slate-800 bg-white/85 dark:bg-slate-900/60 p-5 shadow-[0_4px_30px_rgba(0,0,0,0.4)] backdrop-blur-md transition-all hover:border-slate-700 md:p-6",
         className,
       )}
     >
@@ -169,15 +169,15 @@ export function SectionCard({
             whileHover={{ scale: 1.05 }}
             className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-purple-600 to-indigo-600 shadow-[0_4px_20px_rgba(168,85,247,0.25)]"
           >
-            <Icon className="h-5 w-5 text-white" />
+            <Icon className="h-5 w-5 text-slate-900 dark:text-white" />
           </motion.div>
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay, duration: 0.32 }}
           >
-            <h3 className="text-base font-semibold tracking-tight text-white">{title}</h3>
-            {subtitle && <p className="mt-0.5 text-sm text-slate-400">{subtitle}</p>}
+            <h3 className="text-base font-semibold tracking-tight text-slate-900 dark:text-white">{title}</h3>
+            {subtitle && <p className="mt-0.5 text-sm text-slate-500 dark:text-slate-400">{subtitle}</p>}
           </motion.div>
         </motion.div>
         {headerActions && (
@@ -214,7 +214,7 @@ export function MetricCard({
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, duration: 0.3 }}
       whileHover={{ y: -3 }}
-      className="group rounded-2xl border border-slate-800 bg-slate-900/60 p-4 shadow-[0_4px_30px_rgba(0,0,0,0.4)] backdrop-blur-md transition-all hover:border-slate-700 md:p-5 dark:border-slate-700"
+      className="group rounded-2xl border border-slate-200 dark:border-slate-800 bg-white/85 dark:bg-slate-900/60 p-4 shadow-[0_4px_30px_rgba(0,0,0,0.4)] backdrop-blur-md transition-all hover:border-slate-700 md:p-5 dark:border-slate-700"
     >
       <motion.div
         initial={{ opacity: 0, y: 12 }}
@@ -238,7 +238,7 @@ export function MetricCard({
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay, duration: 0.3 }}
-        className="mt-3 text-xs font-medium text-slate-400"
+        className="mt-3 text-xs font-medium text-slate-500 dark:text-slate-400"
       >
         {label}
       </motion.p>
@@ -246,7 +246,7 @@ export function MetricCard({
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay, duration: 0.3 }}
-        className="mt-1 text-2xl font-bold tracking-tight text-white"
+        className="mt-1 text-2xl font-bold tracking-tight text-slate-900 dark:text-white"
       >
         {value}
       </motion.p>
@@ -308,13 +308,13 @@ export function QuickActionsGrid({
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: delay + idx * 0.06 }}
             whileHover={{ y: -4 }}
-            className="group rounded-2xl border border-slate-800 bg-slate-900/60 p-5 shadow-[0_4px_30px_rgba(0,0,0,0.4)] backdrop-blur-md transition-all hover:border-purple-500/30 hover:shadow-[0_8px_30px_rgba(168,85,247,0.04)] dark:border-slate-700"
+            className="group rounded-2xl border border-slate-200 dark:border-slate-800 bg-white/85 dark:bg-slate-900/60 p-5 shadow-[0_4px_30px_rgba(0,0,0,0.4)] backdrop-blur-md transition-all hover:border-purple-500/30 hover:shadow-[0_8px_30px_rgba(168,85,247,0.04)] dark:border-slate-700"
           >
             <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-purple-600 to-indigo-600 shadow-[0_4px_20px_rgba(168,85,247,0.25)] transition-transform group-hover:scale-105">
-              <item.icon className="h-5 w-5 text-white" />
+              <item.icon className="h-5 w-5 text-slate-900 dark:text-white" />
             </div>
-            <h4 className="font-semibold text-white">{item.title}</h4>
-            <p className="mt-1 text-sm text-slate-400">{item.desc}</p>
+            <h4 className="font-semibold text-slate-900 dark:text-white">{item.title}</h4>
+            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{item.desc}</p>
             <span className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-purple-400">
               Open <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
             </span>
@@ -338,14 +338,14 @@ export function ProTipsBanner({ delay = 0.4 }: { delay?: number }) {
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay }}
-      className="overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/40 p-5 md:p-6 dark:border-slate-700"
+      className="overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 bg-white/60 dark:bg-slate-900/40 p-5 md:p-6 dark:border-slate-700"
     >
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
         <motion.div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-purple-600 to-indigo-600 shadow-[0_4px_20px_rgba(168,85,247,0.25)]">
-          <Sparkles className="h-5 w-5 text-white" />
+          <Sparkles className="h-5 w-5 text-slate-900 dark:text-white" />
         </motion.div>
         <div className="flex-1">
-          <h3 className="text-base font-semibold text-white">Pro Tips for Local SEO Success</h3>
+          <h3 className="text-base font-semibold text-slate-900 dark:text-white">Pro Tips for Local SEO Success</h3>
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
@@ -355,7 +355,7 @@ export function ProTipsBanner({ delay = 0.4 }: { delay?: number }) {
             {tips.map((tip, idx) => (
               <motion.div key={idx} className="flex items-start gap-2">
                 <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-purple-400" />
-                <span className="text-sm text-slate-400">{tip}</span>
+                <span className="text-sm text-slate-500 dark:text-slate-400">{tip}</span>
               </motion.div>
             ))}
           </motion.div>
@@ -370,13 +370,13 @@ export function EmptyInsightsState({ message }: { message?: string }) {
     <motion.div
       initial={{ opacity: 0, scale: 0.98 }}
       animate={{ opacity: 1, scale: 1 }}
-      className="flex flex-col items-center rounded-2xl border border-dashed border-slate-800 bg-slate-900/20 px-6 py-14 text-center dark:border-slate-700"
+      className="flex flex-col items-center rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 bg-slate-900/20 px-6 py-14 text-center dark:border-slate-700"
     >
       <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-purple-500/10">
         <Search className="h-7 w-7 text-purple-400" />
       </div>
-      <p className="font-medium text-white">No insights yet</p>
-      <p className="mt-1 max-w-sm text-sm text-slate-400">
+      <p className="font-medium text-slate-900 dark:text-white">No insights yet</p>
+      <p className="mt-1 max-w-sm text-sm text-slate-500 dark:text-slate-400">
         {message ?? "Run a business analysis to unlock personalized SEO recommendations."}
       </p>
     </motion.div>
@@ -395,7 +395,7 @@ export function AnalyzingState({ message }: { message?: string }) {
   return (
     <div className="flex flex-col items-center justify-center py-20">
       <Loader text={message ?? "Analyzing SEO opportunities"} />
-      <p className="mt-1 text-xs text-slate-400">This may take 2–3 minutes</p>
+      <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">This may take 2–3 minutes</p>
       <span className="mt-4 inline-flex items-center gap-1 text-[10px] rounded-full border border-purple-500/20 bg-purple-500/5 px-2.5 py-0.5 font-medium text-purple-400">
         <Sparkles className="h-3 w-3" />
         AI-Powered Analysis
@@ -412,10 +412,10 @@ export function NotStartedState({ onNavigate }: { onNavigate: () => void }) {
       className="flex flex-col items-center py-16 text-center"
     >
       <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-600 to-indigo-600 shadow-[0_4px_20px_rgba(168,85,247,0.25)]">
-        <Search className="h-8 w-8 text-white" />
+        <Search className="h-8 w-8 text-slate-900 dark:text-white" />
       </div>
-      <h2 className="text-xl font-bold text-white">No analysis found</h2>
-      <p className="mt-2 max-w-md text-sm text-slate-400">
+      <h2 className="text-xl font-bold text-slate-900 dark:text-white">No analysis found</h2>
+      <p className="mt-2 max-w-md text-sm text-slate-500 dark:text-slate-400">
         Run a business analysis first to get personalized SEO and local visibility recommendations.
       </p>
       <Button variant="hero" size="lg" className="mt-6 gap-2" onClick={onNavigate}>
@@ -434,8 +434,8 @@ export function ErrorState({ error, onRetry }: { error: string; onRetry: () => v
       className="rounded-2xl border border-destructive/20 bg-destructive/5 p-8 text-center"
     >
       <AlertCircle className="mx-auto mb-4 h-12 w-12 text-destructive" />
-      <p className="text-lg font-semibold text-white">Analysis failed</p>
-      <p className="mt-2 text-sm text-slate-400">{error}</p>
+      <p className="text-lg font-semibold text-slate-900 dark:text-white">Analysis failed</p>
+      <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">{error}</p>
       <Button variant="default" className="mt-6 gap-2" onClick={onRetry}>
         <RefreshCw className="h-4 w-4" />
         Try again
@@ -472,7 +472,7 @@ export function AnalyzeBusinessForm({
           transition={{ delay: 0.1 }}
           className="space-y-2"
         >
-          <Label className="flex items-center gap-1.5 text-slate-350">
+          <Label className="flex items-center gap-1.5 text-slate-600 dark:text-slate-350">
             <MapPin className="h-3.5 w-3.5 text-purple-400" />
             Business type
           </Label>
@@ -480,7 +480,7 @@ export function AnalyzeBusinessForm({
             value={businessType}
             onChange={(e) => onBusinessTypeChange(e.target.value)}
             placeholder="E.g., Dental Clinic, Salon, Restaurant"
-            className="h-11 rounded-xl border-slate-800 bg-slate-950 text-white placeholder-slate-600 focus:ring-1 focus:ring-purple-500 focus:border-transparent dark:border-slate-700 dark:bg-slate-900"
+            className="h-11 rounded-xl border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white placeholder-slate-600 focus:ring-1 focus:ring-purple-500 focus:border-transparent dark:border-slate-700 dark:bg-slate-900"
           />
         </motion.div>
         <motion.div
@@ -489,7 +489,7 @@ export function AnalyzeBusinessForm({
           transition={{ delay: 0.15 }}
           className="space-y-2"
         >
-          <Label className="flex items-center gap-1.5 text-slate-350">
+          <Label className="flex items-center gap-1.5 text-slate-600 dark:text-slate-350">
             <Globe className="h-3.5 w-3.5 text-purple-400" />
             Location
           </Label>
@@ -497,7 +497,7 @@ export function AnalyzeBusinessForm({
             value={location}
             onChange={(e) => onLocationChange(e.target.value)}
             placeholder="E.g., Hyderabad, Banjara Hills"
-            className="h-11 rounded-xl border-slate-800 bg-slate-950 text-white placeholder-slate-600 focus:ring-1 focus:ring-purple-500 focus:border-transparent dark:border-slate-700 dark:bg-slate-900"
+            className="h-11 rounded-xl border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white placeholder-slate-600 focus:ring-1 focus:ring-purple-500 focus:border-transparent dark:border-slate-700 dark:bg-slate-900"
           />
         </motion.div>
       </div>

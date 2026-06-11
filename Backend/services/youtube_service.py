@@ -1,4 +1,5 @@
 import os
+os.environ["OAUTHLIB_RELAX_TOKEN_SCOPE"] = "1"
 import logging
 import asyncio
 import httpx
@@ -170,19 +171,28 @@ class YouTubeService:
             logger.error(f"❌ Error refreshing YouTube/Google token: {e}", exc_info=True)
             return {"success": False, "error": str(e)}
 
-    def _get_youtube_client(self, access_token: str):
-        """Build YouTube API v3 client using access token."""
-        creds = google.oauth2.credentials.Credentials(access_token)
+    def _get_youtube_client(self, access_token: str, refresh_token: Optional[str] = None):
+        """Build YouTube API v3 client using credentials."""
+        if refresh_token and self.client_id and self.client_secret:
+            creds = google.oauth2.credentials.Credentials(
+                token=access_token,
+                refresh_token=refresh_token,
+                token_uri="https://oauth2.googleapis.com/token",
+                client_id=self.client_id,
+                client_secret=self.client_secret,
+            )
+        else:
+            creds = google.oauth2.credentials.Credentials(access_token)
         return build("youtube", "v3", credentials=creds)
 
-    async def get_channel_info(self, access_token: str) -> Dict[str, Any]:
+    async def get_channel_info(self, access_token: str, refresh_token: Optional[str] = None) -> Dict[str, Any]:
         """Fetch details of authorized YouTube channel."""
         try:
             # Make blocking API call in executor
             loop = asyncio.get_event_loop()
             
             def fetch():
-                youtube = self._get_youtube_client(access_token)
+                youtube = self._get_youtube_client(access_token, refresh_token)
                 request = youtube.channels().list(
                     part="snippet,contentDetails,statistics",
                     mine=True
@@ -236,7 +246,8 @@ class YouTubeService:
         description: str,
         tags: List[str] = None,
         category_id: str = "22",
-        privacy_status: str = "public"
+        privacy_status: str = "public",
+        refresh_token: Optional[str] = None
     ) -> Dict[str, Any]:
         """Perform resumable video upload to YouTube."""
         try:
@@ -260,7 +271,7 @@ class YouTubeService:
             loop = asyncio.get_event_loop()
             
             def perform_upload():
-                youtube = self._get_youtube_client(access_token)
+                youtube = self._get_youtube_client(access_token, refresh_token)
                 
                 body = {
                     "snippet": {
@@ -348,13 +359,13 @@ class YouTubeService:
                 }
             return {"success": False, "error": str(e)}
 
-    async def list_videos(self, access_token: str, uploads_playlist_id: str, max_results: int = 20) -> Dict[str, Any]:
+    async def list_videos(self, access_token: str, uploads_playlist_id: str, max_results: int = 20, refresh_token: Optional[str] = None) -> Dict[str, Any]:
         """Fetch list of uploaded videos in the channel uploads playlist."""
         try:
             loop = asyncio.get_event_loop()
             
             def fetch():
-                youtube = self._get_youtube_client(access_token)
+                youtube = self._get_youtube_client(access_token, refresh_token)
                 playlist_req = youtube.playlistItems().list(
                     part="snippet,contentDetails",
                     playlistId=uploads_playlist_id,
@@ -427,13 +438,13 @@ class YouTubeService:
                 ]
             }
 
-    async def update_video_metadata(self, access_token: str, video_id: str, title: str, description: str, tags: List[str] = None, category_id: str = None) -> Dict[str, Any]:
+    async def update_video_metadata(self, access_token: str, video_id: str, title: str, description: str, tags: List[str] = None, category_id: str = None, refresh_token: Optional[str] = None) -> Dict[str, Any]:
         """Update video title, description, tags, etc."""
         try:
             loop = asyncio.get_event_loop()
             
             def perform_update():
-                youtube = self._get_youtube_client(access_token)
+                youtube = self._get_youtube_client(access_token, refresh_token)
                 
                 # We must fetch the existing video snippet first as we need to pass a complete snippet
                 get_req = youtube.videos().list(part="snippet", id=video_id)
@@ -471,13 +482,13 @@ class YouTubeService:
             logger.error(f"❌ Error updating YouTube video: {e}", exc_info=True)
             return {"success": False, "error": str(e)}
 
-    async def delete_video(self, access_token: str, video_id: str) -> Dict[str, Any]:
+    async def delete_video(self, access_token: str, video_id: str, refresh_token: Optional[str] = None) -> Dict[str, Any]:
         """Delete video from YouTube."""
         try:
             loop = asyncio.get_event_loop()
             
             def perform_delete():
-                youtube = self._get_youtube_client(access_token)
+                youtube = self._get_youtube_client(access_token, refresh_token)
                 delete_req = youtube.videos().delete(id=video_id)
                 delete_req.execute()
                 
@@ -487,13 +498,13 @@ class YouTubeService:
             logger.error(f"❌ Error deleting YouTube video: {e}", exc_info=True)
             return {"success": False, "error": str(e)}
 
-    async def get_video_analytics(self, access_token: str, video_id: str) -> Dict[str, Any]:
+    async def get_video_analytics(self, access_token: str, video_id: str, refresh_token: Optional[str] = None) -> Dict[str, Any]:
         """Fetch views/likes/comments stats for specific video."""
         try:
             loop = asyncio.get_event_loop()
             
             def fetch():
-                youtube = self._get_youtube_client(access_token)
+                youtube = self._get_youtube_client(access_token, refresh_token)
                 request = youtube.videos().list(part="statistics", id=video_id)
                 response = request.execute()
                 return response

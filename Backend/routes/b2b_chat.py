@@ -344,10 +344,26 @@ async def get_messages(
         ).update({"is_read": True})
         db.commit()
         
+        # Fetch both participants to avoid N+1 query problem
+        user1 = db.query(User).filter(User.id == room.user1_id).first()
+        user2 = db.query(User).filter(User.id == room.user2_id).first()
+        
+        users_dict = {}
+        if user1:
+            users_dict[user1.id] = user1
+        if user2:
+            users_dict[user2.id] = user2
+
         # Build response
         result = []
         for msg in messages:
-            sender = db.query(User).filter(User.id == msg.sender_id).first()
+            sender = users_dict.get(msg.sender_id)
+            if not sender:
+                # Fallback in case sender_id is someone else
+                sender = db.query(User).filter(User.id == msg.sender_id).first()
+                if sender:
+                    users_dict[msg.sender_id] = sender
+            
             if sender:
                 result.append(MessageResponse(
                     id=msg.id,

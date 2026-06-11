@@ -348,11 +348,11 @@ function RadarPage() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         
         {/* Left Column: Interactive Radar Console Panel (Col-span 4) */}
-        <div className="lg:col-span-4 bg-zinc-950 text-zinc-300 rounded-3xl border border-zinc-900 shadow-2xl p-6 space-y-6 relative overflow-hidden animate-grid-glow dark:bg-slate-900 dark:border-slate-700">
+        <div className="lg:col-span-4 bg-white text-zinc-700 rounded-3xl border border-zinc-200 shadow-xl p-6 space-y-6 relative overflow-hidden animate-grid-glow dark:bg-slate-900 dark:text-zinc-300 dark:border-slate-700">
           {/* Glowing scanner line underlay */}
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(139,92,246,0.06),transparent_70%)] pointer-events-none" />
           
-          <div className="flex items-center justify-between border-b border-zinc-900 pb-3 relative z-10 dark:border-slate-700">
+          <div className="flex items-center justify-between border-b border-zinc-200 pb-3 relative z-10 dark:border-slate-700">
             <div className="flex items-center gap-2">
               <div className="h-2 w-2 rounded-full bg-purple-500 animate-pulse" />
               <span className="text-xs font-bold uppercase tracking-wider text-purple-400">Radar Console</span>
@@ -362,17 +362,17 @@ function RadarPage() {
 
           {/* Centered Radar Graphic */}
           <div className="flex justify-center py-4 relative z-10">
-            <div className="relative w-48 h-48 rounded-full border border-purple-500/30 bg-purple-950/15 flex items-center justify-center overflow-hidden animate-radar-pulse shadow-[0_0_20px_rgba(168,85,247,0.15)]">
+            <div className="relative w-48 h-48 rounded-full border-2 border-purple-200 bg-purple-50/30 flex items-center justify-center overflow-hidden animate-radar-pulse shadow-[0_0_25px_rgba(168,85,247,0.15)] dark:bg-purple-950/20 dark:border-purple-500/30">
               {/* Concentric rings */}
-              <div className="absolute w-12 h-12 rounded-full border border-purple-500/15" />
-              <div className="absolute w-24 h-24 rounded-full border border-purple-500/10" />
-              <div className="absolute w-36 h-36 rounded-full border border-purple-500/5" />
+              <div className="absolute w-12 h-12 rounded-full border-2 border-purple-200/80 dark:border-purple-500/20" />
+              <div className="absolute w-24 h-24 rounded-full border-2 border-purple-200/60 dark:border-purple-500/15" />
+              <div className="absolute w-36 h-36 rounded-full border-2 border-purple-200/40 dark:border-purple-500/10" />
               {/* Crosshairs */}
-              <div className="absolute top-1/2 left-0 right-0 h-[1px] bg-purple-500/15 -translate-y-1/2" />
-              <div className="absolute left-1/2 top-0 bottom-0 w-[1px] bg-purple-500/15 -translate-x-1/2" />
+              <div className="absolute top-1/2 left-0 right-0 h-[1.5px] bg-purple-200/60 dark:bg-purple-500/20 -translate-y-1/2" />
+              <div className="absolute left-1/2 top-0 bottom-0 w-[1.5px] bg-purple-200/60 dark:bg-purple-500/20 -translate-x-1/2" />
               
               {/* Radar Sweeping Sector */}
-              <div className={`absolute top-0 left-1/2 w-1/2 h-1/2 origin-bottom-left border-l border-purple-500/50 bg-gradient-to-tr from-purple-500/15 to-transparent ${
+              <div className={`absolute top-0 left-1/2 w-1/2 h-1/2 origin-bottom-left border-l-[3px] border-purple-600 dark:border-purple-400 bg-gradient-to-tr from-purple-500/70 dark:from-purple-500/40 to-transparent ${
                 isScanning ? "animate-radar-sweep-fast" : "animate-radar-sweep"
               }`} />
               
@@ -409,7 +409,7 @@ function RadarPage() {
               disabled={isScanning}
               className={`w-full py-6 rounded-2xl font-bold transition-all flex items-center justify-center gap-2 border-0 ${
                 isScanning
-                  ? "bg-purple-900/50 text-purple-300 cursor-not-allowed"
+                  ? "bg-purple-100 text-purple-400 dark:bg-purple-900/50 dark:text-purple-300 cursor-not-allowed"
                   : "bg-purple-600 hover:bg-purple-700 text-white shadow-lg shadow-purple-600/25 hover:shadow-purple-600/45 animate-pulse"
               }`}
             >
@@ -424,19 +424,19 @@ function RadarPage() {
           </div>
 
           {/* Scrolling Realtime Logs inside the Console */}
-          <div className="border-t border-zinc-900 pt-4 space-y-2 relative z-10 dark:border-slate-700">
+          <div className="border-t border-zinc-200 pt-4 space-y-2 relative z-10 dark:border-slate-700">
             <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest px-1">Live Signal Feed</p>
-            <div className="h-44 bg-zinc-950/80 rounded-xl p-3 border border-zinc-900 font-mono text-[10px] text-purple-400/90 overflow-y-auto space-y-1.5 scrollbar-thin scrollbar-thumb-zinc-900 scrollbar-track-transparent dark:border-slate-700">
+            <div className="h-44 bg-zinc-50/80 rounded-xl p-3 border border-zinc-200 font-mono text-[10px] text-purple-700 overflow-y-auto space-y-1.5 scrollbar-thin scrollbar-thumb-zinc-200 scrollbar-track-transparent dark:bg-zinc-950/80 dark:border-slate-700 dark:text-purple-400/90 dark:scrollbar-thumb-zinc-900">
               {consoleLogs.length === 0 ? (
-                <span className="text-zinc-600 italic">No signals recorded. Trigger a scan to start signal feed.</span>
+                <span className="text-zinc-500 dark:text-zinc-600 italic">No signals recorded. Trigger a scan to start signal feed.</span>
               ) : (
                 consoleLogs.map((log, index) => (
                   <div
                     key={index}
                     className={`leading-normal border-l-2 pl-1.5 transition-all duration-300 ${
                       index === 0
-                        ? "text-purple-300 border-purple-500 font-bold scale-[1.01]"
-                        : "text-zinc-500 border-zinc-800"
+                        ? "text-purple-700 dark:text-purple-300 border-purple-500 font-bold scale-[1.01]"
+                        : "text-zinc-500 border-zinc-200 dark:border-zinc-800 dark:text-zinc-500"
                     }`}
                   >
                     {log}

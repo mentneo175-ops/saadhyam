@@ -115,22 +115,22 @@ function WhatsAppSalesPage() {
             <div className="bg-card rounded-2xl border border-border/60 shadow-sm p-4 space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-sm font-semibold mb-2 block">Customer Name</label>
+                  <label className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2 block">Customer Name</label>
                   <input
                     type="text"
                     value={customerName}
                     onChange={(e) => setCustomerName(e.target.value)}
-                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:border-primary focus:ring-2 focus:ring-primary/15 outline-none"
+                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:border-primary focus:ring-2 focus:ring-primary/15 outline-none text-slate-800 dark:text-slate-100"
                     placeholder="Enter name"
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-semibold mb-2 block">Service/Product</label>
+                  <label className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2 block">Service/Product</label>
                   <input
                     type="text"
                     value={service}
                     onChange={(e) => setService(e.target.value)}
-                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:border-primary focus:ring-2 focus:ring-primary/15 outline-none"
+                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:border-primary focus:ring-2 focus:ring-primary/15 outline-none text-slate-800 dark:text-slate-100"
                     placeholder="Enter service"
                   />
                 </div>
@@ -158,16 +158,16 @@ function WhatsAppSalesPage() {
             {/* Output Panel */}
             <div className="bg-card rounded-2xl border border-border/60 shadow-sm p-4 flex flex-col">
               <div className="flex items-center justify-between mb-3">
-                <p className="text-sm font-semibold">Generated WhatsApp Message</p>
+                <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">Generated WhatsApp Message</p>
                 <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-1 rounded-full bg-success/10 text-success">
                   <MessageCircle size={10} /> Ready
                 </span>
               </div>
 
-              <div className="flex-1 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-4 mb-4 border-2 border-green-200 min-h-[250px]">
-                <div className="bg-white rounded-lg p-4 shadow-sm dark:bg-slate-900">
+              <div className="flex-1 bg-gradient-to-br from-emerald-500/5 to-teal-500/5 dark:from-emerald-500/10 dark:to-teal-500/10 rounded-2xl p-4 mb-4 border-2 border-emerald-500/10 dark:border-emerald-500/20 min-h-[250px] flex flex-col justify-stretch">
+                <div className="bg-white dark:bg-slate-900/50 rounded-xl p-4 shadow-sm border border-border/40 flex-1 flex flex-col justify-center">
                   {generatedMessage ? (
-                    <p className="text-sm leading-relaxed whitespace-pre-line">
+                    <p className="text-sm leading-relaxed whitespace-pre-line text-slate-800 dark:text-slate-200 font-medium">
                       {generatedMessage}
                     </p>
                   ) : (

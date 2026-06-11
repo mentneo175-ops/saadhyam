@@ -179,7 +179,7 @@ function DailyAskPage() {
   // Loading state
   if (isLoading) {
     return (
-      <div className="min-h-full p-6">
+      <div className="min-h-full p-6 bg-gradient-to-br from-violet-50/50 via-white to-purple-50/40 dark:from-slate-950 dark:via-background dark:to-slate-950">
         <Loader text="Loading Your Daily Plan" className="py-32" />
       </div>
     );
@@ -188,7 +188,7 @@ function DailyAskPage() {
   // Generating state
   if (isGenerating) {
     return (
-      <div className="p-4 md:p-6 space-y-5">
+      <div className="p-4 md:p-6 space-y-5 min-h-full bg-gradient-to-br from-violet-50/50 via-white to-purple-50/40 dark:from-slate-950 dark:via-background dark:to-slate-950">
         <PageHeader
           title="Daily Suggestions"
           subtitle="Your daily action plan"
@@ -196,7 +196,7 @@ function DailyAskPage() {
         <div className="flex flex-col items-center justify-center py-20">
           <Sparkles size={48} className="animate-spin text-pink-600 mb-4" />
           <p className="text-lg font-semibold text-gray-900 dark:text-slate-100">Generating tasks...</p>
-          <p className="text-sm text-gray-600 mt-2">Creating your personalized action plan</p>
+          <p className="text-sm text-gray-600 dark:text-slate-400 mt-2">Creating your personalized action plan</p>
         </div>
       </div>
     );
@@ -205,17 +205,17 @@ function DailyAskPage() {
   // No tasks state
   if (tasks.length === 0 && !error) {
     return (
-      <div className="p-4 md:p-6 space-y-5">
+      <div className="p-4 md:p-6 space-y-5 min-h-full bg-gradient-to-br from-violet-50/50 via-white to-purple-50/40 dark:from-slate-950 dark:via-background dark:to-slate-950">
         <PageHeader
           title="Daily Suggestions"
           subtitle="Your daily action plan"
         />
         <div className="flex flex-col items-center justify-center py-20">
-          <div className="h-20 w-20 rounded-full bg-pink-100 flex items-center justify-center mb-6">
-            <Sparkles size={40} className="text-pink-600 animate-pulse" />
+          <div className="h-20 w-20 rounded-full bg-pink-100 dark:bg-pink-950/30 flex items-center justify-center mb-6">
+            <Sparkles size={40} className="text-pink-600 dark:text-pink-400 animate-pulse" />
           </div>
           <h2 className="text-2xl font-bold text-gray-900 mb-2 dark:text-slate-100">Generating Your Tasks...</h2>
-          <p className="text-gray-600 mb-6 text-center max-w-md">
+          <p className="text-gray-600 dark:text-slate-400 mb-6 text-center max-w-md">
             We're creating personalized tasks based on your business profile.
           </p>
         </div>
@@ -226,15 +226,15 @@ function DailyAskPage() {
   // Error state
   if (error) {
     return (
-      <div className="p-4 md:p-6 space-y-5">
+      <div className="p-4 md:p-6 space-y-5 min-h-full bg-gradient-to-br from-violet-50/50 via-white to-purple-50/40 dark:from-slate-950 dark:via-background dark:to-slate-950">
         <PageHeader
           title="Daily Suggestions"
           subtitle="Your daily action plan"
         />
-        <div className="bg-red-50 border-red-200 border rounded-lg p-6 text-center">
-          <AlertCircle size={48} className="mx-auto text-red-600 mb-4" />
-          <p className="text-lg font-semibold text-red-900 mb-2">Failed to Load Tasks</p>
-          <p className="text-red-700 mb-4">{error}</p>
+        <div className="bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-900/50 border rounded-lg p-6 text-center">
+          <AlertCircle size={48} className="mx-auto text-red-600 dark:text-red-400 mb-4" />
+          <p className="text-lg font-semibold text-red-900 dark:text-red-300 mb-2">Failed to Load Tasks</p>
+          <p className="text-red-700 dark:text-red-400 mb-4">{error}</p>
           <Button variant="hero" onClick={loadTasks}>
             <RefreshCw size={16} />
             Try Again
@@ -246,7 +246,7 @@ function DailyAskPage() {
 
   // Success state - show daily tasks
   return (
-    <div className="min-h-full bg-gradient-to-br from-violet-50/50 via-white to-purple-50/40 relative overflow-hidden">
+    <div className="min-h-full bg-gradient-to-br from-violet-50/50 via-white to-purple-50/40 dark:from-slate-950 dark:via-background dark:to-slate-950 relative overflow-hidden">
       {/* Animated Background Particles */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {[...Array(20)].map((_, i) => (
@@ -274,7 +274,7 @@ function DailyAskPage() {
 
       {/* Premium Header */}
       <div className="relative z-20 px-4 md:px-8 pt-4 md:sticky md:top-0">
-        <div className="relative overflow-hidden rounded-2xl border border-purple-100/60 bg-white/80 shadow-lg shadow-purple-500/5 backdrop-blur-xl">
+        <div className="relative overflow-hidden rounded-2xl border border-purple-100/60 dark:border-slate-800/80 bg-white/80 dark:bg-slate-900/80 shadow-lg shadow-purple-500/5 backdrop-blur-xl">
           {/* Animated gradient line */}
           <motion.div
             className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-purple-500 to-transparent"
@@ -310,12 +310,12 @@ function DailyAskPage() {
               >
                 Daily Suggestions
               </motion.h1>
-              <div className="text-sm text-gray-600 flex items-center gap-2 mt-1">
+              <div className="text-sm text-gray-600 dark:text-slate-400 flex items-center gap-2 mt-1">
                 <motion.div
                   animate={{ scale: [1, 1.2, 1] }}
                   transition={{ duration: 2, repeat: Infinity }}
                 >
-                  <Calendar size={14} className="text-purple-600" />
+                  <Calendar size={14} className="text-purple-600 dark:text-purple-400" />
                 </motion.div>
                 <span>Your personalized action plan for today</span>
               </div>
@@ -328,7 +328,7 @@ function DailyAskPage() {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.5 }}
-                className="shrink-0 p-3 rounded-xl bg-white hover:bg-purple-50 border-2 border-purple-200/60 hover:border-purple-400 shadow-sm hover:shadow-lg transition-all duration-300 disabled:opacity-50 relative overflow-hidden group dark:bg-slate-900"
+                className="shrink-0 p-3 rounded-xl bg-white hover:bg-purple-50 border-2 border-purple-200/60 hover:border-purple-400 shadow-sm hover:shadow-lg transition-all duration-300 disabled:opacity-50 relative overflow-hidden group dark:bg-slate-900 dark:hover:bg-slate-800 dark:border-slate-800/80 dark:hover:border-purple-500/40"
                 title="Refresh tasks"
               >
                 {/* Button glow effect */}
@@ -358,9 +358,9 @@ function DailyAskPage() {
             animate={{ opacity: 1, y: 0 }}
             whileHover={{ y: -4, scale: 1.01 }}
             transition={{ duration: 0.3 }}
-            className="bg-white/95 backdrop-blur-md rounded-2xl border border-purple-100/50 shadow-xl shadow-purple-500/5 hover:shadow-2xl hover:shadow-purple-500/20 transition-all duration-500 overflow-hidden group"
+            className="bg-white/95 backdrop-blur-md dark:bg-slate-900/95 rounded-2xl border border-purple-100/50 dark:border-slate-800/80 shadow-xl shadow-purple-500/5 hover:shadow-2xl hover:shadow-purple-500/20 transition-all duration-500 overflow-hidden group"
           >
-            <div className="px-6 py-4 border-b border-purple-50/80 bg-gradient-to-r from-purple-50/30 via-transparent to-fuchsia-50/30">
+            <div className="px-6 py-4 border-b border-purple-50/80 dark:border-slate-800/50 bg-gradient-to-r from-purple-50/30 via-transparent to-fuchsia-50/30 dark:from-purple-950/10 dark:via-transparent dark:to-fuchsia-950/10">
               <div className="flex items-center gap-3">
                 <motion.div 
                   className="p-2 bg-gradient-to-br from-purple-500 to-fuchsia-500 rounded-xl shadow-lg shadow-purple-500/30"
@@ -378,7 +378,7 @@ function DailyAskPage() {
                 </motion.div>
                 <div>
                   <h3 className="font-bold text-base text-gray-900 dark:text-slate-100">Today's Progress</h3>
-                  <p className="text-xs text-gray-600">{completedCount} of {totalTasks} tasks completed</p>
+                  <p className="text-xs text-gray-600 dark:text-slate-400">{completedCount} of {totalTasks} tasks completed</p>
                 </div>
               </div>
             </div>
@@ -398,7 +398,7 @@ function DailyAskPage() {
                   >
                     {Math.round(progressPercentage)}%
                   </motion.div>
-                  <div className="text-xs text-gray-600 mt-0.5">Complete</div>
+                  <div className="text-xs text-gray-600 dark:text-slate-400 mt-0.5">Complete</div>
                 </motion.div>
                 <div className="flex items-center gap-6">
                   <motion.div 
@@ -408,7 +408,7 @@ function DailyAskPage() {
                     transition={{ delay: 0.4 }}
                   >
                     <div className="text-xl font-bold text-gray-900 dark:text-slate-100">{completedCount}</div>
-                    <div className="text-xs text-gray-600">Done</div>
+                    <div className="text-xs text-gray-600 dark:text-slate-400">Done</div>
                   </motion.div>
                   <motion.div 
                     className="text-center"
@@ -416,12 +416,12 @@ function DailyAskPage() {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.5 }}
                   >
-                    <div className="text-xl font-bold text-gray-400">{totalTasks - completedCount}</div>
-                    <div className="text-xs text-gray-600">Pending</div>
+                    <div className="text-xl font-bold text-gray-400 dark:text-gray-500">{totalTasks - completedCount}</div>
+                    <div className="text-xs text-gray-600 dark:text-slate-400">Pending</div>
                   </motion.div>
                 </div>
               </div>
-              <div className="relative w-full bg-gradient-to-r from-gray-100 to-purple-50 rounded-full h-3 overflow-hidden shadow-inner">
+              <div className="relative w-full bg-gradient-to-r from-gray-100 to-purple-50 dark:from-slate-800 dark:to-slate-900 rounded-full h-3 overflow-hidden shadow-inner">
                 <motion.div
                   initial={{ width: 0 }}
                   animate={{ width: `${progressPercentage}%` }}
@@ -500,7 +500,7 @@ function DailyAskPage() {
                 >
                   Daily Actions
                 </motion.h3>
-                <p className="text-sm text-gray-600">Check off tasks as you complete them</p>
+                <p className="text-sm text-gray-600 dark:text-slate-400">Check off tasks as you complete them</p>
               </div>
             </div>
             
@@ -530,8 +530,8 @@ function DailyAskPage() {
                       onClick={() => toggleTask(task.id, task.is_completed)}
                       className={`group flex flex-col gap-3 p-5 rounded-xl border-2 cursor-pointer transition-all duration-300 relative overflow-hidden ${
                         isCompleted
-                          ? "bg-gradient-to-br from-emerald-50 to-teal-50 border-emerald-200/60 shadow-sm"
-                          : "bg-white/95 backdrop-blur-md border-purple-100/60 hover:border-purple-300 hover:bg-gradient-to-br hover:from-purple-50/50 hover:to-fuchsia-50/50 hover:shadow-2xl hover:shadow-purple-500/20"
+                          ? "bg-gradient-to-br from-emerald-50 to-teal-50 border-emerald-200/60 shadow-sm dark:from-emerald-950/20 dark:to-teal-950/20 dark:border-emerald-800/50"
+                          : "bg-white/95 backdrop-blur-md border-purple-100/60 hover:border-purple-300 hover:bg-gradient-to-br hover:from-purple-50/50 hover:to-fuchsia-50/50 hover:shadow-2xl hover:shadow-purple-500/20 dark:bg-slate-900/95 dark:border-slate-800/80 dark:hover:border-purple-500/50 dark:hover:from-purple-950/30 dark:hover:to-fuchsia-950/30"
                       } ${completing === task.id ? "opacity-50" : ""}`}
                       style={{ transformStyle: "preserve-3d" }}
                     >
@@ -601,11 +601,11 @@ function DailyAskPage() {
                               </motion.div>
                             </div>
                           ) : (
-                            <Circle size={22} className="text-gray-300 group-hover:text-purple-400 transition-colors" />
+                            <Circle size={22} className="text-gray-300 dark:text-slate-600 group-hover:text-purple-400 transition-colors" />
                           )}
                         </motion.div>
                         <motion.span 
-                          className="inline-flex items-center gap-1 text-xs font-bold px-3 py-1.5 rounded-full bg-gradient-to-r from-purple-100 to-fuchsia-100 text-purple-700 border border-purple-200/60 shadow-sm shrink-0 relative overflow-hidden"
+                          className="inline-flex items-center gap-1 text-xs font-bold px-3 py-1.5 rounded-full bg-gradient-to-r from-purple-100 to-fuchsia-100 text-purple-700 border border-purple-200/60 dark:from-purple-900/40 dark:to-fuchsia-900/40 dark:text-purple-300 dark:border-purple-800/50 shadow-sm shrink-0 relative overflow-hidden"
                           whileHover={{ scale: 1.15, rotate: -5 }}
                           animate={isCompleted ? { 
                             scale: [1, 1.3, 1],
@@ -634,7 +634,7 @@ function DailyAskPage() {
                       <div className="flex-1 min-w-0 relative z-10">
                         <motion.p
                           className={`text-base font-semibold leading-relaxed mb-2 ${
-                            isCompleted ? "text-gray-500 line-through" : "text-gray-900"
+                            isCompleted ? "text-gray-500 dark:text-slate-500 line-through" : "text-gray-900 dark:text-slate-100"
                           }`}
                           animate={isCompleted ? { 
                             opacity: [1, 0.7, 1],
@@ -647,7 +647,7 @@ function DailyAskPage() {
                         {task.description && (
                           <p
                             className={`text-sm leading-relaxed mb-3 ${
-                              isCompleted ? "text-gray-400" : "text-gray-600"
+                              isCompleted ? "text-gray-400 dark:text-slate-500" : "text-gray-600 dark:text-slate-300"
                             }`}
                           >
                             {task.description}
@@ -658,12 +658,12 @@ function DailyAskPage() {
                       {/* Footer with category and time */}
                       <div className="flex items-center gap-2 flex-wrap pt-2 border-t border-purple-100/50 relative z-10">
                         <motion.span 
-                          className="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1 rounded-lg bg-gradient-to-r from-purple-50 to-fuchsia-50 text-purple-700 border border-purple-200/60"
+                          className="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1 rounded-lg bg-gradient-to-r from-purple-50 to-fuchsia-50 text-purple-700 border border-purple-200/60 dark:from-purple-950/40 dark:to-fuchsia-950/40 dark:text-purple-300 dark:border-purple-850/50"
                           whileHover={{ scale: 1.1, y: -2 }}
                         >
                           {task.category}
                         </motion.span>
-                        <span className="inline-flex items-center gap-1 text-xs text-gray-600">
+                        <span className="inline-flex items-center gap-1 text-xs text-gray-600 dark:text-slate-400">
                           <Clock size={12} />
                           ~{task.estimated_minutes} min
                         </span>
@@ -683,7 +683,7 @@ function DailyAskPage() {
             animate={{ opacity: 1, scale: 1 }}
             whileHover={{ scale: 1.02, y: -4 }}
             transition={{ type: "spring", stiffness: 200 }}
-            className="bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-50 rounded-2xl border border-emerald-200/60 shadow-xl shadow-emerald-500/10 hover:shadow-2xl hover:shadow-emerald-500/20 p-6 transition-all duration-500"
+            className="bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-50 rounded-2xl border border-emerald-200/60 dark:border-emerald-800/50 shadow-xl shadow-emerald-500/10 hover:shadow-2xl hover:shadow-emerald-500/20 p-6 transition-all duration-500 dark:from-emerald-950/10 dark:via-teal-950/10 dark:to-emerald-950/10"
           >
             <div className="flex items-start gap-4">
               <div className="relative">
@@ -739,7 +739,7 @@ function DailyAskPage() {
           animate={{ opacity: 1, y: 0 }}
           whileHover={{ y: -4, scale: 1.01 }}
           transition={{ delay: 0.2, duration: 0.3 }}
-          className="bg-gradient-to-r from-purple-50 via-fuchsia-50 to-purple-50 rounded-2xl border border-purple-200/60 shadow-xl shadow-purple-500/10 hover:shadow-2xl hover:shadow-purple-500/20 p-6 transition-all duration-500"
+          className="bg-gradient-to-r from-purple-50 via-fuchsia-50 to-purple-50 rounded-2xl border border-purple-200/60 dark:border-purple-800/50 shadow-xl shadow-purple-500/10 hover:shadow-2xl hover:shadow-purple-500/20 p-6 transition-all duration-500 dark:from-purple-950/10 dark:via-fuchsia-950/10 dark:to-purple-950/10"
         >
           <div className="flex items-start gap-4">
             <div className="relative">

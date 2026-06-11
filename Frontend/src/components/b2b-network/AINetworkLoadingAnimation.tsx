@@ -115,7 +115,7 @@ export function AINetworkLoadingAnimation() {
   };
 
   return (
-    <div className="relative flex-1 w-full flex flex-col items-center justify-center bg-gradient-to-br from-gray-50 via-purple-50/30 to-pink-50/30 dark:from-gray-950 dark:via-purple-950/30 dark:to-pink-950/30 overflow-hidden min-h-[500px]">
+    <div className="absolute inset-0 z-40 flex flex-col items-center justify-center bg-gradient-to-br from-gray-50 via-purple-50/30 to-pink-50/30 dark:from-gray-950 dark:via-purple-950/30 dark:to-pink-950/30 overflow-hidden">
       {/* Animated Background Grid */}
       <div className="absolute inset-0 opacity-20 dark:opacity-10">
         <svg className="w-full h-full">
@@ -483,7 +483,7 @@ export function AINetworkLoadingAnimation() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="mt-12 text-center z-10"
+        className="absolute bottom-8 md:bottom-12 left-0 right-0 text-center z-10 px-4"
       >
         <motion.div
           animate={{
@@ -536,74 +536,6 @@ export function AINetworkLoadingAnimation() {
           ))}
         </div>
       </motion.div>
-
-      {/* Stats Counter */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.5 }}
-        className="mt-8 flex items-center gap-8 z-10"
-      >
-        <div className="text-center">
-          <motion.div
-            className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600"
-            animate={{ opacity: [0.5, 1, 0.5] }}
-            transition={{ duration: 2, repeat: Infinity }}
-          >
-            <CountUp end={150} duration={2} />+
-          </motion.div>
-          <div className="text-sm text-gray-600 dark:text-gray-400">Businesses</div>
-        </div>
-
-        <div className="text-center">
-          <motion.div
-            className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-blue-600"
-            animate={{ opacity: [0.5, 1, 0.5] }}
-            transition={{ duration: 2, repeat: Infinity, delay: 0.3 }}
-          >
-            <CountUp end={12} duration={2} />+
-          </motion.div>
-          <div className="text-sm text-gray-600 dark:text-gray-400">Categories</div>
-        </div>
-
-        <div className="text-center">
-          <motion.div
-            className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-600 to-red-600"
-            animate={{ opacity: [0.5, 1, 0.5] }}
-            transition={{ duration: 2, repeat: Infinity, delay: 0.6 }}
-          >
-            <CountUp end={50} duration={2} />km
-          </motion.div>
-          <div className="text-sm text-gray-600 dark:text-gray-400">Radius</div>
-        </div>
-      </motion.div>
     </div>
   );
-}
-
-// Simple count-up animation component
-function CountUp({ end, duration }: { end: number; duration: number }) {
-  const [count, setCount] = useState(0);
-
-  useEffect(() => {
-    let startTime: number;
-    let animationFrame: number;
-
-    const animate = (timestamp: number) => {
-      if (!startTime) startTime = timestamp;
-      const progress = Math.min((timestamp - startTime) / (duration * 1000), 1);
-      
-      setCount(Math.floor(progress * end));
-
-      if (progress < 1) {
-        animationFrame = requestAnimationFrame(animate);
-      }
-    };
-
-    animationFrame = requestAnimationFrame(animate);
-
-    return () => cancelAnimationFrame(animationFrame);
-  }, [end, duration]);
-
-  return <span>{count}</span>;
 }

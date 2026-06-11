@@ -10,13 +10,14 @@ from fastapi import FastAPI
 from fastapi import Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+# Load environment variables first from the backend workspace
+import os
+os.environ["OAUTHLIB_RELAX_TOKEN_SCOPE"] = "1"
 from dotenv import load_dotenv
 import socketio
 from middleware.asgi_protocol_middleware import ProtocolSafeASGI
 from sqlalchemy import inspect, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
-
-# Load environment variables first from the backend workspace
 load_dotenv(Path(__file__).resolve().parent / ".env")
 
 # Configure logging early
@@ -1034,7 +1035,7 @@ if task_tracking_available:
     app.include_router(task_tracking_router)
     logging.info("✅ Task Tracking router included in app")
 if voice_agent_available:
-    app.include_router(voice_agent_router)
+    app.include_router(voice_agent_router, prefix="/api")
     logging.info("✅ Voice Agent router included in app")
 if voice_agent_v2_available:
     app.include_router(voice_agent_v2_router)

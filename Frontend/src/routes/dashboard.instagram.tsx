@@ -45,6 +45,7 @@ import {
   Wand2,
   BarChart3,
   TrendingUp,
+  RefreshCw,
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { apiClient } from "@/lib/api";
@@ -96,6 +97,7 @@ function InstagramPage() {
   });
   const [showConnectionWizard, setShowConnectionWizard] = useState(false);
   const [connectionLoading, setConnectionLoading] = useState(true);
+  const [connectionError, setConnectionError] = useState<string | null>(null);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [showSuccessPage, setShowSuccessPage] = useState(false);
   
@@ -223,8 +225,10 @@ function InstagramPage() {
   }, []);
 
   const checkConnectionStatus = async () => {
+    const startTime = Date.now();
     try {
       setConnectionLoading(true);
+      setConnectionError(null);
       const data = await apiClient.getInstagramStatus();
       setConnectionStatus(data);
       
@@ -236,10 +240,23 @@ function InstagramPage() {
         // Load AI settings
         loadAISettings();
       }
-    } catch (error) {
+    } catch (error: any) {
+      if (error?.message?.includes("aborted") || error?.name === "AbortError") {
+        console.log("ℹ️ Instagram connection check request was aborted. Ignoring.");
+        return;
+      }
       console.error("Failed to check Instagram connection:", error);
+      setConnectionError(
+        error?.message || "Failed to check Instagram connection status. Please verify the backend is running."
+      );
       setConnectionStatus({ is_connected: false, connection_error: "Failed to check connection" });
     } finally {
+      // Ensure minimum loading duration of 800ms
+      const elapsedTime = Date.now() - startTime;
+      const remainingTime = Math.max(0, 800 - elapsedTime);
+      if (remainingTime > 0) {
+        await new Promise((resolve) => setTimeout(resolve, remainingTime));
+      }
       setConnectionLoading(false);
     }
   };
@@ -727,6 +744,42 @@ function InstagramPage() {
   // Show full-page loader while checking connection status
   if (connectionLoading) {
     return <InstagramLoader />;
+  }
+
+  // Show connection error screen if check failed (e.g. backend offline)
+  if (connectionError) {
+    return (
+      <div className="p-4 md:p-6 lg:p-8 space-y-6 w-full max-w-5xl mx-auto flex flex-col justify-center min-h-[70vh]">
+        <PageHeader
+          title="Instagram"
+          subtitle="Manage your Instagram business account, publish posts, and view live analytics."
+        />
+        <Card className="border border-red-200/50 dark:border-red-950/40 shadow-xl max-w-xl mx-auto w-full overflow-hidden bg-white/70 dark:bg-slate-950/40 backdrop-blur-sm">
+          <div className="h-2 bg-gradient-to-r from-red-600 to-orange-600" />
+          <CardContent className="py-12 px-6 md:px-10 text-center flex flex-col items-center">
+            <div className="w-16 h-16 rounded-2xl bg-red-50 dark:bg-red-950/20 flex items-center justify-center mb-6 shadow-inner ring-4 ring-red-50/50 dark:ring-red-900/30">
+              <AlertCircle className="w-9 h-9 text-red-500 animate-pulse" />
+            </div>
+
+            <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-3 tracking-tight">
+              Connection Check Failed
+            </h2>
+
+            <p className="text-sm text-slate-600 dark:text-slate-400 mb-8 max-w-sm leading-relaxed">
+              {connectionError}
+            </p>
+
+            <Button
+              onClick={checkConnectionStatus}
+              className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-medium rounded-xl shadow-lg px-8 py-6 text-base transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
+            >
+              <RefreshCw className="w-5 h-5 mr-2" />
+              Retry Connection Check
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   // Show success page after connection

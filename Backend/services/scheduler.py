@@ -256,7 +256,8 @@ def process_scheduled_youtube_videos():
                         description=video.description or "",
                         tags=video.tags,
                         category_id=video.category_id or "22",
-                        privacy_status=video.privacy_status or "public"
+                        privacy_status=video.privacy_status or "public",
+                        refresh_token=account.refresh_token
                     ))
                     
                     if upload_res.get("success"):

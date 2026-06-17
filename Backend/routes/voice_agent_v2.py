@@ -923,3 +923,73 @@ async def get_dashboard_stats(
         )
 
 
+@router.get("/stats")
+async def get_voice_agent_stats(
+    db: Session = Depends(get_db_sync)
+):
+    """Get aggregated voice agent stats from the database"""
+    try:
+        from sqlalchemy import text
+        total_calls = db.execute(text("SELECT COUNT(*) FROM voice_calls")).scalar() or 0
+        active_users = db.execute(text("SELECT COUNT(DISTINCT user_id) FROM voice_campaigns")).scalar() or 0
+        avg_duration_sec = db.execute(text("SELECT COALESCE(AVG(duration), 0) FROM voice_calls WHERE duration > 0")).scalar() or 0
+        
+        avg_minutes = int(avg_duration_sec // 60)
+        avg_seconds = int(avg_duration_sec % 60)
+        avg_duration_str = f"{avg_minutes}m {avg_seconds}s" if avg_minutes > 0 else f"{avg_seconds}s"
+        
+        completed_calls = db.execute(text("SELECT COUNT(*) FROM voice_calls WHERE LOWER(CAST(status AS VARCHAR)) = 'completed'")).scalar() or 0
+        success_rate = f"{int(completed_calls / total_calls * 100)}%" if total_calls > 0 else "0%"
+        
+        return {
+            "total_calls": total_calls,
+            "active_users": active_users,
+            "avg_duration": avg_duration_str,
+            "success_rate": success_rate
+        }
+    except Exception as e:
+        logger.error(f"❌ Failed to fetch voice agent stats: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/calls")
+async def get_recent_calls(
+    db: Session = Depends(get_db_sync)
+):
+    """Get list of recent voice calls across all campaigns"""
+    try:
+        from sqlalchemy import text
+        query = text("""
+            SELECT 
+                COALESCE(vco.name, vc.phone_number) AS recipient,
+                vc.status AS status,
+                vc.created_at AS created_at,
+                u.email AS user_email
+            FROM voice_calls vc
+            LEFT JOIN voice_contacts vco ON vc.contact_id = vco.id
+            JOIN voice_campaigns vcp ON vc.campaign_id = vcp.id
+            JOIN users u ON vcp.user_id = u.id
+            ORDER BY vc.created_at DESC
+            LIMIT 50
+        """)
+        result = db.execute(query).fetchall()
+        
+        calls = []
+        for row in result:
+            status_obj = row._mapping["status"]
+            status_str = str(status_obj.value) if hasattr(status_obj, "value") else str(status_obj)
+            
+            calls.append({
+                "recipient": row._mapping["recipient"],
+                "status": status_str.lower() if status_str else "pending",
+                "created_at": row._mapping["created_at"].isoformat() if row._mapping["created_at"] else None,
+                "user_email": row._mapping["user_email"]
+            })
+            
+        return calls
+    except Exception as e:
+        logger.error(f"❌ Failed to fetch recent calls: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+

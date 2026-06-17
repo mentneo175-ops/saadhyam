@@ -18,7 +18,9 @@ import socketio
 from middleware.asgi_protocol_middleware import ProtocolSafeASGI
 from sqlalchemy import inspect, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
-load_dotenv(Path(__file__).resolve().parent / ".env")
+
+# Load environment variables first from the backend workspace
+load_dotenv(Path(__file__).resolve().parent / ".env", override=True)
 
 # Configure logging early
 from config.logging_config import configure_logging
@@ -413,8 +415,13 @@ except Exception as e:
     voice_agent_available = False
 
 try:
-    voice_agent_v2_available = False
+    from routes.voice_agent_v2 import router as voice_agent_v2_router
+    voice_agent_v2_available = True
+    logging.info("✅ Voice Agent V2 router imported successfully")
 except Exception as e:
+    logging.error(f"❌ Voice Agent V2 router not available: {e}")
+    logging.error(f"❌ Error type: {type(e).__name__}")
+    logging.error(f"❌ Full traceback:", exc_info=True)
     voice_agent_v2_available = False
 
 try:
@@ -1170,8 +1177,9 @@ async def list_routes():
 
 @app.get("/api/features/public", tags=["Health"])
 async def get_public_features():
-    """Mock public feature flags endpoint to avoid frontend 404 errors"""
-    return []
+    """Returns actual cached feature flags fetched from the admin service"""
+    from feature_flags import FEATURE_CACHE
+    return list(FEATURE_CACHE.values())
 
 
 
@@ -1241,6 +1249,14 @@ async def api_broadcast_notification(payload: dict, db: AsyncSession = Depends(g
                 "extra_data": notification_row.extra_data,
             },
         )
+
+    try:
+        from feature_flags import fetch_features_once
+        import asyncio
+        asyncio.create_task(fetch_features_once(timeout=3))
+    except Exception as e:
+        import logging
+        logging.getLogger("main").warning(f"Failed to trigger feature flags refresh on broadcast: {e}")
 
     return {"ok": True, "delivered_to": len(persisted_notifications)}
 

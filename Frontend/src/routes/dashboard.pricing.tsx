@@ -230,7 +230,7 @@ function PricingPlansPage() {
       <div className="space-y-4">
         {/* Current user plan summary and quick upgrade action */}
         <CurrentPlanSummary plans={plans} />
-        <div className="grid gap-4 lg:grid-cols-4 md:grid-cols-2">
+        <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-5">
           {plans.map((plan) => {
             const hasActivePlan = !!user?.selected_plan_key;
             const isCurrentPlan = hasActivePlan && currentKey === plan.key;
@@ -242,7 +242,7 @@ function PricingPlansPage() {
                 className={`rounded-3xl border p-5 shadow-sm transition-all ${
                   isCurrentPlan
                     ? "border-purple-300 bg-gradient-to-br from-purple-50 via-white to-fuchsia-50 ring-2 ring-purple-200 shadow-lg"
-                    : plan.key === "education" || plan.key === "business"
+                    : plan.key === "education" || plan.key === "business" || plan.key === "enterprise"
                       ? "border-purple-200 bg-white ring-1 ring-purple-100"
                       : "border-border/60 bg-card"
                 }`}

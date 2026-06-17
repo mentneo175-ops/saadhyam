@@ -49,10 +49,24 @@ export function FeatureDisabledBanner() {
     : "This feature";
 
   const featureRowName = {
+    assistant: "AI Assistant",
     website_ai: "Website AI",
     content_scheduler: "Content creator",
     voice_agent: "AI Voice Agent",
     aeo_geo: "Google Hub",
+    instagram_manager: "Instagram tools",
+    whatsapp_campaigns: "WhatsApp Sales",
+    b2b_network: "B2B Network",
+    meta_ads: "Meta ads",
+    business_analysis: "Business analysis",
+    competitor_analysis: "Competitor analysis",
+    daily_suggestions: "Daily suggestions",
+    reports_insights: "Reports & insights",
+    radar_ai: "Radar AI",
+    ai_agents: "AI Agents",
+    youtube_manager: "YouTube tools",
+    review_reply: "Review Reply",
+    plugins_store: "Plugins Store",
   }[String(blocked.feature_key || "").toLowerCase()] || featureName;
 
   const upgradePlans = isMaintenance ? [] : getUpgradePlansForFeature(featureRowName, currentPlanKey);

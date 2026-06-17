@@ -1,7 +1,8 @@
 import { Link, useLocation } from "@tanstack/react-router";
 import { Logo } from "@/components/brand/Logo";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSidebar } from "@/contexts/SidebarContext";
+import { getAdminApiBaseUrl } from "@/lib/runtimeUrls";
 import {
   LayoutDashboard,
   CheckSquare,
@@ -37,6 +38,7 @@ import {
   LifeBuoy,
   Radio,
   Puzzle,
+  Lock,
 } from "lucide-react";
 
 type SubNavItem = {
@@ -85,10 +87,56 @@ const items: NavItem[] = [
   { to: "/dashboard/support", label: "Support", icon: LifeBuoy },
 ];
 
+function getFeatureKeyFromPath(pathname: string): string | null {
+  const path = pathname.toLowerCase();
+  if (path.includes("/dashboard/website")) return "website_ai";
+  if (path.includes("/dashboard/content")) return "content_scheduler";
+  if (path.includes("/dashboard/voice-agent")) return "voice_agent";
+  if (path.includes("/dashboard/aeo-geo") || path.includes("/dashboard/seo") || path.includes("/dashboard/seo-google-maps")) return "aeo_geo";
+  if (path.includes("/dashboard/instagram")) return "instagram_manager";
+  if (path.includes("/dashboard/whatsapp")) return "whatsapp_campaigns";
+  if (path.includes("/dashboard/b2b-network") || path.includes("/dashboard/b2b-chat")) return "b2b_network";
+  if (path.includes("/dashboard/meta-ads")) return "meta_ads";
+  if (path.includes("/dashboard/business-analysis")) return "business_analysis";
+  if (path.includes("/dashboard/competitor-analysis")) return "competitor_analysis";
+  if (path.includes("/dashboard/daily-ask")) return "daily_suggestions";
+  if (path.includes("/dashboard/radar")) return "radar_ai";
+  if (path.includes("/dashboard/agents")) return "ai_agents";
+  if (path.includes("/dashboard/youtube")) return "youtube_manager";
+  if (path.includes("/dashboard/review-reply")) return "review_reply";
+  if (path.includes("/dashboard/plugins")) return "plugins_store";
+  if (path.includes("/dashboard/reports") || path.includes("/dashboard/insights") || path.includes("/dashboard/growth")) return "reports_insights";
+  if (path.includes("/dashboard/assistant")) return "assistant";
+  return null;
+}
+
 export function Sidebar() {
   const { pathname } = useLocation();
   const { isMinimized, toggleMinimized, isMobileMenuOpen, setIsMobileMenuOpen, toggleMobileMenu } = useSidebar();
   const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({ "Social Media": true });
+  const [features, setFeatures] = useState<any[]>([]);
+
+  useEffect(() => {
+    let active = true;
+    const fetchFlags = async () => {
+      try {
+        const adminUrl = getAdminApiBaseUrl();
+        const res = await fetch(`${adminUrl}/api/features/public`);
+        if (res.ok && active) {
+          const flags = await res.json();
+          setFeatures(flags);
+        }
+      } catch (err) {
+        console.error("Failed to fetch public feature flags in Sidebar", err);
+      }
+    };
+    fetchFlags();
+    const interval = setInterval(fetchFlags, 15000);
+    return () => {
+      active = false;
+      clearInterval(interval);
+    };
+  }, []);
 
   const closeMobileMenu = () => setIsMobileMenuOpen(false);
 
@@ -137,19 +185,47 @@ export function Sidebar() {
               {item.children.map((child) => {
                 const childActive = pathname === child.to || pathname.startsWith(child.to + "/");
                 const ChildIcon = child.icon;
+
+                // CHECK FEATURE GATING
+                const routeKey = child.to ? getFeatureKeyFromPath(child.to) : null;
+                const featureFlag = routeKey ? features.find(f => f.key === routeKey) : null;
+                const isBlocked = featureFlag && featureFlag.status !== "enabled";
+
+                const handleChildClick = (e: React.MouseEvent) => {
+                  if (isBlocked) {
+                    e.preventDefault();
+                    window.dispatchEvent(new CustomEvent("feature-blocked", {
+                      detail: {
+                        feature_key: routeKey,
+                        mode: featureFlag.status,
+                        detail: featureFlag.reason || `This feature is currently ${featureFlag.status}.`
+                      }
+                    }));
+                  } else {
+                    closeMobileMenu();
+                  }
+                };
+
                 return (
                   <Link
                     key={child.to}
                     to={child.to as "/dashboard"}
-                    onClick={closeMobileMenu}
-                    className={`flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+                    onClick={handleChildClick}
+                    className={`flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium transition-all relative group/item ${
                       childActive
                         ? "bg-gradient-to-r from-[#8B5CF6] to-[#A855F7] text-white shadow-md shadow-purple-500/10 font-semibold"
+                        : isBlocked
+                        ? "text-gray-400 dark:text-gray-600 cursor-not-allowed hover:bg-amber-500/5 hover:text-amber-600"
                         : "text-gray-600 dark:text-gray-400 hover:bg-purple-50/50 dark:hover:bg-purple-900/20 hover:text-purple-700 dark:hover:text-purple-400"
                     }`}
                   >
-                    <ChildIcon size={14} className={childActive ? "text-white" : "text-gray-400"} />
-                    <span>{child.label}</span>
+                    <ChildIcon size={14} className={childActive ? "text-white" : isBlocked ? "text-gray-400 dark:text-gray-600" : "text-gray-400"} />
+                    <span className="flex-1 truncate">{child.label}</span>
+                    {isBlocked && (
+                      <span className="shrink-0 flex items-center justify-center p-0.5 rounded bg-amber-500/10 text-amber-500 border border-amber-500/20 group-hover/item:bg-amber-500/15 group-hover/item:text-amber-600 group-hover/item:border-amber-500/35 transition-colors">
+                        <Lock size={10} />
+                      </span>
+                    )}
                   </Link>
                 );
               })}
@@ -163,26 +239,54 @@ export function Sidebar() {
       ? pathname === item.to
       : pathname === item.to || (item.to && pathname.startsWith(item.to + "/"));
     
+    // CHECK FEATURE GATING
+    const routeKey = item.to ? getFeatureKeyFromPath(item.to) : null;
+    const featureFlag = routeKey ? features.find(f => f.key === routeKey) : null;
+    const isBlocked = featureFlag && featureFlag.status !== "enabled";
+
+    const handleClick = (e: React.MouseEvent) => {
+      if (isBlocked) {
+        e.preventDefault();
+        window.dispatchEvent(new CustomEvent("feature-blocked", {
+          detail: {
+            feature_key: routeKey,
+            mode: featureFlag.status,
+            detail: featureFlag.reason || `This feature is currently ${featureFlag.status}.`
+          }
+        }));
+      } else {
+        closeMobileMenu();
+      }
+    };
+
     return (
       <Link
         key={item.to}
         to={item.to as "/dashboard"}
-        onClick={closeMobileMenu}
+        onClick={handleClick}
         className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all group relative ${
           active
             ? "bg-gradient-to-r from-[#8B5CF6] to-[#A855F7] text-white shadow-lg shadow-purple-500/20"
+            : isBlocked
+            ? "text-gray-400 dark:text-gray-600 cursor-not-allowed hover:bg-amber-500/5 hover:text-amber-600"
             : "text-gray-700 dark:text-gray-300 hover:bg-[#F9F7FF] dark:hover:bg-purple-900/20 hover:text-purple-700 dark:hover:text-purple-400"
         } ${isMinimized ? 'justify-center' : ''}`}
         title={isMinimized ? item.label : undefined}
       >
         <Icon
           size={18}
-          className={active ? "text-white" : "text-gray-400 dark:text-gray-500 group-hover:text-purple-600 dark:group-hover:text-purple-400"}
+          className={active ? "text-white" : isBlocked ? "text-gray-400 dark:text-gray-600" : "text-gray-400 dark:text-gray-500 group-hover:text-purple-600 dark:group-hover:text-purple-400"}
         />
         {!isMinimized && (
           <>
-            <span className="flex-1 text-left">{item.label}</span>
-            {active && <ChevronRight size={14} className="text-white" />}
+            <span className="flex-1 text-left truncate">{item.label}</span>
+            {isBlocked ? (
+              <span className="shrink-0 flex items-center justify-center p-1 rounded bg-amber-500/10 text-amber-500 border border-amber-500/25 group-hover:bg-amber-500/15 group-hover:text-amber-600 group-hover:border-amber-500/35 transition-colors">
+                <Lock size={12} />
+              </span>
+            ) : active ? (
+              <ChevronRight size={14} className="text-white" />
+            ) : null}
           </>
         )}
       </Link>

@@ -85,6 +85,11 @@ async def send_connection_request(
         if not receiver:
             logger.error(f"[ERROR] Receiver not found: {receiver_id_int}")
             raise HTTPException(status_code=404, detail="User not found")
+            
+        # Prevent connection to admins
+        if receiver.role in ("ADMIN", "SUPER_ADMIN"):
+            logger.error(f"[ERROR] User trying to connect with admin: {receiver_id_int}")
+            raise HTTPException(status_code=403, detail="Cannot connect with admin accounts")
         
         # Prevent self-connection
         if receiver_id_int == current_user.id:

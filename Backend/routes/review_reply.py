@@ -10,7 +10,10 @@ from typing import List, Optional
 from sqlalchemy.orm import Session
 from config.database import get_db_sync
 from services.history_service import HistoryService
+from utils.dependencies import get_current_user
 import httpx
+from models.settings import UserSettings
+
 
 logger = logging.getLogger(__name__)
 
@@ -89,6 +92,74 @@ class StatsResponse(BaseModel):
     helpful_replies: int
     helpful_percentage: float
     by_rating: dict
+
+
+class AnalyzeMapsUrlRequest(BaseModel):
+    """Request model for analyzing reviews from a Google Maps URL"""
+    url: str = Field(..., description="Google Maps reviews URL or shortened link")
+    tone: str = Field(default="professional", description="Tone of reply suggestions")
+    
+    class Config:
+        example = {
+            "url": "https://maps.app.goo.gl/3fX2z",
+            "tone": "friendly"
+        }
+
+
+class AnalyzedReview(BaseModel):
+    reviewer_name: str
+    rating: int
+    comment: str
+    reply: str
+
+
+class ActionableSuggestion(BaseModel):
+    suggestion: str
+    category: str
+    priority: str  # High, Medium, Low
+    frequency_percentage: int
+
+
+class SentimentBreakdown(BaseModel):
+    positive_percentage: int
+    neutral_percentage: int
+    negative_percentage: int
+
+
+class CategoryBreakdown(BaseModel):
+    category_name: str
+    mention_count: int
+
+
+class MapsUrlAnalysis(BaseModel):
+    average_rating: float
+    total_reviews_count: int
+    sentiment_summary: str
+    sentiment_breakdown: SentimentBreakdown
+    category_breakdown: List[CategoryBreakdown]
+    actionable_suggestions: List[ActionableSuggestion]
+
+
+class AnalyzeMapsUrlResponse(BaseModel):
+    success: bool
+    business_name: str
+    resolved_url: str
+    reviews: List[AnalyzedReview]
+    analysis: MapsUrlAnalysis
+    error: Optional[str] = None
+
+
+class ReviewReplySettingsRequest(BaseModel):
+    """Request model for Google Maps auto-reply settings"""
+    enabled: bool
+    tone: str
+    url: Optional[str] = None
+
+class ReviewReplySettingsResponse(BaseModel):
+    """Response model for Google Maps auto-reply settings"""
+    enabled: bool
+    tone: str
+    url: Optional[str] = None
 
 
 # ============ Routes ============
@@ -430,6 +501,137 @@ async def get_stats(db: Session = Depends(get_db_sync)) -> StatsResponse:
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to fetch statistics"
         )
+
+
+@router.post(
+    "/analyze-maps-url",
+    response_model=AnalyzeMapsUrlResponse,
+    summary="Fetch, analyze and generate replies for reviews from a Google Maps URL"
+)
+async def analyze_maps_url_endpoint(
+    request: AnalyzeMapsUrlRequest,
+    db: Session = Depends(get_db_sync),
+    current_user = Depends(get_current_user)
+) -> AnalyzeMapsUrlResponse:
+    """
+    Fetch, analyze and generate replies for reviews from a Google Maps URL.
+    Shortened Google Maps links are resolved, business name is extracted, and
+    reviews are studied and replied to.
+    """
+    try:
+        from services.maps_review_service import MapsReviewService
+        
+        logger.info(f"🔗 Resolving Google Maps URL: {request.url}")
+        resolved_url = await MapsReviewService.resolve_url(request.url)
+        
+        logger.info(f"📍 Extracting business name from: {resolved_url}")
+        business_name = MapsReviewService.extract_business_name(resolved_url)
+        
+        logger.info(f"📊 Generating/fetching reviews and analysis for: {business_name}")
+        payload = await MapsReviewService.fetch_and_analyze_via_ai(business_name, resolved_url)
+        reviews = payload.get("reviews", [])
+        analysis = payload.get("analysis", {})
+        
+        user_id = current_user.id if current_user else None
+        
+        logger.info(f"✍️ Generating review replies (tone: {request.tone})")
+        analyzed_reviews = await MapsReviewService.generate_replies_and_save(
+            db=db,
+            user_id=user_id,
+            business_name=business_name,
+            reviews=reviews,
+            tone=request.tone
+        )
+        
+        return AnalyzeMapsUrlResponse(
+            success=True,
+            business_name=business_name,
+            resolved_url=resolved_url,
+            reviews=[AnalyzedReview(**r) for r in analyzed_reviews],
+            analysis=MapsUrlAnalysis(**analysis),
+            error=None
+        )
+    except Exception as e:
+        logger.error(f"❌ Error analyzing Maps URL: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to analyze Google Maps URL: {str(e)}"
+        )
+
+
+@router.get(
+    "/settings",
+    response_model=ReviewReplySettingsResponse,
+    summary="Get Google Maps auto-reply settings"
+)
+async def get_gmaps_settings(
+    db: Session = Depends(get_db_sync),
+    current_user = Depends(get_current_user)
+) -> ReviewReplySettingsResponse:
+    """Retrieve Google Maps reviews auto-reply configuration for the user."""
+    try:
+        settings = db.query(UserSettings).filter(UserSettings.user_id == current_user.id).first()
+        if not settings:
+            settings = UserSettings(user_id=current_user.id, automation_rules={})
+            db.add(settings)
+            db.commit()
+            db.refresh(settings)
+
+        rules = settings.automation_rules or {}
+        return ReviewReplySettingsResponse(
+            enabled=rules.get("gmaps_auto_reply", False),
+            tone=rules.get("gmaps_auto_reply_tone", "professional"),
+            url=rules.get("gmaps_url", "")
+        )
+    except Exception as e:
+        logger.error(f"Error fetching gmaps auto-reply settings: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to fetch settings")
+
+
+@router.post(
+    "/settings",
+    response_model=ReviewReplySettingsResponse,
+    summary="Save Google Maps auto-reply settings"
+)
+async def save_gmaps_settings(
+    request: ReviewReplySettingsRequest,
+    db: Session = Depends(get_db_sync),
+    current_user = Depends(get_current_user)
+) -> ReviewReplySettingsResponse:
+    """Save Google Maps reviews auto-reply configuration for the user."""
+    try:
+        settings = db.query(UserSettings).filter(UserSettings.user_id == current_user.id).first()
+        if not settings:
+            settings = UserSettings(user_id=current_user.id, automation_rules={})
+            db.add(settings)
+            db.commit()
+            db.refresh(settings)
+
+        rules = settings.automation_rules or {}
+        rules["gmaps_auto_reply"] = request.enabled
+        rules["gmaps_auto_reply_tone"] = request.tone
+        if request.url is not None:
+            rules["gmaps_url"] = request.url
+
+        settings.automation_rules = rules
+        
+        # Ensure SQLAlchemy detects changes in the JSON column
+        from sqlalchemy.orm.attributes import flag_modified
+        flag_modified(settings, "automation_rules")
+        
+        db.commit()
+        db.refresh(settings)
+
+        return ReviewReplySettingsResponse(
+            enabled=rules.get("gmaps_auto_reply", False),
+            tone=rules.get("gmaps_auto_reply_tone", "professional"),
+            url=rules.get("gmaps_url", "")
+        )
+    except Exception as e:
+        logger.error(f"Error saving gmaps auto-reply settings: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to save settings")
+
+
 
 
 @router.get(

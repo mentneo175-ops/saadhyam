@@ -1,4 +1,4 @@
-export const PACK_ORDER = ["starter", "growth", "education", "business"] as const;
+export const PACK_ORDER = ["starter", "growth", "education", "business", "enterprise"] as const;
 
 export type PackKey = (typeof PACK_ORDER)[number];
 
@@ -7,6 +7,7 @@ export const PACK_LABELS: Record<PackKey, string> = {
   growth: "Growth Pack",
   education: "Education Pack",
   business: "Business Pack",
+  enterprise: "Enterprise Pack",
 };
 
 export const PACK_VALIDITY_DAYS: Record<PackKey, number> = {
@@ -14,6 +15,7 @@ export const PACK_VALIDITY_DAYS: Record<PackKey, number> = {
   growth: 30,
   education: 30,
   business: 30,
+  enterprise: 30,
 };
 
 export const PACK_FEATURE_BLURBS: Record<PackKey, string[]> = {
@@ -21,6 +23,7 @@ export const PACK_FEATURE_BLURBS: Record<PackKey, string[]> = {
   growth: ["All starter features", "Automation upgrades", "Growth-grade insights"],
   education: ["Institute workflows", "Bulk reporting", "Classroom-friendly management"],
   business: ["Advanced automation", "Multi-channel sales", "Team-scale workflows", "Everything unlocked"],
+  enterprise: ["Custom scale integrations", "Maximum throughput", "Priority support", "Fully unlimited access"],
 };
 
 export type FeatureStatus = "included" | "partial" | "excluded";
@@ -38,6 +41,11 @@ export const FEATURE_ROWS = [
   "B2B Network",
   "Daily suggestions",
   "Reports & insights",
+  "Radar AI",
+  "AI Agents",
+  "YouTube tools",
+  "Review Reply",
+  "Plugins Store",
 ];
 
 export const PACK_PRICES: Record<PackKey, string> = {
@@ -45,6 +53,7 @@ export const PACK_PRICES: Record<PackKey, string> = {
   growth: "₹9,999",
   education: "₹14,999",
   business: "₹24,999",
+  enterprise: "₹49,999",
 };
 
 export const PACK_TAGS: Record<PackKey, string> = {
@@ -52,6 +61,7 @@ export const PACK_TAGS: Record<PackKey, string> = {
   growth: "For small businesses",
   education: "Recommended for colleges",
   business: "Recommended for medium business",
+  enterprise: "For large organizations",
 };
 
 export const PACK_DESCRIPTIONS: Record<PackKey, string> = {
@@ -59,6 +69,7 @@ export const PACK_DESCRIPTIONS: Record<PackKey, string> = {
   growth: "Balanced automation for teams that want stronger growth features.",
   education: "Built for colleges, institutes, and training organizations.",
   business: "Full-featured automation for medium-level businesses with all features unlocked.",
+  enterprise: "Custom scale integrations, maximum throughput, and priority support.",
 };
 
 export const PACK_HIGHLIGHTS: Record<PackKey, string> = {
@@ -66,6 +77,7 @@ export const PACK_HIGHLIGHTS: Record<PackKey, string> = {
   growth: "Best value for small businesses",
   education: "Best fit for education workflows",
   business: "Best fit for medium business growth & enterprise features",
+  enterprise: "Best fit for enterprise scale operations",
 };
 
 export const PACK_CTAS: Record<PackKey, string> = {
@@ -73,6 +85,7 @@ export const PACK_CTAS: Record<PackKey, string> = {
   growth: "Choose Growth",
   education: "Choose Education",
   business: "Choose Business",
+  enterprise: "Contact Sales",
 };
 
 export const PACK_FEATURE_MATRIX: Record<PackKey, Record<string, FeatureStatus>> = {
@@ -89,6 +102,11 @@ export const PACK_FEATURE_MATRIX: Record<PackKey, Record<string, FeatureStatus>>
     "B2B Network": "excluded",
     "Daily suggestions": "included",
     "Reports & insights": "partial",
+    "Radar AI": "excluded",
+    "AI Agents": "excluded",
+    "YouTube tools": "excluded",
+    "Review Reply": "excluded",
+    "Plugins Store": "excluded",
   },
   growth: {
     "Business analysis": "included",
@@ -103,6 +121,11 @@ export const PACK_FEATURE_MATRIX: Record<PackKey, Record<string, FeatureStatus>>
     "B2B Network": "partial",
     "Daily suggestions": "included",
     "Reports & insights": "included",
+    "Radar AI": "partial",
+    "AI Agents": "partial",
+    "YouTube tools": "partial",
+    "Review Reply": "partial",
+    "Plugins Store": "excluded",
   },
   education: {
     "Business analysis": "included",
@@ -117,8 +140,14 @@ export const PACK_FEATURE_MATRIX: Record<PackKey, Record<string, FeatureStatus>>
     "B2B Network": "partial",
     "Daily suggestions": "included",
     "Reports & insights": "included",
+    "Radar AI": "partial",
+    "AI Agents": "partial",
+    "YouTube tools": "included",
+    "Review Reply": "partial",
+    "Plugins Store": "excluded",
   },
   business: Object.fromEntries(FEATURE_ROWS.map((feature) => [feature, "included"])) as Record<string, FeatureStatus>,
+  enterprise: Object.fromEntries(FEATURE_ROWS.map((feature) => [feature, "included"])) as Record<string, FeatureStatus>,
 };
 
 export const PACK_CATALOG = PACK_ORDER.map((key) => ({
@@ -217,6 +246,11 @@ export const ROUTE_FEATURE_MAP: Record<string, string> = {
   "reports": "Reports & insights",
   "insights": "Reports & insights",
   "growth": "Reports & insights",
+  "radar": "Radar AI",
+  "agents": "AI Agents",
+  "youtube": "YouTube tools",
+  "review-reply": "Review Reply",
+  "plugins": "Plugins Store",
 };
 
 /**
@@ -229,7 +263,7 @@ export function resolveFeatureFromPath(pathname: string): string | null {
   if (!match) return null;
   const segment = match[1];
   // Skip non-feature pages
-  const skipSegments = ["pricing", "checkout", "settings", "business-details", "actions", "automation", "chat", "messages", "customers", "blogs", "review-reply", "youtube"];
+  const skipSegments = ["pricing", "checkout", "settings", "business-details", "actions", "automation", "chat", "messages", "customers", "blogs"];
   if (skipSegments.includes(segment)) return null;
   return ROUTE_FEATURE_MAP[segment] || null;
 }

@@ -198,9 +198,11 @@ class NearbyBusinessService:
             # Get sync database session
             db = SyncSessionLocal()
             try:
-                # Query all users - NO FILTERS, show everyone!
+                from sqlalchemy import select, or_
+                # Query all users except admin accounts
                 query = select(User).filter(
-                    User.email.isnot(None)  # Just need to be a valid user
+                    User.email.isnot(None),
+                    or_(User.role.is_(None), User.role == "USER")
                 )
                 
                 # Filter by category if provided

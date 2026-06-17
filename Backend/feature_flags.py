@@ -25,12 +25,24 @@ def resolve_feature_key_from_path(path: str) -> Optional[str]:
     p = path.lower()
     # Simple heuristics similar to frontend mapping
     aliases = {
+        "assistant": ["assistant", "assistant/"],
+        "business_analysis": ["business-analysis", "business_analysis"],
+        "competitor_analysis": ["competitor-analysis", "competitor_analysis", "competitors"],
+        "daily_suggestions": ["daily-suggestions", "daily-ask", "suggestions"],
         "website_ai": ["website", "website_ai", "website-ai", "/website-ai"],
-        "content_scheduler": ["content", "content_creator", "content-scheduler", "content-scheduler", "/content"],
+        "content_scheduler": ["content", "content_creator", "content-scheduler", "/content"],
         "voice_agent": ["voice_agent", "voice-agent", "/voice-agent"],
-        "aeo_geo": ["aeo_geo", "aeo-geo"],
+        "aeo_geo": ["aeo_geo", "aeo-geo", "seo-google-maps", "seo"],
         "instagram_manager": ["instagram", "ig/", "instagram-manager"],
         "whatsapp_campaigns": ["whatsapp", "wa/"],
+        "b2b_network": ["b2b-network", "b2b_network", "b2b-chat", "b2b"],
+        "meta_ads": ["meta-ads", "meta_ads", "meta"],
+        "reports_insights": ["reports", "insights", "growth"],
+        "radar_ai": ["radar"],
+        "ai_agents": ["agents"],
+        "youtube_manager": ["youtube"],
+        "review_reply": ["review-reply", "review_reply"],
+        "plugins_store": ["plugins"],
         "billing_plans": ["billing", "plans", "/billing"],
         "ai_tools": ["/ai/", "/ai-"]
     }
@@ -60,7 +72,7 @@ async def fetch_features_once(timeout: int = 5) -> None:
             else:
                 logger.warning("Unexpected features payload from admin: not a list")
     except Exception as e:
-        logger.debug(f"Failed fetching admin features: {e}")
+        logger.warning(f"Failed fetching admin features: {e}")
     finally:
         LAST_FETCH_TS = time.monotonic()
 

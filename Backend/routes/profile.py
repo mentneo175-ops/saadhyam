@@ -569,7 +569,7 @@ def confirm_website(
     },
 )
 def delete_account(
-    authorization: str = Header(...),
+    authorization: Optional[str] = Header(None),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db_sync),
 ) -> dict:

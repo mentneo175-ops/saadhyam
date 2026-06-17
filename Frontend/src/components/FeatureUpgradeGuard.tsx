@@ -37,11 +37,21 @@ function getGlobalFeatureKey(pathname: string): string | null {
   if (path.includes("/dashboard/website")) return "website_ai";
   if (path.includes("/dashboard/content")) return "content_scheduler";
   if (path.includes("/dashboard/voice-agent")) return "voice_agent";
-  if (path.includes("/dashboard/aeo-geo") || path.includes("/dashboard/seo")) return "aeo_geo";
+  if (path.includes("/dashboard/aeo-geo") || path.includes("/dashboard/seo") || path.includes("/dashboard/seo-google-maps")) return "aeo_geo";
   if (path.includes("/dashboard/instagram")) return "instagram_manager";
   if (path.includes("/dashboard/whatsapp")) return "whatsapp_campaigns";
   if (path.includes("/dashboard/b2b-network") || path.includes("/dashboard/b2b-chat")) return "b2b_network";
   if (path.includes("/dashboard/meta-ads")) return "meta_ads";
+  if (path.includes("/dashboard/business-analysis")) return "business_analysis";
+  if (path.includes("/dashboard/competitor-analysis")) return "competitor_analysis";
+  if (path.includes("/dashboard/daily-ask")) return "daily_suggestions";
+  if (path.includes("/dashboard/radar")) return "radar_ai";
+  if (path.includes("/dashboard/agents")) return "ai_agents";
+  if (path.includes("/dashboard/youtube")) return "youtube_manager";
+  if (path.includes("/dashboard/review-reply")) return "review_reply";
+  if (path.includes("/dashboard/plugins")) return "plugins_store";
+  if (path.includes("/dashboard/reports") || path.includes("/dashboard/insights") || path.includes("/dashboard/growth")) return "reports_insights";
+  if (path.includes("/dashboard/assistant")) return "assistant";
   return null;
 }
 
@@ -200,17 +210,12 @@ export function FeatureUpgradeGuard({ children }: FeatureUpgradeGuardProps) {
       ? globalStatus.reason || "This feature is currently under maintenance. We will have it back for you soon."
       : globalStatus.reason || "This feature is disabled and will be available soon.";
     return (
-      <>
-        {children}
-        {isGlobalNoticeOpen && (
-          <FeatureDisabledState
-            title={title}
-            message={message}
-            featureLabel={getGlobalFeatureKey(location.pathname) || undefined}
-            onDismiss={() => setIsGlobalNoticeOpen(false)}
-          />
-        )}
-      </>
+      <FeatureDisabledState
+        title={title}
+        message={message}
+        featureLabel={getGlobalFeatureKey(location.pathname) || undefined}
+        onDismiss={() => navigate({ to: "/dashboard" })}
+      />
     );
   }
 

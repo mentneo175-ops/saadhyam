@@ -15,6 +15,7 @@ import { formatCacheAge } from "@/lib/realtimeBusinessApi";
 import { getGrowthPlanData, type GrowthPlanData } from "@/lib/comprehensiveAnalysisApi";
 import { useDashboardContext } from "@/contexts/DashboardContext";
 import { getMonitoredCompetitors, getCompetitorSuggestions, addCompetitor, type CompetitorIntelligence } from "@/lib/competitorIntelligenceApi";
+import { getAdminApiBaseUrl } from "@/lib/runtimeUrls";
 import {
   Activity,
   Eye,
@@ -37,6 +38,13 @@ import {
   MapPin,
   Plus,
   Search,
+  Lock,
+  Wrench,
+  AlertTriangle,
+  CheckCircle,
+  AlertCircle,
+  HelpCircle,
+  ExternalLink,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -98,6 +106,46 @@ function Overview() {
   // Competitor Watch state
   const [competitors, setCompetitors] = useState<CompetitorIntelligence[]>([]);
   const [competitorsLoading, setCompetitorsLoading] = useState(false);
+
+  // Features status state
+  const [featureFlags, setFeatureFlags] = useState<any[]>([]);
+  const [inactiveFeaturesAlert, setInactiveFeaturesAlert] = useState<any[] | null>(null);
+  const [showAlertModal, setShowAlertModal] = useState(false);
+
+  // Load feature flags and determine alerts
+  useEffect(() => {
+    let active = true;
+    const fetchFlags = async () => {
+      try {
+        const adminUrl = getAdminApiBaseUrl();
+        const res = await fetch(`${adminUrl}/api/features/public`);
+        if (res.ok && active) {
+          const flags = await res.json();
+          setFeatureFlags(flags);
+
+          // Find inactive ones (disabled or maintenance)
+          const inactive = flags.filter((f: any) => f.status !== "enabled");
+          if (inactive.length > 0) {
+            // Check session storage so it doesn't pop up on every sub-route navigate back, only once per session
+            const alertShown = sessionStorage.getItem("saadhyam_dashboard_alert_shown");
+            if (!alertShown) {
+              setInactiveFeaturesAlert(inactive);
+              setShowAlertModal(true);
+            }
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch features in Overview", err);
+      }
+    };
+    fetchFlags();
+    // Poll every 15s to keep the status card updated
+    const interval = setInterval(fetchFlags, 15000);
+    return () => {
+      active = false;
+      clearInterval(interval);
+    };
+  }, []);
 
   // Competitor quick-add widget state
   const [quickAddName, setQuickAddName] = useState("");
@@ -506,6 +554,79 @@ function Overview() {
       {/* Dashboard Loading Screen - Shows after onboarding */}
       <DashboardLoader isLoading={isDashboardLoading} message="Analyzing your business" />
 
+      {/* Admin System Notice Modal */}
+      {showAlertModal && inactiveFeaturesAlert && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-md animate-in fade-in duration-300">
+          <div className="w-full max-w-xl rounded-3xl border border-white/10 bg-slate-900/90 text-white p-6 shadow-2xl relative overflow-hidden backdrop-blur-xl animate-in scale-in duration-300">
+            <div className="absolute -top-10 -right-10 w-40 h-40 bg-purple-600/20 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-pink-600/10 rounded-full blur-3xl pointer-events-none" />
+            
+            <div className="flex items-start gap-4 relative z-10">
+              <div className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-500 border border-amber-500/20">
+                <AlertTriangle size={24} />
+              </div>
+
+              <div className="min-w-0 flex-1">
+                <h3 className="text-xl font-bold tracking-tight bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+                  Admin System Notice
+                </h3>
+                <p className="mt-2 text-sm text-gray-400">
+                  The super admin has temporarily disabled or placed the following features under maintenance. They will be unavailable until further notice:
+                </p>
+
+                <div className="mt-4 max-h-60 overflow-y-auto space-y-2.5 pr-1 scrollbar-thin">
+                  {inactiveFeaturesAlert.map((f: any) => (
+                    <div 
+                      key={f.key}
+                      className="p-3.5 rounded-2xl border border-white/5 bg-white/5 flex items-start gap-3 transition-colors hover:bg-white/10"
+                    >
+                      <div className="mt-0.5 shrink-0">
+                        {f.status === "maintenance" ? (
+                          <Wrench className="h-4 w-4 text-amber-500" />
+                        ) : (
+                          <Lock className="h-4 w-4 text-red-500" />
+                        )}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-semibold text-gray-200">
+                            {f.name || f.key.split('_').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+                          </span>
+                          <span className={`text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded-full ${
+                            f.status === "maintenance" 
+                              ? "bg-amber-500/10 text-amber-500 border border-amber-500/20" 
+                              : "bg-red-500/10 text-red-500 border border-red-500/20"
+                          }`}>
+                            {f.status}
+                          </span>
+                        </div>
+                        {f.reason && (
+                          <p className="mt-1 text-xs text-gray-400 italic">
+                            &ldquo;{f.reason}&rdquo;
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-6 flex justify-end">
+                  <button
+                    onClick={() => {
+                      setShowAlertModal(false);
+                      sessionStorage.setItem("saadhyam_dashboard_alert_shown", "true");
+                    }}
+                    className="inline-flex items-center justify-center rounded-xl bg-white px-5 py-2.5 text-sm font-semibold text-slate-900 transition hover:bg-gray-100 hover:scale-[1.02] active:scale-[0.98]"
+                  >
+                    Acknowledge
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="flex flex-1 bg-background">
         <div className="flex-1 min-w-0 p-4 md:p-6 lg:p-8 space-y-6">
           {/* Loading state */}
@@ -583,6 +704,95 @@ function Overview() {
                       Open Command Center <ArrowRight size={12} />
                     </Button>
                   </div>
+                </div>
+              </div>
+
+              {/* System Status & Feature Availability Card */}
+              <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 dark:border-purple-500/20 shadow-xl shadow-gray-200/50 dark:shadow-[0_4px_30px_rgba(139,92,246,0.05)] p-6 hover:shadow-2xl transition-all duration-300">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5 border-b border-gray-100 dark:border-slate-800/60 pb-4">
+                  <div className="space-y-1">
+                    <h3 className="font-extrabold text-base text-gray-900 dark:text-slate-100 flex items-center gap-2">
+                      <Activity size={18} className="text-purple-600 dark:text-purple-400" />
+                      System Status & Feature Availability
+                    </h3>
+                    <p className="text-xs text-gray-500 dark:text-slate-400">
+                      Real-time operational status of all platform features. Controlled by Super Admin.
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 self-start sm:self-auto bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/20 px-3 py-1 rounded-full text-xs font-bold">
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                    </span>
+                    Live Connection Active
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-3">
+                  {[
+                    { key: "business_analysis", label: "Business Analysis", path: "/dashboard/business-analysis" },
+                    { key: "radar_ai", label: "Radar AI", path: "/dashboard/radar" },
+                    { key: "ai_agents", label: "AI Agents", path: "/dashboard/agents" },
+                    { key: "competitor_analysis", label: "Competitor Analysis", path: "/dashboard/competitor-analysis" },
+                    { key: "daily_suggestions", label: "Daily Suggestions", path: "/dashboard/daily-ask" },
+                    { key: "aeo_geo", label: "Google Hub", path: "/dashboard/seo-google-maps" },
+                    { key: "b2b_network", label: "B2B Network", path: "/dashboard/b2b-network" },
+                    { key: "content_scheduler", label: "Content Creator", path: "/dashboard/content" },
+                    { key: "instagram_manager", label: "Instagram Tools", path: "/dashboard/instagram" },
+                    { key: "youtube_manager", label: "YouTube Tools", path: "/dashboard/youtube" },
+                    { key: "meta_ads", label: "Meta Ads", path: "/dashboard/meta-ads" },
+                    { key: "whatsapp_campaigns", label: "WhatsApp Sales", path: "/dashboard/whatsapp" },
+                    { key: "voice_agent", label: "AI Voice Agent", path: "/dashboard/voice-agent" },
+                    { key: "website_ai", label: "Website AI", path: "/dashboard/website" },
+                    { key: "review_reply", label: "Review Reply", path: "/dashboard/review-reply" },
+                    { key: "plugins_store", label: "Plugins Store", path: "/dashboard/plugins" },
+                  ].map((feat) => {
+                    const flag = featureFlags.find((f: any) => f.key === feat.key);
+                    const status = flag ? flag.status : "enabled";
+                    const reason = flag ? flag.reason : null;
+
+                    let statusDotColor = "bg-green-500 shadow-green-500/30";
+                    let statusBgColor = "bg-green-500/5 dark:bg-green-500/10 hover:bg-green-500/10 dark:hover:bg-green-500/15 text-green-700 dark:text-green-300 border-green-500/20";
+                    let statusLabel = "Operational";
+
+                    if (status === "disabled") {
+                      statusDotColor = "bg-red-500 shadow-red-500/30 animate-pulse";
+                      statusBgColor = "bg-red-500/5 dark:bg-red-500/10 hover:bg-red-500/10 dark:hover:bg-red-500/15 text-red-700 dark:text-red-300 border-red-500/20";
+                      statusLabel = "Disabled";
+                    } else if (status === "maintenance") {
+                      statusDotColor = "bg-amber-500 shadow-amber-500/30 animate-pulse";
+                      statusBgColor = "bg-amber-500/5 dark:bg-amber-500/10 hover:bg-amber-500/10 dark:hover:bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/20";
+                      statusLabel = "Maintenance";
+                    }
+
+                    const handleFeatureClick = () => {
+                      if (status !== "enabled") {
+                        window.dispatchEvent(new CustomEvent("feature-blocked", {
+                          detail: {
+                            feature_key: feat.key,
+                            mode: status,
+                            detail: reason || `This feature is currently ${status}.`
+                          }
+                        }));
+                      } else {
+                        navigate({ to: feat.path as any });
+                      }
+                    };
+
+                    return (
+                      <button
+                        key={feat.key}
+                        onClick={handleFeatureClick}
+                        className={`flex items-center justify-between p-3 rounded-xl border text-xs font-semibold tracking-wide transition-all duration-200 cursor-pointer text-left ${statusBgColor}`}
+                      >
+                        <span className="truncate pr-2">{feat.label}</span>
+                        <span className="flex items-center gap-1.5 shrink-0">
+                          <span className={`inline-block h-2 w-2 rounded-full shadow-[0_0_8px_var(--tw-shadow-color)] ${statusDotColor}`} />
+                          <span className="text-[10px] opacity-80 font-bold hidden sm:inline">{statusLabel}</span>
+                        </span>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 

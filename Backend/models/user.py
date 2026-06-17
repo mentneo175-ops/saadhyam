@@ -66,6 +66,7 @@ class User(Base):
     # Privacy & Sharing Controls
     analysis_sharing = Column(String(50), default="private", nullable=False)  # 'private' | 'anonymous' | 'public'
     share_business_data = Column(Boolean, default=False, nullable=False)  # Allow sharing with similar businesses
+    role = Column(String(50), default="USER", nullable=True)  # 'USER', 'ADMIN', 'SUPER_ADMIN'
     
     created_at = Column(DateTime, server_default=func.now(), nullable=False)
     updated_at = Column(

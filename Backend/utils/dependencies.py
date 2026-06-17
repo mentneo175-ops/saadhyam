@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 def get_current_user(
-    authorization: str = Header(...),
+    authorization: Optional[str] = Header(None),
     db: Session = Depends(get_db_sync),
 ) -> User:
     """
@@ -38,8 +38,9 @@ def get_current_user(
     if not authorization:
         logger.warning("❌ Authorization header missing")
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
+            status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Authorization header missing",
+            headers={"WWW-Authenticate": "Bearer"},
         )
     
     # Extract token from "Bearer <token>"

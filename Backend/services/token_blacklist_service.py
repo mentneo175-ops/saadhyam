@@ -33,8 +33,8 @@ class TokenBlacklistService:
             self.redis_client.ping()
             self.enabled = True
             logger.info("✅ Token blacklist service initialized with Redis")
-        except RedisError as e:
-            logger.warning(f"⚠️ Redis not available: {e}")
+        except Exception as e:
+            logger.warning(f"⚠️ Redis not available or invalid URL: {e}")
             logger.warning("⚠️ Token blacklist disabled - tokens will remain valid until expiration")
             self.redis_client = None
             self.enabled = False

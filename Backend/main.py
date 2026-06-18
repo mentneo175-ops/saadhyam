@@ -89,56 +89,56 @@ try:
     from routes.review_reply import router as review_reply_router
     review_reply_available = True
 except Exception as e:
-    logging.warning(f"Review Reply router not available: {e}")
+    logging.error(f"Review Reply router not available: {e}", exc_info=True)
     review_reply_available = False
 
 try:
     from routes.auth import router as auth_router
     auth_available = True
 except Exception as e:
-    logging.warning(f"Auth router not available: {e}")
+    logging.error(f"Auth router not available: {e}", exc_info=True)
     auth_available = False
 
 try:
     from routes.protected import router as protected_router
     protected_available = True
 except Exception as e:
-    logging.warning(f"Protected router not available: {e}")
+    logging.error(f"Protected router not available: {e}", exc_info=True)
     protected_available = False
 
 try:
     from routes.notifications import router as notifications_router
     notifications_available = True
 except Exception as e:
-    logging.warning(f"Notifications router not available: {e}")
+    logging.error(f"Notifications router not available: {e}", exc_info=True)
     notifications_available = False
 
 try:
     from routes.internal_notifications import router as internal_notifications_router
     internal_notifications_available = True
 except Exception as e:
-    logging.warning(f"Internal notifications router not available: {e}")
+    logging.error(f"Internal notifications router not available: {e}", exc_info=True)
     internal_notifications_available = False
 
 try:
     from routes.instagram import router as instagram_router
     instagram_available = True
 except Exception as e:
-    logging.warning(f"Instagram router not available: {e}")
+    logging.error(f"Instagram router not available: {e}", exc_info=True)
     instagram_available = False
 
 try:
     from routes.instagram_oauth import router as instagram_oauth_router
     instagram_oauth_available = True
 except Exception as e:
-    logging.warning(f"Instagram OAuth router not available: {e}")
+    logging.error(f"Instagram OAuth router not available: {e}", exc_info=True)
     instagram_oauth_available = False
 
 try:
     from routes.instagram_post import router as instagram_post_router
     instagram_post_available = True
 except Exception as e:
-    logging.warning(f"Instagram Post router not available: {e}")
+    logging.error(f"Instagram Post router not available: {e}", exc_info=True)
     instagram_post_available = False
 
 try:
@@ -146,21 +146,21 @@ try:
     from routes.youtube import router as youtube_router
     youtube_available = True
 except Exception as e:
-    logging.warning(f"YouTube router not available: {e}")
+    logging.error(f"YouTube router not available: {e}", exc_info=True)
     youtube_available = False
 
 try:
     from routes.settings import router as settings_router
     settings_available = True
 except Exception as e:
-    logging.warning(f"Settings router not available: {e}")
+    logging.error(f"Settings router not available: {e}", exc_info=True)
     settings_available = False
 
 try:
     from routes.crud import router as crud_router
     crud_available = True
 except Exception as e:
-    logging.warning(f"CRUD router not available: {e}")
+    logging.error(f"CRUD router not available: {e}", exc_info=True)
     crud_available = False
     
 
@@ -168,7 +168,7 @@ try:
     from routes.ai import router as ai_router, check_model_server_health
     ai_available = True
 except Exception as e:
-    logging.warning(f"AI router not available: {e}")
+    logging.error(f"AI router not available: {e}", exc_info=True)
     ai_available = False
     async def check_model_server_health() -> bool:
         return False
@@ -187,7 +187,7 @@ try:
     profile_available = True
     logging.info("✅ Profile router imported successfully")
 except Exception as e:
-    logging.warning(f"Profile router not available: {e}")
+    logging.error(f"Profile router not available: {e}", exc_info=True)
     profile_available = False
 
 try:
@@ -195,7 +195,7 @@ try:
     website_serving_available = True
     logging.info("✅ Website serving router imported successfully")
 except Exception as e:
-    logging.warning(f"Website serving router not available: {e}")
+    logging.error(f"Website serving router not available: {e}", exc_info=True)
     website_serving_available = False
 
 try:

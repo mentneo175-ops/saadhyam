@@ -12,14 +12,18 @@ import tempfile
 from pathlib import Path
 from typing import Optional
 
-import torch
+try:
+    import torch
+    TORCH_AVAILABLE = True
+except ImportError:
+    TORCH_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
 
 # Try to import TTS
 try:
     from TTS.api import TTS
-    TTS_AVAILABLE = True
+    TTS_AVAILABLE = TORCH_AVAILABLE  # Coqui TTS depends on torch
 except ImportError:
     logger.warning("⚠️ TTS library not installed. Run: pip install TTS")
     TTS_AVAILABLE = False
@@ -46,16 +50,16 @@ class TTSService:
     
     def __init__(self):
         self.tts_models = {}
-        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        self.device = "cuda" if (TORCH_AVAILABLE and torch.cuda.is_available()) else "cpu"
         self.output_dir = Path(__file__).resolve().parents[1] / "audio_output"
         self.output_dir.mkdir(exist_ok=True)
         self.pyttsx3_available = PYTTSX3_AVAILABLE
         self.gtts_available = GTTS_AVAILABLE
         
-        if TTS_AVAILABLE:
+        if TTS_AVAILABLE and TORCH_AVAILABLE:
             self._initialize_models()
         else:
-            logger.error("❌ TTS not available. Install with: pip install TTS")
+            logger.error("❌ TTS or Torch not available. Install with: pip install TTS torch")
     
     def _initialize_models(self):
         """Initialize TTS models for different languages"""

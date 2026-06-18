@@ -7,14 +7,19 @@ import logging
 import os
 from pathlib import Path
 from typing import Optional, Dict, Any
-import torch
+
+try:
+    import torch
+    TORCH_AVAILABLE = True
+except ImportError:
+    TORCH_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
 
 # Try to import Whisper
 try:
     import whisper
-    WHISPER_AVAILABLE = True
+    WHISPER_AVAILABLE = TORCH_AVAILABLE  # Whisper depends on torch
 except ImportError:
     logger.warning("⚠️ Whisper not installed. Run: pip install openai-whisper")
     WHISPER_AVAILABLE = False
@@ -26,7 +31,7 @@ class STTService:
     def __init__(self):
         self.model = None
         self.model_size = "base"  # Options: tiny, base, small, medium, large
-        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        self.device = "cuda" if (TORCH_AVAILABLE and torch.cuda.is_available()) else "cpu"
         
         if WHISPER_AVAILABLE:
             self._initialize_model()

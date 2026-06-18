@@ -67,7 +67,7 @@ Write-Host "   - Environment: Docker" -ForegroundColor Cyan
 Write-Host "   - Plan: FREE" -ForegroundColor Cyan
 Write-Host "   - Region: Oregon" -ForegroundColor Cyan
 Write-Host "   - Branch: main" -ForegroundColor Cyan
-Write-Host "   - Dockerfile Path: ./Dockerfile" -ForegroundColor Cyan
+Write-Host "   - Dockerfile Path: ./Dockerfile.free" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "🌐 Your FREE backend will be at:" -ForegroundColor Green
 Write-Host "https://saadhyam-backend.onrender.com" -ForegroundColor Yellow

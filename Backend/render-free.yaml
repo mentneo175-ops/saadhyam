@@ -6,7 +6,7 @@ services:
   - type: web
     name: saadhyam-backend-free
     env: docker
-    dockerfilePath: ./Dockerfile
+    dockerfilePath: ./Dockerfile.free
     plan: free
     region: oregon
     branch: main

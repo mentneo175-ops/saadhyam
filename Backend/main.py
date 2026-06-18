@@ -1108,11 +1108,11 @@ if website_ai_available:
 @app.get("/test", tags=["Health"])
 async def test():
     """Simple test endpoint"""
-    auth_routes = [str(r.path) for r in app.routes if '/auth' in str(r.path)]
+    auth_routes = [str(r.path) for r in fastapi_app.routes if '/auth' in str(r.path)]
     return {
         "status": "ok",
         "message": "Backend is responding",
-        "total_routes": len(app.routes),
+        "total_routes": len(fastapi_app.routes),
         "auth_routes_count": len(auth_routes),
         "auth_routes": auth_routes[:10]  # First 10 auth routes
     }
@@ -1165,7 +1165,7 @@ async def status():
 async def list_routes():
     """List all registered routes for debugging"""
     routes = []
-    for route in app.routes:
+    for route in fastapi_app.routes:
         if hasattr(route, "methods") and hasattr(route, "path"):
             routes.append({
                 "path": route.path,
@@ -1173,6 +1173,45 @@ async def list_routes():
                 "name": route.name
             })
     return {"routes": routes}
+
+
+@app.get("/api/debug-imports", tags=["Health"])
+async def debug_imports():
+    """Debug route to get full traceback of failed imports"""
+    import traceback
+    results = {}
+    
+    # Try importing routes.auth
+    try:
+        import routes.auth
+        results["routes.auth"] = "ok"
+    except Exception as e:
+        results["routes.auth"] = {
+            "error": str(e),
+            "type": type(e).__name__,
+            "traceback": traceback.format_exc()
+        }
+        
+    # Try importing routes.profile
+    try:
+        import routes.profile
+        results["routes.profile"] = "ok"
+    except Exception as e:
+        results["routes.profile"] = {
+            "error": str(e),
+            "type": type(e).__name__,
+            "traceback": traceback.format_exc()
+        }
+        
+    # Check what routers loaded successfully according to global flags
+    global_vars = globals()
+    router_status = {}
+    for var_name, var_val in global_vars.items():
+        if var_name.endswith("_available"):
+            router_status[var_name] = var_val
+    results["router_status_flags"] = router_status
+    
+    return results
 
 
 @app.get("/api/features/public", tags=["Health"])
@@ -1260,6 +1299,9 @@ async def api_broadcast_notification(payload: dict, db: AsyncSession = Depends(g
 
     return {"ok": True, "delivered_to": len(persisted_notifications)}
 
+
+# Save a reference to the original FastAPI app before wrapping it
+fastapi_app = app
 
 # Alias app to sio_asgi_app so uvicorn main:app uses Socket.IO wrapper
 app = sio_asgi_app

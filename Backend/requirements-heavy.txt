@@ -43,9 +43,14 @@ limits==3.13.0
 python-dotenv==1.0.0
 
 # ============================================
-# AI/ML Core (REMOVED FOR FREE TIER DEPLOYMENT)
+# AI/ML Core
 # ============================================
-# torch, transformers, peft, accelerate, bitsandbytes removed to save memory
+torch==2.12.0
+transformers==4.48.0
+peft==0.7.1
+accelerate==0.24.1
+bitsandbytes==0.41.1
+# sentencepiece==0.2.0  # Requires C++ compiler, using 0.2.1 already installed
 protobuf==4.25.8
 huggingface-hub==0.34.4
 safetensors==0.6.2
@@ -113,7 +118,7 @@ google-search-results==2.4.2
 # Image Processing
 # ============================================
 Pillow==11.3.0
-opencv-python-headless==4.9.0.80
+opencv-python==4.9.0.80
 
 # ============================================
 # Utilities & Logging
@@ -127,7 +132,7 @@ python-json-logger==2.0.7
 # ============================================
 pandas==2.2.3
 numpy==2.2.1
-# sentence-transformers removed to save memory
+sentence-transformers==3.3.1
 
 # ============================================
 # Web Scraping & Parsing

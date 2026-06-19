@@ -96,7 +96,44 @@ class StorageService:
         logger.info(f"💾 Saving website files for ID: {website_id}")
 
         if self.storage_type == "local":
-            return self._save_website_local(website_id, html, css, js, assets), None
+            local_path = self._save_website_local(website_id, html, css, js, assets)
+            
+            import os
+            cloudinary_configured = (
+                os.getenv("CLOUDINARY_CLOUD_NAME") and
+                os.getenv("CLOUDINARY_API_KEY") and
+                os.getenv("CLOUDINARY_API_SECRET")
+            )
+            
+            if cloudinary_configured:
+                try:
+                    import cloudinary.uploader
+                    import cloudinary
+                    import re
+                    
+                    cloudinary.config(
+                        cloud_name=os.getenv("CLOUDINARY_CLOUD_NAME"),
+                        api_key=os.getenv("CLOUDINARY_API_KEY"),
+                        api_secret=os.getenv("CLOUDINARY_API_SECRET"),
+                        secure=True
+                    )
+                    
+                    logger.info(f"☁️ Uploading website HTML to Cloudinary for ID: {website_id}")
+                    upload_result = cloudinary.uploader.upload(
+                        html.encode("utf-8"),
+                        resource_type="raw",
+                        public_id=f"websites/{website_id}/index.html"
+                    )
+                    cloudinary_url = upload_result.get("secure_url")
+                    if cloudinary_url:
+                        # Strip the version (e.g. /v123456789/) to make the URL permanent and unversioned
+                        cloudinary_url = re.sub(r'/v[0-9]+/', '/', cloudinary_url)
+                        logger.info(f"✅ Uploaded website HTML to Cloudinary: {cloudinary_url}")
+                        return cloudinary_url, None
+                except Exception as e:
+                    logger.error(f"❌ Failed to upload website HTML to Cloudinary: {e}")
+                    
+            return local_path, None
         else:
             return None, self._save_website_s3(website_id, html, css, js, assets)
 

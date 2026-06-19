@@ -127,6 +127,54 @@ def generate_image(data: Dict[str, Any]) -> Dict[str, Any]:
         raw_image_url = f"/{str(raw_relative).replace(chr(92), '/')}"
         final_image_url = f"/{str(final_relative).replace(chr(92), '/')}"
         
+        # ============ UPLOAD TO CLOUDINARY IF CONFIGURED ============
+        import os
+        cloudinary_configured = (
+            os.getenv("CLOUDINARY_CLOUD_NAME") and
+            os.getenv("CLOUDINARY_API_KEY") and
+            os.getenv("CLOUDINARY_API_SECRET")
+        )
+        
+        if cloudinary_configured:
+            try:
+                import cloudinary.uploader
+                import cloudinary
+                cloudinary.config(
+                    cloud_name=os.getenv("CLOUDINARY_CLOUD_NAME"),
+                    api_key=os.getenv("CLOUDINARY_API_KEY"),
+                    api_secret=os.getenv("CLOUDINARY_API_SECRET"),
+                    secure=True
+                )
+                
+                logger.info("☁️ Uploading generated images to Cloudinary...")
+                
+                # Upload raw image
+                raw_filename = Path(raw_image_path).name
+                raw_upload = cloudinary.uploader.upload(
+                    str(raw_image_path),
+                    folder="marketing_posters/raw",
+                    public_id=raw_filename.split('.')[0]
+                )
+                raw_cloudinary_url = raw_upload.get("secure_url")
+                if raw_cloudinary_url:
+                    logger.info(f"✅ Raw image uploaded to Cloudinary: {raw_cloudinary_url}")
+                    raw_image_url = raw_cloudinary_url
+                    
+                # Upload final poster image
+                final_filename = Path(final_image_path).name
+                final_upload = cloudinary.uploader.upload(
+                    str(final_image_path),
+                    folder="marketing_posters/final",
+                    public_id=final_filename.split('.')[0]
+                )
+                final_cloudinary_url = final_upload.get("secure_url")
+                if final_cloudinary_url:
+                    logger.info(f"✅ Final poster uploaded to Cloudinary: {final_cloudinary_url}")
+                    final_image_url = final_cloudinary_url
+                    
+            except Exception as cloud_err:
+                logger.error(f"❌ Failed to upload images to Cloudinary: {cloud_err}")
+        
         logger.info(f"✅ Final poster created successfully!")
         
         return {

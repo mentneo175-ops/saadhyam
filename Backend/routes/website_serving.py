@@ -387,16 +387,103 @@ async def serve_website(
             except Exception as e:
                 logger.error(f"❌ Failed to switch theme dynamically: {e}", exc_info=True)
 
-        if not index_path.exists():
-            logger.error(f"❌ Website files not found: {index_path}")
-            raise HTTPException(
-                status_code=404,
-                detail=f"Website files not found for {website_id}"
-            )
+        html_content = None
         
-        # Read original HTML content
-        with open(index_path, 'r', encoding='utf-8') as f:
-            html_content = f.read()
+        # 1. Check if the website has a Cloudinary URL stored
+        if website.html_file_path and website.html_file_path.startswith("http"):
+            # Check if we already have it cached locally
+            if index_path.exists():
+                logger.info(f"📂 Serving cached website HTML from disk for {actual_website_id}")
+                try:
+                    with open(index_path, 'r', encoding='utf-8') as f:
+                        html_content = f.read()
+                except Exception as read_err:
+                    logger.warning(f"⚠️ Failed to read cached file: {read_err}")
+            
+            # If not cached locally (e.g. after container restart), download and cache it
+            if not html_content:
+                logger.info(f"☁️ Downloading website HTML from Cloudinary: {website.html_file_path}")
+                try:
+                    import urllib.request
+                    # Create parent directory if missing
+                    index_path.parent.mkdir(parents=True, exist_ok=True)
+                    
+                    # Download HTML
+                    response = urllib.request.urlopen(website.html_file_path, timeout=10)
+                    html_content = response.read().decode('utf-8')
+                    
+                    # Write to local disk for fast serving next time and local asset resolution
+                    with open(index_path, 'w', encoding='utf-8') as f:
+                        f.write(html_content)
+                    logger.info(f"✅ Successfully cached Cloudinary website locally to {index_path}")
+                except Exception as dl_err:
+                    logger.error(f"❌ Failed to download website from Cloudinary: {dl_err}")
+
+        # 2. If it is a local path (or Cloudinary download failed), read local file
+        if not html_content:
+            if index_path.exists():
+                logger.info(f"📂 Serving website HTML from disk for {actual_website_id}")
+                try:
+                    with open(index_path, 'r', encoding='utf-8') as f:
+                        html_content = f.read()
+                except Exception as e:
+                    logger.error(f"❌ Failed to read local website file: {e}")
+
+        # 3. Fallback: If website HTML is still missing, dynamically regenerate it (Self-Healing)
+        if not html_content:
+            logger.warning(f"⚠️ Website files not found for {actual_website_id}. Automatically regenerating on-the-fly...")
+            try:
+                from ai_models.website_ai.app.services.template_service import render_website
+                from ai_models.website_ai.app.models.schema import WebsiteContent, WebsiteRequest
+                from ai_models.website_ai.app.core.services.storage_service import StorageService
+                
+                # Retrieve default values from the website record
+                about_text = website.description or f"{website.business_name} provides professional services."
+                services_list = website.services or []
+                
+                faq_list = [
+                    {"question": "What services do you offer?", "answer": f"We offer a wide range of professional services tailored to your needs. Please see our services section for details."},
+                    {"question": "How can I contact you?", "answer": f"You can reach us via email at {website.contact_email or 'info@' + website.business_name.lower().replace(' ', '') + '.com'} or by calling {website.contact_phone or 'our office'}."},
+                    {"question": "Where are you located?", "answer": f"We serve clients globally. You can find more contact options in our contact section."}
+                ]
+                
+                demo_content = WebsiteContent(
+                    about=about_text,
+                    services=services_list,
+                    faq=faq_list,
+                    contact=about_text,
+                    audience=website.target_audience or "general customers",
+                    tone=website.tone or "friendly and professional",
+                    branding_style=website.branding_style or "clean and modern",
+                )
+                
+                demo_request = WebsiteRequest(
+                    business_name=website.business_name,
+                    business_type=website.business_type,
+                    theme=website.theme
+                )
+                
+                html_content = render_website(website.theme, demo_content, demo_request)
+                
+                # Save files back to local storage (which will also upload to Cloudinary if configured)
+                storage_service = StorageService()
+                file_path, s3_key = storage_service.save_website_files(
+                    website_id=actual_website_id,
+                    html=html_content
+                )
+                
+                # Update website record with the new path/url
+                if file_path:
+                    website.html_file_path = file_path
+                    db.commit()
+                    
+                logger.info(f"✅ Successfully regenerated and saved website files for {actual_website_id}")
+            except Exception as regen_err:
+                logger.error(f"❌ Failed to automatically regenerate website: {regen_err}", exc_info=True)
+                raise HTTPException(
+                    status_code=404,
+                    detail=f"Website files not found for {website_id} and regeneration failed"
+                )
         
         # Check if there are saved content edits
         try:

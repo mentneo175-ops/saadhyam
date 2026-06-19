@@ -169,11 +169,37 @@ def save_content(website_id: str, content: dict, theme: Optional[str] = None) ->
         
         # Write the updated HTML to the file
         try:
-            if html_file_path.exists():
-                html_file_path.write_text(content["html"], encoding="utf-8")
-                print(f"✅ Updated HTML file: {html_file_path}")
-            else:
-                print(f"⚠️  HTML file not found: {html_file_path}")
+            websites_dir.mkdir(parents=True, exist_ok=True)
+            html_file_path.write_text(content["html"], encoding="utf-8")
+            print(f"✅ Updated local HTML file: {html_file_path}")
+            
+            # Also upload the updated HTML to Cloudinary if configured!
+            import os
+            cloudinary_configured = (
+                os.getenv("CLOUDINARY_CLOUD_NAME") and
+                os.getenv("CLOUDINARY_API_KEY") and
+                os.getenv("CLOUDINARY_API_SECRET")
+            )
+            if cloudinary_configured:
+                try:
+                    import cloudinary.uploader
+                    import cloudinary
+                    cloudinary.config(
+                        cloud_name=os.getenv("CLOUDINARY_CLOUD_NAME"),
+                        api_key=os.getenv("CLOUDINARY_API_KEY"),
+                        api_secret=os.getenv("CLOUDINARY_API_SECRET"),
+                        secure=True
+                    )
+                    print(f"☁️ Uploading updated HTML to Cloudinary for ID: {website_id}")
+                    upload_result = cloudinary.uploader.upload(
+                        content["html"].encode("utf-8"),
+                        resource_type="raw",
+                        public_id=f"websites/{website_id}/index.html",
+                        invalidate=True  # Invalidate Cloudinary CDN cache
+                    )
+                    print(f"✅ Updated HTML on Cloudinary: {upload_result.get('secure_url')}")
+                except Exception as cloud_err:
+                    print(f"❌ Failed to upload updated HTML to Cloudinary: {cloud_err}")
         except Exception as e:
             print(f"❌ Failed to write HTML file: {e}")
     

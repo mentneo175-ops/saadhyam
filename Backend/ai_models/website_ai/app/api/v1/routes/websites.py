@@ -63,8 +63,8 @@ async def get_website(
         theme=website.theme,
         html_file_path=website.html_file_path,
         s3_key=website.s3_key,
-        preview_url=f"/website/{uuid_to_string(website.id)}",
-        html_url=f"/website/{uuid_to_string(website.id)}",
+        preview_url=f"/saadhyam/{uuid_to_string(website.id)}",
+        html_url=f"/saadhyam/{uuid_to_string(website.id)}",
         status=website.status,
         created_at=website.created_at,
         updated_at=website.updated_at

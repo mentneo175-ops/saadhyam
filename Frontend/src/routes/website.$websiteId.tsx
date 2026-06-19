@@ -23,7 +23,7 @@ function WebsitePreviewPage() {
         setLoading(true);
         
         // Fetch website data from the backend
-        const response = await fetch(`${env.apiBaseUrl}/api/v1/websites/${websiteId}`, {
+        const response = await fetch(`${env.apiBaseUrl}/api/v1/website-ai/websites/${websiteId}`, {
           headers: {
             "Authorization": `Bearer ${apiClient.getToken()}`,
           },

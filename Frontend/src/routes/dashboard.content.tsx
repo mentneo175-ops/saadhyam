@@ -187,7 +187,9 @@ function ContentStudio() {
       console.log("📥 Image generation response:", response);
 
       if (response.status === "success" && response.image_url) {
-        const fullImageUrl = `${env.apiBaseUrl}${response.image_url}`;
+        const fullImageUrl = response.image_url.startsWith("http")
+          ? response.image_url
+          : `${env.apiBaseUrl}${response.image_url}`;
         console.log("✅ Image URL:", fullImageUrl);
         setGeneratedImageUrl(fullImageUrl);
         toast.success("Image generated successfully!");

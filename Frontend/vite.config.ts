@@ -5,6 +5,7 @@ import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import tsconfigPaths from "vite-tsconfig-paths";
+import { nitro } from "nitro/vite";
 
 const rootDir = path.dirname(fileURLToPath(import.meta.url));
 
@@ -39,7 +40,7 @@ if (typeof process !== "undefined") {
 }
 
 export default defineConfig({
-  plugins: [tanstackStart(), react(), tailwindcss(), tsconfigPaths()],
+  plugins: [tanstackStart(), react(), tailwindcss(), tsconfigPaths(), nitro()],
   resolve: {
     alias: {
       "@": path.resolve(rootDir, "src"),

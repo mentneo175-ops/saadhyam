@@ -26,7 +26,7 @@ interface UseAuthReturn {
 function getAuthErrorMessage(err: unknown, fallback: string): string {
   if (err instanceof ApiError) {
     if (err.status === 0) {
-      return "Cannot reach the API server. Start the backend on ${env.apiBaseUrl} and try again.";
+      return `Cannot reach the API server. Start the backend on ${env.apiBaseUrl} and try again.`;
     }
     if (typeof err.data === "object" && err.data && "detail" in err.data) {
       const detail = (err.data as { detail?: string }).detail;

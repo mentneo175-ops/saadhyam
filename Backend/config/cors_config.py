@@ -20,81 +20,59 @@ def get_cors_origins() -> List[str]:
     
     Returns:
         List of allowed origins
-        
-    Raises:
-        ValueError: If production environment has no ALLOWED_ORIGINS set
     """
     
+    # Default local development origins
+    origins = [
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://localhost:4200",
+        "http://127.0.0.1:4200",
+        "http://localhost:8080",
+        "http://127.0.0.1:8080",
+        "http://localhost:8081",
+        "http://127.0.0.1:8081",
+        "http://localhost:19006",
+        "http://127.0.0.1:19006",
+    ]
+    
+    # Always include default production/staging Vercel origins
+    default_prod_origins = [
+        "https://saadhyam-psi.vercel.app",
+        "https://saadhyam-production.up.railway.app",
+    ]
+    origins.extend(default_prod_origins)
+    
+    if ALLOWED_ORIGINS:
+        custom_origins = [origin.strip() for origin in ALLOWED_ORIGINS.split(",") if origin.strip()]
+        origins.extend(custom_origins)
+
+    # Remove duplicates
+    origins = list(set(origins))
+    
     if ENVIRONMENT == "production":
-        # Production: Strict CORS with explicit origins
-        if not ALLOWED_ORIGINS:
-            raise ValueError(
-                "ALLOWED_ORIGINS environment variable must be set in production. "
-                "Example: ALLOWED_ORIGINS=https://app.saadhyam.com,https://www.saadhyam.com"
-            )
-        
-        origins = [origin.strip() for origin in ALLOWED_ORIGINS.split(",") if origin.strip()]
-        
-        # Validate all origins use HTTPS in production
+        # Validate all production origins use HTTPS (except localhost)
         for origin in origins:
-            if not origin.startswith("https://"):
-                raise ValueError(
-                    f"Production origin must use HTTPS: {origin}. "
-                    f"HTTP is not allowed in production for security reasons."
-                )
+            if not origin.startswith("https://") and not "localhost" in origin and not "127.0.0.1" in origin:
+                logger.warning(f"⚠️ Production origin should use HTTPS: {origin}")
         
         logger.info(f"✅ Production CORS configured with {len(origins)} origins")
-        logger.info(f"   Allowed origins: {', '.join(origins)}")
         return origins
         
     elif ENVIRONMENT == "staging":
-        # Staging: Allow staging domains
-        if ALLOWED_ORIGINS:
-            origins = [origin.strip() for origin in ALLOWED_ORIGINS.split(",") if origin.strip()]
-        else:
-            # Default staging origins
-            origins = [
-                "https://staging.saadhyam.com",
-                "https://staging-app.saadhyam.com",
-            ]
-        
+        # Default staging origins
+        origins.extend([
+            "https://staging.saadhyam.com",
+            "https://staging-app.saadhyam.com",
+        ])
+        origins = list(set(origins))
         logger.info(f"✅ Staging CORS configured with {len(origins)} origins")
         return origins
         
     else:
-        # Development: Allow localhost with various ports
-        origins = [
-            # React/Vite default ports
-            "http://localhost:5173",
-            "http://127.0.0.1:5173",
-            
-            # Vue/Nuxt default ports
-            "http://localhost:3000",
-            "http://127.0.0.1:3000",
-            
-            # Angular default port
-            "http://localhost:4200",
-            "http://127.0.0.1:4200",
-            
-            # Alternative development ports
-            "http://localhost:8080",
-            "http://127.0.0.1:8080",
-            "http://localhost:8081",
-            "http://127.0.0.1:8081",
-            
-            # Mobile development (Expo, React Native)
-            "http://localhost:19006",
-            "http://127.0.0.1:19006",
-        ]
-        
-        # Add custom origins from environment if provided
-        if ALLOWED_ORIGINS:
-            custom_origins = [origin.strip() for origin in ALLOWED_ORIGINS.split(",") if origin.strip()]
-            origins.extend(custom_origins)
-            logger.info(f"✅ Development CORS: Added {len(custom_origins)} custom origins")
-        
         logger.info(f"✅ Development CORS configured with {len(origins)} origins")
-        logger.warning("⚠️  Development mode: Multiple localhost origins allowed")
         return origins
 
 
@@ -110,6 +88,7 @@ def get_cors_config() -> dict:
     
     config = {
         "allow_origins": origins,
+        "allow_origin_regex": r"https://saadhyam-.*\.vercel\.app",
         "allow_credentials": True,
         "allow_methods": ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
         "allow_headers": [
@@ -129,11 +108,6 @@ def get_cors_config() -> dict:
         ],
         "max_age": 3600,  # Cache preflight requests for 1 hour
     }
-    
-    # In production, be more restrictive
-    if ENVIRONMENT == "production":
-        config["allow_methods"] = ["GET", "POST", "PUT", "DELETE", "PATCH"]  # No OPTIONS needed
-        logger.info("✅ Production CORS: Restrictive configuration applied")
     
     return config
 

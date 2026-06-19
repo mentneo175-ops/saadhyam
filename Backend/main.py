@@ -866,28 +866,39 @@ import os
 ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
 ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "").split(",") if os.getenv("ALLOWED_ORIGINS") else None
 
-if ENVIRONMENT == "production" and ALLOWED_ORIGINS:
-    # Production: Use specific origins from environment
-    cors_origins = [origin.strip() for origin in ALLOWED_ORIGINS if origin.strip()]
-    logging.info(f"✅ Production CORS: {cors_origins}")
-else:
-    # Development: Allow localhost
-    cors_origins = [
-        "http://localhost:5173",
-        "http://localhost:8080",
-        "http://localhost:8081",
-        "http://127.0.0.1:5173",
-        "http://127.0.0.1:8080",
-        "http://127.0.0.1:8081",
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-    ]
-    logging.info(f"✅ Development CORS: Multiple localhost origins")
+# Local development origins
+cors_origins = [
+    "http://localhost:5173",
+    "http://localhost:8080",
+    "http://localhost:8081",
+    "http://127.0.0.1:5173",
+    "http://127.0.0.1:8080",
+    "http://127.0.0.1:8081",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+]
+
+# Always include default production/staging Vercel origins
+default_prod_origins = [
+    "https://saadhyam-psi.vercel.app",
+    "https://saadhyam-production.up.railway.app",
+]
+cors_origins.extend(default_prod_origins)
+
+if ALLOWED_ORIGINS:
+    # Add custom origins from environment
+    env_origins = [origin.strip() for origin in ALLOWED_ORIGINS if origin.strip()]
+    cors_origins.extend(env_origins)
+
+# Remove duplicates
+cors_origins = list(set(cors_origins))
+logging.info(f"✅ CORS Origins configured: {cors_origins}")
 
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=cors_origins,
+    allow_origin_regex=r"https://saadhyam-.*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allow_headers=["*"],

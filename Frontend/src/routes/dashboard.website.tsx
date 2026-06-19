@@ -1007,7 +1007,7 @@ function WebsiteAIPage() {
                         value={websiteResult?.preview_url ? `${env.apiBaseUrl}${websiteResult.preview_url}${currentPreviewPath}` : ''}
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                           const newUrl = e.target.value;
-                          if (newUrl.includes('localhost:8000/saadhyam/')) {
+                          if (newUrl.includes('/saadhyam/')) {
                             // Extract website ID and path from URL
                             const urlParts = newUrl.split('/saadhyam/')[1];
                             if (urlParts) {
@@ -1024,7 +1024,7 @@ function WebsiteAIPage() {
                         onKeyPress={(e: React.KeyboardEvent<HTMLInputElement>) => {
                           if (e.key === 'Enter') {
                             const newUrl = (e.target as HTMLInputElement).value;
-                            if (newUrl.includes('localhost:8000/saadhyam/')) {
+                            if (newUrl.includes('/saadhyam/')) {
                               const urlParts = newUrl.split('/saadhyam/')[1];
                               if (urlParts) {
                                 const [websiteId, ...pathParts] = urlParts.split('/');

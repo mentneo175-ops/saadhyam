@@ -113,34 +113,3 @@ async def public_health():
         "timestamp": datetime.utcnow().isoformat()
     }
 
-
-import os
-from fastapi import Request
-
-@router.get("/cors-info")
-async def get_cors_info(request: Request):
-    cors_middleware = None
-    # Check both request.app.user_middleware and compiled middleware list
-    middleware_details = {}
-    
-    for middleware in request.app.user_middleware:
-        if "CORSMiddleware" in str(middleware.cls):
-            middleware_details["user_middleware"] = {
-                "allow_origins": middleware.options.get("allow_origins"),
-                "allow_origin_regex": middleware.options.get("allow_origin_regex"),
-            }
-            break
-            
-    # Also attempt to read from active middleware stack if compiled
-    try:
-        for route in request.app.routes:
-            pass # just referencing request.app
-    except Exception:
-        pass
-        
-    return {
-        "middleware_details": middleware_details,
-        "environment": os.getenv("ENVIRONMENT"),
-        "allowed_origins_env": os.getenv("ALLOWED_ORIGINS")
-    }
-

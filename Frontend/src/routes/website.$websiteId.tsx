@@ -153,7 +153,7 @@ function WebsitePreviewPage() {
                 <div className="w-3 h-3 rounded-full bg-green-500"></div>
               </div>
               <div className="flex-1 bg-background rounded px-3 py-1 text-sm text-muted-foreground">
-                {websiteData?.preview_url ? `localhost:8000${websiteData.preview_url}` : 'Website Preview'}
+                {websiteData?.preview_url ? `${env.apiBaseUrl}${websiteData.preview_url}` : 'Website Preview'}
               </div>
             </div>
           </div>

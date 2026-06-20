@@ -509,6 +509,12 @@ async def live_diagnostics():
     except Exception as e:
         diag_info["groq_test_error"] = f"Direct Groq call failed: {type(e).__name__}: {str(e)}"
         
+    try:
+        fallback_res = voice_agent_service._generate_with_fallback("Respond with hello")
+        diag_info["voice_agent_service_fallback_test_result"] = fallback_res
+    except Exception as e:
+        diag_info["voice_agent_service_fallback_test_error"] = f"Fallback generation test failed: {type(e).__name__}: {str(e)}"
+        
     return diag_info
 
 

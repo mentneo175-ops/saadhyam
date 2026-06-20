@@ -432,6 +432,7 @@ def health_check():
         "status": "healthy",
         "openai_configured": bool(OPENAI_API_KEY),
         "gemini_active": bool(GEMINI_API_KEY),
+        "gemini_model": settings.GEMINI_CONTENT_MODEL,
         "elevenlabs_active": bool(os.getenv("ELEVENLABS_API_KEY", "")),
         "eleven_voice_id": os.getenv("ELEVENLABS_VOICE_ID", "EXAVITQu4vr4xnSDxMaL"),
         "eleven_model_id": "eleven_v3"

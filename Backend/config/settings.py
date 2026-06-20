@@ -282,7 +282,8 @@ class Settings(BaseSettings):
             os.environ["GEMINI_API_KEY"] = valid_key
 
         # Override default/local URLs in production to point to the actual production host
-        if self.ENVIRONMENT == "production":
+        is_railway = bool(os.getenv("RAILWAY_PUBLIC_DOMAIN") or os.getenv("RAILWAY_STATIC_URL") or os.getenv("RAILWAY_PROJECT_NAME"))
+        if self.ENVIRONMENT == "production" or is_railway:
             railway_domain = os.getenv("RAILWAY_PUBLIC_DOMAIN")
             prod_host = f"https://{railway_domain}" if railway_domain else "https://saadhyam-production.up.railway.app"
             
@@ -290,7 +291,7 @@ class Settings(BaseSettings):
             if not self.BACKEND_URL or "localhost" in self.BACKEND_URL or "127.0.0.1" in self.BACKEND_URL:
                 import logging
                 logger = logging.getLogger(__name__)
-                logger.info(f"🔄 Production environment detected. Overriding BACKEND_URL to: {prod_host}")
+                logger.info(f"🔄 Deployed environment detected. Overriding BACKEND_URL to: {prod_host}")
                 self.BACKEND_URL = prod_host
                 
             # If EXOTEL_STREAM_URL contains localhost, 127.0.0.1, trycloudflare, or is empty, override it
@@ -300,7 +301,7 @@ class Settings(BaseSettings):
                 "trycloudflare.com" in self.EXOTEL_STREAM_URL):
                 import logging
                 logger = logging.getLogger(__name__)
-                logger.info(f"🔄 Production environment detected. Overriding EXOTEL_STREAM_URL to: {prod_host}")
+                logger.info(f"🔄 Deployed environment detected. Overriding EXOTEL_STREAM_URL to: {prod_host}")
                 self.EXOTEL_STREAM_URL = prod_host
 
     def get_cors_origins(self) -> List[str]:

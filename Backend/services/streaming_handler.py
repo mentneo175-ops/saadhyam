@@ -60,6 +60,8 @@ class ExotelStreamHandler:
         self.ai_speaking_lock = asyncio.Lock()
         self.speak_task = None
         self.response_task = None
+        self.suppress_until = 0.0  # Timestamp until which transcripts are suppressed (AI echo guard)
+        self.processing_lock = asyncio.Lock()  # Prevent concurrent AI responses
 
     async def initialize(self) -> bool:
         """Fetch call metadata and establish initial setups"""
@@ -160,7 +162,13 @@ class ExotelStreamHandler:
             reply = await self.get_ai_response(transcript)
             logger.info(f"🤖 AI: {reply}")
             self.transcript_lines.append(f"AI: {reply}")
-            
+
+            # Set suppress window: block AI audio echo from being picked up by phone mic as user input
+            word_count = len(reply.split())
+            estimated_duration = max((word_count / 2.5) + 1.5, 3.0)  # min 3s suppress window
+            self.suppress_until = asyncio.get_event_loop().time() + estimated_duration
+            logger.info(f"🔇 Echo guard active: suppressing input for {estimated_duration:.1f}s")
+
             # Speak it back
             self.speak_task = asyncio.create_task(self.speak_text(reply))
             await self.speak_task
@@ -168,6 +176,8 @@ class ExotelStreamHandler:
             logger.info("generate_and_speak task cancelled")
         except Exception as e:
             logger.error(f"Error in generate_and_speak: {e}")
+        finally:
+            self.suppress_until = 0.0  # Always clear echo guard after speaking finishes
 
     async def _speak_sarvam_exotel(self, text: str) -> bool:
         sarvam_api_key = os.getenv("SARVAM_API_KEY")
@@ -510,7 +520,7 @@ Provide your next direct script response now. Speak directly to the customer. Do
         """Establish connection to Deepgram WebSocket and launch transcript listener task"""
         lang_code = LANG_MAPPING.get(self.language, "te") # Default to Telugu
         
-        url = f"wss://api.deepgram.com/v1/listen?encoding=linear16&sample_rate=8000&channels=1&model=nova-3&language={lang_code}&endpointing=600"
+        url = f"wss://api.deepgram.com/v1/listen?encoding=linear16&sample_rate=8000&channels=1&model=nova-3&language={lang_code}&endpointing=1000"
         headers = {
             "Authorization": f"Token {settings.DEEPGRAM_API_KEY}"
         }
@@ -565,12 +575,23 @@ Provide your next direct script response now. Speak directly to the customer. Do
                             await self.stop_speaking()
 
                         if is_final:
+                            # Block transcripts while AI audio is playing back (prevents echo loop)
+                            now = asyncio.get_event_loop().time()
+                            if now < self.suppress_until:
+                                logger.info(f"🔇 Suppressed echo transcript (Exotel): '{transcript}'")
+                                continue
+
+                            # Require at least 2 words — avoids responding to mid-speech partial bursts
+                            if len(clean_trans.split()) < 2:
+                                logger.info(f"⏭️ Skipping short partial ({len(clean_trans.split())} word): '{transcript}'")
+                                continue
+
                             logger.info(f"👤 Customer (final): {transcript}")
                             self.transcript_lines.append(f"Customer: {transcript}")
-                            
+
                             # Cancel any previous generating or speaking task to prevent overlap/echo
                             await self.stop_speaking()
-                            
+
                             # Start generation and speaking task in the background
                             self.response_task = asyncio.create_task(self.generate_and_speak(transcript))
 
@@ -784,6 +805,8 @@ class TwilioStreamHandler:
         self.stream_sid = None
         self.speak_task = None
         self.response_task = None
+        self.suppress_until = 0.0  # Timestamp until which transcripts are suppressed (AI echo guard)
+        self.processing_lock = asyncio.Lock()  # Prevent concurrent AI responses
 
     async def initialize(self) -> bool:
         """Fetch call metadata and establish initial setups"""
@@ -897,7 +920,13 @@ class TwilioStreamHandler:
             reply = await self.get_ai_response(transcript)
             logger.info(f"🤖 AI: {reply}")
             self.transcript_lines.append(f"AI: {reply}")
-            
+
+            # Set suppress window: block AI audio echo from being picked up by phone mic as user input
+            word_count = len(reply.split())
+            estimated_duration = max((word_count / 2.5) + 1.5, 3.0)  # min 3s suppress window
+            self.suppress_until = asyncio.get_event_loop().time() + estimated_duration
+            logger.info(f"🔇 Echo guard active: suppressing input for {estimated_duration:.1f}s")
+
             # Speak it back
             self.speak_task = asyncio.create_task(self.speak_text(reply))
             await self.speak_task
@@ -905,6 +934,8 @@ class TwilioStreamHandler:
             logger.info("generate_and_speak task cancelled")
         except Exception as e:
             logger.error(f"Error in generate_and_speak: {e}")
+        finally:
+            self.suppress_until = 0.0  # Always clear echo guard after speaking finishes
 
     async def _speak_sarvam_twilio(self, text: str) -> bool:
         sarvam_api_key = os.getenv("SARVAM_API_KEY")
@@ -1268,7 +1299,7 @@ Provide your next direct script response now. Speak directly to the customer. Do
         lang_code = LANG_MAPPING.get(self.language, "te") # Default to Telugu
         
         # Configure Deepgram to parse mulaw (mu-law) encoded audio at 8kHz sample rate
-        url = f"wss://api.deepgram.com/v1/listen?encoding=mulaw&sample_rate=8000&channels=1&model=nova-3&language={lang_code}&endpointing=600"
+        url = f"wss://api.deepgram.com/v1/listen?encoding=mulaw&sample_rate=8000&channels=1&model=nova-3&language={lang_code}&endpointing=1000"
         headers = {
             "Authorization": f"Token {settings.DEEPGRAM_API_KEY}"
         }
@@ -1323,12 +1354,23 @@ Provide your next direct script response now. Speak directly to the customer. Do
                             await self.stop_speaking()
 
                         if is_final:
+                            # Block transcripts while AI audio is playing back (prevents echo loop)
+                            now = asyncio.get_event_loop().time()
+                            if now < self.suppress_until:
+                                logger.info(f"🔇 Suppressed echo transcript (Twilio): '{transcript}'")
+                                continue
+
+                            # Require at least 2 words — avoids responding to mid-speech partial bursts
+                            if len(clean_trans.split()) < 2:
+                                logger.info(f"⏭️ Skipping short partial ({len(clean_trans.split())} word): '{transcript}'")
+                                continue
+
                             logger.info(f"👤 Customer (final): {transcript}")
                             self.transcript_lines.append(f"Customer: {transcript}")
-                            
+
                             # Cancel any previous generating or speaking task to prevent overlap/echo
                             await self.stop_speaking()
-                            
+
                             # Start generation and speaking task in the background
                             self.response_task = asyncio.create_task(self.generate_and_speak(transcript))
 

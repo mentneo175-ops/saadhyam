@@ -2574,12 +2574,50 @@ function VoiceAgentDashboard() {
                   </span>
                 </div>
 
+                {/* Interest Score Progress Bar — primary CRM signal */}
+                <div>
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="text-xs text-muted font-semibold">Interest Score</span>
+                    <span className={`text-sm font-bold ${
+                      (selectedCallLog.interest_score ?? selectedCallLog.buying_intent ?? 0) >= 75
+                        ? "text-accent-green"
+                        : (selectedCallLog.interest_score ?? selectedCallLog.buying_intent ?? 0) >= 50
+                        ? "text-accent"
+                        : (selectedCallLog.interest_score ?? selectedCallLog.buying_intent ?? 0) >= 25
+                        ? "text-accent-purple"
+                        : "text-secondary"
+                    }`}>
+                      {selectedCallLog.interest_score ?? selectedCallLog.buying_intent ?? 0}%
+                    </span>
+                  </div>
+                  <div className="w-full bg-surface rounded-full h-3 overflow-hidden" style={{border: "1px solid var(--border-color)"}}>
+                    <div
+                      className={`h-3 rounded-full transition-all duration-700 ease-out ${
+                        (selectedCallLog.interest_score ?? selectedCallLog.buying_intent ?? 0) >= 75
+                          ? "bg-accent-green"
+                          : (selectedCallLog.interest_score ?? selectedCallLog.buying_intent ?? 0) >= 50
+                          ? "bg-accent"
+                          : (selectedCallLog.interest_score ?? selectedCallLog.buying_intent ?? 0) >= 25
+                          ? "bg-accent-purple"
+                          : "bg-secondary"
+                      }`}
+                      style={{ width: `${selectedCallLog.interest_score ?? selectedCallLog.buying_intent ?? 0}%` }}
+                    />
+                  </div>
+                  <div className="flex justify-between mt-1">
+                    <span className="text-[10px] text-muted">Cold</span>
+                    <span className="text-[10px] text-muted">Nurture</span>
+                    <span className="text-[10px] text-muted">Warm</span>
+                    <span className="text-[10px] text-muted">Hot</span>
+                  </div>
+                </div>
+
                 {/* Score Stats */}
                 <div className="grid grid-cols-2 gap-4">
                   <div className="p-3 bg-surface rounded-lg">
                     <span className="text-xs text-muted block">Buying Intent</span>
                     <span className="text-lg font-bold text-primary">
-                      {selectedCallLog.buying_intent}%
+                      {selectedCallLog.buying_intent ?? 0}%
                     </span>
                   </div>
                   <div className="p-3 bg-surface rounded-lg">

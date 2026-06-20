@@ -1009,6 +1009,7 @@ def get_dashboard_overview(
                     "objections": s.objections,
                     "callback_time": s.callback_time,
                     "whatsapp_sent": s.whatsapp_sent,
+                    "transcript": s.transcript,
                     "created_at": s.created_at.isoformat() if s.created_at else None,
                 })
 

@@ -491,6 +491,24 @@ async def live_diagnostics():
     except Exception as e:
         diag_info["llm_test_error"] = f"Direct Gemini call failed: {type(e).__name__}: {str(e)}"
         
+    try:
+        from groq import Groq
+        groq_api_key = os.getenv("GROQ_API_KEY", "")
+        diag_info["groq_key_configured"] = bool(groq_api_key)
+        if groq_api_key:
+            client = Groq(api_key=groq_api_key)
+            model_name = os.getenv("GROQ_CONTENT_MODEL", "llama-3.1-8b-instant")
+            response = client.chat.completions.create(
+                model=model_name,
+                messages=[{"role": "user", "content": "Respond with hello"}],
+                max_tokens=10
+            )
+            diag_info["groq_test_result"] = response.choices[0].message.content.strip()
+        else:
+            diag_info["groq_test_result"] = "No Groq API Key found"
+    except Exception as e:
+        diag_info["groq_test_error"] = f"Direct Groq call failed: {type(e).__name__}: {str(e)}"
+        
     return diag_info
 
 

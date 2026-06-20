@@ -309,6 +309,20 @@ class Settings(BaseSettings):
                 logger.info(f"🔄 Deployed environment detected. Overriding EXOTEL_STREAM_URL to: {prod_host}")
                 self.EXOTEL_STREAM_URL = prod_host
 
+            # Auto-resolve redirect URIs to use the production backend URL if they are currently set to localhost
+            if "localhost" in self.INSTAGRAM_REDIRECT_URI or "127.0.0.1" in self.INSTAGRAM_REDIRECT_URI:
+                self.INSTAGRAM_REDIRECT_URI = f"{self.BACKEND_URL}/auth/instagram/callback"
+                
+            if "localhost" in self.META_REDIRECT_URI or "127.0.0.1" in self.META_REDIRECT_URI:
+                self.META_REDIRECT_URI = f"{self.BACKEND_URL}/auth/meta/callback"
+                
+            if "localhost" in self.WHATSAPP_REDIRECT_URI or "127.0.0.1" in self.WHATSAPP_REDIRECT_URI:
+                self.WHATSAPP_REDIRECT_URI = f"{self.BACKEND_URL}/api/whatsapp/callback"
+                
+            if "localhost" in self.YOUTUBE_REDIRECT_URI or "127.0.0.1" in self.YOUTUBE_REDIRECT_URI:
+                # Default Vercel production frontend domain
+                self.YOUTUBE_REDIRECT_URI = "https://saadhyam-psi.vercel.app/youtube-oauth-callback"
+
     def get_cors_origins(self) -> List[str]:
 
         raw_value = (self.CORS_ORIGINS or os.getenv("ALLOWED_ORIGINS", "")).strip()

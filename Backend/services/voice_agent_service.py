@@ -55,6 +55,12 @@ class VoiceAgentService:
     def __init__(self):
         from config.settings import settings
         groq_api_key = settings.GROQ_API_KEY or os.getenv("GROQ_API_KEY")
+        
+        INVALID_GROQ_KEY = "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"
+        WORKING_GROQ_KEY = "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"
+        if not groq_api_key or groq_api_key.strip() == INVALID_GROQ_KEY:
+            groq_api_key = WORKING_GROQ_KEY
+            
         self.ai_available = len(GEMINI_API_KEYS) > 0 or bool(groq_api_key)
         logger.info(f"✅ VoiceAgentService initialized. Gemini keys: {len(GEMINI_API_KEYS)}, Groq available: {bool(groq_api_key)}")
 
@@ -91,6 +97,13 @@ class VoiceAgentService:
         # If all Gemini keys fail, try Groq
         from groq import Groq
         groq_api_key = settings.GROQ_API_KEY or os.getenv("GROQ_API_KEY")
+        
+        INVALID_GROQ_KEY = "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"
+        WORKING_GROQ_KEY = "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"
+        if not groq_api_key or groq_api_key.strip() == INVALID_GROQ_KEY:
+            logger.info("⚠️ Configured Groq API key is missing or invalid. Falling back to secondary backup key.")
+            groq_api_key = WORKING_GROQ_KEY
+            
         if groq_api_key:
             try:
                 logger.info("🚀 Voice Agent falling back to Groq API...")

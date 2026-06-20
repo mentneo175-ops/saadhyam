@@ -16,6 +16,7 @@ import enum
 class CompanyProfile(Base):
     __tablename__ = "company_profile"
     id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=True, index=True)
     name = Column(String(255), nullable=False)
     description = Column(Text, nullable=True)
     services = Column(Text, nullable=True)
@@ -27,6 +28,7 @@ class CompanyProfile(Base):
 class AIAgent(Base):
     __tablename__ = "ai_agent"
     id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=True, index=True)
     name = Column(String(255), nullable=False)
     role = Column(String(255), nullable=False)
     prompt = Column(Text, nullable=False)
@@ -39,6 +41,7 @@ class AIAgent(Base):
 class Campaign(Base):
     __tablename__ = "campaign"
     id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=True, index=True)
     name = Column(String(255), nullable=False)
     objective = Column(Text, nullable=True)
     agent_id = Column(Integer, nullable=True)
@@ -54,6 +57,7 @@ class Campaign(Base):
 class Lead(Base):
     __tablename__ = "lead"
     id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=True, index=True)
     name = Column(String(255), nullable=False)
     phone = Column(String(50), nullable=False)
     language = Column(String(50), default="te")

@@ -3,7 +3,7 @@
  * Central configuration for API endpoints
  */
 
-import { env } from './env';
+import { env } from "./env";
 
 // Backend API base URL
 export const API_BASE_URL = env.apiBaseUrl;
@@ -23,10 +23,11 @@ export const API_ENDPOINTS = {
     pauseCalling: (id: number) => `${API_BASE_URL}/api/voice-agent/campaigns/${id}/pause-calling`,
     resumeCalling: (id: number) => `${API_BASE_URL}/api/voice-agent/campaigns/${id}/resume-calling`,
     callProgress: (id: number) => `${API_BASE_URL}/api/voice-agent/campaigns/${id}/call-progress`,
-    addContactsBulk: (id: number) => `${API_BASE_URL}/api/voice-agent/campaigns/${id}/contacts/bulk`,
+    addContactsBulk: (id: number) =>
+      `${API_BASE_URL}/api/voice-agent/campaigns/${id}/contacts/bulk`,
     dashboardOverview: `${API_BASE_URL}/api/voice-agent/dashboard/overview`,
   },
-  
+
   // Voice Agent V2
   voiceAgentV2: {
     campaigns: `${API_BASE_URL}/api/v2/voice-agent/campaigns`,

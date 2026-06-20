@@ -524,7 +524,7 @@ def get_company(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db_sync)
 ):
-    profile = db.query(CompanyProfile).first()
+    profile = db.query(CompanyProfile).filter(CompanyProfile.user_id == current_user.id).first()
     if not profile:
         return {
             "name": "",
@@ -548,9 +548,10 @@ def save_company(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db_sync)
 ):
-    profile = db.query(CompanyProfile).first()
+    profile = db.query(CompanyProfile).filter(CompanyProfile.user_id == current_user.id).first()
     if not profile:
         profile = CompanyProfile(
+            user_id=current_user.id,
             name=data.name,
             description=data.description,
             services=data.services,
@@ -572,7 +573,7 @@ def generate_company_summary(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db_sync)
 ):
-    profile = db.query(CompanyProfile).first()
+    profile = db.query(CompanyProfile).filter(CompanyProfile.user_id == current_user.id).first()
     if not profile:
         raise HTTPException(status_code=400, detail="Please save company details before generating summary")
     
@@ -600,7 +601,7 @@ def get_agents(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db_sync)
 ):
-    return db.query(AIAgent).order_by(AIAgent.created_at.desc()).all()
+    return db.query(AIAgent).filter(AIAgent.user_id == current_user.id).order_by(AIAgent.created_at.desc()).all()
 
 
 @router.post("/agents")
@@ -610,6 +611,7 @@ def create_agent(
     db: Session = Depends(get_db_sync)
 ):
     agent = AIAgent(
+        user_id=current_user.id,
         name=data.name,
         role=data.role,
         prompt=data.prompt,
@@ -630,7 +632,7 @@ def update_agent(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db_sync)
 ):
-    agent = db.query(AIAgent).filter(AIAgent.id == agent_id).first()
+    agent = db.query(AIAgent).filter(AIAgent.id == agent_id, AIAgent.user_id == current_user.id).first()
     if not agent:
         raise HTTPException(status_code=404, detail="Agent not found")
     agent.name = data.name
@@ -650,7 +652,7 @@ def delete_agent(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db_sync)
 ):
-    agent = db.query(AIAgent).filter(AIAgent.id == agent_id).first()
+    agent = db.query(AIAgent).filter(AIAgent.id == agent_id, AIAgent.user_id == current_user.id).first()
     if not agent:
         raise HTTPException(status_code=404, detail="Agent not found")
     db.delete(agent)
@@ -667,16 +669,18 @@ def get_campaigns(
 ):
     """List campaigns. Supports ?status=active|paused|completed|archived&view=trash"""
     if view == "trash":
-        query = db.query(Campaign).filter(Campaign.is_deleted == True)
+        query = db.query(Campaign).filter(Campaign.is_deleted == True, Campaign.user_id == current_user.id)
     else:
         query = db.query(Campaign).filter(
             Campaign.is_deleted == False,
             Campaign.is_archived == False,
+            Campaign.user_id == current_user.id
         )
         if status == "archived":
             query = db.query(Campaign).filter(
                 Campaign.is_deleted == False,
                 Campaign.is_archived == True,
+                Campaign.user_id == current_user.id
             )
         elif status and status != "all":
             query = query.filter(Campaign.status == status)
@@ -709,7 +713,13 @@ def create_campaign(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db_sync)
 ):
+    if data.agent_id:
+        agent = db.query(AIAgent).filter(AIAgent.id == data.agent_id, AIAgent.user_id == current_user.id).first()
+        if not agent:
+            raise HTTPException(status_code=404, detail="Agent not found or does not belong to you")
+            
     campaign = Campaign(
+        user_id=current_user.id,
         name=data.name,
         objective=data.objective,
         agent_id=data.agent_id,
@@ -737,9 +747,15 @@ def update_campaign(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db_sync)
 ):
-    campaign = db.query(Campaign).filter(Campaign.id == campaign_id).first()
+    campaign = db.query(Campaign).filter(Campaign.id == campaign_id, Campaign.user_id == current_user.id).first()
     if not campaign:
         raise HTTPException(status_code=404, detail="Campaign not found")
+        
+    if data.agent_id:
+        agent = db.query(AIAgent).filter(AIAgent.id == data.agent_id, AIAgent.user_id == current_user.id).first()
+        if not agent:
+            raise HTTPException(status_code=404, detail="Agent not found or does not belong to you")
+            
     campaign.name = data.name
     campaign.objective = data.objective
     campaign.agent_id = data.agent_id
@@ -760,7 +776,7 @@ def update_campaign_status(
     allowed = {"active", "paused", "completed", "draft"}
     if data.status not in allowed:
         raise HTTPException(status_code=400, detail=f"Status must be one of: {allowed}")
-    campaign = db.query(Campaign).filter(Campaign.id == campaign_id).first()
+    campaign = db.query(Campaign).filter(Campaign.id == campaign_id, Campaign.user_id == current_user.id).first()
     if not campaign:
         raise HTTPException(status_code=404, detail="Campaign not found")
     campaign.status = data.status
@@ -776,7 +792,7 @@ def archive_campaign(
 ):
     """Toggle archive state of a campaign."""
     from datetime import datetime as _dt
-    campaign = db.query(Campaign).filter(Campaign.id == campaign_id).first()
+    campaign = db.query(Campaign).filter(Campaign.id == campaign_id, Campaign.user_id == current_user.id).first()
     if not campaign:
         raise HTTPException(status_code=404, detail="Campaign not found")
     currently_archived = getattr(campaign, 'is_archived', False)
@@ -794,10 +810,11 @@ def duplicate_campaign(
     db: Session = Depends(get_db_sync)
 ):
     """Clone a campaign with '(Copy)' suffix. New campaign starts in draft status."""
-    original = db.query(Campaign).filter(Campaign.id == campaign_id).first()
+    original = db.query(Campaign).filter(Campaign.id == campaign_id, Campaign.user_id == current_user.id).first()
     if not original:
         raise HTTPException(status_code=404, detail="Campaign not found")
     clone = Campaign(
+        user_id=current_user.id,
         name=f"{original.name} (Copy)",
         objective=original.objective,
         agent_id=original.agent_id,
@@ -821,7 +838,7 @@ def restore_campaign(
     db: Session = Depends(get_db_sync)
 ):
     """Restore a soft-deleted campaign from Trash."""
-    campaign = db.query(Campaign).filter(Campaign.id == campaign_id).first()
+    campaign = db.query(Campaign).filter(Campaign.id == campaign_id, Campaign.user_id == current_user.id).first()
     if not campaign:
         raise HTTPException(status_code=404, detail="Campaign not found")
     campaign.is_deleted = False
@@ -842,7 +859,7 @@ def delete_campaign(
 ):
     """Soft-delete a campaign (moves to Trash). Pass ?permanent=true to hard-delete from Trash."""
     from datetime import datetime as _dt
-    campaign = db.query(Campaign).filter(Campaign.id == campaign_id).first()
+    campaign = db.query(Campaign).filter(Campaign.id == campaign_id, Campaign.user_id == current_user.id).first()
     if not campaign:
         raise HTTPException(status_code=404, detail="Campaign not found")
     if permanent:
@@ -862,8 +879,11 @@ def get_leads(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db_sync)
 ):
-    query = db.query(Lead)
+    query = db.query(Lead).filter(Lead.user_id == current_user.id)
     if campaign_id is not None:
+        campaign = db.query(Campaign).filter(Campaign.id == campaign_id, Campaign.user_id == current_user.id).first()
+        if not campaign:
+            raise HTTPException(status_code=404, detail="Campaign not found or does not belong to you")
         query = query.filter(Lead.campaign_id == campaign_id)
     return query.order_by(Lead.created_at.desc()).all()
 
@@ -874,7 +894,13 @@ def create_lead(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db_sync)
 ):
+    if data.campaign_id:
+        campaign = db.query(Campaign).filter(Campaign.id == data.campaign_id, Campaign.user_id == current_user.id).first()
+        if not campaign:
+            raise HTTPException(status_code=404, detail="Campaign not found or does not belong to you")
+            
     lead = Lead(
+        user_id=current_user.id,
         name=data.name,
         phone=data.phone,
         language=data.language,
@@ -893,7 +919,7 @@ def delete_lead(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db_sync)
 ):
-    lead = db.query(Lead).filter(Lead.id == lead_id).first()
+    lead = db.query(Lead).filter(Lead.id == lead_id, Lead.user_id == current_user.id).first()
     if not lead:
         raise HTTPException(status_code=404, detail="Lead not found")
     db.delete(lead)
@@ -910,6 +936,11 @@ async def upload_leads_csv(
 ):
     import csv
     import io
+    
+    campaign = db.query(Campaign).filter(Campaign.id == campaign_id, Campaign.user_id == current_user.id).first()
+    if not campaign:
+        raise HTTPException(status_code=404, detail="Campaign not found or does not belong to you")
+        
     if not file.filename.endswith(".csv"):
         raise HTTPException(status_code=400, detail="Only CSV files are allowed")
     content = await file.read()
@@ -942,6 +973,7 @@ async def upload_leads_csv(
         language = row[lang_idx].strip() if (lang_idx != -1 and len(row) > lang_idx) else "te"
         if not name or not phone: continue
         lead = Lead(
+            user_id=current_user.id,
             name=name, phone=phone, language=language,
             campaign_id=campaign_id, status="pending"
         )
@@ -956,7 +988,7 @@ def get_whatsapp_logs(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db_sync)
 ):
-    logs = db.query(WhatsAppLog).order_by(WhatsAppLog.sent_at.desc()).all()
+    logs = db.query(WhatsAppLog).join(Lead, Lead.id == WhatsAppLog.lead_id).filter(Lead.user_id == current_user.id).order_by(WhatsAppLog.sent_at.desc()).all()
     result = []
     for l in logs:
         lead = db.query(Lead).filter(Lead.id == l.lead_id).first()
@@ -977,13 +1009,13 @@ def get_analytics_overview(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db_sync)
 ):
-    total_calls = db.query(CallSession).count()
-    completed_calls = db.query(CallSession).filter(CallSession.status == "completed").count()
-    hot_leads = db.query(Lead).filter(Lead.interest_level == "Hot").count()
-    warm_leads = db.query(Lead).filter(Lead.interest_level == "Warm").count()
-    nurture_leads = db.query(Lead).filter(Lead.interest_level == "Nurture").count()
-    cold_leads = db.query(Lead).filter(Lead.interest_level == "Cold").count()
-    total_leads = db.query(Lead).count()
+    total_calls = db.query(CallSession).join(Lead, Lead.id == CallSession.lead_id).filter(Lead.user_id == current_user.id).count()
+    completed_calls = db.query(CallSession).join(Lead, Lead.id == CallSession.lead_id).filter(CallSession.status == "completed", Lead.user_id == current_user.id).count()
+    hot_leads = db.query(Lead).filter(Lead.interest_level == "Hot", Lead.user_id == current_user.id).count()
+    warm_leads = db.query(Lead).filter(Lead.interest_level == "Warm", Lead.user_id == current_user.id).count()
+    nurture_leads = db.query(Lead).filter(Lead.interest_level == "Nurture", Lead.user_id == current_user.id).count()
+    cold_leads = db.query(Lead).filter(Lead.interest_level == "Cold", Lead.user_id == current_user.id).count()
+    total_leads = db.query(Lead).filter(Lead.user_id == current_user.id).count()
     conversion_rate = (hot_leads / total_leads * 100) if total_leads > 0 else 0.0
     return {
         "total_calls": total_calls,
@@ -1009,13 +1041,13 @@ def get_dashboard_overview(
     for attempt in range(max_retries):
         try:
             # Analytics
-            total_calls = db.query(CallSession).count()
-            completed_calls = db.query(CallSession).filter(CallSession.status == "completed").count()
-            hot_leads = db.query(Lead).filter(Lead.interest_level == "Hot").count()
-            warm_leads = db.query(Lead).filter(Lead.interest_level == "Warm").count()
-            nurture_leads = db.query(Lead).filter(Lead.interest_level == "Nurture").count()
-            cold_leads = db.query(Lead).filter(Lead.interest_level == "Cold").count()
-            total_leads = db.query(Lead).count()
+            total_calls = db.query(CallSession).join(Lead, Lead.id == CallSession.lead_id).filter(Lead.user_id == current_user.id).count()
+            completed_calls = db.query(CallSession).join(Lead, Lead.id == CallSession.lead_id).filter(CallSession.status == "completed", Lead.user_id == current_user.id).count()
+            hot_leads = db.query(Lead).filter(Lead.interest_level == "Hot", Lead.user_id == current_user.id).count()
+            warm_leads = db.query(Lead).filter(Lead.interest_level == "Warm", Lead.user_id == current_user.id).count()
+            nurture_leads = db.query(Lead).filter(Lead.interest_level == "Nurture", Lead.user_id == current_user.id).count()
+            cold_leads = db.query(Lead).filter(Lead.interest_level == "Cold", Lead.user_id == current_user.id).count()
+            total_leads = db.query(Lead).filter(Lead.user_id == current_user.id).count()
             conversion_rate = (hot_leads / total_leads * 100) if total_leads > 0 else 0.0
 
             analytics = {
@@ -1030,13 +1062,13 @@ def get_dashboard_overview(
             }
 
             # Agents
-            agents = db.query(AIAgent).order_by(AIAgent.created_at.desc()).all()
+            agents = db.query(AIAgent).filter(AIAgent.user_id == current_user.id).order_by(AIAgent.created_at.desc()).all()
 
             # Campaigns: main, trash, archived
-            campaigns_main_q = db.query(Campaign).filter(Campaign.is_deleted == False, Campaign.is_archived == False)
+            campaigns_main_q = db.query(Campaign).filter(Campaign.is_deleted == False, Campaign.is_archived == False, Campaign.user_id == current_user.id)
             campaigns_main = campaigns_main_q.order_by(Campaign.created_at.desc()).all()
-            campaigns_trash = db.query(Campaign).filter(Campaign.is_deleted == True).order_by(Campaign.deleted_at.desc()).all()
-            campaigns_archived = db.query(Campaign).filter(Campaign.is_archived == True, Campaign.is_deleted == False).order_by(Campaign.archived_at.desc()).all()
+            campaigns_trash = db.query(Campaign).filter(Campaign.is_deleted == True, Campaign.user_id == current_user.id).order_by(Campaign.deleted_at.desc()).all()
+            campaigns_archived = db.query(Campaign).filter(Campaign.is_archived == True, Campaign.is_deleted == False, Campaign.user_id == current_user.id).order_by(Campaign.archived_at.desc()).all()
 
             def campaign_to_dict(c):
                 return {
@@ -1057,7 +1089,7 @@ def get_dashboard_overview(
             archived = [campaign_to_dict(c) for c in campaigns_archived]
 
             # Leads (recent)
-            leads_q = db.query(Lead).order_by(Lead.created_at.desc()).limit(500).all()
+            leads_q = db.query(Lead).filter(Lead.user_id == current_user.id).order_by(Lead.created_at.desc()).limit(500).all()
             leads = []
             for l in leads_q:
                 leads.append({
@@ -1073,7 +1105,7 @@ def get_dashboard_overview(
                 })
 
             # Sessions (recent)
-            sessions_data = db.query(CallSession, Lead.name, Lead.phone).outerjoin(Lead, CallSession.lead_id == Lead.id).order_by(CallSession.created_at.desc()).limit(200).all()
+            sessions_data = db.query(CallSession, Lead.name, Lead.phone).join(Lead, CallSession.lead_id == Lead.id).filter(Lead.user_id == current_user.id).order_by(CallSession.created_at.desc()).limit(200).all()
             sessions = []
             for s, lead_name, phone in sessions_data:
                 sessions.append({
@@ -1134,7 +1166,8 @@ def get_sessions(
     db: Session = Depends(get_db_sync)
 ):
     sessions_data = db.query(CallSession, Lead.name, Lead.phone).\
-        outerjoin(Lead, CallSession.lead_id == Lead.id).\
+        join(Lead, CallSession.lead_id == Lead.id).\
+        filter(Lead.user_id == current_user.id).\
         order_by(CallSession.created_at.desc()).\
         limit(100).all()
         
@@ -1169,20 +1202,21 @@ def start_voice_session(
     agent_prompt = None
     agent_voice_id = None
     
-    profile = db.query(CompanyProfile).first()
+    profile = db.query(CompanyProfile).filter(CompanyProfile.user_id == current_user.id).first()
     company_name = profile.name if (profile and profile.name) else "Saadhyam AI"
     agent_name = "Swetha"
     campaign_objective = "our services"
     
     if req.campaign_id:
-        campaign = db.query(Campaign).filter(Campaign.id == req.campaign_id).first()
-        if campaign:
-            campaign_objective = campaign.objective or campaign.name
-            agent = db.query(AIAgent).filter(AIAgent.id == campaign.agent_id).first()
-            if agent:
-                agent_prompt = agent.prompt
-                agent_voice_id = agent.voice_id
-                agent_name = agent.name
+        campaign = db.query(Campaign).filter(Campaign.id == req.campaign_id, Campaign.user_id == current_user.id).first()
+        if not campaign:
+            raise HTTPException(status_code=404, detail="Campaign not found or does not belong to you")
+        campaign_objective = campaign.objective or campaign.name
+        agent = db.query(AIAgent).filter(AIAgent.id == campaign.agent_id, AIAgent.user_id == current_user.id).first()
+        if agent:
+            agent_prompt = agent.prompt
+            agent_voice_id = agent.voice_id
+            agent_name = agent.name
 
     if company_name == "Saadhyam AI" and agent_prompt:
         extracted = extract_company_name_from_prompt(agent_prompt)
@@ -1195,12 +1229,13 @@ def start_voice_session(
     lead_name = "కస్టమర్"
     
     if req.lead_id:
-        lead = db.query(Lead).filter(Lead.id == req.lead_id).first()
-        if lead:
-            if lead.language:
-                lead_language = lead.language
-            if lead.name:
-                lead_name = lead.name
+        lead = db.query(Lead).filter(Lead.id == req.lead_id, Lead.user_id == current_user.id).first()
+        if not lead:
+            raise HTTPException(status_code=404, detail="Lead not found or does not belong to you")
+        if lead.language:
+            lead_language = lead.language
+        if lead.name:
+            lead_name = lead.name
 
     company_name_telugu = "సాధ్యం ఐ" if company_name.lower() == "saadhyam ai" else company_name
     agent_name_telugu = "శ్వేత" if agent_name.lower() == "swetha" else agent_name
@@ -1304,8 +1339,19 @@ def voice_agent_turn(
     session_record = db.query(CallSession).filter(CallSession.session_id == session_id).first()
     if not session_record:
         raise HTTPException(status_code=404, detail="Session not found")
+        
+    if session_record.lead_id:
+        lead = db.query(Lead).filter(Lead.id == session_record.lead_id, Lead.user_id == current_user.id).first()
+        if not lead:
+            raise HTTPException(status_code=403, detail="Access denied. This session does not belong to you.")
+    elif session_record.campaign_id:
+        campaign = db.query(Campaign).filter(Campaign.id == session_record.campaign_id, Campaign.user_id == current_user.id).first()
+        if not campaign:
+            raise HTTPException(status_code=403, detail="Access denied. This session does not belong to you.")
+    else:
+        raise HTTPException(status_code=403, detail="Access denied. Unassociated session.")
     
-    profile = db.query(CompanyProfile).first()
+    profile = db.query(CompanyProfile).filter(CompanyProfile.user_id == current_user.id).first()
     if not profile:
         profile = CompanyProfile(
             name="Saadhyam AI",
@@ -1601,6 +1647,17 @@ def end_voice_session(
     if not session_record:
         raise HTTPException(status_code=404, detail="Session not found")
         
+    if session_record.lead_id:
+        lead = db.query(Lead).filter(Lead.id == session_record.lead_id, Lead.user_id == current_user.id).first()
+        if not lead:
+            raise HTTPException(status_code=403, detail="Access denied. This session does not belong to you.")
+    elif session_record.campaign_id:
+        campaign = db.query(Campaign).filter(Campaign.id == session_record.campaign_id, Campaign.user_id == current_user.id).first()
+        if not campaign:
+            raise HTTPException(status_code=403, detail="Access denied. This session does not belong to you.")
+    else:
+        raise HTTPException(status_code=403, detail="Access denied. Unassociated session.")
+        
     session_record.status = "completed"
     
     # Process final conversation transcript using LLM and generate post-call report
@@ -1735,8 +1792,23 @@ async def voice_agent_live(websocket: WebSocket):
             await websocket.send_json({"error": "Session not found"})
             await websocket.close()
             return
-        profile_res = await db.execute(select(CompanyProfile))
-        profile = profile_res.scalars().first()
+        owner_id = None
+        if session_record.lead_id:
+            lead_res = await db.execute(select(Lead).filter(Lead.id == session_record.lead_id))
+            lead = lead_res.scalars().first()
+            if lead:
+                owner_id = lead.user_id
+        if not owner_id and session_record.campaign_id:
+            campaign_res = await db.execute(select(Campaign).filter(Campaign.id == session_record.campaign_id))
+            campaign = campaign_res.scalars().first()
+            if campaign:
+                owner_id = campaign.user_id
+                
+        profile = None
+        if owner_id:
+            profile_res = await db.execute(select(CompanyProfile).filter(CompanyProfile.user_id == owner_id))
+            profile = profile_res.scalars().first()
+            
         if not profile:
             profile = CompanyProfile(
                 name="Saadhyam AI",
@@ -2352,7 +2424,7 @@ def trigger_real_lead_call(
         )
         
     # 4. Fetch Lead
-    lead = db.query(Lead).filter(Lead.id == lead_id).first()
+    lead = db.query(Lead).filter(Lead.id == lead_id, Lead.user_id == current_user.id).first()
     if not lead:
         raise HTTPException(status_code=404, detail="Lead not found")
         
@@ -2360,7 +2432,7 @@ def trigger_real_lead_call(
     campaign_id = lead.campaign_id
     campaign = None
     if campaign_id:
-        campaign = db.query(Campaign).filter(Campaign.id == campaign_id).first()
+        campaign = db.query(Campaign).filter(Campaign.id == campaign_id, Campaign.user_id == current_user.id).first()
         
     campaign_name = campaign.name if campaign else "Direct Lead Call"
     campaign_obj = campaign.objective if campaign else "direct inquiry"
@@ -2369,7 +2441,7 @@ def trigger_real_lead_call(
     # Get AIAgent details
     agent = None
     if agent_id:
-        agent = db.query(AIAgent).filter(AIAgent.id == agent_id).first()
+        agent = db.query(AIAgent).filter(AIAgent.id == agent_id, AIAgent.user_id == current_user.id).first()
     
     agent_prompt = agent.prompt if agent else "You are Swetha from Saadhyam AI. Greet the user."
     agent_languages = agent.languages if agent else "te,en"

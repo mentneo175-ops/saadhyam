@@ -1830,7 +1830,7 @@ function VoiceAgentDashboard() {
         {/* pipeline */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
           {/* Lead Pipeline */}
-          <div className="glass-card p-6 lg:col-span-2">
+          <div className="glass-card p-6 lg:col-span-3">
             <h3 className="text-lg font-bold text-primary mb-4">Lead Qualification Pipeline</h3>
             <div className="space-y-4">
               <div>
@@ -1885,37 +1885,6 @@ function VoiceAgentDashboard() {
                     style={{ width: `${(analytics.cold_leads / (leads.length || 1)) * 100}%` }}
                   ></div>
                 </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Quick Metrics */}
-          <div className="glass-card p-6">
-            <h3 className="text-lg font-bold text-primary mb-4">Integrations Status</h3>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between p-3 bg-surface rounded-lg">
-                <span className="text-sm font-semibold text-primary">Gemini LLM Brain</span>
-                <span className="status-pill bg-accent-green/20 text-accent-green px-2 py-1 text-xs rounded">
-                  Active
-                </span>
-              </div>
-              <div className="flex items-center justify-between p-3 bg-surface rounded-lg">
-                <span className="text-sm font-semibold text-primary">ElevenLabs TTS Voice</span>
-                <span className="status-pill bg-accent-green/20 text-accent-green px-2 py-1 text-xs rounded">
-                  Active
-                </span>
-              </div>
-              <div className="flex items-center justify-between p-3 bg-surface rounded-lg">
-                <span className="text-sm font-semibold text-primary">WhatsApp Follow-ups</span>
-                <span className="status-pill bg-accent-green/20 text-accent-green px-2 py-1 text-xs rounded">
-                  Simulated
-                </span>
-              </div>
-              <div className="flex items-center justify-between p-3 bg-surface rounded-lg">
-                <span className="text-sm font-semibold text-primary">Browser Calling</span>
-                <span className="status-pill bg-accent/20 text-accent px-2 py-1 text-xs rounded">
-                  Available
-                </span>
               </div>
             </div>
           </div>

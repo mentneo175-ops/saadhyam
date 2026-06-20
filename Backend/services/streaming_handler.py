@@ -55,6 +55,7 @@ class ExotelStreamHandler:
         self.language = "English"
         self.transcript_lines: List[str] = []
         self.dg_ws = None
+        self.client_session = None
         self.is_running = True
         self.ai_speaking = False
         self.ai_speaking_lock = asyncio.Lock()
@@ -530,8 +531,8 @@ Provide your next direct script response now. Speak directly to the customer. Do
         logger.info(f"🎙️ Connecting to Deepgram STT. Language model: {lang_code}")
         
         try:
-            client_session = aiohttp.ClientSession()
-            self.dg_ws = await client_session.ws_connect(url, headers=headers)
+            self.client_session = aiohttp.ClientSession()
+            self.dg_ws = await self.client_session.ws_connect(url, headers=headers)
             
             # Start background listener task
             asyncio.create_task(self.listen_deepgram_transcripts())
@@ -656,6 +657,8 @@ Provide your next direct script response now. Speak directly to the customer. Do
         # Close sockets
         if self.dg_ws and not self.dg_ws.closed:
             await self.dg_ws.close()
+        if self.client_session and not self.client_session.closed:
+            await self.client_session.close()
         
         # Save transcript
         full_transcript = "\n".join(self.transcript_lines)
@@ -816,6 +819,7 @@ class TwilioStreamHandler:
         self.language = "English"
         self.transcript_lines: List[str] = []
         self.dg_ws = None
+        self.client_session = None
         self.is_running = True
         self.ai_speaking = False
         self.ai_speaking_lock = asyncio.Lock()
@@ -1325,8 +1329,8 @@ Provide your next direct script response now. Speak directly to the customer. Do
         logger.info(f"🎙️ Twilio connecting to Deepgram STT (mulaw). Language model: {lang_code}")
         
         try:
-            client_session = aiohttp.ClientSession()
-            self.dg_ws = await client_session.ws_connect(url, headers=headers)
+            self.client_session = aiohttp.ClientSession()
+            self.dg_ws = await self.client_session.ws_connect(url, headers=headers)
             
             # Start background listener task
             asyncio.create_task(self.listen_deepgram_transcripts())
@@ -1458,6 +1462,8 @@ Provide your next direct script response now. Speak directly to the customer. Do
         # Close sockets
         if self.dg_ws and not self.dg_ws.closed:
             await self.dg_ws.close()
+        if self.client_session and not self.client_session.closed:
+            await self.client_session.close()
         
         # Save transcript
         full_transcript = "\n".join(self.transcript_lines)

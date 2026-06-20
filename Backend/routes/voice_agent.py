@@ -444,6 +444,7 @@ async def live_diagnostics():
     """Diagnose deployed backend environment variables and API connections"""
     import aiohttp
     from config.settings import settings
+    from services.voice_agent_service import voice_agent_service, GEMINI_API_KEYS
     
     dg_key = os.getenv("DEEPGRAM_API_KEY", "")
     gemini_key = os.getenv("GEMINI_API_KEY", "")
@@ -463,7 +464,10 @@ async def live_diagnostics():
         "stream_url": settings.EXOTEL_STREAM_URL,
         "backend_url": settings.BACKEND_URL,
         "environment": settings.ENVIRONMENT,
-        "deepgram_connection_status": "Not tested"
+        "deepgram_connection_status": "Not tested",
+        "gemini_api_keys_loaded_count": len(GEMINI_API_KEYS),
+        "llm_test_result": None,
+        "llm_test_error": None
     }
     
     try:
@@ -476,6 +480,15 @@ async def live_diagnostics():
                 diag_info["deepgram_connection_status"] = "SUCCESSFUL"
     except Exception as e:
         diag_info["deepgram_connection_status"] = f"FAILED: {str(e)}"
+        
+    try:
+        test_res = voice_agent_service._generate_with_fallback("Respond with hello")
+        if test_res:
+            diag_info["llm_test_result"] = test_res
+        else:
+            diag_info["llm_test_result"] = "Returned None (all keys failed or blocked)"
+    except Exception as e:
+        diag_info["llm_test_error"] = str(e)
         
     return diag_info
 

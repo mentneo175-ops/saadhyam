@@ -467,7 +467,8 @@ async def live_diagnostics():
         "deepgram_connection_status": "Not tested",
         "gemini_api_keys_loaded_count": len(GEMINI_API_KEYS),
         "llm_test_result": None,
-        "llm_test_error": None
+        "llm_test_error": None,
+        "env_vars": {k: (f"{v[:4]}...{v[-4:]}" if len(v) > 8 else "SHORT_VAL") for k, v in os.environ.items() if any(x in k.upper() for x in ["KEY", "TOKEN", "API", "URL", "ENV", "PORT", "SECRET", "DB", "REDIS", "MODEL"])}
     }
     
     try:

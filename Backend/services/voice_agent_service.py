@@ -83,10 +83,10 @@ class VoiceAgentService:
                     return response.text.strip()
             except Exception as e:
                 logger.warning(f"⚠️ Voice Agent Gemini key {i+1} failed: {e}")
-                # If key is rate-limited or quota exceeded, put it on cooldown for 5 minutes (300 seconds)
+                # If key is rate-limited or quota exceeded, put it on cooldown for 20 seconds
                 if "429" in str(e) or "quota" in str(e).lower() or "limit" in str(e).lower():
-                    GEMINI_KEYS_BLOCKED[key] = now + 300.0
-                    logger.info(f"🔒 Gemini key {i+1} added to cooldown for 5 minutes.")
+                    GEMINI_KEYS_BLOCKED[key] = now + 20.0
+                    logger.info(f"🔒 Gemini key {i+1} added to cooldown for 20 seconds.")
         
         # If all Gemini keys fail, try Groq
         from groq import Groq

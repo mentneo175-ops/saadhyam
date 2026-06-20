@@ -541,6 +541,24 @@ Provide your next direct script response now. Speak directly to the customer. Do
                     is_final = data.get("is_final", False)
 
                     if transcript:
+                        # Filter out common filler words and short noise/punctuation
+                        clean_trans = "".join([c for c in transcript.lower() if c.isalnum() or c.isspace()]).strip()
+                        fillers = {"uh", "um", "ah", "eh", "oh", "hmmm", "hmm"}
+                        if not clean_trans or clean_trans in fillers or len(clean_trans) < 2:
+                            logger.info(f"Ignoring filler/noise transcript: '{transcript}'")
+                            continue
+
+                        # Avoid feedback loop if speaker echoes fallback message
+                        fallback_phrases = [
+                            "i am sorry i did not catch that",
+                            "could you please repeat",
+                            "క్షమించండి మీ మాట సరిగ్గా వినబడలేదు",
+                            "మళ్ళీ చెప్పగలరా"
+                        ]
+                        if any(phrase in clean_trans for phrase in fallback_phrases):
+                            logger.info(f"Ignoring feedback echo transcript: '{transcript}'")
+                            continue
+
                         # If AI is currently speaking and user started talking, stop the AI immediately!
                         if self.ai_speaking and len(transcript.strip()) >= 2:
                             logger.info(f"🛑 User interrupted AI (Exotel) with text: '{transcript}' (is_final={is_final})")
@@ -633,6 +651,7 @@ Provide your next direct script response now. Speak directly to the customer. Do
                 session_record = CallSession(
                     session_id=self.call.call_sid,
                     status="completed",
+                    transcript=full_transcript,
                     lead_id=lead_id,
                     campaign_id=crm_campaign_id
                 )
@@ -641,6 +660,7 @@ Provide your next direct script response now. Speak directly to the customer. Do
                     crm_lead.status = "called"
             elif session_record:
                 session_record.status = "completed"
+                session_record.transcript = full_transcript
                 crm_lead = self.session.query(Lead).filter(Lead.id == session_record.lead_id).first()
                 if crm_lead:
                     crm_lead.status = "called"
@@ -1279,6 +1299,24 @@ Provide your next direct script response now. Speak directly to the customer. Do
                     is_final = data.get("is_final", False)
 
                     if transcript:
+                        # Filter out common filler words and short noise/punctuation
+                        clean_trans = "".join([c for c in transcript.lower() if c.isalnum() or c.isspace()]).strip()
+                        fillers = {"uh", "um", "ah", "eh", "oh", "hmmm", "hmm"}
+                        if not clean_trans or clean_trans in fillers or len(clean_trans) < 2:
+                            logger.info(f"Ignoring filler/noise transcript: '{transcript}'")
+                            continue
+
+                        # Avoid feedback loop if speaker echoes fallback message
+                        fallback_phrases = [
+                            "i am sorry i did not catch that",
+                            "could you please repeat",
+                            "క్షమించండి మీ మాట సరిగ్గా వినబడలేదు",
+                            "మళ్ళీ చెప్పగలరా"
+                        ]
+                        if any(phrase in clean_trans for phrase in fallback_phrases):
+                            logger.info(f"Ignoring feedback echo transcript: '{transcript}'")
+                            continue
+
                         # If AI is currently speaking and user started talking, stop the AI immediately!
                         if self.ai_speaking and len(transcript.strip()) >= 2:
                             logger.info(f"🛑 User interrupted AI (Twilio) with text: '{transcript}' (is_final={is_final})")
@@ -1378,6 +1416,7 @@ Provide your next direct script response now. Speak directly to the customer. Do
                 session_record = CallSession(
                     session_id=self.call.call_sid,
                     status="completed",
+                    transcript=full_transcript,
                     lead_id=lead_id,
                     campaign_id=crm_campaign_id
                 )
@@ -1386,6 +1425,7 @@ Provide your next direct script response now. Speak directly to the customer. Do
                     crm_lead.status = "called"
             elif session_record:
                 session_record.status = "completed"
+                session_record.transcript = full_transcript
                 crm_lead = self.session.query(Lead).filter(Lead.id == session_record.lead_id).first()
                 if crm_lead:
                     crm_lead.status = "called"
@@ -1567,6 +1607,7 @@ async def run_post_call_analytics_background(call_id: int, full_transcript: str)
                 
                 if session_record:
                     session_record.status = "completed"
+                    session_record.transcript = full_transcript
                     session_record.summary = summary
                     session_record.sentiment = sentiment
                     

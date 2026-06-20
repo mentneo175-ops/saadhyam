@@ -2610,6 +2610,20 @@ function VoiceAgentDashboard() {
                   </div>
                 </div>
 
+                {/* Conversation Transcript */}
+                <div>
+                  <span className="text-xs text-muted font-semibold block mb-1">
+                    Conversation Transcript
+                  </span>
+                  <div className="p-3 bg-surface rounded-lg text-secondary text-xs max-h-48 overflow-y-auto whitespace-pre-wrap font-mono border border-border-color/30 scrollbar-thin">
+                    {selectedCallLog.transcript ? (
+                      selectedCallLog.transcript.trim()
+                    ) : (
+                      <span className="text-muted italic">No transcript recorded for this session.</span>
+                    )}
+                  </div>
+                </div>
+
                 {/* Callback Time */}
                 {selectedCallLog.callback_time && (
                   <div>

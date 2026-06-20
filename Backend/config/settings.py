@@ -281,6 +281,11 @@ class Settings(BaseSettings):
             self.GEMINI_API_KEY = valid_key
             os.environ["GEMINI_API_KEY"] = valid_key
 
+        if self.GEMINI_CONTENT_MODEL == "gemini-2.5-flash":
+            self.GEMINI_CONTENT_MODEL = "gemini-2.5-flash-lite"
+        if self.GEMINI_PRO_MODEL == "gemini-2.5-flash":
+            self.GEMINI_PRO_MODEL = "gemini-2.5-flash-lite"
+
         # Override default/local URLs in production to point to the actual production host
         is_railway = bool(os.getenv("RAILWAY_PUBLIC_DOMAIN") or os.getenv("RAILWAY_STATIC_URL") or os.getenv("RAILWAY_PROJECT_NAME"))
         if self.ENVIRONMENT == "production" or is_railway:

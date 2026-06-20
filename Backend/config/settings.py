@@ -145,8 +145,8 @@ class Settings(BaseSettings):
     MISTRAL_TEXT_MODEL: str = "mistralai/Mistral-7B-Instruct-v0.3"
     
     # AI Model Configuration for Content Generation
-    GEMINI_CONTENT_MODEL: str = "gemini-2.5-flash"
-    GEMINI_PRO_MODEL: str = "gemini-2.5-flash"
+    GEMINI_CONTENT_MODEL: str = "gemini-2.5-flash-lite"
+    GEMINI_PRO_MODEL: str = "gemini-2.5-flash-lite"
     GROQ_CONTENT_MODEL: str = "llama-3.1-8b-instant"
     GROQ_CONTENT_MODEL_FALLBACK: str = "llama3-8b-8192"
 

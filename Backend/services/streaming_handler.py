@@ -156,6 +156,7 @@ class ExotelStreamHandler:
             self.response_task.cancel()
             logger.info("🛑 Cancelled active Exotel get_ai_response task")
         self.ai_speaking = False
+        self.suppress_until = 0.0  # Clear IMMEDIATELY so user can speak right away (no race condition)
 
     async def generate_and_speak(self, transcript: str):
         try:
@@ -601,7 +602,7 @@ Provide your next direct script response now. Speak directly to the customer. Do
 
                             async def _debounced_respond(s=seq, t=captured):
                                 try:
-                                    await asyncio.sleep(0.5)
+                                    await asyncio.sleep(0.3)
                                     if self.is_running and s == self._response_seq:
                                         self.transcript_lines.append(f"Customer: {t}")
                                         logger.info(f"👤 Customer (confirmed): {t}")
@@ -916,8 +917,8 @@ class TwilioStreamHandler:
         if self.response_task and not self.response_task.done():
             self.response_task.cancel()
             logger.info("🛑 Cancelled active Twilio get_ai_response task")
-        
         self.ai_speaking = False
+        self.suppress_until = 0.0  # Clear IMMEDIATELY so user can speak right away (no race condition)
         
         # Clear Twilio's audio play buffer
         if self.stream_sid:
@@ -1396,7 +1397,7 @@ Provide your next direct script response now. Speak directly to the customer. Do
 
                             async def _debounced_respond_twilio(s=seq, t=captured):
                                 try:
-                                    await asyncio.sleep(0.5)
+                                    await asyncio.sleep(0.3)
                                     if self.is_running and s == self._response_seq:
                                         self.transcript_lines.append(f"Customer: {t}")
                                         logger.info(f"👤 Customer (confirmed): {t}")

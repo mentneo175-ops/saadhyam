@@ -482,13 +482,13 @@ async def live_diagnostics():
         diag_info["deepgram_connection_status"] = f"FAILED: {str(e)}"
         
     try:
-        test_res = voice_agent_service._generate_with_fallback("Respond with hello")
-        if test_res:
-            diag_info["llm_test_result"] = test_res
-        else:
-            diag_info["llm_test_result"] = "Returned None (all keys failed or blocked)"
+        import google.generativeai as genai
+        genai.configure(api_key=gemini_key)
+        model = genai.GenerativeModel(model_name=settings.GEMINI_CONTENT_MODEL)
+        response = model.generate_content("Respond with hello")
+        diag_info["llm_test_result"] = response.text
     except Exception as e:
-        diag_info["llm_test_error"] = str(e)
+        diag_info["llm_test_error"] = f"Direct Gemini call failed: {type(e).__name__}: {str(e)}"
         
     return diag_info
 

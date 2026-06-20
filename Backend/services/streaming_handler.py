@@ -62,6 +62,7 @@ class ExotelStreamHandler:
         self.response_task = None
         self.suppress_until = 0.0  # Timestamp until which transcripts are suppressed (AI echo guard)
         self.processing_lock = asyncio.Lock()  # Prevent concurrent AI responses
+        self._response_seq = 0  # Debounce version counter — increments on each is_final
 
     async def initialize(self) -> bool:
         """Fetch call metadata and establish initial setups"""
@@ -586,14 +587,29 @@ Provide your next direct script response now. Speak directly to the customer. Do
                                 logger.info(f"⏭️ Skipping short partial ({len(clean_trans.split())} word): '{transcript}'")
                                 continue
 
-                            logger.info(f"👤 Customer (final): {transcript}")
-                            self.transcript_lines.append(f"Customer: {transcript}")
+                            logger.info(f"👤 Customer (final, pending debounce): {transcript}")
 
-                            # Cancel any previous generating or speaking task to prevent overlap/echo
+                            # Cancel any previous generating or speaking task
                             await self.stop_speaking()
 
-                            # Start generation and speaking task in the background
-                            self.response_task = asyncio.create_task(self.generate_and_speak(transcript))
+                            # Debounce 500ms: if user continues speaking within this window,
+                            # the old pending response is cancelled and we start fresh.
+                            # This prevents AI from interrupting mid-sentence on natural pauses.
+                            self._response_seq += 1
+                            seq = self._response_seq
+                            captured = transcript
+
+                            async def _debounced_respond(s=seq, t=captured):
+                                try:
+                                    await asyncio.sleep(0.5)
+                                    if self.is_running and s == self._response_seq:
+                                        self.transcript_lines.append(f"Customer: {t}")
+                                        logger.info(f"👤 Customer (confirmed): {t}")
+                                        await self.generate_and_speak(t)
+                                except asyncio.CancelledError:
+                                    pass
+
+                            self.response_task = asyncio.create_task(_debounced_respond())
 
         except Exception as e:
             logger.error(f"❌ Exception in Deepgram transcript receiver loop: {e}")
@@ -807,6 +823,7 @@ class TwilioStreamHandler:
         self.response_task = None
         self.suppress_until = 0.0  # Timestamp until which transcripts are suppressed (AI echo guard)
         self.processing_lock = asyncio.Lock()  # Prevent concurrent AI responses
+        self._response_seq = 0  # Debounce version counter — increments on each is_final
 
     async def initialize(self) -> bool:
         """Fetch call metadata and establish initial setups"""
@@ -1365,14 +1382,29 @@ Provide your next direct script response now. Speak directly to the customer. Do
                                 logger.info(f"⏭️ Skipping short partial ({len(clean_trans.split())} word): '{transcript}'")
                                 continue
 
-                            logger.info(f"👤 Customer (final): {transcript}")
-                            self.transcript_lines.append(f"Customer: {transcript}")
+                            logger.info(f"👤 Customer (final, pending debounce): {transcript}")
 
-                            # Cancel any previous generating or speaking task to prevent overlap/echo
+                            # Cancel any previous generating or speaking task
                             await self.stop_speaking()
 
-                            # Start generation and speaking task in the background
-                            self.response_task = asyncio.create_task(self.generate_and_speak(transcript))
+                            # Debounce 500ms: if user continues speaking within this window,
+                            # the old pending response is cancelled and we start fresh.
+                            # This prevents AI from interrupting mid-sentence on natural pauses.
+                            self._response_seq += 1
+                            seq = self._response_seq
+                            captured = transcript
+
+                            async def _debounced_respond_twilio(s=seq, t=captured):
+                                try:
+                                    await asyncio.sleep(0.5)
+                                    if self.is_running and s == self._response_seq:
+                                        self.transcript_lines.append(f"Customer: {t}")
+                                        logger.info(f"👤 Customer (confirmed): {t}")
+                                        await self.generate_and_speak(t)
+                                except asyncio.CancelledError:
+                                    pass
+
+                            self.response_task = asyncio.create_task(_debounced_respond_twilio())
 
         except Exception as e:
             logger.error(f"❌ Exception in Deepgram transcript receiver loop: {e}")

@@ -439,6 +439,48 @@ def health_check():
     }
 
 
+@router.get("/voice-agent/live-diag")
+async def live_diagnostics():
+    """Diagnose deployed backend environment variables and API connections"""
+    import aiohttp
+    from config.settings import settings
+    
+    dg_key = os.getenv("DEEPGRAM_API_KEY", "")
+    gemini_key = os.getenv("GEMINI_API_KEY", "")
+    
+    def mask_key(k: str) -> str:
+        if not k:
+            return "MISSING"
+        if len(k) < 12:
+            return "PRESENT_BUT_SHORT"
+        return f"{k[:6]}...{k[-6:]}"
+        
+    diag_info = {
+        "deepgram_key": mask_key(dg_key),
+        "gemini_key": mask_key(gemini_key),
+        "sarvam_key": mask_key(os.getenv("SARVAM_API_KEY", "")),
+        "elevenlabs_key": mask_key(os.getenv("ELEVENLABS_API_KEY", "")),
+        "stream_url": settings.EXOTEL_STREAM_URL,
+        "backend_url": settings.BACKEND_URL,
+        "environment": settings.ENVIRONMENT,
+        "deepgram_connection_status": "Not tested"
+    }
+    
+    try:
+        url = "wss://api.deepgram.com/v1/listen?encoding=mulaw&sample_rate=8000&channels=1&model=nova-3&language=te&endpointing=1000"
+        headers = {
+            "Authorization": f"Token {dg_key}"
+        }
+        async with aiohttp.ClientSession() as session:
+            async with session.ws_connect(url, headers=headers, timeout=5) as ws:
+                diag_info["deepgram_connection_status"] = "SUCCESSFUL"
+    except Exception as e:
+        diag_info["deepgram_connection_status"] = f"FAILED: {str(e)}"
+        
+    return diag_info
+
+
+
 @router.get("/company")
 def get_company(
     current_user: User = Depends(get_current_user),

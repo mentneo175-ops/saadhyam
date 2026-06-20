@@ -14,6 +14,7 @@ from fastapi.staticfiles import StaticFiles
 import os
 os.environ["OAUTHLIB_RELAX_TOKEN_SCOPE"] = "1"
 from dotenv import load_dotenv
+# pyrefly: ignore [missing-import]
 import socketio
 from middleware.asgi_protocol_middleware import ProtocolSafeASGI
 from sqlalchemy import inspect, select, text
@@ -772,6 +773,11 @@ async def global_exception_handler(request, exc):
     Global exception handler to catch h11 protocol errors, ExceptionGroup, and other unhandled exceptions.
     This prevents cascading errors and provides clean error responses.
     """
+    from starlette.exceptions import HTTPException as StarletteHTTPException
+    from fastapi.exceptions import RequestValidationError
+    if isinstance(exc, (StarletteHTTPException, RequestValidationError)):
+        raise exc
+
     # Handle ExceptionGroup (from anyio TaskGroup)
     if ExceptionGroup and isinstance(exc, ExceptionGroup):
         logger.error(f"❌ Exception group with {len(exc.exceptions)} exceptions")

@@ -296,6 +296,17 @@ async def invalidate_user_cache(user_id: int) -> int:
     total_deleted = 0
     for pattern in patterns:
         total_deleted += await delete_pattern(pattern)
+        
+    # Also delete specific hashed cache keys for profile since generate_cache_key uses md5 hashing
+    try:
+        full_profile_key = generate_cache_key("profile:", "full_profile", user_id=user_id)
+        biz_profile_key = generate_cache_key("profile:", "business_profile", user_id=user_id)
+        if await delete_cached(full_profile_key):
+            total_deleted += 1
+        if await delete_cached(biz_profile_key):
+            total_deleted += 1
+    except Exception as e:
+        logger.warning(f"Failed to delete hashed profile cache keys for user {user_id}: {e}")
     
     logger.info(f"[Cache] Invalidated {total_deleted} keys for user {user_id}")
     return total_deleted

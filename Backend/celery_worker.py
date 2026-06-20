@@ -1,3 +1,10 @@
+import os
+from pathlib import Path
+from dotenv import load_dotenv
+
+# Load environment variables from the Backend directory
+load_dotenv(Path(__file__).resolve().parent / ".env", override=True)
+
 import logging
 from celery import Celery
 from config.settings import settings

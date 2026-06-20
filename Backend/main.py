@@ -775,8 +775,26 @@ async def global_exception_handler(request, exc):
     """
     from starlette.exceptions import HTTPException as StarletteHTTPException
     from fastapi.exceptions import RequestValidationError
+    from fastapi.responses import JSONResponse
+
+    # Dynamically extract and apply CORS headers from request
+    origin = request.headers.get("origin")
+    cors_headers = {}
+    if origin:
+        cors_headers["Access-Control-Allow-Origin"] = origin
+        cors_headers["Access-Control-Allow-Credentials"] = "true"
+        cors_headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, PATCH, OPTIONS"
+        cors_headers["Access-Control-Allow-Headers"] = "Authorization, Content-Type, Accept, Origin, User-Agent, DNT, Cache-Control, X-Mx-ReqToken, Keep-Alive, X-Requested-With, If-Modified-Since"
+
+    # Handle standard HTTP and validation exceptions
     if isinstance(exc, (StarletteHTTPException, RequestValidationError)):
-        raise exc
+        status_code = exc.status_code if isinstance(exc, StarletteHTTPException) else 422
+        detail = exc.detail if isinstance(exc, StarletteHTTPException) else exc.errors()
+        return JSONResponse(
+            status_code=status_code,
+            content={"detail": detail},
+            headers=cors_headers
+        )
 
     # Handle ExceptionGroup (from anyio TaskGroup)
     if ExceptionGroup and isinstance(exc, ExceptionGroup):
@@ -789,9 +807,10 @@ async def global_exception_handler(request, exc):
         return JSONResponse(
             status_code=500,
             content={
-                "detail": "Our intelligence engine is currently optimizing. Insights are being computed, please check back shortly.",
+                "detail": f"Internal Server Error: {str(first_exc)}" if settings.DEBUG else "Our intelligence engine is currently optimizing. Insights are being computed, please check back shortly.",
                 "error_type": type(first_exc).__name__
-            }
+            },
+            headers=cors_headers
         )
     
     # Check if it's an h11 protocol error
@@ -807,7 +826,10 @@ async def global_exception_handler(request, exc):
     try:
         return JSONResponse(
             status_code=500,
-            content={"detail": "Our intelligence engine is currently optimizing. Insights are being computed, please check back shortly."}
+            content={
+                "detail": f"Internal Server Error: {str(exc)}" if settings.DEBUG else "Our intelligence engine is currently optimizing. Insights are being computed, please check back shortly."
+            },
+            headers=cors_headers
         )
     except Exception as send_error:
         # If we can't send the response, just log it

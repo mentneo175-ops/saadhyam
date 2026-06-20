@@ -281,6 +281,28 @@ class Settings(BaseSettings):
             self.GEMINI_API_KEY = valid_key
             os.environ["GEMINI_API_KEY"] = valid_key
 
+        # Override default/local URLs in production to point to the actual production host
+        if self.ENVIRONMENT == "production":
+            railway_domain = os.getenv("RAILWAY_PUBLIC_DOMAIN")
+            prod_host = f"https://{railway_domain}" if railway_domain else "https://saadhyam-production.up.railway.app"
+            
+            # If BACKEND_URL contains localhost, 127.0.0.1, or is empty, override it
+            if not self.BACKEND_URL or "localhost" in self.BACKEND_URL or "127.0.0.1" in self.BACKEND_URL:
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.info(f"🔄 Production environment detected. Overriding BACKEND_URL to: {prod_host}")
+                self.BACKEND_URL = prod_host
+                
+            # If EXOTEL_STREAM_URL contains localhost, 127.0.0.1, trycloudflare, or is empty, override it
+            if (not self.EXOTEL_STREAM_URL or 
+                "localhost" in self.EXOTEL_STREAM_URL or 
+                "127.0.0.1" in self.EXOTEL_STREAM_URL or 
+                "trycloudflare.com" in self.EXOTEL_STREAM_URL):
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.info(f"🔄 Production environment detected. Overriding EXOTEL_STREAM_URL to: {prod_host}")
+                self.EXOTEL_STREAM_URL = prod_host
+
     def get_cors_origins(self) -> List[str]:
 
         raw_value = (self.CORS_ORIGINS or os.getenv("ALLOWED_ORIGINS", "")).strip()

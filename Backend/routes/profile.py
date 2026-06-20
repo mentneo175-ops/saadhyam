@@ -38,6 +38,7 @@ from services.comprehensive_cache_service import (
     generate_cache_key,
     get_cached,
     set_cached,
+    delete_cached,
     delete_pattern,
     CACHE_PREFIX,
     CACHE_TTL
@@ -326,6 +327,10 @@ async def update_business_profile(
         db.refresh(current_user)
         
         # Invalidate cache
+        full_profile_key = generate_cache_key(CACHE_PREFIX["profile"], "full_profile", user_id=current_user.id)
+        biz_profile_key = generate_cache_key(CACHE_PREFIX["profile"], "business_profile", user_id=current_user.id)
+        await delete_cached(full_profile_key)
+        await delete_cached(biz_profile_key)
         await delete_pattern(f"{CACHE_PREFIX['profile']}{current_user.id}*")
         await delete_pattern(f"{CACHE_PREFIX['dashboard']}user_{current_user.id}")
         logger.info(f"🗑️ Cleared cache for user {current_user.id}")
@@ -448,6 +453,10 @@ async def confirm_selected_plan(
         db.commit()
         db.refresh(current_user)
 
+        full_profile_key = generate_cache_key(CACHE_PREFIX["profile"], "full_profile", user_id=current_user.id)
+        biz_profile_key = generate_cache_key(CACHE_PREFIX["profile"], "business_profile", user_id=current_user.id)
+        await delete_cached(full_profile_key)
+        await delete_cached(biz_profile_key)
         await delete_pattern(f"{CACHE_PREFIX['profile']}{current_user.id}*")
         await delete_pattern(f"{CACHE_PREFIX['dashboard']}user_{current_user.id}")
 
@@ -507,7 +516,7 @@ async def confirm_selected_plan(
         401: {"description": "Not authenticated"}
     }
 )
-def confirm_website(
+async def confirm_website(
     request: dict,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db_sync)
@@ -539,7 +548,7 @@ def confirm_website(
 
         # Invalidate cached profile responses so the dashboard loads the newest website id
         cache_key = generate_cache_key(CACHE_PREFIX["profile"], "full_profile", user_id=current_user.id)
-        delete_pattern(cache_key)
+        await delete_cached(cache_key)
         
         logger.info(f"✅ Website {website_id} confirmed for user {current_user.id}")
         

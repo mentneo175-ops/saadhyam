@@ -152,8 +152,17 @@ export function useAuth(): UseAuthReturn {
       // Send Firebase token to backend
       const { user: newUser, token: newToken } = await apiClient.googleAuth(idToken);
       
-      setUser(newUser);
+      // Set initial token so profile call can authenticate
       setToken(newToken);
+      
+      // Fetch full profile containing subscription details
+      try {
+        const fullUser = await apiClient.getCurrentUser();
+        setUser(fullUser);
+      } catch (profileErr) {
+        console.error("Failed to fetch full profile after Google login:", profileErr);
+        setUser(newUser);
+      }
     } catch (err) {
       const message = getAuthErrorMessage(err, "Google sign-in failed");
       setError(message);
@@ -170,8 +179,17 @@ export function useAuth(): UseAuthReturn {
       // Login with email/password via backend
       const { user: newUser, token: newToken } = await apiClient.login(email, password);
       
-      setUser(newUser);
+      // Set initial token so profile call can authenticate
       setToken(newToken);
+      
+      // Fetch full profile containing subscription details
+      try {
+        const fullUser = await apiClient.getCurrentUser();
+        setUser(fullUser);
+      } catch (profileErr) {
+        console.error("Failed to fetch full profile after email login:", profileErr);
+        setUser(newUser);
+      }
     } catch (err) {
       setError(getAuthErrorMessage(err, "Login failed"));
       throw err;
@@ -187,8 +205,17 @@ export function useAuth(): UseAuthReturn {
       // Register with email/password via backend
       const { user: newUser, token: newToken } = await apiClient.register(email, password, name);
       
-      setUser(newUser);
+      // Set initial token so profile call can authenticate
       setToken(newToken);
+      
+      // Fetch full profile containing subscription details
+      try {
+        const fullUser = await apiClient.getCurrentUser();
+        setUser(fullUser);
+      } catch (profileErr) {
+        console.error("Failed to fetch full profile after registration:", profileErr);
+        setUser(newUser);
+      }
     } catch (err) {
       const message =
         err instanceof ApiError

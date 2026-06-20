@@ -1,5 +1,6 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import fs from "node:fs";
 import { defineConfig } from "vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import react from "@vitejs/plugin-react";
@@ -8,6 +9,25 @@ import tsconfigPaths from "vite-tsconfig-paths";
 import { nitro } from "nitro/vite";
 
 const rootDir = path.dirname(fileURLToPath(import.meta.url));
+
+// Check casing mismatch on Windows
+if (typeof process !== "undefined" && process.platform === "win32") {
+  try {
+    const realRootDir = fs.realpathSync(rootDir);
+    if (rootDir !== realRootDir) {
+      console.warn(
+        `\n\x1b[33m[WARNING] Directory casing mismatch detected!\x1b[0m\n` +
+        `Current path: \x1b[31m${rootDir}\x1b[0m\n` +
+        `Real path:    \x1b[32m${realRootDir}\x1b[0m\n` +
+        `On Windows, this casing mismatch will cause React to load twice and crash.\n` +
+        `Please stop the server and run:\n` +
+        `  \x1b[36mcd .. && cd Frontend && npm run dev -- --force\x1b[0m\n`
+      );
+    }
+  } catch (e) {
+    // Ignore any filesystem resolution errors
+  }
+}
 
 // Prevent unhandled stream/serialization/network errors from crashing the dev server process
 if (typeof process !== "undefined") {
@@ -66,7 +86,7 @@ export default defineConfig({
         configure: (proxy, _options) => {
           proxy.on("error", (err, _req, res) => {
             console.warn("Proxy error connecting to Admin API:", err.message);
-            if (!res.headersSent && typeof res.writeHead === "function") {
+            if (res && "headersSent" in res && !res.headersSent && typeof res.writeHead === "function") {
               res.writeHead(502, { "Content-Type": "application/json" });
               res.end(JSON.stringify({ error: "Admin API connection refused" }));
             }

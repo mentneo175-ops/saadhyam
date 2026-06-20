@@ -1,6 +1,14 @@
 """
 Celery application configuration
 """
+import os
+from pathlib import Path
+from dotenv import load_dotenv
+
+# Load environment variables from the Backend directory
+backend_dir = Path(__file__).resolve().parents[4]
+load_dotenv(backend_dir / ".env", override=True)
+
 from celery import Celery
 from celery.signals import task_prerun, task_postrun, task_failure
 

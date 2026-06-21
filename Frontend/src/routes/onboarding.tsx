@@ -367,8 +367,8 @@ function OnboardingPage() {
 
   if (isCheckingSetup) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-white to-pink-50 px-4">
-        <div className="rounded-2xl border border-purple-100 bg-white/90 px-6 py-5 shadow-lg shadow-purple-100/50 backdrop-blur-md">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#F8F7FC] via-[#F3F1F9] to-[#EDE9F6] dark:from-[#090514] dark:via-[#120B24] dark:to-[#090514] px-4">
+        <div className="rounded-2xl border border-purple-100 dark:border-slate-800 bg-white/90 dark:bg-slate-900/90 px-6 py-5 shadow-lg shadow-purple-100/50 dark:shadow-purple-950/20 backdrop-blur-md">
           <p className="text-sm font-medium text-slate-700 dark:text-slate-300">Checking setup status...</p>
         </div>
       </div>
@@ -384,31 +384,31 @@ function OnboardingPage() {
       "Creating Google Hub insights",
       "Finalizing your custom marketing blueprints"
     ];
-
+ 
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 flex items-center justify-center p-4 relative overflow-hidden">
+      <div className="min-h-screen bg-gradient-to-br from-[#F8F7FC] via-[#F3F1F9] to-[#EDE9F6] dark:from-[#090514] dark:via-[#120B24] dark:to-[#090514] flex items-center justify-center p-4 relative overflow-hidden">
         {/* Animated background */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-20 left-10 w-96 h-96 bg-purple-300 rounded-full mix-blend-multiply filter blur-3xl opacity-40 animate-blob"></div>
-          <div className="absolute top-40 right-10 w-96 h-96 bg-pink-300 rounded-full mix-blend-multiply filter blur-3xl opacity-40 animate-blob animation-delay-2000"></div>
-          <div className="absolute -bottom-8 left-1/2 w-96 h-96 bg-blue-300 rounded-full mix-blend-multiply filter blur-3xl opacity-40 animate-blob animation-delay-4000"></div>
+          <div className="absolute top-20 left-10 w-96 h-96 bg-purple-300 dark:bg-purple-900/10 rounded-full mix-blend-multiply dark:mix-blend-normal filter blur-3xl opacity-40 animate-blob"></div>
+          <div className="absolute top-40 right-10 w-96 h-96 bg-pink-300 dark:bg-pink-900/10 rounded-full mix-blend-multiply dark:mix-blend-normal filter blur-3xl opacity-40 animate-blob animation-delay-2000"></div>
+          <div className="absolute -bottom-8 left-1/2 w-96 h-96 bg-blue-300 dark:bg-blue-900/10 rounded-full mix-blend-multiply dark:mix-blend-normal filter blur-3xl opacity-40 animate-blob animation-delay-4000"></div>
         </div>
-
+ 
         <div className="text-center max-w-md relative z-10 animate-scale-in">
           {/* Simple loading animation with three dots (unified design) */}
-          <div className="flex items-center justify-center gap-1.5 text-purple-600 font-bold text-lg mb-3">
+          <div className="flex items-center justify-center gap-1.5 text-purple-600 dark:text-purple-400 font-bold text-lg mb-3">
             <span>Analyzing Your Business</span>
             <span className="inline-flex gap-0.5 items-center">
-              <span className="w-1.5 h-1.5 bg-purple-600 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
-              <span className="w-1.5 h-1.5 bg-purple-600 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
-              <span className="w-1.5 h-1.5 bg-purple-600 rounded-full animate-bounce"></span>
+              <span className="w-1.5 h-1.5 bg-purple-600 dark:bg-purple-400 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
+              <span className="w-1.5 h-1.5 bg-purple-600 dark:bg-purple-400 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
+              <span className="w-1.5 h-1.5 bg-purple-600 dark:bg-purple-400 rounded-full animate-bounce"></span>
             </span>
           </div>
-
-          <p className="text-xs text-slate-500 mb-10 max-w-xs mx-auto leading-relaxed">
+ 
+          <p className="text-xs text-slate-500 dark:text-slate-400 mb-10 max-w-xs mx-auto leading-relaxed">
             Our AI is analyzing your business with Google Search grounding...
           </p>
-
+ 
           {/* Smoothly transitioning overlay points */}
           <div className="h-16 flex items-center justify-center overflow-hidden mb-6 relative">
             <AnimatePresence>
@@ -418,7 +418,7 @@ function OnboardingPage() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -16 }}
                 transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                className="absolute flex items-center justify-center gap-2 text-sm font-semibold text-slate-700 bg-white border border-purple-100/80 px-5 py-3 rounded-full shadow-md shadow-purple-50/50 whitespace-nowrap dark:text-slate-300 dark:bg-slate-900"
+                className="absolute flex items-center justify-center gap-2 text-sm font-semibold text-slate-700 bg-white border border-purple-100/80 px-5 py-3 rounded-full shadow-md shadow-purple-50/50 whitespace-nowrap dark:text-slate-300 dark:bg-slate-900 dark:border-slate-800"
               >
                 <span className="relative flex h-2 w-2 shrink-0">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
@@ -428,9 +428,9 @@ function OnboardingPage() {
               </motion.div>
             </AnimatePresence>
           </div>
-
-          <div className="mt-8 bg-blue-50/70 border border-blue-150 rounded-xl p-4 max-w-sm mx-auto shadow-xs">
-            <p className="text-xs text-blue-800 leading-relaxed">
+ 
+          <div className="mt-8 bg-blue-50/70 dark:bg-blue-950/20 border border-blue-150 dark:border-blue-900/30 rounded-xl p-4 max-w-sm mx-auto shadow-xs">
+            <p className="text-xs text-blue-800 dark:text-blue-300 leading-relaxed">
               💡 This comprehensive analysis takes 2-3 minutes but will populate all your dashboard features instantly!
             </p>
           </div>
@@ -442,14 +442,14 @@ function OnboardingPage() {
   // Enhanced Complete state with celebration
   if (isComplete) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-green-50 flex items-center justify-center p-4 relative overflow-hidden">
+      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-green-50 dark:from-[#02180c] dark:via-[#092917] dark:to-[#02180c] flex items-center justify-center p-4 relative overflow-hidden">
         {/* Animated background */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-20 left-10 w-96 h-96 bg-emerald-300 rounded-full mix-blend-multiply filter blur-3xl opacity-40 animate-blob"></div>
-          <div className="absolute top-40 right-10 w-96 h-96 bg-green-300 rounded-full mix-blend-multiply filter blur-3xl opacity-40 animate-blob animation-delay-2000"></div>
-          <div className="absolute -bottom-8 left-1/2 w-96 h-96 bg-teal-300 rounded-full mix-blend-multiply filter blur-3xl opacity-40 animate-blob animation-delay-4000"></div>
+          <div className="absolute top-20 left-10 w-96 h-96 bg-emerald-300 dark:bg-emerald-900/10 rounded-full mix-blend-multiply dark:mix-blend-normal filter blur-3xl opacity-40 animate-blob"></div>
+          <div className="absolute top-40 right-10 w-96 h-96 bg-green-300 dark:bg-green-900/10 rounded-full mix-blend-multiply dark:mix-blend-normal filter blur-3xl opacity-40 animate-blob animation-delay-2000"></div>
+          <div className="absolute -bottom-8 left-1/2 w-96 h-96 bg-teal-300 dark:bg-teal-900/10 rounded-full mix-blend-multiply dark:mix-blend-normal filter blur-3xl opacity-40 animate-blob animation-delay-4000"></div>
         </div>
-
+ 
         <div className="text-center max-w-md relative z-10 animate-scale-in">
           {/* Success icon with celebration effect */}
           <div className="relative mb-10">
@@ -471,7 +471,7 @@ function OnboardingPage() {
           <h2 className="text-4xl font-bold text-gray-900 mb-4 animate-fade-in-down dark:text-slate-100">
             All Set! 🎉
           </h2>
-          <p className="text-gray-600 mb-8 text-lg animate-fade-in-up">
+          <p className="text-gray-600 dark:text-slate-300 mb-8 text-lg animate-fade-in-up">
             Your business analysis is ready. Redirecting to dashboard...
           </p>
           
@@ -487,8 +487,8 @@ function OnboardingPage() {
           </div>
           
           {/* Success message */}
-          <div className="mt-8 bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-white/50 animate-fade-in-up" style={{ animationDelay: '400ms' }}>
-            <div className="flex items-center justify-center gap-3 text-emerald-700">
+          <div className="mt-8 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-white/50 dark:border-slate-800 animate-fade-in-up" style={{ animationDelay: '400ms' }}>
+            <div className="flex items-center justify-center gap-3 text-emerald-700 dark:text-emerald-400">
               <CheckCircle2 className="w-6 h-6 animate-pulse" />
               <span className="font-semibold text-lg">Profile Created Successfully</span>
             </div>
@@ -519,12 +519,12 @@ function OnboardingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-[#F8F7FC] via-[#F3F1F9] to-[#EDE9F6] dark:from-[#090514] dark:via-[#120B24] dark:to-[#090514] relative overflow-hidden">
       {/* Animated background elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-72 h-72 bg-purple-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob"></div>
-        <div className="absolute top-40 right-10 w-72 h-72 bg-pink-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-2000"></div>
-        <div className="absolute -bottom-8 left-1/2 w-72 h-72 bg-blue-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-4000"></div>
+        <div className="absolute top-20 left-10 w-72 h-72 bg-purple-200 dark:bg-purple-900/10 rounded-full mix-blend-multiply dark:mix-blend-normal filter blur-xl opacity-30 animate-blob"></div>
+        <div className="absolute top-40 right-10 w-72 h-72 bg-pink-200 dark:bg-pink-900/10 rounded-full mix-blend-multiply dark:mix-blend-normal filter blur-xl opacity-30 animate-blob animation-delay-2000"></div>
+        <div className="absolute -bottom-8 left-1/2 w-72 h-72 bg-blue-200 dark:bg-blue-900/10 rounded-full mix-blend-multiply dark:mix-blend-normal filter blur-xl opacity-30 animate-blob animation-delay-4000"></div>
       </div>
 
       <div className="relative z-10 min-h-screen grid grid-cols-1 lg:grid-cols-2">
@@ -541,18 +541,18 @@ function OnboardingPage() {
             </div>
             
             {/* Welcome Text */}
-            <h1 className="text-5xl font-bold text-gray-900 mb-6 bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-pink-600 leading-tight dark:text-slate-100">
+            <h1 className="text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-400 dark:to-pink-400 leading-tight">
               Welcome to Saadhyam AI
             </h1>
-            <p className="text-xl text-gray-600 mb-8 leading-relaxed">
+            <p className="text-xl text-gray-600 dark:text-slate-300 mb-8 leading-relaxed">
               Let's set up your business profile in 4 simple steps. We'll help you unlock powerful AI-driven insights.
             </p>
 
             {/* Progress Indicator */}
             <div className="space-y-4">
-              <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
-                <span className="font-semibold text-purple-600">Step {currentStep} of 4</span>
-                <span className="font-semibold text-purple-600">{Math.round((currentStep / 4) * 100)}% complete</span>
+              <div className="flex items-center justify-between text-sm text-gray-600 dark:text-slate-400 mb-2">
+                <span className="font-semibold text-purple-600 dark:text-purple-400">Step {currentStep} of 4</span>
+                <span className="font-semibold text-purple-600 dark:text-purple-400">{Math.round((currentStep / 4) * 100)}% complete</span>
               </div>
               <div className="relative w-full bg-gray-200 rounded-full h-3 overflow-hidden shadow-inner dark:bg-slate-700">
                 <div 
@@ -568,7 +568,7 @@ function OnboardingPage() {
                       className={`w-2 h-2 rounded-full transition-all duration-300 ${
                         step <= currentStep
                           ? "bg-white shadow-lg scale-125"
-                          : "bg-gray-300"
+                          : "bg-gray-300 dark:bg-slate-700"
                       }`}
                     />
                   ))}
@@ -580,7 +580,7 @@ function OnboardingPage() {
                 {["Business", "Type", "Location", "Details"].map((label, idx) => (
                   <div key={idx} className="text-center">
                     <div className={`text-xs font-medium transition-colors duration-300 ${
-                      idx + 1 <= currentStep ? "text-purple-600" : "text-gray-400"
+                      idx + 1 <= currentStep ? "text-purple-600 dark:text-purple-400" : "text-gray-400 dark:text-slate-500"
                     }`}>
                       {label}
                     </div>
@@ -594,19 +594,19 @@ function OnboardingPage() {
         {/* RIGHT SIDE - Input Card */}
         <div className="flex items-center justify-center p-4 lg:p-8">
           <div className="w-full max-w-xl">
-            <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/50 p-8 relative overflow-hidden animate-scale-in">
+            <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/50 dark:border-slate-800 p-8 relative overflow-hidden animate-scale-in">
               {/* Decorative gradient orbs */}
-              <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-purple-100 via-purple-50 to-pink-100 rounded-full -translate-y-20 translate-x-20 opacity-60 blur-2xl"></div>
-              <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-pink-100 via-purple-50 to-purple-100 rounded-full translate-y-16 -translate-x-16 opacity-40 blur-2xl"></div>
+              <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-purple-100 via-purple-50 to-pink-100 dark:from-purple-900/20 dark:to-pink-900/20 rounded-full -translate-y-20 translate-x-20 opacity-60 blur-2xl"></div>
+              <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-pink-100 via-purple-50 to-purple-100 dark:from-pink-900/10 dark:to-purple-900/10 rounded-full translate-y-16 -translate-x-16 opacity-40 blur-2xl"></div>
               
               {/* Back button */}
               {currentStep > 1 && (
                 <button
                   onClick={handleBack}
-                  className="absolute top-6 left-6 p-3 rounded-xl hover:bg-purple-50 transition-all duration-300 group hover:scale-110 hover:shadow-md z-10"
+                  className="absolute top-6 left-6 p-3 rounded-xl hover:bg-purple-50 dark:hover:bg-purple-900/30 transition-all duration-300 group hover:scale-110 hover:shadow-md z-10"
                   title="Go back to previous step"
                 >
-                  <ChevronLeft size={20} className="text-gray-600 group-hover:text-purple-600 transition-colors duration-300" />
+                  <ChevronLeft size={20} className="text-gray-600 dark:text-slate-400 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors duration-300" />
                 </button>
               )}
 
@@ -620,16 +620,16 @@ function OnboardingPage() {
               <h2 className="text-2xl font-bold text-gray-900 mb-3 dark:text-slate-100">
                 {getStepTitle()}
               </h2>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-gray-600 dark:text-slate-400">
                 {getStepSubtitle()}
               </p>
             </div>
 
             {/* Error Message with shake animation */}
             {error && (
-              <div className="mb-4 flex items-start gap-3 rounded-xl bg-red-50 border border-red-200 p-4 animate-shake-x">
-                <AlertCircle size={16} className="text-red-600 mt-0.5 flex-shrink-0 animate-pulse" />
-                <p className="text-sm text-red-700 font-medium">{error}</p>
+              <div className="mb-4 flex items-start gap-3 rounded-xl bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/30 p-4 animate-shake-x">
+                <AlertCircle size={16} className="text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0 animate-pulse" />
+                <p className="text-sm text-red-700 dark:text-red-300 font-medium">{error}</p>
               </div>
             )}
 
@@ -647,7 +647,7 @@ function OnboardingPage() {
                     onChange={(e) => handleInputChange(e.target.value, "name")}
                     onKeyPress={handleKeyPress}
                     placeholder={placeholder}
-                    className="w-full text-xl px-6 py-5 border-2 border-gray-200 rounded-2xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 outline-none transition-all duration-300 bg-gradient-to-br from-gray-50 to-white hover:border-purple-300 font-medium placeholder:text-gray-400 shadow-sm hover:shadow-md dark:border-slate-800"
+                    className="w-full text-xl px-6 py-5 border-2 border-gray-200 dark:border-slate-800 rounded-2xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 dark:focus:ring-purple-900/30 outline-none transition-all duration-300 bg-gradient-to-br from-gray-50 to-white dark:from-slate-900 dark:to-slate-950 hover:border-purple-300 dark:hover:border-purple-700 font-medium text-gray-900 dark:text-slate-100 placeholder:text-gray-400 dark:placeholder:text-slate-500 shadow-sm hover:shadow-md"
                   />
                   <div className="absolute right-4 top-1/2 transform -translate-y-1/2 opacity-0 group-focus-within:opacity-100 transition-opacity duration-300">
                     <div className="w-1 h-6 bg-purple-500 animate-pulse rounded-full"></div>
@@ -667,8 +667,8 @@ function OnboardingPage() {
                       }}
                       className={`group relative p-5 rounded-2xl border-2 transition-all duration-400 text-sm font-semibold overflow-hidden animate-fade-in-up ${
                         formData.type === type
-                          ? "border-purple-500 bg-gradient-to-br from-purple-50 to-pink-50 text-purple-900 shadow-lg scale-105 animate-glow"
-                          : "border-gray-200 bg-white text-gray-700 hover:border-purple-300 hover:bg-gradient-to-br hover:from-purple-25 hover:to-pink-25 hover:scale-102 hover:shadow-md card-hover"
+                          ? "border-purple-500 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/30 dark:to-pink-950/30 text-purple-900 dark:text-purple-300 shadow-lg scale-105 animate-glow"
+                          : "border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-950/40 text-gray-700 dark:text-slate-300 hover:border-purple-300 dark:hover:border-purple-700 hover:bg-gradient-to-br hover:from-purple-50/20 hover:to-pink-50/20 hover:scale-102 hover:shadow-md"
                       }`}
                     >
                       {/* Ripple effect background */}
@@ -699,7 +699,7 @@ function OnboardingPage() {
                     onChange={(e) => handleInputChange(e.target.value, "location")}
                     onKeyPress={handleKeyPress}
                     placeholder={placeholder}
-                    className="w-full text-xl px-6 py-5 border-2 border-gray-200 rounded-2xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 outline-none transition-all duration-300 bg-gradient-to-br from-gray-50 to-white hover:border-purple-300 font-medium placeholder:text-gray-400 shadow-sm hover:shadow-md dark:border-slate-800"
+                    className="w-full text-xl px-6 py-5 border-2 border-gray-200 dark:border-slate-800 rounded-2xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 dark:focus:ring-purple-900/30 outline-none transition-all duration-300 bg-gradient-to-br from-gray-50 to-white dark:from-slate-900 dark:to-slate-950 hover:border-purple-300 dark:hover:border-purple-700 font-medium text-gray-900 dark:text-slate-100 placeholder:text-gray-400 dark:placeholder:text-slate-500 shadow-sm hover:shadow-md"
                   />
                   <div className="absolute right-4 top-1/2 transform -translate-y-1/2 opacity-0 group-focus-within:opacity-100 transition-opacity duration-300">
                     <div className="w-1 h-6 bg-purple-500 animate-pulse rounded-full"></div>
@@ -714,7 +714,7 @@ function OnboardingPage() {
                     <h2 className="text-2xl font-bold text-gray-900 mb-2 dark:text-slate-100">
                       Tell us about your business
                     </h2>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-gray-500 dark:text-slate-450">
                       Pick any one — whatever is easiest for you.
                     </p>
                   </div>
@@ -726,20 +726,20 @@ function OnboardingPage() {
                       <button
                         type="button"
                         onClick={() => setActiveInputMethod("website")}
-                        className="w-full bg-white/90 backdrop-blur-sm rounded-2xl p-5 border-2 border-gray-200 hover:border-purple-300 hover:bg-gradient-to-br hover:from-purple-50/50 hover:to-pink-50/50 transition-all duration-300 hover:shadow-lg group text-left animate-fade-in-up dark:border-slate-800"
+                        className="w-full bg-white/90 dark:bg-slate-950/40 backdrop-blur-sm rounded-2xl p-5 border-2 border-gray-200 dark:border-slate-800 hover:border-purple-300 dark:hover:border-purple-700 hover:bg-gradient-to-br hover:from-purple-50/50 hover:to-pink-50/50 dark:hover:from-purple-900/10 dark:hover:to-pink-900/10 transition-all duration-300 hover:shadow-lg group text-left animate-fade-in-up"
                         style={{ animationDelay: '0ms' }}
                       >
                         <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center flex-shrink-0 group-hover:bg-purple-200 transition-colors duration-300">
-                            <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <div className="w-12 h-12 rounded-xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center flex-shrink-0 group-hover:bg-purple-200 dark:group-hover:bg-purple-900/50 transition-colors duration-300">
+                            <svg className="w-6 h-6 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
                             </svg>
                           </div>
                           <div className="flex-1">
-                            <h3 className="text-base font-semibold text-gray-900 mb-0.5 dark:text-slate-100">
+                            <h3 className="text-base font-semibold text-gray-900 dark:text-slate-100 mb-0.5">
                               Paste Website URL
                             </h3>
-                            <p className="text-sm text-gray-500">
+                            <p className="text-sm text-gray-500 dark:text-slate-400">
                               e.g. www.sharmaelectronics.in
                             </p>
                           </div>
@@ -750,20 +750,20 @@ function OnboardingPage() {
                       <button
                         type="button"
                         onClick={() => setActiveInputMethod("pdf")}
-                        className="w-full bg-white/90 backdrop-blur-sm rounded-2xl p-5 border-2 border-gray-200 hover:border-purple-300 hover:bg-gradient-to-br hover:from-purple-50/50 hover:to-pink-50/50 transition-all duration-300 hover:shadow-lg group text-left animate-fade-in-up dark:border-slate-800"
+                        className="w-full bg-white/90 dark:bg-slate-950/40 backdrop-blur-sm rounded-2xl p-5 border-2 border-gray-200 dark:border-slate-800 hover:border-purple-300 dark:hover:border-purple-700 hover:bg-gradient-to-br hover:from-purple-50/50 hover:to-pink-50/50 dark:hover:from-purple-900/10 dark:hover:to-pink-900/10 transition-all duration-300 hover:shadow-lg group text-left animate-fade-in-up"
                         style={{ animationDelay: '50ms' }}
                       >
                         <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center flex-shrink-0 group-hover:bg-purple-200 transition-colors duration-300">
-                            <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <div className="w-12 h-12 rounded-xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center flex-shrink-0 group-hover:bg-purple-200 dark:group-hover:bg-purple-900/50 transition-colors duration-300">
+                            <svg className="w-6 h-6 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                             </svg>
                           </div>
                           <div className="flex-1">
-                            <h3 className="text-base font-semibold text-gray-900 mb-0.5 dark:text-slate-100">
+                            <h3 className="text-base font-semibold text-gray-900 dark:text-slate-100 mb-0.5">
                               Upload PDF or Brochure
                             </h3>
-                            <p className="text-sm text-gray-500">
+                            <p className="text-sm text-gray-500 dark:text-slate-400">
                               Menu, catalog, flyer
                             </p>
                           </div>
@@ -774,20 +774,20 @@ function OnboardingPage() {
                       <button
                         type="button"
                         onClick={() => setActiveInputMethod("text")}
-                        className="w-full bg-white/90 backdrop-blur-sm rounded-2xl p-5 border-2 border-gray-200 hover:border-purple-300 hover:bg-gradient-to-br hover:from-purple-50/50 hover:to-pink-50/50 transition-all duration-300 hover:shadow-lg group text-left animate-fade-in-up dark:border-slate-800"
+                        className="w-full bg-white/90 dark:bg-slate-950/40 backdrop-blur-sm rounded-2xl p-5 border-2 border-gray-200 dark:border-slate-800 hover:border-purple-300 dark:hover:border-purple-700 hover:bg-gradient-to-br hover:from-purple-50/50 hover:to-pink-50/50 dark:hover:from-purple-900/10 dark:hover:to-pink-900/10 transition-all duration-300 hover:shadow-lg group text-left animate-fade-in-up"
                         style={{ animationDelay: '100ms' }}
                       >
                         <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center flex-shrink-0 group-hover:bg-purple-200 transition-colors duration-300">
-                            <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <div className="w-12 h-12 rounded-xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center flex-shrink-0 group-hover:bg-purple-200 dark:group-hover:bg-purple-900/50 transition-colors duration-300">
+                            <svg className="w-6 h-6 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                             </svg>
                           </div>
                           <div className="flex-1">
-                            <h3 className="text-base font-semibold text-gray-900 mb-0.5 dark:text-slate-100">
+                            <h3 className="text-base font-semibold text-gray-900 dark:text-slate-100 mb-0.5">
                               Type Business Details
                             </h3>
-                            <p className="text-sm text-gray-500">
+                            <p className="text-sm text-gray-500 dark:text-slate-400">
                               Tell us in your own words
                             </p>
                           </div>
@@ -798,20 +798,20 @@ function OnboardingPage() {
                       <button
                         type="button"
                         onClick={() => setActiveInputMethod("voice")}
-                        className="w-full bg-white/90 backdrop-blur-sm rounded-2xl p-5 border-2 border-gray-200 hover:border-purple-300 hover:bg-gradient-to-br hover:from-purple-50/50 hover:to-pink-50/50 transition-all duration-300 hover:shadow-lg group text-left animate-fade-in-up dark:border-slate-800"
+                        className="w-full bg-white/90 dark:bg-slate-950/40 backdrop-blur-sm rounded-2xl p-5 border-2 border-gray-200 dark:border-slate-800 hover:border-purple-300 dark:hover:border-purple-700 hover:bg-gradient-to-br hover:from-purple-50/50 hover:to-pink-50/50 dark:hover:from-purple-900/10 dark:hover:to-pink-900/10 transition-all duration-300 hover:shadow-lg group text-left animate-fade-in-up"
                         style={{ animationDelay: '150ms' }}
                       >
                         <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center flex-shrink-0 group-hover:bg-purple-200 transition-colors duration-300">
-                            <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <div className="w-12 h-12 rounded-xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center flex-shrink-0 group-hover:bg-purple-200 dark:group-hover:bg-purple-900/50 transition-colors duration-300">
+                            <svg className="w-6 h-6 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
                             </svg>
                           </div>
                           <div className="flex-1">
-                            <h3 className="text-base font-semibold text-gray-900 mb-0.5 dark:text-slate-100">
+                            <h3 className="text-base font-semibold text-gray-900 dark:text-slate-100 mb-0.5">
                               Record Voice
                             </h3>
-                            <p className="text-sm text-gray-500">
+                            <p className="text-sm text-gray-500 dark:text-slate-400">
                               Speak in any language
                             </p>
                           </div>
@@ -826,7 +826,7 @@ function OnboardingPage() {
                       <button
                         type="button"
                         onClick={() => setActiveInputMethod("none")}
-                        className="text-sm text-gray-500 hover:text-purple-600 flex items-center gap-1 transition-colors"
+                        className="text-sm text-gray-500 dark:text-slate-400 hover:text-purple-600 dark:hover:text-purple-400 flex items-center gap-1 transition-colors"
                       >
                         <ChevronLeft className="w-4 h-4" />
                         Back to options
@@ -847,7 +847,7 @@ function OnboardingPage() {
                       <button
                         type="button"
                         onClick={() => setActiveInputMethod("none")}
-                        className="text-sm text-gray-500 hover:text-purple-600 flex items-center gap-1 transition-colors"
+                        className="text-sm text-gray-500 dark:text-slate-400 hover:text-purple-600 dark:hover:text-purple-400 flex items-center gap-1 transition-colors"
                       >
                         <ChevronLeft className="w-4 h-4" />
                         Back to options
@@ -868,7 +868,7 @@ function OnboardingPage() {
                       <button
                         type="button"
                         onClick={() => setActiveInputMethod("none")}
-                        className="text-sm text-gray-500 hover:text-purple-600 flex items-center gap-1 transition-colors"
+                        className="text-sm text-gray-500 dark:text-slate-400 hover:text-purple-600 dark:hover:text-purple-400 flex items-center gap-1 transition-colors"
                       >
                         <ChevronLeft className="w-4 h-4" />
                         Back to options
@@ -891,7 +891,7 @@ function OnboardingPage() {
                         <button
                           type="button"
                           onClick={() => setActiveInputMethod("none")}
-                          className="text-sm text-gray-500 hover:text-purple-600 flex items-center gap-1 transition-colors"
+                          className="text-sm text-gray-500 dark:text-slate-400 hover:text-purple-600 dark:hover:text-purple-400 flex items-center gap-1 transition-colors"
                         >
                           <ChevronLeft className="w-4 h-4" />
                           Back to options
@@ -907,10 +907,10 @@ function OnboardingPage() {
                           onKeyPress={handleKeyPress}
                           placeholder="Describe your business, services, challenges, and goals..."
                           rows={10}
-                          className={`w-full text-base px-5 py-4 border-2 rounded-2xl focus:ring-4 outline-none transition-all duration-300 bg-gradient-to-br from-gray-50 to-white hover:border-purple-300 resize-none font-medium placeholder:text-gray-400 shadow-sm hover:shadow-md ${
+                          className={`w-full text-base px-5 py-4 border-2 rounded-2xl focus:ring-4 outline-none transition-all duration-300 bg-gradient-to-br from-gray-50 to-white dark:from-slate-900 dark:to-slate-950 hover:border-purple-300 dark:hover:border-purple-750 resize-none font-medium text-gray-900 dark:text-slate-100 placeholder:text-gray-400 dark:placeholder:text-slate-500 shadow-sm hover:shadow-md ${
                             formData.description.length > 5000
-                              ? 'border-red-400 focus:border-red-500 focus:ring-red-100'
-                              : 'border-gray-200 focus:border-purple-500 focus:ring-purple-100'
+                              ? 'border-red-400 dark:border-red-900/50 focus:border-red-500 focus:ring-red-100 dark:focus:ring-red-950/20'
+                              : 'border-gray-200 dark:border-slate-800 focus:border-purple-500 focus:ring-purple-100 dark:focus:ring-purple-900/30'
                           }`}
                           autoFocus
                         />
@@ -922,7 +922,7 @@ function OnboardingPage() {
                       </div>
                       
                       <div className="flex items-center justify-between text-xs px-1">
-                        <span className="text-gray-500 font-medium">
+                        <span className="text-gray-500 dark:text-slate-400 font-medium">
                           {formData.description.length > 5000 ? (
                             <span className="text-red-600 flex items-center gap-1 font-bold">
                               <AlertCircle className="w-3 h-3" />
@@ -934,7 +934,7 @@ function OnboardingPage() {
                               Ready
                             </span>
                           ) : (
-                            <span className="text-orange-600">
+                            <span className="text-orange-600 dark:text-orange-400">
                               {20 - formData.description.length} more needed
                             </span>
                           )}
@@ -944,7 +944,7 @@ function OnboardingPage() {
                             ? 'text-red-600 font-bold animate-pulse' 
                             : formData.description.length > 4500 
                             ? 'text-orange-600' 
-                            : 'text-gray-500'
+                            : 'text-gray-500 dark:text-slate-400'
                         }`}>
                           {formData.description.length}/5000
                         </span>
@@ -955,7 +955,7 @@ function OnboardingPage() {
                         <button
                           type="button"
                           onClick={() => setActiveInputMethod("none")}
-                          className="text-xs text-purple-600 hover:text-purple-700 font-medium"
+                          className="text-xs text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-medium"
                         >
                           Or use another input method
                         </button>
@@ -973,7 +973,7 @@ function OnboardingPage() {
                 <Button
                   onClick={handleBack}
                   variant="outline"
-                  className="flex-1 py-6 text-lg font-semibold border-2 border-gray-300 text-gray-700 hover:border-purple-400 hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 hover:text-purple-700 rounded-2xl transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-sm hover:shadow-md group dark:border-slate-700 dark:text-slate-300"
+                  className="flex-1 py-6 text-lg font-semibold border-2 border-gray-300 text-gray-700 hover:border-purple-400 hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 hover:text-purple-700 rounded-2xl transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-sm hover:shadow-md group dark:border-slate-700 dark:text-slate-300 dark:hover:from-purple-900/10 dark:hover:to-pink-900/10 dark:hover:text-purple-300"
                 >
                   <ChevronLeft size={20} className="mr-2 group-hover:-translate-x-1 transition-transform duration-300" />
                   Back
@@ -1016,7 +1016,7 @@ function OnboardingPage() {
                       ? "w-8 h-3 bg-gradient-to-r from-purple-500 to-pink-500 shadow-lg"
                       : step < currentStep
                       ? "w-3 h-3 bg-gradient-to-r from-purple-400 to-pink-400"
-                      : "w-3 h-3 bg-gray-300"
+                      : "w-3 h-3 bg-gray-300 dark:bg-slate-700"
                   }`}
                   style={{
                     transform: step === currentStep ? 'scale(1.1)' : 'scale(1)'

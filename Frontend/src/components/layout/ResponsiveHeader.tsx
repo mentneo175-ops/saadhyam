@@ -26,9 +26,14 @@ function ResponsiveHeaderContent() {
   // Check if we're on dashboard pages
   const isDashboardPage = location.pathname.startsWith("/dashboard");
   const isLandingPage = location.pathname === "/" || location.pathname === "/main" || location.pathname === "/landing-admin";
+  const isAuthOrOnboardingPage = 
+    location.pathname === "/login" || 
+    location.pathname === "/signup" || 
+    location.pathname === "/onboarding" || 
+    location.pathname === "/verify";
 
-  // Only show on non-dashboard pages, excluding the landing page, and mobile devices
-  const shouldShow = !isDashboardPage && !isLandingPage && isMobile;
+  // Only show on non-dashboard pages, excluding the landing, auth, and onboarding pages, and mobile devices
+  const shouldShow = !isDashboardPage && !isLandingPage && !isAuthOrOnboardingPage && isMobile;
 
   useEffect(() => {
     if (shouldShow) {
@@ -113,9 +118,14 @@ export function ResponsiveHeader() {
   // Check if we're on dashboard pages
   const isDashboardPage = location.pathname.startsWith("/dashboard");
   const isLandingPage = location.pathname === "/" || location.pathname === "/main" || location.pathname === "/landing-admin";
+  const isAuthOrOnboardingPage = 
+    location.pathname === "/login" || 
+    location.pathname === "/signup" || 
+    location.pathname === "/onboarding" || 
+    location.pathname === "/verify";
 
-  // Only show on non-dashboard pages, excluding the landing page, and mobile devices
-  const shouldShow = !isDashboardPage && !isLandingPage && isMobile;
+  // Only show on non-dashboard pages, excluding the landing, auth, and onboarding pages, and mobile devices
+  const shouldShow = !isDashboardPage && !isLandingPage && !isAuthOrOnboardingPage && isMobile;
 
   // Don't render if conditions aren't met
   if (!shouldShow) {

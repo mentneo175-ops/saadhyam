@@ -2052,181 +2052,185 @@ function VoiceAgentDashboard() {
           </div>
         </div>
 
-        {/* TOP ROW — create + import */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-          {/* Create Campaign */}
-          <div className="glass-card p-6">
-            <h3 className="text-lg font-bold text-primary mb-4">Create New Campaign</h3>
-            <form onSubmit={handleCreateCampaign} className="space-y-4">
-              <div className="form-group">
-                <label className="form-label">Campaign Name</label>
-                <input
-                  type="text"
-                  className="form-input"
-                  placeholder="e.g. EdTech Telugu Enrollment"
-                  value={newCampaign.name}
-                  onChange={(e) => setNewCampaign({ ...newCampaign, name: e.target.value })}
-                  disabled={isCreatingCampaign}
-                />
-              </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6 items-start">
+          {/* Left Column: Create & Import (1/3 width) */}
+          <div className="lg:col-span-1 space-y-6">
+            {/* Create Campaign */}
+            <div className="glass-card p-6">
+              <h3 className="text-lg font-bold text-primary mb-4">Create New Campaign</h3>
+              <form onSubmit={handleCreateCampaign} className="space-y-4">
+                <div className="form-group">
+                  <label className="form-label">Campaign Name</label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    placeholder="e.g. EdTech Telugu Enrollment"
+                    value={newCampaign.name}
+                    onChange={(e) => setNewCampaign({ ...newCampaign, name: e.target.value })}
+                    disabled={isCreatingCampaign}
+                  />
+                </div>
 
-              <div className="form-group">
-                <label className="form-label">Call Objective / Description</label>
-                <textarea
-                  className="form-textarea h-24"
-                  placeholder="Introduce program benefits, qualify budget, schedule counseling callbacks."
-                  value={newCampaign.objective}
-                  onChange={(e) => setNewCampaign({ ...newCampaign, objective: e.target.value })}
-                  disabled={isCreatingCampaign}
-                />
-              </div>
+                <div className="form-group">
+                  <label className="form-label">Call Objective / Description</label>
+                  <textarea
+                    className="form-textarea h-24"
+                    placeholder="Introduce program benefits, qualify budget, schedule counseling callbacks."
+                    value={newCampaign.objective}
+                    onChange={(e) => setNewCampaign({ ...newCampaign, objective: e.target.value })}
+                    disabled={isCreatingCampaign}
+                  />
+                </div>
 
-              <div className="form-group">
-                <label className="form-label">Assign AI Calling Agent</label>
-                <select
-                  className="form-input bg-surface"
-                  value={newCampaign.agent_id}
-                  onChange={(e) => setNewCampaign({ ...newCampaign, agent_id: e.target.value })}
-                  disabled={isCreatingCampaign}
-                >
-                  <option value="">Select AI Agent</option>
-                  {agents.map((a) => (
-                    <option key={a.id} value={a.id}>
-                      {a.name} ({a.role})
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <button
-                type="submit"
-                className="btn btn-primary w-full mt-2"
-                disabled={isCreatingCampaign}
-              >
-                {isCreatingCampaign ? (
-                  <>
-                    <span className="animate-spin inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full mr-2" />
-                    <span>Creating...</span>
-                  </>
-                ) : (
-                  <>
-                    <Plus size={16} />
-                    <span>Add Campaign</span>
-                  </>
-                )}
-              </button>
-            </form>
-          </div>
-
-          {/* Import leads */}
-          <div className="glass-card p-6">
-            <h3 className="text-lg font-bold text-primary mb-4">Import Leads CSV</h3>
-            <form onSubmit={handleCsvUpload} className="space-y-4">
-              <div className="form-group">
-                <label className="form-label">Target Campaign</label>
-                <select
-                  className="form-input bg-surface"
-                  value={selectedCampaignId}
-                  onChange={(e) => setSelectedCampaignId(e.target.value)}
-                  disabled={isUploadingLeads}
-                >
-                  <option value="">Select Campaign</option>
-                  {campaigns.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Choose CSV File</label>
-                <input
-                  type="file"
-                  accept=".csv"
-                  className="form-input bg-surface border border-dashed border-muted p-4 h-auto cursor-pointer"
-                  onChange={(e) => setCsvFile(e.target.files ? e.target.files[0] : null)}
-                  disabled={isUploadingLeads}
-                />
-                <p className="text-xs text-muted mt-1">
-                  Requires headers containing 'name' &amp; 'phone'
-                </p>
-              </div>
-
-              <button
-                type="submit"
-                className="btn btn-secondary w-full mt-2"
-                disabled={isUploadingLeads}
-              >
-                {isUploadingLeads ? (
-                  <>
-                    <span className="animate-spin inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full mr-2" />
-                    <span>Uploading...</span>
-                  </>
-                ) : (
-                  <>
-                    <Upload size={16} />
-                    <span>Upload Leads</span>
-                  </>
-                )}
-              </button>
-            </form>
-          </div>
-        </div>
-
-        {/* CAMPAIGN LIST with filter tabs */}
-        <div className="glass-card p-6 mt-6">
-          {/* Filter tabs */}
-          <div className="flex flex-wrap gap-2 mb-5">
-            {tabs.map((t) => {
-              const count =
-                t.key === "trash"
-                  ? trashedCampaigns.length
-                  : t.key === "archived"
-                    ? archivedCampaigns.length
-                    : t.key === "all"
-                      ? campaigns.length
-                      : campaigns.filter((c) => c.status === t.key).length;
-              return (
-                <button
-                  key={t.key}
-                  onClick={() => setCampaignFilter(t.key)}
-                  className={`text-xs px-3 py-1.5 rounded-full font-medium transition-all ${
-                    campaignFilter === t.key
-                      ? "bg-primary text-white shadow-sm"
-                      : "bg-surface text-secondary border border-border-color hover:border-primary/40"
-                  }`}
-                >
-                  {t.label}
-                  <span
-                    className={`ml-1.5 px-1.5 py-0.5 rounded-full text-[10px] ${
-                      campaignFilter === t.key ? "bg-white/20" : "bg-muted/20"
-                    }`}
+                <div className="form-group">
+                  <label className="form-label">Assign AI Calling Agent</label>
+                  <select
+                    className="form-input bg-surface"
+                    value={newCampaign.agent_id}
+                    onChange={(e) => setNewCampaign({ ...newCampaign, agent_id: e.target.value })}
+                    disabled={isCreatingCampaign}
                   >
-                    {count}
-                  </span>
+                    <option value="">Select AI Agent</option>
+                    {agents.map((a) => (
+                      <option key={a.id} value={a.id}>
+                        {a.name} ({a.role})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <button
+                  type="submit"
+                  className="btn btn-primary w-full mt-2"
+                  disabled={isCreatingCampaign}
+                >
+                  {isCreatingCampaign ? (
+                    <>
+                      <span className="animate-spin inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full mr-2" />
+                      <span>Creating...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Plus size={16} />
+                      <span>Add Campaign</span>
+                    </>
+                  )}
                 </button>
-              );
-            })}
+              </form>
+            </div>
+
+            {/* Import leads */}
+            <div className="glass-card p-6">
+              <h3 className="text-lg font-bold text-primary mb-4">Import Leads CSV</h3>
+              <form onSubmit={handleCsvUpload} className="space-y-4">
+                <div className="form-group">
+                  <label className="form-label">Target Campaign</label>
+                  <select
+                    className="form-input bg-surface"
+                    value={selectedCampaignId}
+                    onChange={(e) => setSelectedCampaignId(e.target.value)}
+                    disabled={isUploadingLeads}
+                  >
+                    <option value="">Select Campaign</option>
+                    {campaigns.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Choose CSV File</label>
+                  <input
+                    type="file"
+                    accept=".csv"
+                    className="form-input bg-surface border border-dashed border-muted p-4 h-auto cursor-pointer"
+                    onChange={(e) => setCsvFile(e.target.files ? e.target.files[0] : null)}
+                    disabled={isUploadingLeads}
+                  />
+                  <p className="text-xs text-muted mt-1">
+                    Requires headers containing 'name' &amp; 'phone'
+                  </p>
+                </div>
+
+                <button
+                  type="submit"
+                  className="btn btn-secondary w-full mt-2"
+                  disabled={isUploadingLeads}
+                >
+                  {isUploadingLeads ? (
+                    <>
+                      <span className="animate-spin inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full mr-2" />
+                      <span>Uploading...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Upload size={16} />
+                      <span>Upload Leads</span>
+                    </>
+                  )}
+                </button>
+              </form>
+            </div>
           </div>
 
-          {/* Campaign cards grid */}
-          {displayCampaigns.length === 0 ? (
-            <div className="text-center py-12 text-muted">
-              <p className="text-4xl mb-3">{campaignFilter === "trash" ? "🗑" : "📋"}</p>
-              <p className="text-sm">
-                {campaignFilter === "trash"
-                  ? "Trash is empty"
-                  : campaignFilter === "archived"
-                    ? "No archived campaigns"
-                    : "No campaigns yet — create your first one above"}
-              </p>
+          {/* Right Column: Campaigns List (2/3 width) */}
+          <div className="lg:col-span-2">
+            <div className="glass-card p-6">
+              {/* Filter tabs */}
+              <div className="flex flex-wrap gap-2 mb-5">
+                {tabs.map((t) => {
+                  const count =
+                    t.key === "trash"
+                      ? trashedCampaigns.length
+                      : t.key === "archived"
+                        ? archivedCampaigns.length
+                        : t.key === "all"
+                          ? campaigns.length
+                          : campaigns.filter((c) => c.status === t.key).length;
+                  return (
+                    <button
+                      key={t.key}
+                      onClick={() => setCampaignFilter(t.key)}
+                      className={`text-xs px-3 py-1.5 rounded-full font-medium transition-all ${
+                        campaignFilter === t.key
+                          ? "bg-primary text-white shadow-sm"
+                          : "bg-surface text-secondary border border-border-color hover:border-primary/40"
+                      }`}
+                    >
+                      {t.label}
+                      <span
+                        className={`ml-1.5 px-1.5 py-0.5 rounded-full text-[10px] ${
+                          campaignFilter === t.key ? "bg-white/20" : "bg-muted/20"
+                        }`}
+                      >
+                        {count}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Campaign cards grid */}
+              {displayCampaigns.length === 0 ? (
+                <div className="text-center py-12 text-muted">
+                  <p className="text-4xl mb-3">{campaignFilter === "trash" ? "🗑" : "📋"}</p>
+                  <p className="text-sm">
+                    {campaignFilter === "trash"
+                      ? "Trash is empty"
+                      : campaignFilter === "archived"
+                        ? "No archived campaigns"
+                        : "No campaigns yet — create your first one above"}
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {displayCampaigns.map((c) => renderCampaignCard(c))}
+                </div>
+              )}
             </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {displayCampaigns.map((c) => renderCampaignCard(c))}
-            </div>
-          )}
+          </div>
         </div>
       </div>
     );

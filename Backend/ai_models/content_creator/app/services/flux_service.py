@@ -82,6 +82,9 @@ def generate_flux_image(
         image = client.text_to_image(prompt, model=MODEL_ID)
     except Exception as exc:
         logger.error(f"HF Inference API request failed: {exc}")
+        # In production/deployed environment, raise exception to show exact error details to the user
+        if os.getenv("ENVIRONMENT") == "production" or os.getenv("RAILWAY_PROJECT_NAME"):
+            raise RuntimeError(f"HuggingFace API Error: {str(exc)}") from exc
         return _create_fallback_image(prompt, business_type, output_dir)
 
     try:

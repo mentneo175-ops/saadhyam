@@ -11,6 +11,7 @@ import { VoiceInput } from "@/components/business/VoiceInput";
 import { WebsiteImport } from "@/components/business/WebsiteImport";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 
+
 export const Route = createFileRoute("/onboarding")({
   head: () => ({ meta: [{ title: "Business Setup — Saadhyam AI" }] }),
   component: () => (

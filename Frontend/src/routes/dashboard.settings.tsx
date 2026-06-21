@@ -185,7 +185,7 @@ function SettingsPage() {
       if (!token) return;
 
       // Load user profile data
-      const profileResponse = await fetch(`${env.apiBaseUrl}/api/profile`, {
+      const profileResponse = await fetch(`${env.apiBaseUrl}/api/profile/`, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",

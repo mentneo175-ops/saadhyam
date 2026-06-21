@@ -472,12 +472,20 @@ async def serve_website(
                     html=html_content
                 )
                 
-                # Update website record with the new path/url
+                # Update website record with the new path/url (file_path may be a Cloudinary URL)
                 if file_path:
                     website.html_file_path = file_path
+                    if s3_key:
+                        website.s3_key = s3_key
                     db.commit()
+                    if file_path.startswith("http"):
+                        logger.info(f"✅ Successfully regenerated website and uploaded to Cloudinary: {file_path}")
+                    else:
+                        logger.info(f"✅ Successfully regenerated website to local disk: {file_path}")
+                else:
+                    logger.warning(f"⚠️ Regenerated website but no file_path returned — website may not persist across restarts")
                     
-                logger.info(f"✅ Successfully regenerated and saved website files for {actual_website_id}")
+                logger.info(f"✅ Self-healing complete for website: {actual_website_id}")
             except Exception as regen_err:
                 logger.error(f"❌ Failed to automatically regenerate website: {regen_err}", exc_info=True)
                 raise HTTPException(

@@ -109,7 +109,6 @@ class StorageService:
                 try:
                     import cloudinary.uploader
                     import cloudinary
-                    import re
                     
                     cloudinary.config(
                         cloud_name=os.getenv("CLOUDINARY_CLOUD_NAME"),
@@ -122,12 +121,12 @@ class StorageService:
                     upload_result = cloudinary.uploader.upload(
                         html.encode("utf-8"),
                         resource_type="raw",
-                        public_id=f"websites/{website_id}/index.html"
+                        public_id=f"websites/{website_id}/index",
+                        format="html",
+                        overwrite=True
                     )
                     cloudinary_url = upload_result.get("secure_url")
                     if cloudinary_url:
-                        # Strip the version (e.g. /v123456789/) to make the URL permanent and unversioned
-                        cloudinary_url = re.sub(r'/v[0-9]+/', '/', cloudinary_url)
                         logger.info(f"✅ Uploaded website HTML to Cloudinary: {cloudinary_url}")
                         return cloudinary_url, None
                 except Exception as e:

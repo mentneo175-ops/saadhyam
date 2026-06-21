@@ -48,6 +48,8 @@ function WebsiteAIPage() {
   const [websiteHtml, setWebsiteHtml] = useState<string>("");
   const [showPreview, setShowPreview] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isLoadingConfirmed, setIsLoadingConfirmed] = useState(false);
+  const [previewError, setPreviewError] = useState<string | null>(null);
   const [currentPreviewPath, setCurrentPreviewPath] = useState("/");
   const [pollingTimeoutId, setPollingTimeoutId] = useState<NodeJS.Timeout | null>(null);
   
@@ -141,14 +143,18 @@ function WebsiteAIPage() {
           console.log("✅ Found confirmed website:", profile.last_generated_website_id);
           setIsWebsiteConfirmed(true);
           setShowForm(false);  // Hide form
+          setIsLoadingConfirmed(true);
+          setPreviewError(null);
           setWebsiteResult({ 
             website_id: profile.last_generated_website_id,
             preview_url: `/saadhyam/${profile.last_generated_website_id}`
           });
           await fetchWebsiteHtml(profile.last_generated_website_id);
+          setIsLoadingConfirmed(false);
         }
       } catch (error) {
         console.error("❌ Error loading confirmed website:", error);
+        setIsLoadingConfirmed(false);
       }
     };
     
@@ -159,7 +165,7 @@ function WebsiteAIPage() {
   const fetchWebsiteHtml = async (websiteId: string) => {
     try {
       console.log("🔍 Fetching website HTML for preview:", websiteId);
-      console.log("🔑 Token:", apiClient.getToken() ? "Present" : "Missing");
+      setPreviewError(null);
       
       const url = `${env.apiBaseUrl}/saadhyam/${websiteId}`;
       console.log("🌐 Fetching from URL:", url);
@@ -171,12 +177,15 @@ function WebsiteAIPage() {
       });
       
       console.log("📡 Response status:", response.status, response.statusText);
-      console.log("📡 Response headers:", Object.fromEntries(response.headers.entries()));
       
       if (!response.ok) {
         const errorText = await response.text();
         console.error("❌ Failed to fetch website HTML:", response.status, errorText);
-        setWebsiteStatus(`❌ Failed to load preview: ${response.status} - ${errorText.substring(0, 100)}`);
+        if (response.status === 404) {
+          setPreviewError("Website files not found on server. Please regenerate your website.");
+        } else {
+          setPreviewError(`Failed to load preview (${response.status}). Please try again.`);
+        }
         return;
       }
       
@@ -186,7 +195,7 @@ function WebsiteAIPage() {
       
       if (!html || html.length === 0) {
         console.error("❌ Received empty HTML");
-        setWebsiteStatus("❌ Received empty website content");
+        setPreviewError("Website content is empty. Please regenerate your website.");
         return;
       }
 
@@ -315,7 +324,7 @@ function WebsiteAIPage() {
         console.log("✅ Website HTML prepared - preview should now be visible");
     } catch (error) {
       console.error("❌ Error fetching website HTML:", error);
-      setWebsiteStatus(`❌ Error loading preview: ${error}`);
+      setPreviewError("Network error while loading preview. Please check your connection.");
     }
   };
 
@@ -646,6 +655,7 @@ function WebsiteAIPage() {
     setWebsiteResult(null);
     setProgress(0);
     setWebsiteStatus("");
+    setPreviewError(null);
   };
 
   return (
@@ -961,8 +971,32 @@ function WebsiteAIPage() {
                 </div>
               )}
 
-              {/* Status Message - Only when not processing and no preview */}
-              {!showPreview && !isProcessing && (
+              {/* Loading state when fetching confirmed website on mount */}
+              {isLoadingConfirmed && (
+                <div className="flex-1 flex flex-col items-center justify-center text-center py-8">
+                  <Loader2 className="w-10 h-10 text-purple-500 animate-spin mb-3" />
+                  <p className="text-sm text-muted-foreground">Loading your website...</p>
+                </div>
+              )}
+
+              {/* Error state when preview fails */}
+              {previewError && !isLoadingConfirmed && !showPreview && !isProcessing && (
+                <div className="flex-1 flex flex-col items-center justify-center text-center py-8 px-4">
+                  <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl w-full max-w-sm">
+                    <p className="text-sm font-semibold text-red-700 mb-1">⚠️ Preview Unavailable</p>
+                    <p className="text-xs text-red-600">{previewError}</p>
+                    <button
+                      onClick={handleRegenerateWebsite}
+                      className="mt-3 w-full py-2 px-4 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold rounded-lg transition-colors"
+                    >
+                      Regenerate Website
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Status Message - Only when not processing, no preview, no error, not loading */}
+              {!showPreview && !isProcessing && !previewError && !isLoadingConfirmed && (
                 <div className="flex-1 flex flex-col items-center justify-center text-center py-8">
                   <div className="mb-4">
                     <Globe className="w-16 h-16 mx-auto text-gray-400 mb-3" />
@@ -970,17 +1004,6 @@ function WebsiteAIPage() {
                   <div className="text-sm leading-relaxed text-gray-600 max-w-sm">
                     Fill in the business details and click 'Generate Full Website' to create your complete website with the selected template.
                   </div>
-                  
-                  {/* Debug Info */}
-                  {websiteResult && (
-                    <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-xs text-left">
-                      <p className="font-bold mb-2">Debug Info:</p>
-                      <p>showPreview: {showPreview ? "true" : "false"}</p>
-                      <p>websiteHtml length: {websiteHtml.length}</p>
-                      <p>isProcessing: {isProcessing ? "true" : "false"}</p>
-                      <p>websiteResult.website_id: {websiteResult?.website_id}</p>
-                    </div>
-                  )}
                 </div>
               )}
 

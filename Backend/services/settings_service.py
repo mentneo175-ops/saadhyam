@@ -265,13 +265,12 @@ class SettingsService:
             raise
 
     @staticmethod
-    @staticmethod
     async def disconnect_instagram_account(db: AsyncSession, user_id: int) -> bool:
         """
         Disconnect Instagram account and clean up all related data.
         
         This will:
-        - Deactivate all Instagram social accounts
+        - Deactivate all Instagram social accounts (legacy & analytics)
         - Disable Instagram automation
         - Cancel all scheduled posts
         - Clear Instagram-related settings
@@ -285,10 +284,17 @@ class SettingsService:
                 SocialAccount.platform == "instagram",
             )
             result = await db.execute(stmt)
-            accounts = result.scalars().all()
-            accounts = list(accounts)
+            accounts = list(result.scalars().all())
             
-            if not accounts:
+            # Also check Instagram Business Accounts (analytics)
+            from models.instagram_analytics import InstagramBusinessAccount
+            analytics_stmt = select(InstagramBusinessAccount).where(
+                InstagramBusinessAccount.user_id == user_id,
+            )
+            analytics_result = await db.execute(analytics_stmt)
+            analytics_accounts = list(analytics_result.scalars().all())
+            
+            if not accounts and not analytics_accounts:
                 logger.info(f"No Instagram accounts found for user {user_id}")
                 # Still check and reset settings in case of orphaned data
                 settings = await SettingsService.get_user_settings(db, user_id)
@@ -303,18 +309,29 @@ class SettingsService:
                     return True
                 return False
             
-            # Deactivate all Instagram accounts
+            # Deactivate all Instagram SocialAccounts
             disconnected_any = False
             for account in accounts:
                 if account.is_active:
                     account.is_active = False
                     account.disconnected_at = datetime.utcnow()
-                    # Clear sensitive tokens for security
-                    account.access_token = None
+                    # Clear sensitive tokens (use empty string as it's NOT NULL in DB)
+                    account.access_token = ""
                     account.refresh_token = None
                     db.add(account)
                     disconnected_any = True
-                    logger.info(f"Deactivated Instagram account {account.ig_username} for user {user_id}")
+                    logger.info(f"Deactivated Instagram SocialAccount {account.ig_username} for user {user_id}")
+            
+            # Deactivate all Instagram Business Accounts (analytics)
+            for acc in analytics_accounts:
+                if acc.is_active:
+                    acc.is_active = False
+                    # Clear sensitive tokens (use empty string as it's NOT NULL in DB)
+                    acc.access_token = ""
+                    acc.refresh_token = None
+                    db.add(acc)
+                    disconnected_any = True
+                    logger.info(f"Deactivated InstagramBusinessAccount {acc.username} for user {user_id}")
             
             # Cancel all scheduled posts
             from models.instagram import ScheduledPost
@@ -323,8 +340,7 @@ class SettingsService:
                 ScheduledPost.status.in_(["scheduled", "pending"]),
             )
             scheduled_result = await db.execute(scheduled_posts_stmt)
-            scheduled_posts = scheduled_result.scalars().all()
-            scheduled_posts = list(scheduled_posts)
+            scheduled_posts = list(scheduled_result.scalars().all())
             
             for post in scheduled_posts:
                 post.status = "failed"
@@ -343,7 +359,7 @@ class SettingsService:
             await db.commit()
             
             logger.info(f"Successfully disconnected Instagram account for user {user_id}")
-            logger.info(f"- Deactivated {len(accounts)} Instagram account(s)")
+            logger.info(f"- Deactivated {len(accounts)} SocialAccount(s) and {len(analytics_accounts)} InstagramBusinessAccount(s)")
             logger.info(f"- Cancelled {len(scheduled_posts)} scheduled post(s)")
             logger.info(f"- Disabled Instagram automation")
             

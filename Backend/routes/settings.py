@@ -395,7 +395,7 @@ async def refresh_instagram_status(
                     logger.warning(f"Token invalid for @{account.ig_username}, marking as disconnected")
                     account.is_active = False
                     account.disconnected_at = datetime.utcnow()
-                    account.access_token = None
+                    account.access_token = ""
                     account.refresh_token = None
                     db.add(account)
                     disconnected_count += 1
@@ -407,7 +407,7 @@ async def refresh_instagram_status(
                 # Assume disconnected if we can't validate
                 account.is_active = False
                 account.disconnected_at = datetime.utcnow()
-                account.access_token = None
+                account.access_token = ""
                 account.refresh_token = None
                 db.add(account)
                 disconnected_count += 1

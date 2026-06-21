@@ -105,17 +105,29 @@ async def generate_website(
         logger.info(f"📝 Job details: status={job.status}, progress={job.progress}%")
 
         # Enqueue Celery task with string job_id
+        task_queued_celery = False
         try:
-            logger.info(f"📤 Queueing Celery task for job {job_id_str}")
-            task = generate_website_task.delay(
-                job_id=job_id_str,
-                business_data=business_data,
-                theme=request.theme,
-                theme_config=request.theme_config
-            )
-            logger.info(f"✅ Task queued with ID: {task.id}")
+            logger.info("🔍 Checking for active Celery workers...")
+            from ai_models.website_ai.app.workers.celery_app import celery_app
+            insp = celery_app.control.inspect(timeout=0.5)
+            stats = insp.stats() if insp else None
+            
+            if stats and len(stats) > 0:
+                logger.info(f"🟢 Active Celery workers found: {list(stats.keys())}. Queueing task...")
+                task = generate_website_task.delay(
+                    job_id=job_id_str,
+                    business_data=business_data,
+                    theme=request.theme,
+                    theme_config=request.theme_config
+                )
+                logger.info(f"✅ Task queued with ID: {task.id}")
+                task_queued_celery = True
+            else:
+                logger.warning("🟡 No active Celery workers found. Falling back to BackgroundTasks.")
         except Exception as celery_err:
-            logger.warning(f"⚠️ Celery enqueue failed: {celery_err}. Falling back to in-process BackgroundTasks.")
+            logger.warning(f"⚠️ Celery check/enqueue failed: {celery_err}. Falling back to BackgroundTasks.")
+
+        if not task_queued_celery:
             background_tasks.add_task(
                 generate_website_task,
                 None,  # self (bound task parameter, pass None when running in-process)

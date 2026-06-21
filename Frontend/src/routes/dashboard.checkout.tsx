@@ -239,23 +239,18 @@ function CheckoutPage() {
   const startPayment = async () => {
     setPaymentError("");
     setPaymentSuccess("");
-
-    if (!RAZORPAY_KEY_ID) {
-      setPaymentError("Razorpay key is missing from the frontend env.");
-      return;
-    }
-
-    if (amountDue <= 0) {
-      setPaymentSuccess("This order is fully covered by the applied coupon.");
-      return;
-    }
-
     setPaymentLoading(true);
+
     try {
       if (amountDue <= 0) {
         await persistSelectedPlan(`coupon-covered-${Date.now()}`, 0);
         setPaymentSuccess(`Your ${selectedPlan.name} has been saved to your account.`);
         setTimeout(redirectToPricing, 800);
+        return;
+      }
+
+      if (!RAZORPAY_KEY_ID) {
+        setPaymentError("Razorpay key is missing from the frontend env.");
         setPaymentLoading(false);
         return;
       }

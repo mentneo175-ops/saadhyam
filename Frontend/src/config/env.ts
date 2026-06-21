@@ -23,11 +23,58 @@ const getEnvVar = (key: string, defaultValue: string = ""): string => {
   return defaultValue;
 };
 
+const isLocalhost = (hostname: string) => {
+  return (
+    hostname === "localhost" ||
+    hostname === "127.0.0.1" ||
+    hostname === "0.0.0.0" ||
+    hostname.startsWith("192.168.") ||
+    hostname.startsWith("10.") ||
+    hostname.endsWith(".local")
+  );
+};
+
+const getDynamicApiBaseUrl = (configuredUrl: string) => {
+  if (typeof window !== "undefined") {
+    const hostname = window.location.hostname;
+    if (!isLocalhost(hostname) && (configuredUrl.includes("localhost") || configuredUrl.includes("127.0.0.1"))) {
+      return "https://saadhyam-production.up.railway.app";
+    }
+  }
+  return configuredUrl;
+};
+
+const getDynamicSocketUrl = (configuredUrl: string) => {
+  if (typeof window !== "undefined") {
+    const hostname = window.location.hostname;
+    if (!isLocalhost(hostname) && (configuredUrl.includes("localhost") || configuredUrl.includes("127.0.0.1"))) {
+      return "https://saadhyam-production.up.railway.app";
+    }
+  }
+  return configuredUrl;
+};
+
+const getDynamicAppUrl = (configuredUrl: string) => {
+  if (typeof window !== "undefined") {
+    const hostname = window.location.hostname;
+    if (!isLocalhost(hostname) && (configuredUrl.includes("localhost") || configuredUrl.includes("127.0.0.1") || configuredUrl.includes("5173"))) {
+      return window.location.origin;
+    }
+  }
+  return configuredUrl;
+};
+
 // Create configuration object
 export const env: EnvConfig = {
-  apiBaseUrl: getEnvVar("VITE_API_BASE_URL", "http://localhost:8000"),
-  socketUrl: getEnvVar("VITE_SOCKET_URL", "http://localhost:8000"),
-  appUrl: getEnvVar("VITE_APP_URL", "http://localhost:5173"),
+  get apiBaseUrl() {
+    return getDynamicApiBaseUrl(getEnvVar("VITE_API_BASE_URL", "http://localhost:8000"));
+  },
+  get socketUrl() {
+    return getDynamicSocketUrl(getEnvVar("VITE_SOCKET_URL", "http://localhost:8000"));
+  },
+  get appUrl() {
+    return getDynamicAppUrl(getEnvVar("VITE_APP_URL", "http://localhost:5173"));
+  },
   cloudinaryCloudName: getEnvVar("VITE_CLOUDINARY_CLOUD_NAME", ""),
   cloudinaryUploadPreset: getEnvVar("VITE_CLOUDINARY_UPLOAD_PRESET", ""),
   cloudinaryVideoUploadPreset: getEnvVar(

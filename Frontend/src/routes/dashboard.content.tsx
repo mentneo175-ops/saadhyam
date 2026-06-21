@@ -199,7 +199,8 @@ function ContentStudio() {
       }
     } catch (error: any) {
       console.error("❌ Image generation error:", error);
-      toast.error(error.message || "Failed to generate image");
+      const errorMessage = error.data?.detail || error.message || "Failed to generate image";
+      toast.error(errorMessage);
     } finally {
       setImageLoading(false);
     }

@@ -94,7 +94,16 @@ class MetaOAuthService:
             }
             
             response = requests.get(url, params=params)
-            response.raise_for_status()
+            if response.status_code != 200:
+                try:
+                    error_json = response.json()
+                    error_msg = error_json.get("error", {}).get("message", response.text)
+                    logger.error(f"Facebook Graph API token exchange error details: {error_json}")
+                    raise Exception(f"Facebook API Error: {error_msg}")
+                except Exception as parse_err:
+                    if "Facebook API Error" in str(parse_err):
+                        raise
+                    raise Exception(f"Facebook API Error ({response.status_code}): {response.text}")
             
             data = response.json()
             
@@ -110,7 +119,7 @@ class MetaOAuthService:
         except Exception as e:
             logger.error(f"Failed to exchange code for token: {e}")
             raise
-    
+            
     async def exchange_for_long_lived_token(self, short_lived_token: str) -> Dict[str, Any]:
         """Exchange short-lived token for long-lived token (60 days)"""
         try:
@@ -123,7 +132,16 @@ class MetaOAuthService:
             }
             
             response = requests.get(url, params=params)
-            response.raise_for_status()
+            if response.status_code != 200:
+                try:
+                    error_json = response.json()
+                    error_msg = error_json.get("error", {}).get("message", response.text)
+                    logger.error(f"Facebook Graph API long-lived token exchange error details: {error_json}")
+                    raise Exception(f"Facebook API Error (Long-Lived): {error_msg}")
+                except Exception as parse_err:
+                    if "Facebook API Error" in str(parse_err):
+                        raise
+                    raise Exception(f"Facebook API Error ({response.status_code}): {response.text}")
             
             return response.json()
             

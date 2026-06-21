@@ -10,7 +10,6 @@ const isLocalhost = (hostname: string) => {
     hostname.endsWith(".local")
   );
 };
-
 export const getApiBaseUrl = () => {
   let url = env.apiBaseUrl;
   if (typeof window !== "undefined") {

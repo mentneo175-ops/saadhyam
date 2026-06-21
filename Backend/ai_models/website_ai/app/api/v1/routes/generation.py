@@ -1,7 +1,7 @@
 """
 Website generation API endpoints
 """
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from sqlalchemy.orm import Session
 
 from ai_models.website_ai.app.db.session import get_db
@@ -31,6 +31,7 @@ router = APIRouter(prefix="/generate", tags=["generation"])
 )
 async def generate_website(
     request: GenerateWebsiteRequest,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ) -> GenerateWebsiteResponse:
@@ -104,14 +105,26 @@ async def generate_website(
         logger.info(f"📝 Job details: status={job.status}, progress={job.progress}%")
 
         # Enqueue Celery task with string job_id
-        logger.info(f"📤 Queueing Celery task for job {job_id_str}")
-        task = generate_website_task.delay(
-            job_id=job_id_str,
-            business_data=business_data,
-            theme=request.theme,
-            theme_config=request.theme_config
-        )
-        logger.info(f"✅ Task queued with ID: {task.id}")
+        try:
+            logger.info(f"📤 Queueing Celery task for job {job_id_str}")
+            task = generate_website_task.delay(
+                job_id=job_id_str,
+                business_data=business_data,
+                theme=request.theme,
+                theme_config=request.theme_config
+            )
+            logger.info(f"✅ Task queued with ID: {task.id}")
+        except Exception as celery_err:
+            logger.warning(f"⚠️ Celery enqueue failed: {celery_err}. Falling back to in-process BackgroundTasks.")
+            background_tasks.add_task(
+                generate_website_task,
+                None,  # self (bound task parameter, pass None when running in-process)
+                job_id_str,
+                business_data,
+                request.theme,
+                request.theme_config
+            )
+            logger.info("✅ Enqueued generation task via FastAPI BackgroundTasks in-process")
 
         return GenerateWebsiteResponse(
             job_id=job_id_str,

@@ -205,7 +205,7 @@ def generate_website_task(
                 logger.error(f"Failed to update job status: {update_error}")
 
             # Retry if possible
-            if self.request.retries < self.max_retries:
+            if self and hasattr(self, "request") and self.request.retries < self.max_retries:
                 raise self.retry(exc=exc)
 
             raise

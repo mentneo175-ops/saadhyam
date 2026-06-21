@@ -259,6 +259,24 @@ class Settings(BaseSettings):
 
     def __init__(self, **values):
         super().__init__(**values)
+        
+        # Override REDIS_URL and Celery URLs if REDIS_URL/REDIS_PRIVATE_URL is set in environment (Railway managed)
+        redis_env = os.getenv("REDIS_URL") or os.getenv("REDIS_PRIVATE_URL")
+        if redis_env:
+            self.REDIS_URL = redis_env
+            
+        if "localhost" not in self.REDIS_URL and "127.0.0.1" not in self.REDIS_URL:
+            # Auto-resolve Celery URLs using the production Redis URL
+            base_redis = self.REDIS_URL.rstrip('/')
+            # Remove DB index if present (e.g. /0)
+            if base_redis.split('/')[-1].isdigit():
+                base_redis = '/'.join(base_redis.split('/')[:-1])
+            self.CELERY_BROKER_URL = f"{base_redis}/0"
+            self.CELERY_RESULT_BACKEND = f"{base_redis}/1"
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.info(f"🔄 Auto-resolved CELERY_BROKER_URL in main app settings using REDIS_URL")
+
         # Find the first valid Gemini API key format (not empty, doesn't start with AQ. or mock values, starts with AIzaSy)
         keys = [self.GEMINI_API_KEY, self.GEMINI_API_KEY_2, self.GEMINI_API_KEY_3]
         valid_key = None

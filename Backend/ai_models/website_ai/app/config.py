@@ -83,6 +83,24 @@ class Settings(BaseSettings):
     METRICS_PORT: int = 9090
     LOG_LEVEL: str = "INFO"
 
+    def __init__(self, **values):
+        super().__init__(**values)
+        import os
+        # Override REDIS_URL and Celery URLs if REDIS_URL/REDIS_PRIVATE_URL is set in environment (Railway managed)
+        redis_env = os.getenv("REDIS_URL") or os.getenv("REDIS_PRIVATE_URL")
+        if redis_env:
+            self.REDIS_URL = redis_env
+            
+        if "localhost" not in self.REDIS_URL and "127.0.0.1" not in self.REDIS_URL:
+            # Auto-resolve Celery URLs using the production Redis URL
+            base_redis = self.REDIS_URL.rstrip('/')
+            # Remove DB index if present (e.g. /0)
+            if base_redis.split('/')[-1].isdigit():
+                base_redis = '/'.join(base_redis.split('/')[:-1])
+            self.CELERY_BROKER_URL = f"{base_redis}/0"
+            self.CELERY_RESULT_BACKEND = f"{base_redis}/1"
+            print(f"🔄 website_ai settings: Auto-resolved CELERY_BROKER_URL using REDIS_URL")
+
     class Config:
         env_file = ".env"
         case_sensitive = True

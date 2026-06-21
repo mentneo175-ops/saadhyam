@@ -1,10 +1,11 @@
 import { toast } from "sonner";
+import { getApiBaseUrl } from "./runtimeUrls";
 /**
  * API Service - Handles all backend API communication
  * Includes authentication, error handling, and token management
  */
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+const API_URL = import.meta.env.VITE_API_URL || getApiBaseUrl();
 const TOKEN_STORAGE_KEY = "saadhyam_token";
 const USER_STORAGE_KEY = "saadhyam_user";
 const FEATURE_BLOCKS_STORAGE_KEY = "saadhyam_feature_blocks";

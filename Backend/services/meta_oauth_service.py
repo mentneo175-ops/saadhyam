@@ -12,6 +12,8 @@ from cryptography.fernet import Fernet
 from sqlalchemy.ext.asyncio import AsyncSession
 from models.meta_ads import MetaAccount
 
+from config.settings import settings
+
 logger = logging.getLogger(__name__)
 
 
@@ -19,9 +21,9 @@ class MetaOAuthService:
     """Service for Meta OAuth and token management"""
     
     def __init__(self):
-        self.app_id = os.getenv("META_APP_ID")
-        self.app_secret = os.getenv("META_APP_SECRET")
-        self.redirect_uri = os.getenv("META_REDIRECT_URI", "http://localhost:8000/auth/meta/callback")
+        self.app_id = settings.META_APP_ID or os.getenv("META_APP_ID")
+        self.app_secret = settings.META_APP_SECRET or os.getenv("META_APP_SECRET")
+        self.redirect_uri = settings.META_REDIRECT_URI
         self.graph_api_version = "v21.0"
         self.graph_api_base = f"https://graph.facebook.com/{self.graph_api_version}"
         

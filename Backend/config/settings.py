@@ -341,6 +341,16 @@ class Settings(BaseSettings):
                 # Default Vercel production frontend domain
                 self.YOUTUBE_REDIRECT_URI = "https://saadhyam-psi.vercel.app/youtube-oauth-callback"
 
+            # Force HTTPS for non-localhost redirect URIs in production/deployed environments
+            if self.INSTAGRAM_REDIRECT_URI.startswith("http://") and "localhost" not in self.INSTAGRAM_REDIRECT_URI and "127.0.0.1" not in self.INSTAGRAM_REDIRECT_URI:
+                self.INSTAGRAM_REDIRECT_URI = self.INSTAGRAM_REDIRECT_URI.replace("http://", "https://", 1)
+                
+            if self.META_REDIRECT_URI.startswith("http://") and "localhost" not in self.META_REDIRECT_URI and "127.0.0.1" not in self.META_REDIRECT_URI:
+                self.META_REDIRECT_URI = self.META_REDIRECT_URI.replace("http://", "https://", 1)
+                
+            if self.WHATSAPP_REDIRECT_URI.startswith("http://") and "localhost" not in self.WHATSAPP_REDIRECT_URI and "127.0.0.1" not in self.WHATSAPP_REDIRECT_URI:
+                self.WHATSAPP_REDIRECT_URI = self.WHATSAPP_REDIRECT_URI.replace("http://", "https://", 1)
+
     def get_cors_origins(self) -> List[str]:
 
         raw_value = (self.CORS_ORIGINS or os.getenv("ALLOWED_ORIGINS", "")).strip()

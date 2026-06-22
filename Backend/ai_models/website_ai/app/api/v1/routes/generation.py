@@ -129,8 +129,7 @@ async def generate_website(
 
         if not task_queued_celery:
             background_tasks.add_task(
-                generate_website_task,
-                None,  # self (bound task parameter, pass None when running in-process)
+                generate_website_task.run,
                 job_id_str,
                 business_data,
                 request.theme,

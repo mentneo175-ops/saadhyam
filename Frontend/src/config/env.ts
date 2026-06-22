@@ -37,9 +37,17 @@ const isLocalhost = (hostname: string) => {
 const getDynamicApiBaseUrl = (configuredUrl: string) => {
   if (typeof window !== "undefined") {
     const hostname = window.location.hostname;
-    if (!isLocalhost(hostname) && (configuredUrl.includes("localhost") || configuredUrl.includes("127.0.0.1"))) {
-      return "https://saadhyam-production.up.railway.app";
+    let url = configuredUrl;
+    if (!isLocalhost(hostname) && (url.includes("localhost") || url.includes("127.0.0.1"))) {
+      url = "https://saadhyam-production.up.railway.app";
     }
+    if (window.location.protocol === "https:") {
+      url = url.replace(/^http:\/\//i, "https://");
+      if (!isLocalhost(hostname)) {
+        url = url.replace(/:8000/g, "");
+      }
+    }
+    return url;
   }
   return configuredUrl;
 };
@@ -47,9 +55,17 @@ const getDynamicApiBaseUrl = (configuredUrl: string) => {
 const getDynamicSocketUrl = (configuredUrl: string) => {
   if (typeof window !== "undefined") {
     const hostname = window.location.hostname;
-    if (!isLocalhost(hostname) && (configuredUrl.includes("localhost") || configuredUrl.includes("127.0.0.1"))) {
-      return "https://saadhyam-production.up.railway.app";
+    let url = configuredUrl;
+    if (!isLocalhost(hostname) && (url.includes("localhost") || url.includes("127.0.0.1"))) {
+      url = "https://saadhyam-production.up.railway.app";
     }
+    if (window.location.protocol === "https:") {
+      url = url.replace(/^http:\/\//i, "https://");
+      if (!isLocalhost(hostname)) {
+        url = url.replace(/:8000/g, "");
+      }
+    }
+    return url;
   }
   return configuredUrl;
 };
@@ -57,9 +73,14 @@ const getDynamicSocketUrl = (configuredUrl: string) => {
 const getDynamicAppUrl = (configuredUrl: string) => {
   if (typeof window !== "undefined") {
     const hostname = window.location.hostname;
-    if (!isLocalhost(hostname) && (configuredUrl.includes("localhost") || configuredUrl.includes("127.0.0.1") || configuredUrl.includes("5173"))) {
-      return window.location.origin;
+    let url = configuredUrl;
+    if (!isLocalhost(hostname) && (url.includes("localhost") || url.includes("127.0.0.1") || url.includes("5173"))) {
+      url = window.location.origin;
     }
+    if (window.location.protocol === "https:") {
+      url = url.replace(/^http:\/\//i, "https://");
+    }
+    return url;
   }
   return configuredUrl;
 };

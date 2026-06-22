@@ -17,7 +17,13 @@ export const getApiBaseUrl = () => {
     // If the browser is running on a production/remote domain, but the API is set to localhost,
     // dynamically override it to the production backend URL.
     if (!isLocalhost(hostname) && (url.includes("localhost") || url.includes("127.0.0.1"))) {
-      return "https://saadhyam-production.up.railway.app";
+      url = "https://saadhyam-production.up.railway.app";
+    }
+    if (window.location.protocol === "https:") {
+      url = url.replace(/^http:\/\//i, "https://");
+      if (!isLocalhost(hostname)) {
+        url = url.replace(/:8000/g, "");
+      }
     }
   }
   return url;
@@ -32,7 +38,10 @@ export const getAppBaseUrl = () => {
     // If the browser is running on a production/remote domain, but the App URL is set to localhost,
     // dynamically override it to the current window origin.
     if (!isLocalhost(hostname) && (url.includes("localhost") || url.includes("127.0.0.1") || url.includes("5173"))) {
-      return window.location.origin;
+      url = window.location.origin;
+    }
+    if (window.location.protocol === "https:") {
+      url = url.replace(/^http:\/\//i, "https://");
     }
   }
   return url;

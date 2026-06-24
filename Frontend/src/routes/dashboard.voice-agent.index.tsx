@@ -97,31 +97,52 @@ const WIZARD_PRESETS = [
 const VOICE_PRESETS = [
   {
     id: "EXAVITQu4vr4xnSDxMaL",
+    name: "Sarah (Multilingual)",
+    gender: "Female",
+    desc: "Mature, Reassuring, Confident",
+    url: "https://storage.googleapis.com/eleven-public-prod/premade/voices/EXAVITQu4vr4xnSDxMaL/01a3e33c-6e99-4ee7-8543-ff2216a32186.mp3"
+  },
+  {
+    id: "hpp4J3VqNfWAUOO0d1Us",
     name: "Bella (Multilingual)",
     gender: "Female",
-    desc: "Warm & Professional",
-    url: "https://storage.googleapis.com/eleven-public-prod/previews/EXAVITQu4vr4xnSDxMaL.mp3"
+    desc: "Professional, Bright, Warm",
+    url: "https://storage.googleapis.com/eleven-public-prod/premade/voices/hpp4J3VqNfWAUOO0d1Us/dab0f5ba-3aa4-48a8-9fad-f138fea1126d.mp3"
   },
   {
-    id: "21m00Tcm4TlvDq8ikWAM",
-    name: "Rachel (US Accent)",
+    id: "cgSgspJ2msm6clMCkdW9",
+    name: "Jessica (US Accent)",
     gender: "Female",
-    desc: "Conversational & Bright",
-    url: "https://storage.googleapis.com/eleven-public-prod/previews/21m00Tcm4TlvDq8ikWAM.mp3"
+    desc: "Playful, Bright, Warm",
+    url: "https://storage.googleapis.com/eleven-public-prod/premade/voices/cgSgspJ2msm6clMCkdW9/56a97bf8-b69b-448f-846c-c3a11683d45a.mp3"
   },
   {
-    id: "uavKGt8JpB2lo1bcty9J",
-    name: "Rahul (Indian Accent)",
-    gender: "Male",
-    desc: "Warm & Energetic",
-    url: "https://storage.googleapis.com/eleven-public-prod/previews/uavKGt8JpB2lo1bcty9J.mp3"
+    id: "Xb7hH8MSUJpSbSDYk0k2",
+    name: "Alice (British Accent)",
+    gender: "Female",
+    desc: "Clear, Engaging Educator",
+    url: "https://storage.googleapis.com/eleven-public-prod/premade/voices/Xb7hH8MSUJpSbSDYk0k2/d10f7534-11f6-41fe-a012-2de1e482d336.mp3"
   },
   {
-    id: "pNInz6obpg7j8jsG4bU3",
-    name: "Arnold (Ad Voice)",
-    gender: "Male",
-    desc: "Deep & Narrative",
-    url: "https://storage.googleapis.com/eleven-public-prod/previews/pNInz6obpg7j8jsG4bU3.mp3"
+    id: "XrExE9yKIg1WjnnlVkGX",
+    name: "Matilda (US Accent)",
+    gender: "Female",
+    desc: "Knowledgeable, Professional",
+    url: "https://storage.googleapis.com/eleven-public-prod/premade/voices/XrExE9yKIg1WjnnlVkGX/b930e18d-6b4d-466e-bab2-0ae97c6d8535.mp3"
+  },
+  {
+    id: "pFZP5JQG7iQjIQuC4Bku",
+    name: "Lily (British Accent)",
+    gender: "Female",
+    desc: "Velvety, Assertive Actress",
+    url: "https://storage.googleapis.com/eleven-public-prod/premade/voices/pFZP5JQG7iQjIQuC4Bku/89b68b35-b3dd-4348-a84a-a3c13a3c2b30.mp3"
+  },
+  {
+    id: "FGY2WhTYpPnrIDTdsKH5",
+    name: "Laura (US Accent)",
+    gender: "Female",
+    desc: "Enthusiastic, Quirky, Energetic",
+    url: "https://api.us.elevenlabs.io/v1/voices/FGY2WhTYpPnrIDTdsKH5/previews/audio?payload=eyJ2b2ljZV9zb3VyY2UiOiJwcmVtYWRlIiwiZmlsZW5hbWUiOiI2NzM0MTc1OS1hZDA4LTQxYTUtYmU2ZS1kZTEyZmU0NDg2MTgubXAzIiwidGltZXN0YW1wIjoxNzgyMjgwODAwMDAwMDAwfQ%3D%3D"
   }
 ];
 

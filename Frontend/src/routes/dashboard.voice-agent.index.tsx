@@ -23,6 +23,11 @@ import {
   FileText,
   Zap,
   Info,
+  ChevronLeft,
+  ChevronRight,
+  Play,
+  Pause,
+  HelpCircle,
 } from "lucide-react";
 import { env } from "@/config/env";
 import voiceAgentCss from "./voice-agent.css?url";
@@ -58,6 +63,75 @@ type RazorpayWindow = Window & {
 };
 
 const RAZORPAY_KEY_ID = import.meta.env.VITE_RAZORPAY_KEY_ID || "";
+
+const WIZARD_PRESETS = [
+  {
+    label: "Admissions Counselor",
+    role: "Admission Counsellor",
+    name: "Swetha",
+    languages: "te,en",
+    voice_id: "hpp4J3VqNfWAUOO0d1Us",
+    whatsapp_threshold: 70,
+    prompt: "You are Swetha, a 23-year-old admissions counsellor at Mentneo Coaching. Keep your tone polite and friendly. Answer in conversational Telugu and English, mixing them naturally (Code-switching). Your goal is to understand the student's background, explain our AI Video Creation and Digital Marketing packages, answer their questions, and send them the course brochure on WhatsApp."
+  },
+  {
+    label: "Sales Rep (Hinglish)",
+    role: "Sales Representative",
+    name: "Rahul",
+    languages: "hi,en",
+    voice_id: "uavKGt8JpB2lo1bcty9J",
+    whatsapp_threshold: 65,
+    prompt: "You are Rahul, a friendly and energetic sales representative for Mentneo. Speak in conversational Hindi and English (Hinglish), mixing them naturally. Answer their questions warmly, gauge their interest, and offer to send them our business brochure on WhatsApp."
+  },
+  {
+    label: "Customer Support",
+    role: "Customer Support Agent",
+    name: "Sneha",
+    languages: "en",
+    voice_id: "EXAVITQu4vr4xnSDxMaL",
+    whatsapp_threshold: 80,
+    prompt: "You are Sneha, a highly professional customer support representative. Keep your tone polite, patient, and direct. Answer questions clearly in English. Resolve customer concerns, log their feedback, and trigger the support document brochure on WhatsApp if requested."
+  }
+];
+
+const VOICE_PRESETS = [
+  {
+    id: "EXAVITQu4vr4xnSDxMaL",
+    name: "Bella (Multilingual)",
+    gender: "Female",
+    desc: "Warm & Professional",
+    url: "https://storage.googleapis.com/eleven-public-prod/previews/EXAVITQu4vr4xnSDxMaL.mp3"
+  },
+  {
+    id: "21m00Tcm4TlvDq8ikWAM",
+    name: "Rachel (US Accent)",
+    gender: "Female",
+    desc: "Conversational & Bright",
+    url: "https://storage.googleapis.com/eleven-public-prod/previews/21m00Tcm4TlvDq8ikWAM.mp3"
+  },
+  {
+    id: "uavKGt8JpB2lo1bcty9J",
+    name: "Rahul (Indian Accent)",
+    gender: "Male",
+    desc: "Warm & Energetic",
+    url: "https://storage.googleapis.com/eleven-public-prod/previews/uavKGt8JpB2lo1bcty9J.mp3"
+  },
+  {
+    id: "pNInz6obpg7j8jsG4bU3",
+    name: "Arnold (Ad Voice)",
+    gender: "Male",
+    desc: "Deep & Narrative",
+    url: "https://storage.googleapis.com/eleven-public-prod/previews/pNInz6obpg7j8jsG4bU3.mp3"
+  }
+];
+
+const LANGUAGE_OPTIONS = [
+  { code: "te", label: "Telugu" },
+  { code: "en", label: "English" },
+  { code: "hi", label: "Hindi" },
+  { code: "ta", label: "Tamil" },
+  { code: "kn", label: "Kannada" },
+];
 
 export const Route = createFileRoute("/dashboard/voice-agent/")({
   head: () => ({
@@ -120,6 +194,19 @@ function VoiceAgentDashboard() {
     languages: "te,en",
     whatsapp_threshold: 70,
   });
+  const [wizardStep, setWizardStep] = useState(1);
+  const [playingVoiceId, setPlayingVoiceId] = useState<string | null>(null);
+  const [audioPlayer, setAudioPlayer] = useState<HTMLAudioElement | null>(null);
+  const [isEnhancing, setIsEnhancing] = useState(false);
+  const [customVoiceEnabled, setCustomVoiceEnabled] = useState(false);
+
+  useEffect(() => {
+    return () => {
+      if (audioPlayer) {
+        audioPlayer.pause();
+      }
+    };
+  }, [audioPlayer]);
   const [newCampaign, setNewCampaign] = useState({
     name: "",
     objective: "",
@@ -647,6 +734,12 @@ function VoiceAgentDashboard() {
           languages: "te,en",
           whatsapp_threshold: 70,
         });
+        setWizardStep(1);
+        setCustomVoiceEnabled(false);
+        if (audioPlayer) {
+          audioPlayer.pause();
+          setPlayingVoiceId(null);
+        }
         fetchAgents();
       }
     } catch (err) {
@@ -2662,6 +2755,72 @@ function VoiceAgentDashboard() {
     );
   };
 
+  const playVoicePreview = (voiceId: string, previewUrl: string) => {
+    if (playingVoiceId === voiceId) {
+      if (audioPlayer) {
+        audioPlayer.pause();
+      }
+      setPlayingVoiceId(null);
+      return;
+    }
+
+    if (audioPlayer) {
+      audioPlayer.pause();
+    }
+
+    const audio = new Audio(previewUrl);
+    audio.play().catch(e => console.error("Audio playback error:", e));
+    setAudioPlayer(audio);
+    setPlayingVoiceId(voiceId);
+
+    audio.onended = () => {
+      setPlayingVoiceId(null);
+    };
+  };
+
+  const enhancePromptWithAI = async () => {
+    if (!newAgent.role || !newAgent.name) {
+      showToast("error", "Please set Agent Name and Role Description first.");
+      return;
+    }
+    setIsEnhancing(true);
+    try {
+      const bulletPoints = newAgent.prompt || "An admissions counselor who helps students and shares courses.";
+      const promptToOptimize = `Optimize this AI voice agent's system prompt instructions.
+Agent Name: ${newAgent.name}
+Role Description: ${newAgent.role}
+Languages: ${newAgent.languages || "te,en"}
+Bullet points or draft of instructions: ${bulletPoints}
+
+Provide a concise, professional, instruction-oriented system prompt in English. Keep it directly action-oriented, conversational, and tailored to a phone call. Focus on the tone (polite, helpful) and objective (introducing options, answering queries, suggesting brochure). Respond ONLY with the system prompt text, nothing else.`;
+
+      const res = await fetch(`${env.apiBaseUrl}/ai/generate`, {
+        method: "POST",
+        headers: getHeaders(),
+        body: JSON.stringify({
+          prompt: promptToOptimize,
+          max_new_tokens: 256,
+          temperature: 0.7
+        })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && data.generated_text) {
+          setNewAgent(prev => ({ ...prev, prompt: data.generated_text.trim() }));
+          showToast("success", "AI Agent prompt enhanced successfully!");
+        } else {
+          showToast("error", "Failed to enhance prompt with AI.");
+        }
+      } else {
+        showToast("error", "Failed to contact AI generator.");
+      }
+    } catch (err) {
+      showToast("error", "Error connecting to AI helper.");
+    } finally {
+      setIsEnhancing(false);
+    }
+  };
+
   const renderAgents = () => {
     return (
       <div className="tab-pane animate-fade-in">
@@ -2675,84 +2834,348 @@ function VoiceAgentDashboard() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
-          {/* Configure Prompt Form */}
-          <div className="glass-card p-6 lg:col-span-1 h-fit">
-            <h3 className="text-lg font-bold text-primary mb-4">Create AI calling Agent</h3>
-            <form onSubmit={handleCreateAgent} className="space-y-4">
-              <div className="form-group">
-                <label className="form-label">Agent Name</label>
-                <input
-                  type="text"
-                  className="form-input"
-                  placeholder="e.g. Swetha (Telugu Agent)"
-                  value={newAgent.name}
-                  onChange={(e) => setNewAgent({ ...newAgent, name: e.target.value })}
-                />
+          {/* Configure Prompt Wizard Form */}
+          <div className="glass-card p-6 lg:col-span-1 h-fit flex flex-col justify-between min-h-[520px]">
+            <div>
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-bold text-primary">Create AI Agent</h3>
+                <span className="text-[10px] bg-white/5 px-2 py-0.5 rounded text-muted font-mono">
+                  Step {wizardStep} of 3
+                </span>
               </div>
 
-              <div className="form-group">
-                <label className="form-label">Agent Role Description</label>
-                <input
-                  type="text"
-                  className="form-input"
-                  placeholder="e.g. Admission Counsellor"
-                  value={newAgent.role}
-                  onChange={(e) => setNewAgent({ ...newAgent, role: e.target.value })}
-                />
+              {/* Step Progress Indicator */}
+              <div className="flex items-center justify-between mb-6 px-1">
+                {[1, 2, 3].map((step) => (
+                  <React.Fragment key={step}>
+                    <div className="flex items-center gap-1.5">
+                      <div
+                        className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold transition-all ${
+                          wizardStep === step
+                            ? "bg-accent text-white shadow-lg shadow-accent/20"
+                            : wizardStep > step
+                            ? "bg-accent-green/20 text-accent-green border border-accent-green/30"
+                            : "bg-white/5 text-secondary border border-white/10"
+                        }`}
+                      >
+                        {wizardStep > step ? <Check size={10} /> : step}
+                      </div>
+                      <span
+                        className={`text-[10px] font-semibold ${
+                          wizardStep === step ? "text-primary" : "text-muted"
+                        }`}
+                      >
+                        {step === 1 ? "Identity" : step === 2 ? "Voice" : "Actions"}
+                      </span>
+                    </div>
+                    {step < 3 && (
+                      <div
+                        className={`flex-1 h-0.5 mx-2 rounded-full transition-all ${
+                          wizardStep > step ? "bg-accent-green/30" : "bg-white/10"
+                        }`}
+                      />
+                    )}
+                  </React.Fragment>
+                ))}
               </div>
 
-              <div className="form-group">
-                <label className="form-label">Languages Rules</label>
-                <input
-                  type="text"
-                  className="form-input"
-                  placeholder="e.g. te,en (mix permitted)"
-                  value={newAgent.languages}
-                  onChange={(e) => setNewAgent({ ...newAgent, languages: e.target.value })}
-                />
-              </div>
+              {/* Step 1: Agent Role & Presets */}
+              {wizardStep === 1 && (
+                <div className="space-y-4 animate-fade-in">
+                  <div className="form-group">
+                    <label className="form-label text-[11px]">Select Role Preset (Optional)</label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {WIZARD_PRESETS.map((preset, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          className="p-2 rounded bg-surface border border-border-color hover:border-accent/40 text-left transition-all flex flex-col justify-between h-20 text-[10px]"
+                          onClick={() => {
+                            setNewAgent({
+                              name: preset.name,
+                              role: preset.role,
+                              prompt: preset.prompt,
+                              voice_id: preset.voice_id,
+                              languages: preset.languages,
+                              whatsapp_threshold: preset.whatsapp_threshold,
+                            });
+                            showToast("success", `Loaded preset: ${preset.label}`);
+                          }}
+                        >
+                          <span className="font-bold text-primary leading-tight line-clamp-2">{preset.label}</span>
+                          <span className="text-[8px] text-muted capitalize">{preset.role.split(" ")[0]}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
 
-              <div className="form-group">
-                <label className="form-label">ElevenLabs Voice ID</label>
-                <input
-                  type="text"
-                  className="form-input"
-                  placeholder="Bella Multilingual Voice ID"
-                  value={newAgent.voice_id}
-                  onChange={(e) => setNewAgent({ ...newAgent, voice_id: e.target.value })}
-                />
-              </div>
+                  <div className="form-group">
+                    <label className="form-label text-[11px]">Agent Name</label>
+                    <input
+                      type="text"
+                      className="form-input text-xs"
+                      placeholder="e.g. Swetha"
+                      value={newAgent.name}
+                      onChange={(e) => setNewAgent({ ...newAgent, name: e.target.value })}
+                    />
+                  </div>
 
-              <div className="form-group">
-                <label className="form-label">WhatsApp Brochure Trigger Score</label>
-                <input
-                  type="number"
-                  min="0"
-                  max="100"
-                  className="form-input"
-                  placeholder="e.g. 70"
-                  value={newAgent.whatsapp_threshold}
-                  onChange={(e) =>
-                    setNewAgent({ ...newAgent, whatsapp_threshold: parseInt(e.target.value) || 0 })
-                  }
-                />
-              </div>
+                  <div className="form-group">
+                    <label className="form-label text-[11px]">Agent Role Description</label>
+                    <input
+                      type="text"
+                      className="form-input text-xs"
+                      placeholder="e.g. Admission Counsellor"
+                      value={newAgent.role}
+                      onChange={(e) => setNewAgent({ ...newAgent, role: e.target.value })}
+                    />
+                  </div>
 
-              <div className="form-group">
-                <label className="form-label">AI Agent System Instruction Prompts</label>
-                <textarea
-                  className="form-textarea h-32 text-xs leading-relaxed"
-                  placeholder="You are Swetha, a 23-year-old admissions counsellor at Mentneo Coaching. Keep your tone polite and friendly. Answer in conversational Telugu..."
-                  value={newAgent.prompt}
-                  onChange={(e) => setNewAgent({ ...newAgent, prompt: e.target.value })}
-                />
-              </div>
+                  <div className="form-group">
+                    <div className="flex justify-between items-center mb-1">
+                      <label className="form-label text-[11px] mb-0">System Instruction Prompts</label>
+                      <button
+                        type="button"
+                        className="btn btn-secondary h-auto py-0.5 px-2 text-[9px] flex items-center gap-1 text-accent border border-accent/20 hover:bg-accent/10 rounded"
+                        disabled={isEnhancing}
+                        onClick={enhancePromptWithAI}
+                      >
+                        {isEnhancing ? (
+                          <>
+                            <span className="animate-spin inline-block w-2.5 h-2.5 border-2 border-current border-t-transparent rounded-full" />
+                            <span>Enhancing...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles size={10} />
+                            <span>Enhance Prompt</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                    <textarea
+                      className="form-textarea h-28 text-[11px] leading-relaxed font-sans"
+                      placeholder="Enter base details or draft instructions. Click Enhance Prompt to optimize them automatically using AI."
+                      value={newAgent.prompt}
+                      onChange={(e) => setNewAgent({ ...newAgent, prompt: e.target.value })}
+                    />
+                  </div>
+                </div>
+              )}
 
-              <button type="submit" className="btn btn-primary w-full mt-2">
-                <Plus size={16} />
-                <span>Save Config</span>
-              </button>
-            </form>
+              {/* Step 2: Language & Voice Selection */}
+              {wizardStep === 2 && (
+                <div className="space-y-4 animate-fade-in">
+                  <div className="form-group">
+                    <label className="form-label text-[11px]">Primary Languages</label>
+                    <div className="flex flex-wrap gap-1.5">
+                      {LANGUAGE_OPTIONS.map((lang) => {
+                        const list = newAgent.languages ? newAgent.languages.split(",").map(c => c.trim()).filter(Boolean) : [];
+                        const isSelected = list.includes(lang.code);
+                        return (
+                          <button
+                            key={lang.code}
+                            type="button"
+                            className={`px-2.5 py-1 text-[11px] font-medium rounded-full border transition-all ${
+                              isSelected
+                                ? "bg-accent/15 text-accent border-accent/30 shadow-sm"
+                                : "bg-white/5 text-secondary border-transparent hover:bg-white/10"
+                            }`}
+                            onClick={() => {
+                              let newList;
+                              if (isSelected) {
+                                newList = list.filter(c => c !== lang.code);
+                              } else {
+                                newList = [...list, lang.code];
+                              }
+                              setNewAgent(prev => ({ ...prev, languages: newList.join(",") }));
+                            }}
+                          >
+                            {lang.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="form-group">
+                    <div className="flex justify-between items-center mb-2">
+                      <label className="form-label text-[11px] mb-0">Select Voice Profile</label>
+                      <button
+                        type="button"
+                        className="text-[10px] text-accent hover:underline flex items-center gap-1"
+                        onClick={() => {
+                          setCustomVoiceEnabled(!customVoiceEnabled);
+                          if (customVoiceEnabled) {
+                            setNewAgent(prev => ({ ...prev, voice_id: "hpp4J3VqNfWAUOO0d1Us" }));
+                          }
+                        }}
+                      >
+                        {customVoiceEnabled ? "Choose Preset Voice" : "Use Custom Voice ID"}
+                      </button>
+                    </div>
+
+                    {customVoiceEnabled ? (
+                      <div className="space-y-2">
+                        <input
+                          type="text"
+                          className="form-input text-xs"
+                          placeholder="Paste ElevenLabs Voice ID hash"
+                          value={newAgent.voice_id}
+                          onChange={(e) => setNewAgent({ ...newAgent, voice_id: e.target.value })}
+                        />
+                        <p className="text-[9px] text-muted leading-tight">
+                          Provide any valid custom Voice ID from ElevenLabs Voice Library.
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                        {VOICE_PRESETS.map((voice) => {
+                          const isSelected = newAgent.voice_id === voice.id;
+                          const isPlaying = playingVoiceId === voice.id;
+                          return (
+                            <div
+                              key={voice.id}
+                              className={`p-2.5 rounded-lg border transition-all flex items-center justify-between cursor-pointer ${
+                                isSelected
+                                  ? "bg-accent/10 border-accent/40 shadow-sm"
+                                  : "bg-surface border-border-color hover:border-white/10"
+                              }`}
+                              onClick={() => setNewAgent({ ...newAgent, voice_id: voice.id })}
+                            >
+                              <div className="flex items-center gap-2">
+                                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${
+                                  voice.gender === "Female" ? "bg-accent-purple/20 text-accent-purple" : "bg-accent/20 text-accent"
+                                }`}>
+                                  {voice.name.charAt(0)}
+                                </div>
+                                <div className="text-left">
+                                  <p className="text-xs font-bold text-primary leading-tight">{voice.name}</p>
+                                  <p className="text-[9px] text-muted">{voice.gender} • {voice.desc}</p>
+                                </div>
+                              </div>
+                              <button
+                                type="button"
+                                className={`w-7 h-7 rounded-full flex items-center justify-center transition-all ${
+                                  isPlaying
+                                    ? "bg-accent-green/20 text-accent-green"
+                                    : "bg-white/5 text-primary hover:bg-white/10"
+                                }`}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  playVoicePreview(voice.id, voice.url);
+                                }}
+                              >
+                                {isPlaying ? <Pause size={12} /> : <Play size={12} />}
+                              </button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Step 3: Trigger Rules & Actions */}
+              {wizardStep === 3 && (
+                <div className="space-y-4 animate-fade-in">
+                  <div className="p-3 bg-surface rounded-lg border border-border-color flex items-center justify-between">
+                    <div>
+                      <h4 className="text-xs font-bold text-primary">WhatsApp Integration</h4>
+                      <p className="text-[9px] text-muted leading-tight">Send course brochure PDF automatically during call</p>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        className="sr-only peer"
+                        checked={newAgent.whatsapp_threshold > 0}
+                        onChange={(e) => {
+                          const val = e.target.checked ? 70 : 0;
+                          setNewAgent({ ...newAgent, whatsapp_threshold: val });
+                        }}
+                      />
+                      <div className="w-9 h-5 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-accent-green"></div>
+                    </label>
+                  </div>
+
+                  {newAgent.whatsapp_threshold > 0 && (
+                    <div className="form-group space-y-2 animate-fade-in">
+                      <div className="flex justify-between items-center">
+                        <label className="form-label text-[11px] mb-0">Brochure Trigger Threshold</label>
+                        <span className="text-xs font-mono font-bold text-accent-green">
+                          {newAgent.whatsapp_threshold}%
+                        </span>
+                      </div>
+                      <input
+                        type="range"
+                        min="20"
+                        max="95"
+                        className="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-accent"
+                        value={newAgent.whatsapp_threshold}
+                        onChange={(e) =>
+                          setNewAgent({ ...newAgent, whatsapp_threshold: parseInt(e.target.value) || 0 })
+                        }
+                      />
+                      <div className="p-2.5 bg-surface border border-border-color rounded text-[10px] text-secondary leading-normal">
+                        {newAgent.whatsapp_threshold < 40 && (
+                          <span className="text-accent-red font-medium">⚠️ Lenient: Send brochure to almost everyone, even if they show minimal interest.</span>
+                        )}
+                        {newAgent.whatsapp_threshold >= 40 && newAgent.whatsapp_threshold < 70 && (
+                          <span className="text-warning font-medium">Warm: Send brochure to customers showing moderate curiosity or query-asking.</span>
+                        )}
+                        {newAgent.whatsapp_threshold >= 70 && newAgent.whatsapp_threshold < 85 && (
+                          <span className="text-accent-green font-medium">✅ Recommended: Send only if the customer asks relevant questions or shows clear interest.</span>
+                        )}
+                        {newAgent.whatsapp_threshold >= 85 && (
+                          <span className="text-primary font-medium">🔥 Strict: Send brochure only to highly motivated hot leads.</span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Navigation buttons */}
+            <div className="flex items-center gap-3 pt-6 border-t border-border-color/30 mt-6 font-sans">
+              {wizardStep > 1 ? (
+                <button
+                  type="button"
+                  className="btn btn-secondary flex-1 py-2 text-xs flex items-center justify-center gap-1 border border-border-color"
+                  onClick={() => setWizardStep(prev => prev - 1)}
+                >
+                  <ChevronLeft size={14} />
+                  <span>Back</span>
+                </button>
+              ) : null}
+
+              {wizardStep < 3 ? (
+                <button
+                  type="button"
+                  className="btn btn-primary flex-1 py-2 text-xs flex items-center justify-center gap-1"
+                  onClick={() => {
+                    if (wizardStep === 1 && (!newAgent.name || !newAgent.role || !newAgent.prompt)) {
+                      showToast("error", "Please set Agent Name, Role and Prompt first.");
+                      return;
+                    }
+                    setWizardStep(prev => prev + 1);
+                  }}
+                >
+                  <span>Next</span>
+                  <ChevronRight size={14} />
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className="btn btn-primary flex-1 py-2 text-xs flex items-center justify-center gap-1 bg-accent-green hover:bg-accent-green/80 text-white border-none shadow-lg shadow-accent-green/10"
+                  onClick={handleCreateAgent}
+                >
+                  <Plus size={14} />
+                  <span>Save Agent</span>
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Active Agents List */}

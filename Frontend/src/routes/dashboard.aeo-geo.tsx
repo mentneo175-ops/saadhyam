@@ -589,7 +589,7 @@ function AEOGEOPage() {
                     cx="50"
                     cy="50"
                     r="40"
-                    stroke="rgba(139, 92, 246, 0.08)" dark:stroke="rgba(255, 255, 255, 0.08)"
+                    stroke="rgba(139, 92, 246, 0.08)"
                     strokeWidth="8"
                     fill="transparent"
                   />

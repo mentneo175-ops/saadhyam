@@ -1092,6 +1092,13 @@ function VoiceAgentDashboard() {
   };
 
   const handleStartBrowserCall = async (lead: any) => {
+    const currentBalance = currentUser?.wallet_balance !== undefined ? currentUser.wallet_balance : 0;
+    if (currentBalance < 100.00) {
+      showToast("error", `Insufficient Balance. A minimum balance of ₹100.00 is required to place or simulate calls. Current balance: ₹${currentBalance.toFixed(2)}.`);
+      setActiveTab("billing");
+      return;
+    }
+
     let campaign = null;
     if (lead.campaign_id) {
       campaign = campaigns.find((c) => c.id === lead.campaign_id);
@@ -1235,6 +1242,13 @@ function VoiceAgentDashboard() {
   };
 
   const handleStartRealCall = async (lead: any) => {
+    const currentBalance = currentUser?.wallet_balance !== undefined ? currentUser.wallet_balance : 0;
+    if (currentBalance < 100.00) {
+      showToast("error", `Insufficient Balance. A minimum balance of ₹100.00 is required to place or simulate calls. Current balance: ₹${currentBalance.toFixed(2)}.`);
+      setActiveTab("billing");
+      return;
+    }
+
     try {
       showToast("info", `Initiating real outbound call to ${lead.name} (${lead.phone})...`);
       const res = await fetch(`${env.apiBaseUrl}/api/voice-agent/leads/${lead.id}/call-real`, {
@@ -1600,6 +1614,18 @@ function VoiceAgentDashboard() {
             <span>Refresh Balance</span>
           </button>
         </div>
+
+        {currentUser?.wallet_balance !== undefined && currentUser.wallet_balance < 100.00 && (
+          <div className="p-4 bg-accent-red/10 border border-accent-red/30 rounded-xl flex items-start gap-3 animate-fade-in">
+            <AlertCircle className="text-accent-red mt-0.5" size={16} />
+            <div>
+              <h4 className="text-xs font-bold text-primary">Low Account Balance Warning</h4>
+              <p className="text-[11px] text-secondary leading-normal mt-0.5">
+                Your current balance is ₹{currentUser.wallet_balance.toFixed(2)}. A minimum balance of ₹100.00 is required to initiate calling campaigns and run browser simulation calls. Please top up your wallet credits below to restore services.
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Dashboard Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

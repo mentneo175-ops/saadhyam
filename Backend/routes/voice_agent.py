@@ -1199,6 +1199,14 @@ def start_voice_session(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db_sync)
 ):
+    # Wallet Balance Check
+    MINIMUM_BALANCE = 100.00
+    if current_user.wallet_balance < MINIMUM_BALANCE:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Insufficient wallet balance. Minimum required is ₹{MINIMUM_BALANCE:.2f}, but current balance is ₹{current_user.wallet_balance:.2f}."
+        )
+
     agent_prompt = None
     agent_voice_id = None
     

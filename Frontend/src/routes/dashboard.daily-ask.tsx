@@ -14,6 +14,7 @@ import {
   Zap,
   Target,
   Award,
+  HelpCircle,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
@@ -53,6 +54,128 @@ function DailyAskPage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [completing, setCompleting] = useState<number | null>(null);
+
+  // Onboarding Tour states
+  const [isTourActive, setIsTourActive] = useState(false);
+  const [tourStep, setTourStep] = useState(1);
+  const [highlightStyle, setHighlightStyle] = useState<React.CSSProperties>({});
+  const [tooltipStyle, setTooltipStyle] = useState<React.CSSProperties>({});
+  const [activeTourSteps, setActiveTourSteps] = useState<any[]>([]);
+
+  const tourStepsConfig = [
+    {
+      id: "tour-ask-refresh",
+      title: "Daily Tasks",
+      heading: "1. Refresh Suggestions",
+      desc: "Regenerate personalized suggestions and growth tasks for your business operations.",
+      indicator: 1
+    },
+    {
+      id: "tour-ask-progress",
+      title: "Task Completion",
+      heading: "2. Today's Progress Tracker",
+      desc: "Monitor your completion metrics and overall score updates in real-time.",
+      indicator: 2
+    },
+    {
+      id: "tour-ask-list",
+      title: "Action Plan Checklist",
+      heading: "3. Actionable Items",
+      desc: "Complete checklist tasks to gain points, build brand presence, and drive sales.",
+      indicator: 3
+    }
+  ];
+
+  // Auto-trigger tour for new users once loaded
+  useEffect(() => {
+    const isCompleted = localStorage.getItem("saadhyam_tour_daily_ask_completed");
+    if (!isCompleted) {
+      const timer = setTimeout(() => {
+        setIsTourActive(true);
+        setTourStep(1);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
+  // Filter active steps based on DOM presence
+  useEffect(() => {
+    if (isTourActive) {
+      const active = tourStepsConfig.filter(step => !!document.getElementById(step.id));
+      setActiveTourSteps(active);
+      if (tourStep > active.length && active.length > 0) {
+        setTourStep(1);
+      }
+    }
+  }, [isTourActive]);
+
+  // Scroll target into view when step changes
+  useEffect(() => {
+    if (!isTourActive || activeTourSteps.length === 0) return;
+
+    const currentStepConfig = activeTourSteps[tourStep - 1];
+    if (currentStepConfig) {
+      const element = document.getElementById(currentStepConfig.id);
+      if (element) {
+        element.scrollIntoView({ block: "center", inline: "nearest", behavior: "smooth" });
+      }
+    }
+  }, [tourStep, isTourActive, activeTourSteps]);
+
+  // Position tracking logic supporting scrolling and window resizing
+  useEffect(() => {
+    if (!isTourActive || activeTourSteps.length === 0) return;
+
+    const currentStepConfig = activeTourSteps[tourStep - 1];
+    if (!currentStepConfig) return;
+
+    const updatePosition = () => {
+      const element = document.getElementById(currentStepConfig.id);
+      if (element) {
+        const rect = element.getBoundingClientRect();
+        
+        setHighlightStyle({
+          top: rect.top - 4,
+          left: rect.left - 4,
+          width: rect.width + 8,
+          height: rect.height + 8,
+          position: "fixed",
+          borderRadius: "16px",
+          boxShadow: "0 0 0 9999px rgba(15, 23, 42, 0.75), 0 0 20px 4px rgba(139, 92, 246, 0.4)",
+          border: "2px solid #8B5CF6",
+          zIndex: 9999,
+          pointerEvents: "none",
+          transition: "all 0.15s ease-out",
+        });
+
+        const spaceBelow = window.innerHeight - rect.bottom;
+        const placeBelow = spaceBelow > 260 || rect.top < 260;
+
+        setTooltipStyle({
+          top: placeBelow ? rect.bottom + 12 : rect.top - 280,
+          left: Math.max(16, Math.min(window.innerWidth - 340, rect.left + rect.width / 2 - 160)),
+          position: "fixed",
+          zIndex: 10000,
+          width: "320px",
+          transition: "all 0.15s ease-out",
+        });
+      }
+    };
+
+    updatePosition();
+    const timer1 = setTimeout(updatePosition, 100);
+    const timer2 = setTimeout(updatePosition, 400);
+
+    window.addEventListener("resize", updatePosition);
+    window.addEventListener("scroll", updatePosition, { passive: true });
+
+    return () => {
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+      window.removeEventListener("resize", updatePosition);
+      window.removeEventListener("scroll", updatePosition);
+    };
+  }, [tourStep, isTourActive, activeTourSteps]);
 
   // Get token from localStorage
   const getToken = () => {
@@ -320,7 +443,21 @@ function DailyAskPage() {
                 <span>Your personalized action plan for today</span>
               </div>
             </motion.div>
+            <div className="flex items-center gap-3">
+              <button
+                id="tour-btn-daily-ask-help"
+                type="button"
+                className="shrink-0 p-3 rounded-xl bg-white hover:bg-purple-50 border-2 border-purple-200/60 hover:border-purple-400 shadow-sm hover:shadow-lg transition-all duration-300 relative overflow-hidden dark:bg-slate-900 dark:hover:bg-slate-800 dark:border-slate-800/80 dark:hover:border-purple-500/40 cursor-pointer"
+                onClick={() => {
+                  setIsTourActive(true);
+                  setTourStep(1);
+                }}
+                title="Start Guided Tour"
+              >
+                <HelpCircle size={20} className="text-purple-600 dark:text-purple-400" />
+              </button>
               <motion.button
+                id="tour-ask-refresh"
                 onClick={generateTasks}
                 disabled={isGenerating}
                 whileHover={{ scale: 1.08, rotate: 10 }}
@@ -346,6 +483,7 @@ function DailyAskPage() {
                 <RefreshCw size={20} className={`text-purple-600 relative z-10 ${isGenerating ? "animate-spin" : ""}`} />
               </motion.button>
             </div>
+            </div>
           </div>
         </div>
       </div>
@@ -354,6 +492,7 @@ function DailyAskPage() {
         {/* Progress Card */}
         {totalTasks > 0 && (
           <motion.div
+            id="tour-ask-progress"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             whileHover={{ y: -4, scale: 1.01 }}
@@ -450,6 +589,7 @@ function DailyAskPage() {
         {/* Daily Tasks Grid */}
         {tasks.length > 0 && (
           <motion.div
+            id="tour-ask-list"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
@@ -801,6 +941,109 @@ function DailyAskPage() {
           </div>
         </motion.div>
       </div>
+
+      {/* Interactive Guided Tour Overlay */}
+      {isTourActive && (
+        <div className="fixed inset-0 z-[9998] pointer-events-none text-slate-100">
+          {/* Highlight element mask */}
+          {highlightStyle.top !== undefined && (
+            <div
+              style={highlightStyle}
+              className="fixed transition-all duration-200 ease-out pointer-events-none"
+            />
+          )}
+
+          {/* Full-screen click interceptor mask for everything EXCEPT the highlighted area */}
+          <div className="fixed inset-0 bg-transparent pointer-events-auto z-[998]" onClick={() => setIsTourActive(false)} />
+
+          {/* Interactive Tooltip popup */}
+          {tooltipStyle.top !== undefined && activeTourSteps[tourStep - 1] && (
+            <div
+              style={tooltipStyle}
+              className="bg-slate-900 border border-purple-500/30 p-5 z-[10000] w-[320px] shadow-2xl rounded-2xl animate-fade-in pointer-events-auto flex flex-col gap-4 text-white"
+            >
+              <div className="flex justify-between items-center pb-2 border-b border-white/5">
+                <h4 className="text-[10px] font-bold text-purple-400 uppercase tracking-wider">
+                  {activeTourSteps[tourStep - 1].title}
+                </h4>
+                <span className="text-[10px] text-slate-400 font-mono font-bold">
+                  {tourStep} / {activeTourSteps.length}
+                </span>
+              </div>
+
+              <div className="space-y-1.5 text-xs">
+                <h3 className="font-extrabold text-white text-sm">
+                  {activeTourSteps[tourStep - 1].heading}
+                </h3>
+                <p className="text-slate-300 leading-normal text-[11px]">
+                  {activeTourSteps[tourStep - 1].desc}
+                </p>
+              </div>
+
+              {/* Animated visual indicators */}
+              <div className="h-16 bg-slate-950/60 border border-white/5 rounded-xl flex items-center justify-center overflow-hidden relative">
+                {activeTourSteps[tourStep - 1].indicator === 1 && (
+                  <div className="flex items-center gap-1.5">
+                    <span className="relative flex h-2.5 w-2.5">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-purple-500"></span>
+                    </span>
+                    <span className="text-[10px] text-purple-400 uppercase font-bold tracking-wider animate-pulse">Ready to refresh suggestions</span>
+                  </div>
+                )}
+                {activeTourSteps[tourStep - 1].indicator === 2 && (
+                  <div className="flex items-center gap-2 text-[10px] font-bold text-purple-400">
+                    <Target size={14} className="animate-bounce text-purple-450" />
+                    <span>Real-time Goals Active</span>
+                  </div>
+                )}
+                {activeTourSteps[tourStep - 1].indicator === 3 && (
+                  <div className="flex items-center gap-2">
+                    <div className="w-2.5 h-2.5 rounded-full bg-purple-500 animate-ping" />
+                    <span className="text-[10px] text-purple-400 font-bold uppercase tracking-wider">Scoring Active Challenge Tasks</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Navigation buttons */}
+              <div className="flex items-center justify-between pt-2 border-t border-white/5 gap-2">
+                <button
+                  type="button"
+                  className="px-2.5 py-1 text-[10px] text-slate-400 hover:text-white transition-all border border-transparent hover:bg-white/5 rounded cursor-pointer"
+                  onClick={() => setIsTourActive(false)}
+                >
+                  Skip
+                </button>
+                <div className="flex items-center gap-1.5">
+                  {tourStep > 1 && (
+                    <button
+                      type="button"
+                      className="px-2 py-1 text-[10px] text-slate-300 hover:text-white border border-white/10 rounded cursor-pointer"
+                      onClick={() => setTourStep(tourStep - 1)}
+                    >
+                      Back
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    className="px-3 py-1 text-[10px] bg-purple-600 hover:bg-purple-500 text-white rounded-lg font-bold cursor-pointer"
+                    onClick={() => {
+                      if (tourStep < activeTourSteps.length) {
+                        setTourStep(tourStep + 1);
+                      } else {
+                        setIsTourActive(false);
+                        localStorage.setItem("saadhyam_tour_daily_ask_completed", "true");
+                      }
+                    }}
+                  >
+                    {tourStep === activeTourSteps.length ? "Finish" : "Next"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

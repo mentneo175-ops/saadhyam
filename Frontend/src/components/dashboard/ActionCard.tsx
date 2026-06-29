@@ -33,7 +33,7 @@ const renderMarkdown = (text: string) => {
 export function ActionCard({ icon: Icon, title, desc, impact, bg, iconColor }: ActionCardProps) {
   return (
     <div
-      className="group min-w-[260px] snap-start rounded-2xl border border-gray-200/50 p-5 bg-white/80 backdrop-blur-sm hover:border-purple-300 hover:shadow-xl hover:shadow-purple-200/30 transition-all duration-300 cursor-pointer relative overflow-hidden"
+      className="group w-full min-w-0 snap-start rounded-2xl border border-gray-200/50 p-5 bg-white/80 backdrop-blur-sm hover:border-purple-300 hover:shadow-xl hover:shadow-purple-200/30 transition-all duration-300 cursor-pointer relative overflow-hidden"
     >
       {/* Gradient overlay on hover */}
       <div className="absolute inset-0 bg-gradient-to-br from-purple-50/0 to-fuchsia-50/0 group-hover:from-purple-50/60 group-hover:to-fuchsia-50/40 transition-all duration-300"></div>

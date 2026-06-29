@@ -11,7 +11,17 @@ import ReactFlow, {
   MarkerType,
 } from "reactflow";
 import "reactflow/dist/style.css";
-import { Building2, Users, MapPin, Star, TrendingUp, ExternalLink, X, ArrowLeft, Zap } from "lucide-react";
+import {
+  Building2,
+  Users,
+  MapPin,
+  Star,
+  TrendingUp,
+  ExternalLink,
+  X,
+  ArrowLeft,
+  Zap,
+} from "lucide-react";
 import { useState } from "react";
 import { formatFollowers } from "../utils/formatters";
 
@@ -45,7 +55,7 @@ function BusinessNode({ data }: any) {
     <div className="relative group">
       {/* Glow effect */}
       <div className="absolute inset-0 bg-gradient-to-r from-purple-400 to-pink-400 rounded-3xl blur-2xl opacity-40 group-hover:opacity-60 transition-opacity" />
-      
+
       {/* Node content */}
       <div className="relative bg-white rounded-3xl p-8 shadow-2xl border-2 border-purple-200 min-w-[280px] dark:bg-slate-900">
         <div className="flex flex-col items-center gap-4">
@@ -73,7 +83,7 @@ function BusinessNode({ data }: any) {
 // Custom Influencer Node Component
 function InfluencerNode({ data }: any) {
   const [showTooltip, setShowTooltip] = useState(false);
-  
+
   const color = data.color;
 
   return (
@@ -113,13 +123,14 @@ function InfluencerNode({ data }: any) {
             <p className="text-sm font-bold text-gray-900 truncate max-w-[130px] dark:text-slate-100">
               {data.influencer.full_name || data.influencer.username}
             </p>
-            <p className="text-xs text-gray-500 capitalize mt-1">
-              {data.influencer.niche}
-            </p>
+            <p className="text-xs text-gray-500 capitalize mt-1">{data.influencer.niche}</p>
           </div>
 
           {/* Match score */}
-          <div className="flex items-center gap-1 px-3 py-1 rounded-full" style={{ backgroundColor: `${color.primary}15` }}>
+          <div
+            className="flex items-center gap-1 px-3 py-1 rounded-full"
+            style={{ backgroundColor: `${color.primary}15` }}
+          >
             <Star className="w-3 h-3" style={{ color: color.primary, fill: color.primary }} />
             <span className="text-xs font-bold" style={{ color: color.primary }}>
               {data.influencer.matchScore}%
@@ -375,10 +386,10 @@ export default function PartnershipNetworkExplorer({
             {/* Bio */}
             {selectedInfluencer.bio && (
               <div>
-                <h4 className="text-sm font-semibold text-gray-700 mb-2 dark:text-slate-300">About</h4>
-                <p className="text-gray-600 text-sm leading-relaxed">
-                  {selectedInfluencer.bio}
-                </p>
+                <h4 className="text-sm font-semibold text-gray-700 mb-2 dark:text-slate-300">
+                  About
+                </h4>
+                <p className="text-gray-600 text-sm leading-relaxed">{selectedInfluencer.bio}</p>
               </div>
             )}
 
@@ -386,11 +397,15 @@ export default function PartnershipNetworkExplorer({
             <div className="space-y-3">
               <div className="flex items-center gap-3 text-sm">
                 <MapPin className="w-4 h-4 text-purple-500" />
-                <span className="text-gray-700 dark:text-slate-300">{selectedInfluencer.location}</span>
+                <span className="text-gray-700 dark:text-slate-300">
+                  {selectedInfluencer.location}
+                </span>
               </div>
               <div className="flex items-center gap-3 text-sm">
                 <TrendingUp className="w-4 h-4 text-purple-500" />
-                <span className="text-gray-700 dark:text-slate-300">{selectedInfluencer.platform}</span>
+                <span className="text-gray-700 dark:text-slate-300">
+                  {selectedInfluencer.platform}
+                </span>
               </div>
             </div>
 
@@ -409,9 +424,7 @@ export default function PartnershipNetworkExplorer({
             {/* Campaign Suggestion */}
             {selectedInfluencer.suggestedCampaign && (
               <div className="bg-pink-50 rounded-xl p-4 border border-pink-100">
-                <h4 className="text-sm font-semibold text-pink-900 mb-2">
-                  Suggested Campaign
-                </h4>
+                <h4 className="text-sm font-semibold text-pink-900 mb-2">Suggested Campaign</h4>
                 <p className="text-gray-700 text-sm leading-relaxed dark:text-slate-300">
                   {selectedInfluencer.suggestedCampaign}
                 </p>
@@ -443,7 +456,6 @@ export default function PartnershipNetworkExplorer({
           </div>
         </div>
       )}
-
     </div>
   );
 }

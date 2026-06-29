@@ -28,19 +28,12 @@ export function BusinessPageHeader({
   return (
     <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
       <motion.div {...fadeSlideUp}>
-        <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-gradient-to-r from-primary/12 via-primary/6 to-secondary/12 px-4 py-1.5 text-xs font-semibold tracking-wide text-primary shadow-[0_0_24px_-8px_oklch(0.55_0.24_295/0.4)]">
-          <motion.span
-            animate={{ opacity: [0.7, 1, 0.7] }}
-            transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
-          >
-            <Sparkles className="h-3.5 w-3.5" />
-          </motion.span>
-          AI Business Intelligence
-        </span>
         <h1 className="mt-5 text-3xl font-bold tracking-tight text-foreground md:text-[2rem]">
           {title}
         </h1>
-        <p className="mt-2 max-w-xl text-[15px] leading-relaxed text-muted-foreground">{subtitle}</p>
+        <p className="mt-2 max-w-xl text-[15px] leading-relaxed text-muted-foreground">
+          {subtitle}
+        </p>
         {lastUpdated && (
           <p className="mt-3.5 flex items-center gap-2 text-xs text-muted-foreground/80">
             <Clock className="h-3.5 w-3.5" />

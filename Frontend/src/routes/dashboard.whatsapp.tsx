@@ -26,7 +26,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MessageCircle, Send, Settings, Loader2, Wrench, MoreVertical, Unplug, Trash2 } from "lucide-react";
+import { MessageCircle, Send, Settings, Loader2, Wrench, MoreVertical, Unplug, Trash2, HelpCircle } from "lucide-react";
 import { toast } from "sonner";
 import { env } from "@/config/env";
 
@@ -51,6 +51,128 @@ function WhatsAppPage() {
   const [showDisconnectDialog, setShowDisconnectDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [disconnecting, setDisconnecting] = useState(false);
+
+  // Onboarding Tour states
+  const [isTourActive, setIsTourActive] = useState(false);
+  const [tourStep, setTourStep] = useState(1);
+  const [highlightStyle, setHighlightStyle] = useState<React.CSSProperties>({});
+  const [tooltipStyle, setTooltipStyle] = useState<React.CSSProperties>({});
+  const [activeTourSteps, setActiveTourSteps] = useState<any[]>([]);
+
+  const tourStepsConfig = [
+    {
+      id: "tour-whatsapp-profile",
+      title: "WhatsApp Connection",
+      heading: "1. Account Integration",
+      desc: "Link your WhatsApp Business API or QR code connection to synchronize customer text channels.",
+      indicator: 1
+    },
+    {
+      id: "tour-whatsapp-tabs",
+      title: "Workspace Navigation",
+      heading: "2. Sales Controls",
+      desc: "Switch between Live Chats, Broadcast Campaigns, and Auto-reply Automation modules.",
+      indicator: 2
+    },
+    {
+      id: "tour-whatsapp-chats",
+      title: "Customer Inbox",
+      heading: "3. Conversational Workspace",
+      desc: "Manage incoming customer messages and leverage AI suggestions to draft quick replies.",
+      indicator: 3
+    }
+  ];
+
+  // Auto-trigger tour for new users once loaded
+  useEffect(() => {
+    const isCompleted = localStorage.getItem("saadhyam_tour_whatsapp_completed");
+    if (!isCompleted) {
+      const timer = setTimeout(() => {
+        setIsTourActive(true);
+        setTourStep(1);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
+  // Filter active steps based on DOM presence
+  useEffect(() => {
+    if (isTourActive) {
+      const active = tourStepsConfig.filter(step => !!document.getElementById(step.id));
+      setActiveTourSteps(active);
+      if (tourStep > active.length && active.length > 0) {
+        setTourStep(1);
+      }
+    }
+  }, [isTourActive]);
+
+  // Scroll target into view when step changes
+  useEffect(() => {
+    if (!isTourActive || activeTourSteps.length === 0) return;
+
+    const currentStepConfig = activeTourSteps[tourStep - 1];
+    if (currentStepConfig) {
+      const element = document.getElementById(currentStepConfig.id);
+      if (element) {
+        element.scrollIntoView({ block: "center", inline: "nearest", behavior: "smooth" });
+      }
+    }
+  }, [tourStep, isTourActive, activeTourSteps]);
+
+  // Position tracking logic supporting scrolling and window resizing
+  useEffect(() => {
+    if (!isTourActive || activeTourSteps.length === 0) return;
+
+    const currentStepConfig = activeTourSteps[tourStep - 1];
+    if (!currentStepConfig) return;
+
+    const updatePosition = () => {
+      const element = document.getElementById(currentStepConfig.id);
+      if (element) {
+        const rect = element.getBoundingClientRect();
+        
+        setHighlightStyle({
+          top: rect.top - 4,
+          left: rect.left - 4,
+          width: rect.width + 8,
+          height: rect.height + 8,
+          position: "fixed",
+          borderRadius: "16px",
+          boxShadow: "0 0 0 9999px rgba(15, 23, 42, 0.75), 0 0 20px 4px rgba(139, 92, 246, 0.4)",
+          border: "2px solid #8B5CF6",
+          zIndex: 9999,
+          pointerEvents: "none",
+          transition: "all 0.15s ease-out",
+        });
+
+        const spaceBelow = window.innerHeight - rect.bottom;
+        const placeBelow = spaceBelow > 260 || rect.top < 260;
+
+        setTooltipStyle({
+          top: placeBelow ? rect.bottom + 12 : rect.top - 280,
+          left: Math.max(16, Math.min(window.innerWidth - 340, rect.left + rect.width / 2 - 160)),
+          position: "fixed",
+          zIndex: 10000,
+          width: "320px",
+          transition: "all 0.15s ease-out",
+        });
+      }
+    };
+
+    updatePosition();
+    const timer1 = setTimeout(updatePosition, 100);
+    const timer2 = setTimeout(updatePosition, 400);
+
+    window.addEventListener("resize", updatePosition);
+    window.addEventListener("scroll", updatePosition, { passive: true });
+
+    return () => {
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+      window.removeEventListener("resize", updatePosition);
+      window.removeEventListener("scroll", updatePosition);
+    };
+  }, [tourStep, isTourActive, activeTourSteps]);
 
   useEffect(() => {
     checkConnectionStatus();
@@ -201,10 +323,12 @@ function WhatsAppPage() {
           <OnboardingGuide onDismiss={() => setShowOnboarding(false)} />
         )}
         
-        <WhatsAppConnect
-          onConnectionSuccess={handleConnectionSuccess}
-          onShowOnboarding={() => setShowOnboarding(true)}
-        />
+        <div id="tour-whatsapp-profile">
+          <WhatsAppConnect
+            onConnectionSuccess={handleConnectionSuccess}
+            onShowOnboarding={() => setShowOnboarding(true)}
+          />
+        </div>
 
         <div className="flex justify-center mt-4">
           <Button
@@ -230,35 +354,49 @@ function WhatsAppPage() {
         />
         
         {/* Disconnect Menu */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm" className="gap-2">
-              <MoreVertical size={16} />
-              Options
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuItem
-              onClick={() => setShowDisconnectDialog(true)}
-              className="gap-2 text-orange-600 focus:text-orange-600"
-            >
-              <Unplug size={16} />
-              Disconnect (Keep Data)
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={() => setShowDeleteDialog(true)}
-              className="gap-2 text-red-600 focus:text-red-600"
-            >
-              <Trash2 size={16} />
-              Delete Permanently
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <div id="tour-whatsapp-profile" className="flex items-center gap-3">
+          <button
+            id="tour-btn-whatsapp-help"
+            type="button"
+            className="p-2 rounded-xl bg-slate-900 border border-slate-805/40 text-slate-400 hover:bg-slate-800 hover:text-purple-400 shadow-xs transition-all cursor-pointer dark:border-slate-800"
+            onClick={() => {
+              setIsTourActive(true);
+              setTourStep(1);
+            }}
+            title="Start Guided Tour"
+          >
+            <HelpCircle size={16} />
+          </button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="gap-2">
+                <MoreVertical size={16} />
+                Options
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuItem
+                onClick={() => setShowDisconnectDialog(true)}
+                className="gap-2 text-orange-600 focus:text-orange-600"
+              >
+                <Unplug size={16} />
+                Disconnect (Keep Data)
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => setShowDeleteDialog(true)}
+                className="gap-2 text-red-600 focus:text-red-600"
+              >
+                <Trash2 size={16} />
+                Delete Permanently
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3 lg:w-auto lg:inline-grid">
+        <TabsList id="tour-whatsapp-tabs" className="grid w-full grid-cols-3 lg:w-auto lg:inline-grid">
           <TabsTrigger value="chats" className="flex items-center gap-2">
             <MessageCircle size={16} />
             <span className="hidden sm:inline">Chats</span>
@@ -273,7 +411,7 @@ function WhatsAppPage() {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="chats" className="space-y-4">
+        <TabsContent id="tour-whatsapp-chats" value="chats" className="space-y-4">
           <ChatDashboard connectionStatus={connectionStatus} />
         </TabsContent>
 
@@ -376,6 +514,108 @@ function WhatsAppPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      {/* Interactive Guided Tour Overlay */}
+      {isTourActive && (
+        <div className="fixed inset-0 z-[9998] pointer-events-none text-slate-100">
+          {/* Highlight element mask */}
+          {highlightStyle.top !== undefined && (
+            <div
+              style={highlightStyle}
+              className="fixed transition-all duration-200 ease-out pointer-events-none"
+            />
+          )}
+
+          {/* Full-screen click interceptor mask for everything EXCEPT the highlighted area */}
+          <div className="fixed inset-0 bg-transparent pointer-events-auto z-[998]" onClick={() => setIsTourActive(false)} />
+
+          {/* Interactive Tooltip popup */}
+          {tooltipStyle.top !== undefined && activeTourSteps[tourStep - 1] && (
+            <div
+              style={tooltipStyle}
+              className="bg-slate-900 border border-purple-500/30 p-5 z-[10000] w-[320px] shadow-2xl rounded-2xl animate-fade-in pointer-events-auto flex flex-col gap-4 text-white"
+            >
+              <div className="flex justify-between items-center pb-2 border-b border-white/5">
+                <h4 className="text-[10px] font-bold text-purple-400 uppercase tracking-wider">
+                  {activeTourSteps[tourStep - 1].title}
+                </h4>
+                <span className="text-[10px] text-slate-400 font-mono font-bold">
+                  {tourStep} / {activeTourSteps.length}
+                </span>
+              </div>
+
+              <div className="space-y-1.5 text-xs">
+                <h3 className="font-extrabold text-white text-sm">
+                  {activeTourSteps[tourStep - 1].heading}
+                </h3>
+                <p className="text-slate-300 leading-normal text-[11px]">
+                  {activeTourSteps[tourStep - 1].desc}
+                </p>
+              </div>
+
+              {/* Animated visual indicators */}
+              <div className="h-16 bg-slate-950/60 border border-white/5 rounded-xl flex items-center justify-center overflow-hidden relative">
+                {activeTourSteps[tourStep - 1].indicator === 1 && (
+                  <div className="flex items-center gap-1.5">
+                    <span className="relative flex h-2.5 w-2.5">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-purple-500"></span>
+                    </span>
+                    <span className="text-[10px] text-purple-400 uppercase font-bold tracking-wider animate-pulse">Monitoring WhatsApp Connection</span>
+                  </div>
+                )}
+                {activeTourSteps[tourStep - 1].indicator === 2 && (
+                  <div className="flex items-center gap-2 text-[10px] font-bold text-purple-400">
+                    <Settings size={14} className="animate-spin text-purple-400" />
+                    <span>Routing Engines Online</span>
+                  </div>
+                )}
+                {activeTourSteps[tourStep - 1].indicator === 3 && (
+                  <div className="flex items-center gap-2">
+                    <div className="w-2.5 h-2.5 rounded-full bg-blue-500 animate-ping" />
+                    <span className="text-[10px] text-blue-400 font-bold uppercase tracking-wider">Loading Live Inbox Chats</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Navigation buttons */}
+              <div className="flex items-center justify-between pt-2 border-t border-white/5 gap-2">
+                <button
+                  type="button"
+                  className="px-2.5 py-1 text-[10px] text-slate-400 hover:text-white transition-all border border-transparent hover:bg-white/5 rounded cursor-pointer"
+                  onClick={() => setIsTourActive(false)}
+                >
+                  Skip
+                </button>
+                <div className="flex items-center gap-1.5">
+                  {tourStep > 1 && (
+                    <button
+                      type="button"
+                      className="px-2 py-1 text-[10px] text-slate-300 hover:text-white border border-white/10 rounded cursor-pointer"
+                      onClick={() => setTourStep(tourStep - 1)}
+                    >
+                      Back
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    className="px-3 py-1 text-[10px] bg-purple-600 hover:bg-purple-500 text-white rounded-lg font-bold cursor-pointer"
+                    onClick={() => {
+                      if (tourStep < activeTourSteps.length) {
+                        setTourStep(tourStep + 1);
+                      } else {
+                        setIsTourActive(false);
+                        localStorage.setItem("saadhyam_tour_whatsapp_completed", "true");
+                      }
+                    }}
+                  >
+                    {tourStep === activeTourSteps.length ? "Finish" : "Next"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

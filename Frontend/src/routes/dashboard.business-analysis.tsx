@@ -28,7 +28,7 @@ import { MetricsGrid } from "@/components/business-analysis/MetricCards";
 import { AnalyticsSection } from "@/components/business-analysis/AnalyticsCharts";
 import { InsightPanels } from "@/components/business-analysis/InsightPanels";
 import { buildBusinessMetricsData, buildSwotData } from "@/components/business-analysis/utils";
-import { Clock, Download, RefreshCw, Sparkles } from "lucide-react";
+import { Clock, Download, RefreshCw, Sparkles, HelpCircle, Zap, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 
@@ -39,7 +39,7 @@ export const Route = createFileRoute("/dashboard/business-analysis")({
   beforeLoad: async ({ location }) => {
     // Log the current location to help debug
     console.log("🔍 Loading business-analysis route:", location.pathname);
-    
+
     // Store this route in sessionStorage on client side only
     if (typeof window !== 'undefined' && typeof sessionStorage !== 'undefined') {
       try {
@@ -48,7 +48,7 @@ export const Route = createFileRoute("/dashboard/business-analysis")({
         console.warn("Could not save route to sessionStorage:", error);
       }
     }
-    
+
     // This ensures the route loads without redirecting
     // Even if there are errors, the errorComponent will handle them
     return {};
@@ -113,7 +113,152 @@ function BusinessAnalysisPage() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { notifyWarning } = useNotificationHelpers();
-  
+
+  // Onboarding Tour states
+  const [isTourActive, setIsTourActive] = useState(false);
+  const [tourStep, setTourStep] = useState(1);
+  const [highlightStyle, setHighlightStyle] = useState<React.CSSProperties>({});
+  const [tooltipStyle, setTooltipStyle] = useState<React.CSSProperties>({});
+  const [activeTourSteps, setActiveTourSteps] = useState<any[]>([]);
+
+  const tourStepsConfig = [
+    {
+      id: "tour-ba-health-score",
+      title: "Health Score",
+      heading: "1. Business Health Score",
+      desc: "Track your overall business standing based on online performance metrics.",
+      indicator: 1
+    },
+    {
+      id: "tour-ba-controls",
+      title: "Analysis Controls",
+      heading: "2. Controls & Actions",
+      desc: "Regenerate your AI analysis or download the full comprehensive PDF report.",
+      indicator: 2
+    },
+    {
+      id: "tour-ba-hero",
+      title: "Business Summary",
+      heading: "3. Business Profile",
+      desc: "Review your business location, category description, and key details.",
+      indicator: 3
+    },
+    {
+      id: "tour-ba-metrics",
+      title: "Metrics Summary",
+      heading: "4. Strengths & Opportunities",
+      desc: "Quick count summary of your strengths, weaknesses, and optimization flags.",
+      indicator: 4
+    },
+    {
+      id: "tour-ba-analytics",
+      title: "SWOT Analytics",
+      heading: "5. SWOT & Sentiment Charts",
+      desc: "Visual charts evaluating strengths, weaknesses, opportunities, and threats.",
+      indicator: 5
+    },
+    {
+      id: "tour-ba-insights",
+      title: "Detailed Insights",
+      heading: "6. AI Recommendations Panel",
+      desc: "Deep dive tabs detailing key local demand analysis and optimization actions.",
+      indicator: 6
+    }
+  ];
+
+  // Auto-trigger tour for new users once data has loaded
+  useEffect(() => {
+    if (analysis) {
+      const isCompleted = localStorage.getItem("saadhyam_tour_ba_completed");
+      if (!isCompleted) {
+        const timer = setTimeout(() => {
+          setIsTourActive(true);
+          setTourStep(1);
+        }, 1000);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [analysis]);
+
+  // Filter active steps based on DOM presence
+  useEffect(() => {
+    if (isTourActive) {
+      const active = tourStepsConfig.filter(step => !!document.getElementById(step.id));
+      setActiveTourSteps(active);
+      if (tourStep > active.length && active.length > 0) {
+        setTourStep(1);
+      }
+    }
+  }, [isTourActive]);
+
+  // Scroll target into view when step changes
+  useEffect(() => {
+    if (!isTourActive || activeTourSteps.length === 0) return;
+
+    const currentStepConfig = activeTourSteps[tourStep - 1];
+    if (currentStepConfig) {
+      const element = document.getElementById(currentStepConfig.id);
+      if (element) {
+        element.scrollIntoView({ block: "center", inline: "nearest", behavior: "smooth" });
+      }
+    }
+  }, [tourStep, isTourActive, activeTourSteps]);
+
+  // Position tracking logic supporting scrolling and window resizing
+  useEffect(() => {
+    if (!isTourActive || activeTourSteps.length === 0) return;
+
+    const currentStepConfig = activeTourSteps[tourStep - 1];
+    if (!currentStepConfig) return;
+
+    const updatePosition = () => {
+      const element = document.getElementById(currentStepConfig.id);
+      if (element) {
+        const rect = element.getBoundingClientRect();
+        
+        setHighlightStyle({
+          top: rect.top - 4,
+          left: rect.left - 4,
+          width: rect.width + 8,
+          height: rect.height + 8,
+          position: "fixed",
+          borderRadius: "16px",
+          boxShadow: "0 0 0 9999px rgba(15, 23, 42, 0.75), 0 0 20px 4px rgba(139, 92, 246, 0.4)",
+          border: "2px solid #8B5CF6",
+          zIndex: 9999,
+          pointerEvents: "none",
+          transition: "all 0.15s ease-out",
+        });
+
+        const spaceBelow = window.innerHeight - rect.bottom;
+        const placeBelow = spaceBelow > 260 || rect.top < 260;
+
+        setTooltipStyle({
+          top: placeBelow ? rect.bottom + 12 : rect.top - 280,
+          left: Math.max(16, Math.min(window.innerWidth - 340, rect.left + rect.width / 2 - 160)),
+          position: "fixed",
+          zIndex: 10000,
+          width: "320px",
+          transition: "all 0.15s ease-out",
+        });
+      }
+    };
+
+    updatePosition();
+    const timer1 = setTimeout(updatePosition, 100);
+    const timer2 = setTimeout(updatePosition, 400);
+
+    window.addEventListener("resize", updatePosition);
+    window.addEventListener("scroll", updatePosition, { passive: true });
+
+    return () => {
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+      window.removeEventListener("resize", updatePosition);
+      window.removeEventListener("scroll", updatePosition);
+    };
+  }, [tourStep, isTourActive, activeTourSteps]);
+
   // Cooldown for regenerate button (2 hours)
   const regenerateCooldown = useCooldown({
     cooldownMinutes: 120,
@@ -192,7 +337,7 @@ function BusinessAnalysisPage() {
       });
       const data = await getBusinessAnalysisData(token);
       setAnalysis(data);
-      
+
       // Start cooldown ONLY after successfully getting complete data
       regenerateCooldown.execute();
     } catch (err: any) {
@@ -295,8 +440,26 @@ function BusinessAnalysisPage() {
   const header = (
     <BusinessPageHeader
       title="Business Analysis"
-      subtitle="AI-powered insights from Google Search grounding"
+      subtitle=""
       lastUpdated={analysis?.last_updated}
+      actions={
+        analysis && (
+          <div className="flex items-center gap-3">
+            <button
+              id="tour-btn-ba-help"
+              type="button"
+              className="p-2 rounded-xl bg-slate-900 border border-slate-805/40 text-slate-400 hover:bg-slate-800 hover:text-purple-400 shadow-xs transition-all cursor-pointer dark:border-slate-800"
+              onClick={() => {
+                setIsTourActive(true);
+                setTourStep(1);
+              }}
+              title="Start Guided Tour"
+            >
+              <HelpCircle size={16} />
+            </button>
+          </div>
+        )
+      }
     />
   );
 
@@ -333,9 +496,9 @@ function BusinessAnalysisPage() {
           <p className="text-slate-400 mb-6 text-center max-w-md">
             Get comprehensive AI-powered insights including strengths, weaknesses, opportunities, and local market analysis.
           </p>
-          <Button 
-            variant="hero" 
-            size="lg" 
+          <Button
+            variant="hero"
+            size="lg"
             onClick={handleAnalyze}
             disabled={!regenerateCooldown.canExecute}
             title={
@@ -346,8 +509,8 @@ function BusinessAnalysisPage() {
             className="shadow-glow"
           >
             <Sparkles size={20} className="mr-2" />
-            {!regenerateCooldown.canExecute 
-              ? formatCooldownTime(regenerateCooldown.remainingTime).split(' ')[0] 
+            {!regenerateCooldown.canExecute
+              ? formatCooldownTime(regenerateCooldown.remainingTime).split(' ')[0]
               : 'Analyze My Business'}
           </Button>
           <p className="text-xs text-slate-500 mt-4">Takes 2-3 minutes • Powered by Google AI Studio Gemini</p>
@@ -374,11 +537,13 @@ function BusinessAnalysisPage() {
         <div className="lg:col-span-1 space-y-6 lg:sticky lg:top-6">
           {/* Health Score Gauge Card */}
           {analysis?.health_score !== undefined && (
-            <HealthScoreWidget score={analysis.health_score} />
+            <div id="tour-ba-health-score">
+              <HealthScoreWidget score={analysis.health_score} />
+            </div>
           )}
 
           {/* Quick Actions Panel */}
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 shadow-[0_4px_30px_rgba(0,0,0,0.4)] backdrop-blur-md relative overflow-hidden dark:border-slate-700">
+          <div id="tour-ba-controls" className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 shadow-[0_4px_30px_rgba(0,0,0,0.4)] backdrop-blur-md relative overflow-hidden dark:border-slate-700">
             <div className="absolute top-0 right-0 h-32 w-32 bg-purple-500/5 rounded-full blur-2xl pointer-events-none" />
             <div className="space-y-4">
               <div className="flex items-center gap-2">
@@ -402,8 +567,8 @@ function BusinessAnalysisPage() {
                 {isAnalyzing
                   ? "Analyzing..."
                   : !regenerateCooldown.canExecute
-                  ? "On Cooldown"
-                  : "Regenerate"}
+                    ? "On Cooldown"
+                    : "Regenerate"}
               </Button>
 
               <Button
@@ -426,7 +591,7 @@ function BusinessAnalysisPage() {
               <p className="font-bold text-slate-200">{formatCooldownTime(regenerateCooldown.remainingTime)}</p>
             </div>
           )}
-          
+
           {/* Quick Summary / Engine Stats */}
           <div className="rounded-2xl border border-slate-800 bg-slate-900/40 p-4 text-[11px] text-slate-400 space-y-2 dark:border-slate-700">
             <div className="flex justify-between">
@@ -443,32 +608,170 @@ function BusinessAnalysisPage() {
         {/* Right Column: Main Content Area */}
         <div className="lg:col-span-3 space-y-6">
           {analysis?.business_details && (
-            <BusinessHero
-              details={analysis.business_details}
+            <div id="tour-ba-hero">
+              <BusinessHero
+                details={analysis.business_details}
+              />
+            </div>
+          )}
+
+          <div id="tour-ba-metrics">
+            <MetricsGrid
+              strengths={analysis?.strengths?.length ?? 0}
+              weaknesses={analysis?.weaknesses?.length ?? 0}
+              opportunities={analysis?.growth_opportunities?.length ?? 0}
+              services={analysis?.business_details?.services?.length ?? 0}
+            />
+          </div>
+
+          <SectionDivider />
+
+          <div id="tour-ba-analytics">
+            <AnalyticsSection businessMetricsData={businessMetricsData} swotData={swotData} />
+          </div>
+
+          <SectionDivider />
+
+          <div id="tour-ba-insights">
+            <InsightPanels
+              strengths={analysis?.strengths ?? []}
+              weaknesses={analysis?.weaknesses ?? []}
+              opportunities={analysis?.growth_opportunities ?? []}
+              localMarket={analysis?.local_market_insights}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Interactive Guided Tour Overlay */}
+      {isTourActive && (
+        <div className="fixed inset-0 z-[9998] pointer-events-none text-slate-100">
+          {/* Highlight element mask */}
+          {highlightStyle.top !== undefined && (
+            <div
+              style={highlightStyle}
+              className="fixed transition-all duration-200 ease-out pointer-events-none"
             />
           )}
 
-          <MetricsGrid
-            strengths={analysis?.strengths?.length ?? 0}
-            weaknesses={analysis?.weaknesses?.length ?? 0}
-            opportunities={analysis?.growth_opportunities?.length ?? 0}
-            services={analysis?.business_details?.services?.length ?? 0}
-          />
+          {/* Full-screen click interceptor mask for everything EXCEPT the highlighted area */}
+          <div className="fixed inset-0 bg-transparent pointer-events-auto z-[998]" onClick={() => setIsTourActive(false)} />
 
-          <SectionDivider />
+          {/* Interactive Tooltip popup */}
+          {tooltipStyle.top !== undefined && activeTourSteps[tourStep - 1] && (
+            <div
+              style={tooltipStyle}
+              className="bg-slate-900 border border-purple-500/30 p-5 z-[10000] w-[320px] shadow-2xl rounded-2xl animate-fade-in pointer-events-auto flex flex-col gap-4 text-white"
+            >
+              <div className="flex justify-between items-center pb-2 border-b border-white/5">
+                <h4 className="text-[10px] font-bold text-purple-400 uppercase tracking-wider">
+                  {activeTourSteps[tourStep - 1].title}
+                </h4>
+                <span className="text-[10px] text-slate-400 font-mono font-bold">
+                  {tourStep} / {activeTourSteps.length}
+                </span>
+              </div>
 
-          <AnalyticsSection businessMetricsData={businessMetricsData} swotData={swotData} />
+              <div className="space-y-1.5 text-xs">
+                <h3 className="font-extrabold text-white text-sm">
+                  {activeTourSteps[tourStep - 1].heading}
+                </h3>
+                <p className="text-slate-300 leading-normal text-[11px]">
+                  {activeTourSteps[tourStep - 1].desc}
+                </p>
+              </div>
 
-          <SectionDivider />
+              {/* Animated visual indicators */}
+              <div className="h-16 bg-slate-950/60 border border-white/5 rounded-xl flex items-center justify-center overflow-hidden relative">
+                {activeTourSteps[tourStep - 1].indicator === 1 && (
+                  <div className="flex items-center gap-1.5">
+                    <span className="relative flex h-2.5 w-2.5">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500"></span>
+                    </span>
+                    <span className="text-[10px] text-green-400 uppercase font-bold tracking-wider animate-pulse">Monitoring Live Health</span>
+                  </div>
+                )}
+                {activeTourSteps[tourStep - 1].indicator === 2 && (
+                  <div className="flex items-center gap-2 text-[10px] font-bold text-purple-400">
+                    <Sparkles size={14} className="animate-spin text-purple-400" />
+                    <span>Google AI Studio Gemini Active</span>
+                  </div>
+                )}
+                {activeTourSteps[tourStep - 1].indicator === 3 && (
+                  <div className="flex items-center gap-2">
+                    <div className="w-2.5 h-2.5 rounded-full bg-green-500 animate-ping" />
+                    <span className="text-[10px] text-green-400 font-bold uppercase tracking-wider">Profile Grounding Active</span>
+                  </div>
+                )}
+                {activeTourSteps[tourStep - 1].indicator === 4 && (
+                  <div className="flex items-center gap-1.5 text-[10px] text-purple-400 font-bold">
+                    <Clock size={12} className="animate-bounce" />
+                    <span>Auditing Metrics Active</span>
+                  </div>
+                )}
+                {activeTourSteps[tourStep - 1].indicator === 5 && (
+                  <div className="flex items-center gap-1">
+                    {[1, 2, 3, 4].map((i) => (
+                      <span
+                        key={i}
+                        className="w-4 bg-purple-500/50 rounded-sm animate-bounce"
+                        style={{
+                          height: `${Math.random() * 20 + 8}px`,
+                          animationDelay: `${i * 0.1}s`,
+                          animationDuration: "0.8s"
+                        }}
+                      />
+                    ))}
+                  </div>
+                )}
+                {activeTourSteps[tourStep - 1].indicator === 6 && (
+                  <div className="text-[10px] font-bold text-purple-300 border border-purple-500/20 px-2 py-1 rounded bg-purple-500/10 flex items-center gap-1.5 animate-pulse">
+                    <Zap size={10} />
+                    <span>AI Analysis Active</span>
+                  </div>
+                )}
+              </div>
 
-          <InsightPanels
-            strengths={analysis?.strengths ?? []}
-            weaknesses={analysis?.weaknesses ?? []}
-            opportunities={analysis?.growth_opportunities ?? []}
-            localMarket={analysis?.local_market_insights}
-          />
+              {/* Navigation buttons */}
+              <div className="flex items-center justify-between pt-2 border-t border-white/5 gap-2">
+                <button
+                  type="button"
+                  className="px-2.5 py-1 text-[10px] text-slate-400 hover:text-white transition-all border border-transparent hover:bg-white/5 rounded cursor-pointer"
+                  onClick={() => setIsTourActive(false)}
+                >
+                  Skip
+                </button>
+                <div className="flex items-center gap-1.5">
+                  {tourStep > 1 && (
+                    <button
+                      type="button"
+                      className="px-2 py-1 text-[10px] text-slate-300 hover:text-white border border-white/10 rounded cursor-pointer"
+                      onClick={() => setTourStep(tourStep - 1)}
+                    >
+                      Back
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    className="px-3 py-1 text-[10px] bg-purple-600 hover:bg-purple-500 text-white rounded-lg font-bold cursor-pointer"
+                    onClick={() => {
+                      if (tourStep < activeTourSteps.length) {
+                        setTourStep(tourStep + 1);
+                      } else {
+                        setIsTourActive(false);
+                        localStorage.setItem("saadhyam_tour_ba_completed", "true");
+                      }
+                    }}
+                  >
+                    {tourStep === activeTourSteps.length ? "Finish" : "Next"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
-      </div>
+      )}
     </PageShell>
   );
 }

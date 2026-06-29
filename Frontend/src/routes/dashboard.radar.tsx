@@ -41,6 +41,144 @@ function RadarPage() {
   const navigate = useNavigate();
   const [opportunities, setOpportunities] = useState<RadarOpportunity[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Onboarding Tour states
+  const [isTourActive, setIsTourActive] = useState(false);
+  const [tourStep, setTourStep] = useState(1);
+  const [highlightStyle, setHighlightStyle] = useState<React.CSSProperties>({});
+  const [tooltipStyle, setTooltipStyle] = useState<React.CSSProperties>({});
+  const [activeTourSteps, setActiveTourSteps] = useState<any[]>([]);
+
+  const tourStepsConfig = [
+    {
+      id: "tour-radar-console-graphic",
+      title: "Radar Sweeper",
+      heading: "1. AI Signal Sweeper",
+      desc: "Visual representation of real-time market search auditing and signal matching.",
+      indicator: 1
+    },
+    {
+      id: "tour-radar-scan-btn",
+      title: "Scan Trigger",
+      heading: "2. Trigger Radar Scan",
+      desc: "Click to run active crawling algorithms across GMB reviews, directories, and seasonal trends.",
+      indicator: 2
+    },
+    {
+      id: "tour-radar-log-feed",
+      title: "Live Feed",
+      heading: "3. Live Signal Console",
+      desc: "Monitors and displays incoming grounding signals, algorithms matching, and live log updates.",
+      indicator: 3
+    },
+    {
+      id: "tour-radar-metrics",
+      title: "Potential Metrics",
+      heading: "4. Opportunity Analytics",
+      desc: "Tracks the total volume of growth paths matched and calculated monthly revenue potential.",
+      indicator: 4
+    },
+    {
+      id: "tour-radar-opportunity-list",
+      title: "Opportunities List",
+      heading: "5. Signal Match Category Grid",
+      desc: "Categorized growth leads. Toggle sections to reveal maps, B2B queries, or seasonal recommendations.",
+      indicator: 5
+    }
+  ];
+
+  // Auto-trigger tour for new users once data has loaded
+  useEffect(() => {
+    if (!isLoading && opportunities.length > 0) {
+      const isCompleted = localStorage.getItem("saadhyam_tour_radar_completed");
+      if (!isCompleted) {
+        const timer = setTimeout(() => {
+          setIsTourActive(true);
+          setTourStep(1);
+        }, 1000);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [isLoading, opportunities]);
+
+  // Filter active steps based on DOM presence
+  useEffect(() => {
+    if (isTourActive) {
+      const active = tourStepsConfig.filter(step => !!document.getElementById(step.id));
+      setActiveTourSteps(active);
+      if (tourStep > active.length && active.length > 0) {
+        setTourStep(1);
+      }
+    }
+  }, [isTourActive]);
+
+  // Scroll target into view when step changes
+  useEffect(() => {
+    if (!isTourActive || activeTourSteps.length === 0) return;
+
+    const currentStepConfig = activeTourSteps[tourStep - 1];
+    if (currentStepConfig) {
+      const element = document.getElementById(currentStepConfig.id);
+      if (element) {
+        element.scrollIntoView({ block: "center", inline: "nearest", behavior: "smooth" });
+      }
+    }
+  }, [tourStep, isTourActive, activeTourSteps]);
+
+  // Position tracking logic supporting scrolling and window resizing
+  useEffect(() => {
+    if (!isTourActive || activeTourSteps.length === 0) return;
+
+    const currentStepConfig = activeTourSteps[tourStep - 1];
+    if (!currentStepConfig) return;
+
+    const updatePosition = () => {
+      const element = document.getElementById(currentStepConfig.id);
+      if (element) {
+        const rect = element.getBoundingClientRect();
+        
+        setHighlightStyle({
+          top: rect.top - 4,
+          left: rect.left - 4,
+          width: rect.width + 8,
+          height: rect.height + 8,
+          position: "fixed",
+          borderRadius: "16px",
+          boxShadow: "0 0 0 9999px rgba(15, 23, 42, 0.75), 0 0 20px 4px rgba(139, 92, 246, 0.4)",
+          border: "2px solid #8B5CF6",
+          zIndex: 9999,
+          pointerEvents: "none",
+          transition: "all 0.15s ease-out",
+        });
+
+        const spaceBelow = window.innerHeight - rect.bottom;
+        const placeBelow = spaceBelow > 260 || rect.top < 260;
+
+        setTooltipStyle({
+          top: placeBelow ? rect.bottom + 12 : rect.top - 280,
+          left: Math.max(16, Math.min(window.innerWidth - 340, rect.left + rect.width / 2 - 160)),
+          position: "fixed",
+          zIndex: 10000,
+          width: "320px",
+          transition: "all 0.15s ease-out",
+        });
+      }
+    };
+
+    updatePosition();
+    const timer1 = setTimeout(updatePosition, 100);
+    const timer2 = setTimeout(updatePosition, 400);
+
+    window.addEventListener("resize", updatePosition);
+    window.addEventListener("scroll", updatePosition, { passive: true });
+
+    return () => {
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+      window.removeEventListener("resize", updatePosition);
+      window.removeEventListener("scroll", updatePosition);
+    };
+  }, [tourStep, isTourActive, activeTourSteps]);
   const [isScanning, setIsScanning] = useState(false);
   const [scanStep, setScanStep] = useState(0);
   const [error, setError] = useState<string | null>(null);
@@ -337,10 +475,23 @@ function RadarPage() {
           </p>
         </div>
 
-        {/* Small Active Badge */}
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-xs font-semibold">
-          <span className="h-2 w-2 rounded-full bg-emerald-500 animate-ping" />
-          Active Scanner Mode
+        <div className="flex items-center gap-3">
+          <button
+            id="tour-btn-radar-help"
+            type="button"
+            className="p-2 rounded-xl bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-purple-600 dark:bg-slate-900 dark:border-slate-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-purple-400 shadow-xs transition-all cursor-pointer"
+            onClick={() => {
+              setIsTourActive(true);
+              setTourStep(1);
+            }}
+            title="Start Guided Tour"
+          >
+            <HelpCircle size={16} />
+          </button>
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-xs font-semibold">
+            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-ping" />
+            Active Scanner Mode
+          </div>
         </div>
       </div>
 
@@ -361,7 +512,7 @@ function RadarPage() {
           </div>
 
           {/* Centered Radar Graphic */}
-          <div className="flex justify-center py-4 relative z-10">
+          <div id="tour-radar-console-graphic" className="flex justify-center py-4 relative z-10">
             <div className="relative w-48 h-48 rounded-full border-2 border-purple-200 bg-purple-50/30 flex items-center justify-center overflow-hidden animate-radar-pulse shadow-[0_0_25px_rgba(168,85,247,0.15)] dark:bg-purple-950/20 dark:border-purple-500/30">
               {/* Concentric rings */}
               <div className="absolute w-12 h-12 rounded-full border-2 border-purple-200/80 dark:border-purple-500/20" />
@@ -403,7 +554,7 @@ function RadarPage() {
           </div>
 
           {/* Trigger Scan Button */}
-          <div className="space-y-3 relative z-10">
+          <div id="tour-radar-scan-btn" className="space-y-3 relative z-10">
             <Button
               onClick={handleScan}
               disabled={isScanning}
@@ -424,7 +575,7 @@ function RadarPage() {
           </div>
 
           {/* Scrolling Realtime Logs inside the Console */}
-          <div className="border-t border-zinc-200 pt-4 space-y-2 relative z-10 dark:border-slate-700">
+          <div id="tour-radar-log-feed" className="border-t border-zinc-200 pt-4 space-y-2 relative z-10 dark:border-slate-700">
             <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest px-1">Live Signal Feed</p>
             <div className="h-44 bg-zinc-50/80 rounded-xl p-3 border border-zinc-200 font-mono text-[10px] text-purple-700 overflow-y-auto space-y-1.5 scrollbar-thin scrollbar-thumb-zinc-200 scrollbar-track-transparent dark:bg-zinc-950/80 dark:border-slate-700 dark:text-purple-400/90 dark:scrollbar-thumb-zinc-900">
               {consoleLogs.length === 0 ? (
@@ -451,7 +602,7 @@ function RadarPage() {
         <div className="lg:col-span-8 space-y-6">
           
           {/* Quick Metrics Bar */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div id="tour-radar-metrics" className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Metric 1 */}
             <div className="bg-white/40 dark:bg-zinc-900/40 backdrop-blur-md border border-white/20 dark:border-zinc-800/40 p-5 rounded-3xl shadow-md flex items-center justify-between group hover:border-purple-500/25 transition-all duration-300">
               <div className="space-y-1">
@@ -480,7 +631,7 @@ function RadarPage() {
           </div>
 
           {/* Filtering Tabs & Header */}
-          <div className="bg-white/40 dark:bg-zinc-900/40 backdrop-blur-md border border-white/20 dark:border-zinc-800/40 p-4 rounded-3xl shadow-md space-y-3">
+          <div id="tour-radar-opportunity-list" className="bg-white/40 dark:bg-zinc-900/40 backdrop-blur-md border border-white/20 dark:border-zinc-800/40 p-4 rounded-3xl shadow-md space-y-3">
             <div className="flex items-center gap-2 border-b border-gray-100 dark:border-zinc-800/30 pb-3">
               <ListFilter size={16} className="text-purple-500" />
               <span className="text-xs font-bold text-gray-700 dark:text-zinc-300 uppercase tracking-wider">Signal Categories</span>
@@ -677,6 +828,129 @@ function RadarPage() {
 
       </div>
 
+      {/* Interactive Guided Tour Overlay */}
+      {isTourActive && (
+        <div className="fixed inset-0 z-[9998] pointer-events-none text-slate-100">
+          {/* Highlight element mask */}
+          {highlightStyle.top !== undefined && (
+            <div
+              style={highlightStyle}
+              className="fixed transition-all duration-200 ease-out pointer-events-none"
+            />
+          )}
+
+          {/* Full-screen click interceptor mask for everything EXCEPT the highlighted area */}
+          <div className="fixed inset-0 bg-transparent pointer-events-auto z-[998]" onClick={() => setIsTourActive(false)} />
+
+          {/* Interactive Tooltip popup */}
+          {tooltipStyle.top !== undefined && activeTourSteps[tourStep - 1] && (
+            <div
+              style={tooltipStyle}
+              className="bg-slate-900 border border-purple-500/30 p-5 z-[10000] w-[320px] shadow-2xl rounded-2xl animate-fade-in pointer-events-auto flex flex-col gap-4 text-white"
+            >
+              <div className="flex justify-between items-center pb-2 border-b border-white/5">
+                <h4 className="text-[10px] font-bold text-purple-400 uppercase tracking-wider">
+                  {activeTourSteps[tourStep - 1].title}
+                </h4>
+                <span className="text-[10px] text-slate-400 font-mono font-bold">
+                  {tourStep} / {activeTourSteps.length}
+                </span>
+              </div>
+
+              <div className="space-y-1.5 text-xs">
+                <h3 className="font-extrabold text-white text-sm">
+                  {activeTourSteps[tourStep - 1].heading}
+                </h3>
+                <p className="text-slate-300 leading-normal text-[11px]">
+                  {activeTourSteps[tourStep - 1].desc}
+                </p>
+              </div>
+
+              {/* Animated visual indicators */}
+              <div className="h-16 bg-slate-950/60 border border-white/5 rounded-xl flex items-center justify-center overflow-hidden relative">
+                {activeTourSteps[tourStep - 1].indicator === 1 && (
+                  <div className="flex items-center gap-1.5">
+                    <span className="relative flex h-2.5 w-2.5">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-purple-500"></span>
+                    </span>
+                    <span className="text-[10px] text-purple-400 uppercase font-bold tracking-wider animate-pulse">Sweeping Active Signals</span>
+                  </div>
+                )}
+                {activeTourSteps[tourStep - 1].indicator === 2 && (
+                  <div className="flex items-center gap-2 text-[10px] font-bold text-purple-400">
+                    <Zap size={14} className="animate-pulse text-purple-400" />
+                    <span>Scan Trigger Ready</span>
+                  </div>
+                )}
+                {activeTourSteps[tourStep - 1].indicator === 3 && (
+                  <div className="flex items-center gap-2">
+                    <div className="w-2.5 h-2.5 rounded-full bg-purple-500 animate-ping" />
+                    <span className="text-[10px] text-purple-400 font-bold uppercase tracking-wider">Grounding Logs Feed Live</span>
+                  </div>
+                )}
+                {activeTourSteps[tourStep - 1].indicator === 4 && (
+                  <div className="flex items-center gap-1.5 text-[10px] text-purple-400 font-bold">
+                    <DollarSign size={12} className="animate-bounce" />
+                    <span>Potential Revenue Estimated</span>
+                  </div>
+                )}
+                {activeTourSteps[tourStep - 1].indicator === 5 && (
+                  <div className="flex items-center gap-1">
+                    {[1, 2, 3, 4].map((i) => (
+                      <span
+                        key={i}
+                        className="w-4 bg-purple-500/50 rounded-sm animate-bounce"
+                        style={{
+                          height: `${Math.random() * 20 + 8}px`,
+                          animationDelay: `${i * 0.1}s`,
+                          animationDuration: "0.8s"
+                        }}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Navigation buttons */}
+              <div className="flex items-center justify-between pt-2 border-t border-white/5 gap-2">
+                <button
+                  type="button"
+                  className="px-2.5 py-1 text-[10px] text-slate-400 hover:text-white transition-all border border-transparent hover:bg-white/5 rounded cursor-pointer"
+                  onClick={() => setIsTourActive(false)}
+                >
+                  Skip
+                </button>
+                <div className="flex items-center gap-1.5">
+                  {tourStep > 1 && (
+                    <button
+                      type="button"
+                      className="px-2 py-1 text-[10px] text-slate-300 hover:text-white border border-white/10 rounded cursor-pointer"
+                      onClick={() => setTourStep(tourStep - 1)}
+                    >
+                      Back
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    className="px-3 py-1 text-[10px] bg-purple-600 hover:bg-purple-500 text-white rounded-lg font-bold cursor-pointer"
+                    onClick={() => {
+                      if (tourStep < activeTourSteps.length) {
+                        setTourStep(tourStep + 1);
+                      } else {
+                        setIsTourActive(false);
+                        localStorage.setItem("saadhyam_tour_radar_completed", "true");
+                      }
+                    }}
+                  >
+                    {tourStep === activeTourSteps.length ? "Finish" : "Next"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

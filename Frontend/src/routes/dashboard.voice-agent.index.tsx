@@ -221,6 +221,81 @@ function VoiceAgentDashboard() {
   const [isEnhancing, setIsEnhancing] = useState(false);
   const [customVoiceEnabled, setCustomVoiceEnabled] = useState(false);
 
+  const [isTourActive, setIsTourActive] = useState(false);
+  const [tourStep, setTourStep] = useState(1);
+  const [highlightStyle, setHighlightStyle] = useState<React.CSSProperties>({});
+  const [tooltipStyle, setTooltipStyle] = useState<React.CSSProperties>({});
+
+  useEffect(() => {
+    const isCompleted = localStorage.getItem("voice_agent_tour_completed");
+    if (!isCompleted) {
+      setIsTourActive(true);
+      setTourStep(1);
+      setActiveTab("dashboard");
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!isTourActive) return;
+
+    const updatePosition = () => {
+      let targetId = "";
+      switch (tourStep) {
+        case 1: targetId = "tour-tab-overview"; break;
+        case 2: targetId = "tour-tab-agents"; break;
+        case 3: targetId = "tour-tab-campaigns"; break;
+        case 4: targetId = "tour-tab-crm"; break;
+        case 5: targetId = "tour-tab-billing"; break;
+        case 6: targetId = "tour-btn-sync"; break;
+        default: break;
+      }
+
+      const element = document.getElementById(targetId);
+      if (element) {
+        const rect = element.getBoundingClientRect();
+        
+        // Use fixed positioning relative to viewport
+        setHighlightStyle({
+          top: rect.top - 4,
+          left: rect.left - 4,
+          width: rect.width + 8,
+          height: rect.height + 8,
+          position: "fixed",
+          borderRadius: "8px",
+          boxShadow: "0 0 0 9999px rgba(0, 0, 0, 0.75), 0 0 15px 3px rgba(74, 158, 255, 0.5)",
+          border: "2px solid #4A9EFF",
+          zIndex: 9999,
+          pointerEvents: "none",
+          transition: "all 0.15s ease-out",
+        });
+
+        setTooltipStyle({
+          top: rect.bottom + 12,
+          left: Math.max(16, Math.min(window.innerWidth - 340, rect.left + rect.width / 2 - 150)),
+          position: "fixed",
+          zIndex: 10000,
+          width: "320px",
+          transition: "all 0.15s ease-out",
+        });
+      }
+    };
+
+    // Run position calculations immediately and also with small timeouts to allow tab content transitions to finish
+    updatePosition();
+    const timer1 = setTimeout(updatePosition, 100);
+    const timer2 = setTimeout(updatePosition, 250);
+
+    window.addEventListener("resize", updatePosition);
+    window.addEventListener("scroll", updatePosition, { passive: true });
+
+    return () => {
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+      window.removeEventListener("resize", updatePosition);
+      window.removeEventListener("scroll", updatePosition);
+    };
+  }, [tourStep, isTourActive, activeTab]);
+
   useEffect(() => {
     return () => {
       if (audioPlayer) {
@@ -1912,10 +1987,23 @@ function VoiceAgentDashboard() {
               Real-time telecalling metrics and campaign tracking
             </p>
           </div>
-          <button className="btn btn-primary" onClick={() => fetchAllOnce(true)}>
-            <Sparkles size={16} />
-            <span>Sync Data</span>
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              className="btn btn-secondary p-2 rounded-xl h-9 w-9 flex items-center justify-center border border-white/10 hover:bg-white/5"
+              onClick={() => {
+                setIsTourActive(true);
+                setTourStep(1);
+                setActiveTab("dashboard");
+              }}
+              title="Start Guided Tour"
+            >
+              <HelpCircle size={16} className="text-secondary" />
+            </button>
+            <button id="tour-btn-sync" className="btn btn-primary" onClick={() => fetchAllOnce(true)}>
+              <Sparkles size={16} />
+              <span>Sync Data</span>
+            </button>
+          </div>
         </div>
 
         {/* Overview Cards */}
@@ -3497,6 +3585,7 @@ Provide a concise, professional, instruction-oriented system prompt in English. 
           </div>
           <nav className="flex flex-wrap items-center gap-2">
             <button
+              id="tour-tab-overview"
               className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-medium transition-all ${
                 activeTab === "dashboard"
                   ? "bg-accent/15 text-accent border border-accent/30"
@@ -3508,6 +3597,7 @@ Provide a concise, professional, instruction-oriented system prompt in English. 
               <span>Overview</span>
             </button>
             <button
+              id="tour-tab-campaigns"
               className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-medium transition-all ${
                 activeTab === "campaigns"
                   ? "bg-accent/15 text-accent border border-accent/30"
@@ -3519,6 +3609,7 @@ Provide a concise, professional, instruction-oriented system prompt in English. 
               <span>Campaigns</span>
             </button>
             <button
+              id="tour-tab-crm"
               className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-medium transition-all ${
                 activeTab === "crm"
                   ? "bg-accent/15 text-accent border border-accent/30"
@@ -3530,6 +3621,7 @@ Provide a concise, professional, instruction-oriented system prompt in English. 
               <span>CRM Leads</span>
             </button>
             <button
+              id="tour-tab-calls"
               className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-medium transition-all ${
                 activeTab === "calls"
                   ? "bg-accent/15 text-accent border border-accent/30"
@@ -3541,6 +3633,7 @@ Provide a concise, professional, instruction-oriented system prompt in English. 
               <span>Call Logs</span>
             </button>
             <button
+              id="tour-tab-billing"
               className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-medium transition-all ${
                 activeTab === "billing"
                   ? "bg-accent/15 text-accent border border-accent/30"
@@ -3552,6 +3645,7 @@ Provide a concise, professional, instruction-oriented system prompt in English. 
               <span>Billing & Wallet</span>
             </button>
             <button
+              id="tour-tab-agents"
               className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-medium transition-all ${
                 activeTab === "agents"
                   ? "bg-accent/15 text-accent border border-accent/30"
@@ -3578,6 +3672,169 @@ Provide a concise, professional, instruction-oriented system prompt in English. 
 
       {/* Dialer monitor overlay */}
       {renderCallOverlay()}
+
+      {/* Interactive Guided Tour Overlay */}
+      {isTourActive && (
+        <div className="fixed inset-0 z-[9998] pointer-events-none">
+          {/* Highlight element mask */}
+          {highlightStyle.top !== undefined && (
+            <div
+              style={highlightStyle}
+              className="fixed transition-all duration-150 ease-out pointer-events-none"
+            />
+          )}
+
+          {/* Full-screen click interceptor mask for everything EXCEPT the highlighted area */}
+          <div className="fixed inset-0 bg-transparent pointer-events-auto z-[998]" onClick={() => setIsTourActive(false)} />
+
+          {/* Interactive Tooltip popup */}
+          {tooltipStyle.top !== undefined && (
+            <div
+              style={tooltipStyle}
+              className="glass-card p-5 z-[1000] w-[320px] shadow-2xl animate-fade-in border border-accent/30 pointer-events-auto flex flex-col gap-4"
+            >
+              <div className="flex justify-between items-center pb-2 border-b border-white/5">
+                <h4 className="text-xs font-bold text-accent uppercase tracking-wider">
+                  {tourStep === 1 && "Overview"}
+                  {tourStep === 2 && "Configure Agents"}
+                  {tourStep === 3 && "Campaigns"}
+                  {tourStep === 4 && "CRM Leads"}
+                  {tourStep === 5 && "Billing & Wallet"}
+                  {tourStep === 6 && "Sync Data"}
+                </h4>
+                <span className="text-[10px] text-muted font-mono font-bold">
+                  {tourStep} / 6
+                </span>
+              </div>
+
+              <div className="space-y-2 text-xs">
+                <h3 className="font-extrabold text-primary text-sm">
+                  {tourStep === 1 && "1. Analytics Dashboard"}
+                  {tourStep === 2 && "2. Build Agent Persona"}
+                  {tourStep === 3 && "3. Launch Campaigns"}
+                  {tourStep === 4 && "4. CRM & Outbound Calls"}
+                  {tourStep === 5 && "5. Wallet Credits & Leased Numbers"}
+                  {tourStep === 6 && "6. Real-time Synchronization"}
+                </h3>
+                <p className="text-secondary leading-normal text-[11px]">
+                  {tourStep === 1 && "Welcome to the Voice Agent Studio! This overview dashboard tracks call sessions, interactive answered rates, hot leads qualification, and overall conversion pipeline metrics."}
+                  {tourStep === 2 && "Setup your AI agent here. Customize the agent's name, role description, and conversational rules. Use the Gemini AI Prompt Enhancer to easily generate natural prompts."}
+                  {tourStep === 3 && "Organize your outreach under campaigns. Choose an objective, assign a configured agent, and enable rules like automated WhatsApp brochure delivery."}
+                  {tourStep === 4 && "Add your client list manually or upload CSV contacts. Click the Call button to initiate live simulations or launch actual Twilio/Exotel outbound calling."}
+                  {tourStep === 5 && "Check your SaaS credits here. Recharge your balance (minimum ₹100.00 required to place calls) and lease local area code numbers to verify your caller ID."}
+                  {tourStep === 6 && "Click Sync Data at any time to instantly pull calling session logs, lead qualification updates, and campaign stats in real time!"}
+                </p>
+              </div>
+
+              {/* Animated visual indicators */}
+              <div className="h-16 bg-surface/50 border border-white/5 rounded-lg flex items-center justify-center overflow-hidden relative">
+                {tourStep === 1 && (
+                  <div className="flex items-center gap-1.5 animate-pulse">
+                    <span className="w-2.5 h-2.5 rounded-full bg-accent-green animate-ping" />
+                    <span className="text-[10px] text-accent-green uppercase font-bold tracking-wider">Live Metrics Active</span>
+                  </div>
+                )}
+                {tourStep === 2 && (
+                  <div className="flex items-center gap-1">
+                    {[1, 2, 3, 4, 5].map((i) => (
+                      <span
+                        key={i}
+                        className="w-1 bg-accent rounded-full animate-bounce"
+                        style={{
+                          height: `${Math.random() * 24 + 8}px`,
+                          animationDelay: `${i * 0.15}s`,
+                          animationDuration: "0.8s"
+                        }}
+                      />
+                    ))}
+                  </div>
+                )}
+                {tourStep === 3 && (
+                  <div className="text-[10px] font-bold text-accent-purple border border-accent-purple/20 px-2 py-1 rounded bg-accent-purple/10 flex items-center gap-1.5 animate-pulse">
+                    <Zap size={10} />
+                    <span>WhatsApp Brochure Ready</span>
+                  </div>
+                )}
+                {tourStep === 4 && (
+                  <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-full bg-accent/20 flex items-center justify-center text-accent animate-bounce">
+                      <Mic size={12} />
+                    </div>
+                    <div className="flex flex-col text-[8px] text-muted">
+                      <span>Transcribing call...</span>
+                      <span className="font-bold text-primary">"Yes, send brochure"</span>
+                    </div>
+                  </div>
+                )}
+                {tourStep === 5 && (
+                  <div className="text-center">
+                    <span className="text-xs font-bold text-primary">₹3272.00</span>
+                    <span className="text-[8px] text-accent-green block font-bold">● Wallet Status Active</span>
+                  </div>
+                )}
+                {tourStep === 6 && (
+                  <div className="flex items-center gap-2 text-[10px] font-bold text-primary">
+                    <Sparkles size={14} className="text-accent animate-spin" />
+                    <span>Syncing...</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Navigation buttons */}
+              <div className="flex items-center justify-between pt-2 border-t border-white/5 gap-2">
+                <button
+                  type="button"
+                  className="px-2.5 py-1 text-[10px] text-muted hover:text-primary transition-all border border-transparent hover:bg-white/5 rounded"
+                  onClick={() => setIsTourActive(false)}
+                >
+                  Skip Tour
+                </button>
+                <div className="flex items-center gap-1.5">
+                  {tourStep > 1 && (
+                    <button
+                      type="button"
+                      className="px-2 py-1 text-[10px] text-secondary hover:text-primary border border-white/10 rounded flex items-center gap-0.5"
+                      onClick={() => {
+                        const prev = tourStep - 1;
+                        setTourStep(prev);
+                        if (prev === 1) setActiveTab("dashboard");
+                        else if (prev === 2) setActiveTab("agents");
+                        else if (prev === 3) setActiveTab("campaigns");
+                        else if (prev === 4) setActiveTab("crm");
+                        else if (prev === 5) setActiveTab("billing");
+                        else if (prev === 6) setActiveTab("dashboard");
+                      }}
+                    >
+                      Back
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    className="px-3 py-1 text-[10px] bg-accent hover:bg-accent/80 text-white rounded font-bold"
+                    onClick={() => {
+                      if (tourStep < 6) {
+                        const next = tourStep + 1;
+                        setTourStep(next);
+                        if (next === 1) setActiveTab("dashboard");
+                        else if (next === 2) setActiveTab("agents");
+                        else if (next === 3) setActiveTab("campaigns");
+                        else if (next === 4) setActiveTab("crm");
+                        else if (next === 5) setActiveTab("billing");
+                        else if (next === 6) setActiveTab("dashboard");
+                      } else {
+                        setIsTourActive(false);
+                        localStorage.setItem("voice_agent_tour_completed", "true");
+                      }
+                    }}
+                  >
+                    {tourStep === 6 ? "Finish" : "Next"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

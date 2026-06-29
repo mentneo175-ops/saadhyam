@@ -130,7 +130,7 @@ export function InsightsPanel({ businessAnalysis }: InsightsPanelProps) {
   ] : [];
 
   return (
-    <aside className="hidden xl:flex flex-col gap-5 w-80 shrink-0 border-l border-gray-200 bg-gray-50 p-5 sticky top-16 self-start max-h-[calc(100vh-5rem)] overflow-y-auto dark:border-slate-800 dark:bg-slate-900">
+    <aside className="hidden xl:flex flex-col gap-5 w-80 border-l border-gray-200 bg-gray-50 p-5 fixed right-0 top-16 bottom-0 overflow-y-auto dark:border-slate-800 dark:bg-slate-900 z-30">
       <div>
         <div className="flex items-center justify-between mb-3">
           <div>

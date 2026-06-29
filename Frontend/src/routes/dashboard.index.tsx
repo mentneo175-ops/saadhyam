@@ -46,7 +46,7 @@ import {
   HelpCircle,
   ExternalLink,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, CSSProperties } from "react";
 
 export const Route = createFileRoute("/dashboard/")({
   head: () => ({
@@ -98,6 +98,151 @@ function Overview() {
 
   // Dynamic actions state
   const [dynamicActions, setDynamicActions] = useState<any[]>([]);
+
+  // Onboarding Guided Tour states
+  const [isTourActive, setIsTourActive] = useState(false);
+  const [tourStep, setTourStep] = useState(1);
+  const [highlightStyle, setHighlightStyle] = useState<CSSProperties>({});
+  const [tooltipStyle, setTooltipStyle] = useState<CSSProperties>({});
+  const [activeTourSteps, setActiveTourSteps] = useState<any[]>([]);
+
+  const tourStepsConfig = [
+    {
+      id: "tour-db-snapshots",
+      title: "Overview Metrics",
+      heading: "1. Health & Performance",
+      desc: "Track critical metrics like overall Business Health score, digital search visibility percentage, lead conversion efficiency, and content creation velocity.",
+      indicator: 1
+    },
+    {
+      id: "tour-db-visibility-engine",
+      title: "Visibility Engine",
+      heading: "2. AI Search Authority",
+      desc: "The Saadhyam AI Visibility Engine evaluates your brand authority across search assistants like ChatGPT, Gemini, and Apple Siri, and guides your optimization process.",
+      indicator: 2
+    },
+    {
+      id: "tour-db-competitor-watch",
+      title: "Competitor Watch",
+      heading: "3. Competitor Intelligence",
+      desc: "Add and track key local competitors. Check their performance, visibility gap, and look up suggestions to gain market share in real time.",
+      indicator: 3
+    },
+    {
+      id: "tour-db-growth-journey",
+      title: "Growth Journey",
+      heading: "4. Growth & Daily Actions",
+      desc: "Stay on top of your daily checklists. Complete tasks to unlock milestones and follow the visual growth progression charts.",
+      indicator: 4
+    },
+    {
+      id: "tour-db-recommendations",
+      title: "Gemini Action Plan",
+      heading: "5. AI Recommendations",
+      desc: "Get custom recommendations prioritized for you by Gemini AI today. Easily launch automated WhatsApp campaigns or reputation requests with one tap.",
+      indicator: 5
+    },
+    {
+      id: "tour-db-growth-plan",
+      title: "30-Day Growth Plan",
+      heading: "6. Roadmaps & Milestones",
+      desc: "Follow this structured 30-day plan divided into weekly focus areas to systematically build GMB rankings, social authority, and sales conversion pipelines.",
+      indicator: 6
+    }
+  ];
+
+  // Auto-trigger tour for new users once data has loaded
+  useEffect(() => {
+    const isCompleted = localStorage.getItem("dashboard_tour_completed");
+    if (!isCompleted && !profileLoading && !analysisLoading && !insightsLoading && profile) {
+      const timer = setTimeout(() => {
+        setIsTourActive(true);
+        setTourStep(1);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [profileLoading, analysisLoading, insightsLoading, profile]);
+
+  // Dynamically filter tour steps based on elements currently rendered in the DOM
+  useEffect(() => {
+    if (isTourActive) {
+      const active = tourStepsConfig.filter(step => !!document.getElementById(step.id));
+      setActiveTourSteps(active);
+      if (tourStep > active.length && active.length > 0) {
+        setTourStep(1);
+      }
+    }
+  }, [isTourActive]);
+
+  // Scroll target into view when step changes
+  useEffect(() => {
+    if (!isTourActive || activeTourSteps.length === 0) return;
+
+    const currentStepConfig = activeTourSteps[tourStep - 1];
+    if (currentStepConfig) {
+      const element = document.getElementById(currentStepConfig.id);
+      if (element) {
+        element.scrollIntoView({ block: "center", inline: "nearest", behavior: "smooth" });
+      }
+    }
+  }, [tourStep, isTourActive, activeTourSteps]);
+
+  // Position tracking logic supporting scrolling and window resizing
+  useEffect(() => {
+    if (!isTourActive || activeTourSteps.length === 0) return;
+
+    const currentStepConfig = activeTourSteps[tourStep - 1];
+    if (!currentStepConfig) return;
+
+    const updatePosition = () => {
+      const element = document.getElementById(currentStepConfig.id);
+      if (element) {
+        const rect = element.getBoundingClientRect();
+        
+        // Use fixed positioning relative to viewport
+        setHighlightStyle({
+          top: rect.top - 4,
+          left: rect.left - 4,
+          width: rect.width + 8,
+          height: rect.height + 8,
+          position: "fixed",
+          borderRadius: "16px",
+          boxShadow: "0 0 0 9999px rgba(15, 23, 42, 0.75), 0 0 20px 4px rgba(139, 92, 246, 0.4)",
+          border: "2px solid #8B5CF6",
+          zIndex: 9999,
+          pointerEvents: "none",
+          transition: "all 0.15s ease-out",
+        });
+
+        // Determine if tooltip fits below or should go above
+        const spaceBelow = window.innerHeight - rect.bottom;
+        const placeBelow = spaceBelow > 260 || rect.top < 260;
+
+        setTooltipStyle({
+          top: placeBelow ? rect.bottom + 12 : rect.top - 280,
+          left: Math.max(16, Math.min(window.innerWidth - 340, rect.left + rect.width / 2 - 160)),
+          position: "fixed",
+          zIndex: 10000,
+          width: "320px",
+          transition: "all 0.15s ease-out",
+        });
+      }
+    };
+
+    updatePosition();
+    const timer1 = setTimeout(updatePosition, 100);
+    const timer2 = setTimeout(updatePosition, 400);
+
+    window.addEventListener("resize", updatePosition);
+    window.addEventListener("scroll", updatePosition, { passive: true });
+
+    return () => {
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+      window.removeEventListener("resize", updatePosition);
+      window.removeEventListener("scroll", updatePosition);
+    };
+  }, [tourStep, isTourActive, activeTourSteps]);
 
   // 30-Day Growth Plan state
   const [growthPlan, setGrowthPlan] = useState<GrowthPlanData | null>(null);
@@ -627,8 +772,8 @@ function Overview() {
         </div>
       )}
 
-      <div className="flex flex-1 bg-background">
-        <div className="flex-1 min-w-0 p-4 md:p-6 lg:p-8 space-y-6">
+      <div className="flex flex-1 bg-background lg:h-[calc(100vh-4rem)] lg:overflow-hidden">
+        <div className="flex-1 min-w-0 p-4 md:p-6 lg:p-8 xl:mr-80 space-y-6 lg:overflow-y-auto lg:h-full">
           {/* Loading state */}
           {checkingProfile && (
             <div className="text-center py-16">
@@ -671,15 +816,49 @@ function Overview() {
           {/* Main content - show even without profile */}
           {!checkingProfile && (
             <>
+              {/* Dashboard Title & Onboarding Help Trigger */}
+              <div className="flex items-center justify-between pb-3 border-b border-gray-200/50 dark:border-purple-500/25 mb-4">
+                <div>
+                  <h1 className="text-xl font-bold tracking-tight text-gray-900 dark:text-slate-100">
+                    Business Analytics Dashboard
+                  </h1>
+                  <p className="text-xs text-gray-500 dark:text-slate-400">
+                    AI-powered growth intelligence and system performance metrics
+                  </p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <button
+                    id="tour-btn-dashboard-help"
+                    type="button"
+                    className="p-2 rounded-xl bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-purple-600 dark:bg-slate-900 dark:border-slate-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-purple-400 shadow-xs transition-all cursor-pointer"
+                    onClick={() => {
+                      setIsTourActive(true);
+                      setTourStep(1);
+                    }}
+                    title="Start Guided Tour"
+                  >
+                    <HelpCircle size={16} />
+                  </button>
+                  <Button
+                    onClick={refreshAll}
+                    disabled={analysisLoading}
+                    className="bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5 shadow-md shadow-purple-600/10 transition-all cursor-pointer"
+                  >
+                    <RefreshCw size={12} className={analysisLoading ? "animate-spin" : ""} />
+                    <span>Sync Metrics</span>
+                  </Button>
+                </div>
+              </div>
+
               {/* Snapshot cards - Mobile: 2x2 Grid, Desktop: Single Row */}
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
+              <div id="tour-db-snapshots" className="grid grid-cols-2 lg:grid-cols-4 gap-5">
                 {updatedSnapshots.map((s) => (
                   <SnapshotCard key={s.title} {...s} />
                 ))}
               </div>
 
               {/* Saadhyam AI Visibility Engine™ Dashboard Card */}
-              <div className="bg-slate-900 border border-purple-500/20 rounded-2xl p-6 shadow-[0_4px_30px_rgba(139,92,246,0.1)] relative overflow-hidden group hover:border-purple-500/40 transition-all duration-300 dark:bg-slate-900">
+              <div id="tour-db-visibility-engine" className="bg-slate-900 border border-purple-500/20 rounded-2xl p-6 shadow-[0_4px_30px_rgba(139,92,246,0.1)] relative overflow-hidden group hover:border-purple-500/40 transition-all duration-300 dark:bg-slate-900">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div className="space-y-1">
@@ -707,95 +886,6 @@ function Overview() {
                 </div>
               </div>
 
-              {/* System Status & Feature Availability Card */}
-              <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 dark:border-purple-500/20 shadow-xl shadow-gray-200/50 dark:shadow-[0_4px_30px_rgba(139,92,246,0.05)] p-6 hover:shadow-2xl transition-all duration-300">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5 border-b border-gray-100 dark:border-slate-800/60 pb-4">
-                  <div className="space-y-1">
-                    <h3 className="font-extrabold text-base text-gray-900 dark:text-slate-100 flex items-center gap-2">
-                      <Activity size={18} className="text-purple-600 dark:text-purple-400" />
-                      System Status & Feature Availability
-                    </h3>
-                    <p className="text-xs text-gray-500 dark:text-slate-400">
-                      Real-time operational status of all platform features. Controlled by Super Admin.
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2 self-start sm:self-auto bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/20 px-3 py-1 rounded-full text-xs font-bold">
-                    <span className="relative flex h-2 w-2">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-                    </span>
-                    Live Connection Active
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-3">
-                  {[
-                    { key: "business_analysis", label: "Business Analysis", path: "/dashboard/business-analysis" },
-                    { key: "radar_ai", label: "Radar AI", path: "/dashboard/radar" },
-                    { key: "ai_agents", label: "AI Agents", path: "/dashboard/agents" },
-                    { key: "competitor_analysis", label: "Competitor Analysis", path: "/dashboard/competitor-analysis" },
-                    { key: "daily_suggestions", label: "Daily Suggestions", path: "/dashboard/daily-ask" },
-                    { key: "aeo_geo", label: "Google Hub", path: "/dashboard/seo-google-maps" },
-                    { key: "b2b_network", label: "B2B Network", path: "/dashboard/b2b-network" },
-                    { key: "content_scheduler", label: "Content Creator", path: "/dashboard/content" },
-                    { key: "instagram_manager", label: "Instagram Tools", path: "/dashboard/instagram" },
-                    { key: "youtube_manager", label: "YouTube Tools", path: "/dashboard/youtube" },
-                    { key: "meta_ads", label: "Meta Ads", path: "/dashboard/meta-ads" },
-                    { key: "whatsapp_campaigns", label: "WhatsApp Sales", path: "/dashboard/whatsapp" },
-                    { key: "voice_agent", label: "AI Voice Agent", path: "/dashboard/voice-agent" },
-                    { key: "website_ai", label: "Website AI", path: "/dashboard/website" },
-                    { key: "review_reply", label: "Review Reply", path: "/dashboard/review-reply" },
-                    { key: "plugins_store", label: "Plugins Store", path: "/dashboard/plugins" },
-                  ].map((feat) => {
-                    const flag = featureFlags.find((f: any) => f.key === feat.key);
-                    const status = flag ? flag.status : "enabled";
-                    const reason = flag ? flag.reason : null;
-
-                    let statusDotColor = "bg-green-500 shadow-green-500/30";
-                    let statusBgColor = "bg-green-500/5 dark:bg-green-500/10 hover:bg-green-500/10 dark:hover:bg-green-500/15 text-green-700 dark:text-green-300 border-green-500/20";
-                    let statusLabel = "Operational";
-
-                    if (status === "disabled") {
-                      statusDotColor = "bg-red-500 shadow-red-500/30 animate-pulse";
-                      statusBgColor = "bg-red-500/5 dark:bg-red-500/10 hover:bg-red-500/10 dark:hover:bg-red-500/15 text-red-700 dark:text-red-300 border-red-500/20";
-                      statusLabel = "Disabled";
-                    } else if (status === "maintenance") {
-                      statusDotColor = "bg-amber-500 shadow-amber-500/30 animate-pulse";
-                      statusBgColor = "bg-amber-500/5 dark:bg-amber-500/10 hover:bg-amber-500/10 dark:hover:bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/20";
-                      statusLabel = "Maintenance";
-                    }
-
-                    const handleFeatureClick = () => {
-                      if (status !== "enabled") {
-                        window.dispatchEvent(new CustomEvent("feature-blocked", {
-                          detail: {
-                            feature_key: feat.key,
-                            mode: status,
-                            detail: reason || `This feature is currently ${status}.`
-                          }
-                        }));
-                      } else {
-                        navigate({ to: feat.path as any });
-                      }
-                    };
-
-                    return (
-                      <button
-                        key={feat.key}
-                        onClick={handleFeatureClick}
-                        className={`flex items-center justify-between p-3 rounded-xl border text-xs font-semibold tracking-wide transition-all duration-200 cursor-pointer text-left ${statusBgColor}`}
-                      >
-                        <span className="truncate pr-2">{feat.label}</span>
-                        <span className="flex items-center gap-1.5 shrink-0">
-                          <span className={`inline-block h-2 w-2 rounded-full shadow-[0_0_8px_var(--tw-shadow-color)] ${statusDotColor}`} />
-                          <span className="text-[10px] opacity-80 font-bold hidden sm:inline">{statusLabel}</span>
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
               {/* Instagram Analytics & Competitor Watch */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
                 <div className="lg:col-span-1 space-y-5 flex flex-col">
@@ -804,7 +894,7 @@ function Overview() {
                   </div>
                   
                   {/* Competitor Watch Card */}
-                  <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 shadow-xl shadow-gray-200/50 p-6 hover:shadow-2xl hover:shadow-gray-300/50 transition-all duration-300 space-y-4">
+                  <div id="tour-db-competitor-watch" className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 shadow-xl shadow-gray-200/50 p-6 hover:shadow-2xl hover:shadow-gray-300/50 transition-all duration-300 space-y-4">
                     <div className="flex items-center justify-between">
                       <div>
                         <h3 className="font-bold text-base text-gray-900 flex items-center gap-1.5 dark:text-slate-100">
@@ -957,7 +1047,7 @@ function Overview() {
                 </div>
 
                 {/* Growth journey with integrated daily task */}
-                <div className="lg:col-span-2 bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 shadow-xl shadow-gray-200/50 p-6 hover:shadow-2xl hover:shadow-gray-300/50 transition-all duration-300">
+                <div id="tour-db-growth-journey" className="lg:col-span-2 bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/50 shadow-xl shadow-gray-200/50 p-6 hover:shadow-2xl hover:shadow-gray-300/50 transition-all duration-300">
                   <div className="flex items-center justify-between mb-4">
                     <div>
                       <h3 className="font-bold text-lg text-gray-900 dark:text-slate-100">Your Growth Journey</h3>
@@ -982,7 +1072,7 @@ function Overview() {
               </div>
 
               {/* Recommended actions */}
-              <div>
+              <div id="tour-db-recommendations">
                 <div className="flex items-center justify-between mb-4">
                   <div>
                     <h3 className="font-bold text-lg text-gray-900 dark:text-slate-100">
@@ -1018,7 +1108,7 @@ function Overview() {
                     ))}
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-4 gap-5">
                     {actionsToShow.map((a, idx) => (
                       <ActionCard key={`${a.title}-${idx}`} {...a} />
                     ))}
@@ -1028,7 +1118,7 @@ function Overview() {
 
               {/* 30-Day Growth Plan */}
               {growthPlan?.thirty_day_growth_plan && (
-                <div className="bg-white rounded-2xl shadow-xl shadow-gray-200/50 overflow-hidden border border-gray-200/50 backdrop-blur-sm hover:shadow-2xl hover:shadow-purple-300/50 transition-all duration-300 dark:bg-slate-900">
+                <div id="tour-db-growth-plan" className="bg-white rounded-2xl shadow-xl shadow-gray-200/50 overflow-hidden border border-gray-200/50 backdrop-blur-sm hover:shadow-2xl hover:shadow-purple-300/50 transition-all duration-300 dark:bg-slate-900">
                   <div className="bg-linear-to-r from-[#8B5CF6] to-[#A855F7] p-6">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-4">
@@ -1052,7 +1142,7 @@ function Overview() {
                       </Button>
                     </div>
                   </div>
-                  <div className="p-6 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                  <div className="p-6 grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-4">
                     {growthPlan.thirty_day_growth_plan.week_1 &&
                       growthPlan.thirty_day_growth_plan.week_1.length > 0 && (
                         <div className="bg-white rounded-xl p-5 border border-gray-200 hover:border-blue-300 hover:shadow-lg transition-all duration-300 group dark:bg-slate-900 dark:border-slate-800">
@@ -1195,6 +1285,147 @@ function Overview() {
           businessAnalysis={analysis?.status === "success" ? analysis.analysis : null}
         />
       </div>
+
+      {/* Interactive Guided Tour Overlay */}
+      {isTourActive && (
+        <div className="fixed inset-0 z-[9998] pointer-events-none">
+          {/* Highlight element mask */}
+          {highlightStyle.top !== undefined && (
+            <div
+              style={highlightStyle}
+              className="fixed transition-all duration-200 ease-out pointer-events-none"
+            />
+          )}
+
+          {/* Full-screen click interceptor mask for everything EXCEPT the highlighted area */}
+          <div className="fixed inset-0 bg-transparent pointer-events-auto z-[998]" onClick={() => setIsTourActive(false)} />
+
+          {/* Interactive Tooltip popup */}
+          {tooltipStyle.top !== undefined && activeTourSteps[tourStep - 1] && (
+            <div
+              style={tooltipStyle}
+              className="bg-slate-900 border border-purple-500/30 p-5 z-[10000] w-[320px] shadow-2xl rounded-2xl animate-fade-in pointer-events-auto flex flex-col gap-4 text-white"
+            >
+              <div className="flex justify-between items-center pb-2 border-b border-white/5">
+                <h4 className="text-[10px] font-bold text-purple-400 uppercase tracking-wider">
+                  {activeTourSteps[tourStep - 1].title}
+                </h4>
+                <span className="text-[10px] text-slate-400 font-mono font-bold">
+                  {tourStep} / {activeTourSteps.length}
+                </span>
+              </div>
+
+              <div className="space-y-1.5 text-xs">
+                <h3 className="font-extrabold text-white text-sm">
+                  {activeTourSteps[tourStep - 1].heading}
+                </h3>
+                <p className="text-slate-300 leading-normal text-[11px]">
+                  {activeTourSteps[tourStep - 1].desc}
+                </p>
+              </div>
+
+              {/* Animated visual indicators */}
+              <div className="h-16 bg-slate-950/60 border border-white/5 rounded-xl flex items-center justify-center overflow-hidden relative">
+                {activeTourSteps[tourStep - 1].indicator === 1 && (
+                  <div className="flex items-center gap-1.5">
+                    <span className="relative flex h-2.5 w-2.5">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500"></span>
+                    </span>
+                    <span className="text-[10px] text-green-400 uppercase font-bold tracking-wider animate-pulse">Monitoring Live Health</span>
+                  </div>
+                )}
+                {activeTourSteps[tourStep - 1].indicator === 2 && (
+                  <div className="flex items-center gap-2 text-[10px] font-bold text-purple-400">
+                    <Sparkles size={14} className="animate-spin text-purple-400" />
+                    <span>Gemini / ChatGPT Optimization Active</span>
+                  </div>
+                )}
+                {activeTourSteps[tourStep - 1].indicator === 3 && (
+                  <div className="flex items-center gap-2">
+                    <div className="w-2.5 h-2.5 rounded-full bg-green-500 animate-ping" />
+                    <span className="text-[10px] text-green-400 font-bold uppercase tracking-wider">All Systems Operational</span>
+                  </div>
+                )}
+                {activeTourSteps[tourStep - 1].indicator === 4 && (
+                  <div className="flex items-center gap-1.5 text-[10px] text-purple-400 font-bold">
+                    <Users size={12} className="animate-bounce" />
+                    <span>Competitor Auditing Tool Active</span>
+                  </div>
+                )}
+                {activeTourSteps[tourStep - 1].indicator === 5 && (
+                  <div className="w-4/5 space-y-1">
+                    <div className="flex justify-between text-[8px] text-slate-400">
+                      <span>Daily Checklist Progress</span>
+                      <span className="font-bold text-white">75%</span>
+                    </div>
+                    <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                      <div className="bg-purple-500 h-full rounded-full animate-pulse" style={{ width: "75%" }} />
+                    </div>
+                  </div>
+                )}
+                {activeTourSteps[tourStep - 1].indicator === 6 && (
+                  <div className="text-[10px] font-bold text-purple-300 border border-purple-500/20 px-2 py-1 rounded bg-purple-500/10 flex items-center gap-1.5 animate-pulse">
+                    <Zap size={10} />
+                    <span>AI Insights Refreshed</span>
+                  </div>
+                )}
+                {activeTourSteps[tourStep - 1].indicator === 7 && (
+                  <div className="flex items-center gap-1">
+                    {[1, 2, 3, 4].map((i) => (
+                      <span
+                        key={i}
+                        className="w-4 bg-purple-500/50 rounded-sm animate-bounce"
+                        style={{
+                          height: `${Math.random() * 20 + 8}px`,
+                          animationDelay: `${i * 0.1}s`,
+                          animationDuration: "0.8s"
+                        }}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Navigation buttons */}
+              <div className="flex items-center justify-between pt-2 border-t border-white/5 gap-2">
+                <button
+                  type="button"
+                  className="px-2.5 py-1 text-[10px] text-slate-400 hover:text-white transition-all border border-transparent hover:bg-white/5 rounded cursor-pointer animate-fade-in"
+                  onClick={() => setIsTourActive(false)}
+                >
+                  Skip
+                </button>
+                <div className="flex items-center gap-1.5 animate-fade-in">
+                  {tourStep > 1 && (
+                    <button
+                      type="button"
+                      className="px-2 py-1 text-[10px] text-slate-300 hover:text-white border border-white/10 rounded cursor-pointer"
+                      onClick={() => setTourStep(tourStep - 1)}
+                    >
+                      Back
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    className="px-3 py-1 text-[10px] bg-purple-600 hover:bg-purple-500 text-white rounded-lg font-bold cursor-pointer"
+                    onClick={() => {
+                      if (tourStep < activeTourSteps.length) {
+                        setTourStep(tourStep + 1);
+                      } else {
+                        setIsTourActive(false);
+                        localStorage.setItem("dashboard_tour_completed", "true");
+                      }
+                    }}
+                  >
+                    {tourStep === activeTourSteps.length ? "Finish" : "Next"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </>
   );
 }

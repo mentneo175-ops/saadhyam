@@ -715,6 +715,142 @@ function PluginsPage() {
   // Developer Key State
   const [devApiKey, setDevApiKey] = useState("");
 
+  // Onboarding Tour states
+  const [isTourActive, setIsTourActive] = useState(false);
+  const [tourStep, setTourStep] = useState(1);
+  const [highlightStyle, setHighlightStyle] = useState<React.CSSProperties>({});
+  const [tooltipStyle, setTooltipStyle] = useState<React.CSSProperties>({});
+  const [activeTourSteps, setActiveTourSteps] = useState<any[]>([]);
+
+  const tourStepsConfig = [
+    {
+      id: "tour-plugins-tabs",
+      title: "Tab Navigation",
+      heading: "1. Store vs. Active Hub",
+      desc: "Switch between finding new plugins, controlling active plugin automations, or accessing the developer portal.",
+      indicator: 1
+    },
+    {
+      id: "tour-plugins-intro",
+      title: "Introduction Walkthrough",
+      heading: "2. Video Guided Setup",
+      desc: "Watch our interactive video to see how automated AI nodes pass messages to perform business tasks.",
+      indicator: 2
+    },
+    {
+      id: "tour-plugins-recommendations",
+      title: "Smart AI Matching",
+      heading: "3. Auto-Recommended Plugins",
+      desc: "Select your company's vertical business category to get tailor-made suggestions selected by Saadhyam AI.",
+      indicator: 3
+    },
+    {
+      id: "tour-plugins-filters",
+      title: "Marketplace Search",
+      heading: "4. Filter Categories",
+      desc: "Search by plugin name, or filter by category: Operations, Marketing, or Developer tools.",
+      indicator: 4
+    },
+    {
+      id: "tour-plugins-grid",
+      title: "Plugin Cards Marketplace",
+      heading: "5. Install & Run Flows",
+      desc: "Browse detailed blueprints of each plugin, check required APIs, DDL databases, and click to install.",
+      indicator: 5
+    }
+  ];
+
+  // Auto-trigger tour for new users once loaded
+  useEffect(() => {
+    const isCompleted = localStorage.getItem("saadhyam_tour_plugins_completed");
+    if (!isCompleted) {
+      const timer = setTimeout(() => {
+        setIsTourActive(true);
+        setTourStep(1);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
+  // Filter active steps based on DOM presence
+  useEffect(() => {
+    if (isTourActive) {
+      const active = tourStepsConfig.filter(step => !!document.getElementById(step.id));
+      setActiveTourSteps(active);
+      if (tourStep > active.length && active.length > 0) {
+        setTourStep(1);
+      }
+    }
+  }, [isTourActive]);
+
+  // Scroll target into view when step changes
+  useEffect(() => {
+    if (!isTourActive || activeTourSteps.length === 0) return;
+
+    const currentStepConfig = activeTourSteps[tourStep - 1];
+    if (currentStepConfig) {
+      const element = document.getElementById(currentStepConfig.id);
+      if (element) {
+        element.scrollIntoView({ block: "center", inline: "nearest", behavior: "smooth" });
+      }
+    }
+  }, [tourStep, isTourActive, activeTourSteps]);
+
+  // Position tracking logic supporting scrolling and window resizing
+  useEffect(() => {
+    if (!isTourActive || activeTourSteps.length === 0) return;
+
+    const currentStepConfig = activeTourSteps[tourStep - 1];
+    if (!currentStepConfig) return;
+
+    const updatePosition = () => {
+      const element = document.getElementById(currentStepConfig.id);
+      if (element) {
+        const rect = element.getBoundingClientRect();
+        
+        setHighlightStyle({
+          top: rect.top - 4,
+          left: rect.left - 4,
+          width: rect.width + 8,
+          height: rect.height + 8,
+          position: "fixed",
+          borderRadius: "16px",
+          boxShadow: "0 0 0 9999px rgba(15, 23, 42, 0.75), 0 0 20px 4px rgba(139, 92, 246, 0.4)",
+          border: "2px solid #8B5CF6",
+          zIndex: 9999,
+          pointerEvents: "none",
+          transition: "all 0.15s ease-out",
+        });
+
+        const spaceBelow = window.innerHeight - rect.bottom;
+        const placeBelow = spaceBelow > 260 || rect.top < 260;
+
+        setTooltipStyle({
+          top: placeBelow ? rect.bottom + 12 : rect.top - 280,
+          left: Math.max(16, Math.min(window.innerWidth - 340, rect.left + rect.width / 2 - 160)),
+          position: "fixed",
+          zIndex: 10000,
+          width: "320px",
+          transition: "all 0.15s ease-out",
+        });
+      }
+    };
+
+    updatePosition();
+    const timer1 = setTimeout(updatePosition, 100);
+    const timer2 = setTimeout(updatePosition, 400);
+
+    window.addEventListener("resize", updatePosition);
+    window.addEventListener("scroll", updatePosition, { passive: true });
+
+    return () => {
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+      window.removeEventListener("resize", updatePosition);
+      window.removeEventListener("scroll", updatePosition);
+    };
+  }, [tourStep, isTourActive, activeTourSteps]);
+
   useEffect(() => {
     loadEcosystemData();
   }, [businessType]);
@@ -1052,38 +1188,52 @@ function PluginsPage() {
           </p>
         </div>
 
-        {/* Tab Controls */}
-        <div className="flex bg-slate-900 p-1 rounded-xl border border-slate-800 self-start dark:bg-slate-900 dark:border-slate-700">
+        <div className="flex items-center gap-3 self-start">
           <button
-            onClick={() => setActiveTab("store")}
-            className={`px-4 py-2 text-xs font-semibold rounded-lg transition-all ${
-              activeTab === "store"
-                ? "bg-purple-600 text-white shadow-md shadow-purple-500/10"
-                : "text-slate-400 hover:text-white"
-            }`}
+            id="tour-btn-plugins-help"
+            type="button"
+            className="p-2 rounded-xl bg-slate-900 border border-slate-805/40 text-slate-400 hover:bg-slate-800 hover:text-purple-400 shadow-xs transition-all cursor-pointer dark:border-slate-800 shrink-0"
+            onClick={() => {
+              setIsTourActive(true);
+              setTourStep(1);
+            }}
+            title="Start Guided Tour"
           >
-            Plugin Store
+            <HelpCircle size={16} />
           </button>
-          <button
-            onClick={() => setActiveTab("active")}
-            className={`px-4 py-2 text-xs font-semibold rounded-lg transition-all ${
-              activeTab === "active"
-                ? "bg-purple-600 text-white shadow-md shadow-purple-500/10"
-                : "text-slate-400 hover:text-white"
-            }`}
-          >
-            Active Hub ({installedPluginIds.length})
-          </button>
-          <button
-            onClick={() => setActiveTab("developer")}
-            className={`px-4 py-2 text-xs font-semibold rounded-lg transition-all ${
-              activeTab === "developer"
-                ? "bg-purple-600 text-white shadow-md shadow-purple-500/10"
-                : "text-slate-400 hover:text-white"
-            }`}
-          >
-            Developer Portal
-          </button>
+          {/* Tab Controls */}
+          <div id="tour-plugins-tabs" className="flex bg-slate-900 p-1 rounded-xl border border-slate-800 dark:bg-slate-900 dark:border-slate-700">
+            <button
+              onClick={() => setActiveTab("store")}
+              className={`px-4 py-2 text-xs font-semibold rounded-lg transition-all ${
+                activeTab === "store"
+                  ? "bg-purple-600 text-white shadow-md shadow-purple-500/10"
+                  : "text-slate-400 hover:text-white"
+              }`}
+            >
+              Plugin Store
+            </button>
+            <button
+              onClick={() => setActiveTab("active")}
+              className={`px-4 py-2 text-xs font-semibold rounded-lg transition-all ${
+                activeTab === "active"
+                  ? "bg-purple-600 text-white shadow-md shadow-purple-500/10"
+                  : "text-slate-400 hover:text-white"
+              }`}
+            >
+              Active Hub ({installedPluginIds.length})
+            </button>
+            <button
+              onClick={() => setActiveTab("developer")}
+              className={`px-4 py-2 text-xs font-semibold rounded-lg transition-all ${
+                activeTab === "developer"
+                  ? "bg-purple-600 text-white shadow-md shadow-purple-500/10"
+                  : "text-slate-400 hover:text-white"
+              }`}
+            >
+              Developer Portal
+            </button>
+          </div>
         </div>
       </div>
 
@@ -1091,7 +1241,7 @@ function PluginsPage() {
         <>
           {/* Onboarding & Video Introduction Section */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 bg-slate-900/60 border border-slate-800 rounded-2xl p-6 shadow-md relative overflow-hidden flex flex-col justify-between backdrop-blur-md dark:border-slate-700">
+            <div id="tour-plugins-intro" className="lg:col-span-2 bg-slate-900/60 border border-slate-800 rounded-2xl p-6 shadow-md relative overflow-hidden flex flex-col justify-between backdrop-blur-md dark:border-slate-700">
               <div className="space-y-4">
                 <div className="flex items-center gap-2 bg-purple-500/10 border border-purple-500/30 text-purple-400 text-xs px-3 py-1 rounded-full w-fit">
                   <Video size={12} />
@@ -1199,8 +1349,7 @@ function PluginsPage() {
               </div>
             </div>
 
-            {/* AI Recommendation Engine Panel */}
-            <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 shadow-md relative overflow-hidden backdrop-blur-md flex flex-col justify-between dark:border-slate-700">
+            <div id="tour-plugins-recommendations" className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 shadow-md relative overflow-hidden backdrop-blur-md flex flex-col justify-between dark:border-slate-700">
               <div className="space-y-4">
                 <div className="flex items-center gap-2 text-purple-400 text-xs font-semibold uppercase tracking-wider">
                   <Sparkles size={14} className="animate-pulse" />
@@ -1250,7 +1399,7 @@ function PluginsPage() {
 
           {/* Plugin Marketplace Storefront */}
           <div className="space-y-4 pt-4">
-            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between bg-slate-900/40 p-4 border border-slate-900 rounded-2xl dark:border-slate-700">
+            <div id="tour-plugins-filters" className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between bg-slate-900/40 p-4 border border-slate-900 rounded-2xl dark:border-slate-700">
               {/* Category filters */}
               <div className="flex flex-wrap gap-1.5">
                 {[
@@ -1288,7 +1437,7 @@ function PluginsPage() {
             </div>
 
             {/* Marketplace Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div id="tour-plugins-grid" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {sortedPlugins.map((plugin) => {
                 const Icon = plugin.icon;
                 const isInstalled = installedPluginIds.includes(plugin.id);
@@ -1991,6 +2140,120 @@ function PluginsPage() {
           </>
         )}
       </AnimatePresence>
+      {/* Interactive Guided Tour Overlay */}
+      {isTourActive && (
+        <div className="fixed inset-0 z-[9998] pointer-events-none text-slate-100">
+          {/* Highlight element mask */}
+          {highlightStyle.top !== undefined && (
+            <div
+              style={highlightStyle}
+              className="fixed transition-all duration-200 ease-out pointer-events-none"
+            />
+          )}
+
+          {/* Full-screen click interceptor mask for everything EXCEPT the highlighted area */}
+          <div className="fixed inset-0 bg-transparent pointer-events-auto z-[998]" onClick={() => setIsTourActive(false)} />
+
+          {/* Interactive Tooltip popup */}
+          {tooltipStyle.top !== undefined && activeTourSteps[tourStep - 1] && (
+            <div
+              style={tooltipStyle}
+              className="bg-slate-900 border border-purple-500/30 p-5 z-[10000] w-[320px] shadow-2xl rounded-2xl animate-fade-in pointer-events-auto flex flex-col gap-4 text-white"
+            >
+              <div className="flex justify-between items-center pb-2 border-b border-white/5">
+                <h4 className="text-[10px] font-bold text-purple-400 uppercase tracking-wider">
+                  {activeTourSteps[tourStep - 1].title}
+                </h4>
+                <span className="text-[10px] text-slate-400 font-mono font-bold">
+                  {tourStep} / {activeTourSteps.length}
+                </span>
+              </div>
+
+              <div className="space-y-1.5 text-xs">
+                <h3 className="font-extrabold text-white text-sm">
+                  {activeTourSteps[tourStep - 1].heading}
+                </h3>
+                <p className="text-slate-300 leading-normal text-[11px]">
+                  {activeTourSteps[tourStep - 1].desc}
+                </p>
+              </div>
+
+              {/* Animated visual indicators */}
+              <div className="h-16 bg-slate-950/60 border border-white/5 rounded-xl flex items-center justify-center overflow-hidden relative">
+                {activeTourSteps[tourStep - 1].indicator === 1 && (
+                  <div className="flex items-center gap-2 text-[10px] font-bold text-purple-400">
+                    <Puzzle size={14} className="animate-spin text-purple-400" />
+                    <span>Workspace router ready</span>
+                  </div>
+                )}
+                {activeTourSteps[tourStep - 1].indicator === 2 && (
+                  <div className="flex items-center gap-2 text-[10px] font-bold text-purple-400">
+                    <Video size={14} className="animate-pulse text-purple-400" />
+                    <span>Walkthrough player ready</span>
+                  </div>
+                )}
+                {activeTourSteps[tourStep - 1].indicator === 3 && (
+                  <div className="flex items-center gap-1.5">
+                    <span className="relative flex h-2.5 w-2.5">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-purple-500"></span>
+                    </span>
+                    <span className="text-[10px] text-purple-400 uppercase font-bold tracking-wider animate-pulse">Running AI Recommender</span>
+                  </div>
+                )}
+                {activeTourSteps[tourStep - 1].indicator === 4 && (
+                  <div className="flex items-center gap-2 text-[10px] font-bold text-purple-400">
+                    <Search size={14} className="animate-bounce text-purple-400" />
+                    <span>Filter index active</span>
+                  </div>
+                )}
+                {activeTourSteps[tourStep - 1].indicator === 5 && (
+                  <div className="flex items-center gap-2">
+                    <div className="w-2.5 h-2.5 rounded-full bg-blue-500 animate-ping" />
+                    <span className="text-[10px] text-blue-400 font-bold uppercase tracking-wider">Sync local setups</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Navigation buttons */}
+              <div className="flex items-center justify-between pt-2 border-t border-white/5 gap-2">
+                <button
+                  type="button"
+                  className="px-2.5 py-1 text-[10px] text-slate-400 hover:text-white transition-all border border-transparent hover:bg-white/5 rounded cursor-pointer"
+                  onClick={() => setIsTourActive(false)}
+                >
+                  Skip
+                </button>
+                <div className="flex items-center gap-1.5">
+                  {tourStep > 1 && (
+                    <button
+                      type="button"
+                      className="px-2 py-1 text-[10px] text-slate-300 hover:text-white border border-white/10 rounded cursor-pointer"
+                      onClick={() => setTourStep(tourStep - 1)}
+                    >
+                      Back
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    className="px-3 py-1 text-[10px] bg-purple-600 hover:bg-purple-500 text-white rounded-lg font-bold cursor-pointer"
+                    onClick={() => {
+                      if (tourStep < activeTourSteps.length) {
+                        setTourStep(tourStep + 1);
+                      } else {
+                        setIsTourActive(false);
+                        localStorage.setItem("saadhyam_tour_plugins_completed", "true");
+                      }
+                    }}
+                  >
+                    {tourStep === activeTourSteps.length ? "Finish" : "Next"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

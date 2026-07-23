@@ -441,6 +441,22 @@ except Exception as e:
     logging.warning(f"Webhooks router not available: {e}")
     webhooks_available = False
 try:
+    from routes.user_api_keys import router as user_api_keys_router
+    user_api_keys_available = True
+    logging.info("✅ User API Keys router imported successfully")
+except Exception as e:
+    logging.warning(f"User API Keys router not available: {e}")
+    user_api_keys_available = False
+
+try:
+    from routes.user_instagram_oauth import router as user_instagram_oauth_router
+    user_instagram_oauth_available = True
+    logging.info("✅ User Instagram OAuth router imported successfully")
+except Exception as e:
+    logging.warning(f"User Instagram OAuth router not available: {e}")
+    user_instagram_oauth_available = False
+
+try:
     from routes.google_business import router as google_business_router
     google_business_available = True
     logging.info("✅ Google Business router imported successfully")
@@ -487,6 +503,14 @@ try:
 except Exception as e:
     logging.warning(f"Public API router not available: {e}")
     public_available = False
+
+try:
+    from routes.plugins import router as plugins_router
+    plugins_available = True
+    logging.info("✅ Plugins router imported successfully")
+except Exception as e:
+    logging.warning(f"Plugins router not available: {e}")
+    plugins_available = False
 
 try:
     from ai_models.website_ai.app.api.v1.routes import generation as website_ai_generation
@@ -586,34 +610,45 @@ async def lifespan(app: FastAPI):
         # from migrations.add_slug_to_websites import run_migration as migrate_add_slug_to_websites
         # migrate_add_slug_to_websites()
         logger.info("[OK] Migrations completed")
-        from migrations.add_meta_ads_tables import migrate_add_meta_ads_tables
-        migrate_add_meta_ads_tables()
-        from migrations.add_ai_audience_insights_table import migrate_add_ai_audience_insights_table
-        migrate_add_ai_audience_insights_table()
-        from migrations.fix_campaign_status_enum import migrate_fix_campaign_status_enum
-        migrate_fix_campaign_status_enum()
-        from migrations.update_campaign_status_enum import migrate_update_campaign_status_enum
-        migrate_update_campaign_status_enum()
-        from migrations.add_session_tracking import migrate_add_session_tracking
-        migrate_add_session_tracking()
-        from migrations.add_chat_tables import migrate_add_chat_tables
-        migrate_add_chat_tables()
-        from migrations.add_youtube_tables import migrate_add_youtube_tables
-        migrate_add_youtube_tables()
-        from migrations.add_youtube_cloudinary_fields import migrate_add_youtube_cloudinary_fields
-        migrate_add_youtube_cloudinary_fields()
-        # Campaign lifecycle columns (soft-delete + archive)
         try:
-            from migrations.add_campaign_lifecycle_columns import run_migration as run_campaign_lifecycle_migration
-            from config.database import SyncSessionLocal
-            _mig_db = SyncSessionLocal()
+            from migrations.add_meta_ads_tables import migrate_add_meta_ads_tables
+            migrate_add_meta_ads_tables()
+            from migrations.add_ai_audience_insights_table import migrate_add_ai_audience_insights_table
+            migrate_add_ai_audience_insights_table()
+            from migrations.fix_campaign_status_enum import migrate_fix_campaign_status_enum
+            migrate_fix_campaign_status_enum()
+            from migrations.update_campaign_status_enum import migrate_update_campaign_status_enum
+            migrate_update_campaign_status_enum()
+            from migrations.add_session_tracking import migrate_add_session_tracking
+            migrate_add_session_tracking()
+            from migrations.add_chat_tables import migrate_add_chat_tables
+            migrate_add_chat_tables()
+            from migrations.add_youtube_tables import migrate_add_youtube_tables
+            migrate_add_youtube_tables()
+            from migrations.add_youtube_cloudinary_fields import migrate_add_youtube_cloudinary_fields
+            migrate_add_youtube_cloudinary_fields()
+            # Campaign lifecycle columns (soft-delete + archive)
             try:
-                run_campaign_lifecycle_migration(_mig_db)
-            finally:
-                _mig_db.close()
-        except Exception as _mig_err:
-            logger.warning(f"⚠️ Campaign lifecycle migration skipped: {_mig_err}")
-        logger.info("✅ Migrations completed")
+                from migrations.add_campaign_lifecycle_columns import run_migration as run_campaign_lifecycle_migration
+                from config.database import SyncSessionLocal
+                if SyncSessionLocal is not None:
+                    _mig_db = SyncSessionLocal()
+                    try:
+                        run_campaign_lifecycle_migration(_mig_db)
+                    finally:
+                        _mig_db.close()
+                else:
+                    logger.warning("⚠️ Campaign lifecycle migration skipped: sync engine unavailable")
+            except Exception as _mig_err:
+                logger.warning(f"⚠️ Campaign lifecycle migration skipped: {_mig_err}")
+            from migrations.add_user_api_keys_tables import migrate_add_user_api_keys_tables
+            migrate_add_user_api_keys_tables()
+            from migrations.add_plugin_tables import migrate_add_plugin_tables
+            migrate_add_plugin_tables()
+            logger.info("✅ Migrations completed")
+        except Exception as _all_mig_err:
+            logger.warning(f"⚠️ Migrations skipped (sync DB unavailable): {_all_mig_err}")
+            logger.warning("⚠️ API will still function normally via async engine")
         
         # Start scheduler for processing scheduled Instagram posts
         logger.info("🔄 Starting Instagram post scheduler...")
@@ -634,6 +669,23 @@ async def lifespan(app: FastAPI):
         except Exception as e:
             logger.error(f"❌ Failed to start token refresh scheduler: {e}")
             logger.warning("⚠️  Tokens will not be automatically refreshed")
+        
+        # Initialize Plugin System
+        logger.info("🔌 Starting comprehensive plugin system...")
+        try:
+            from services.master_plugin_initialization import initialize_complete_plugin_system
+            from config.database import async_engine
+            from sqlalchemy.ext.asyncio import AsyncSession
+            
+            # Create database session for plugin initialization
+            async with AsyncSession(async_engine) as db:
+                await initialize_complete_plugin_system(db)
+            
+            logger.info("✅ Plugin system initialized successfully")
+        except Exception as e:
+            logger.error(f"❌ Failed to initialize plugin system: {e}")
+            logger.warning("⚠️  Plugin marketplace will not be available")
+            # Continue startup even if plugin system fails
         
         # NOTE: AI models configuration:
         # - Review Reply AI: TinyLlama loaded in main backend (port 8000)
@@ -1111,9 +1163,20 @@ if public_available:
 if google_business_available:
     app.include_router(google_business_router)
     logging.info("✅ Google Business router included in app")
+
+if user_api_keys_available:
+    app.include_router(user_api_keys_router)
+    logging.info("✅ User API Keys router included in app")
+
+if user_instagram_oauth_available:
+    app.include_router(user_instagram_oauth_router)
+    logging.info("✅ User Instagram OAuth router included in app")
 if dashboard_analytics_available:
     app.include_router(dashboard_analytics_router)
     logging.info("✅ Dashboard Analytics router included in app")
+if plugins_available:
+    app.include_router(plugins_router, prefix="/api")
+    logging.info("✅ Plugins router included in app")
 if website_ai_available:
     app.include_router(
         website_ai_generation.router,
@@ -1353,7 +1416,7 @@ if __name__ == "__main__":
     uvicorn.run(
         "main:sio_asgi_app",  # Use Socket.IO wrapper for WebSocket support
         host="0.0.0.0",
-        port=8000,
+        port=8001,
         log_level="info",
         reload=True
     )

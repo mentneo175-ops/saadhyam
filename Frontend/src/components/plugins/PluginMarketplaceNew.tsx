@@ -1,0 +1,716 @@
+import { useState, useMemo, useEffect } from "react";
+import { Search, Filter, Star, Download, Sparkles, TrendingUp, Zap, CheckCircle, ArrowRight, X, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Plugin } from "@/config/pluginsData";
+import { toast } from "sonner";
+import "@/styles/plugins.css";
+import * as PluginAPI from "@/lib/pluginsApi";
+
+// Map backend plugin to frontend plugin format
+function mapBackendPlugin(backendPlugin: PluginAPI.BackendPlugin): Plugin {
+  return {
+    id: backendPlugin.key,
+    name: backendPlugin.name,
+    category: backendPlugin.category,
+    icon: backendPlugin.icon || "🔌",
+    description: backendPlugin.description,
+    pricing: backendPlugin.pricing.free 
+      ? "Free" 
+      : `₹${backendPlugin.pricing.monthly_price || 0}/mo`,
+    rating: backendPlugin.rating || 4.5,
+    installs: backendPlugin.installs || 0,
+    aiPowered: backendPlugin.ai_powered || false,
+  };
+}
+
+export function PluginMarketplaceNew() {
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedPlugin, setSelectedPlugin] = useState<Plugin | null>(null);
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  
+  // Backend data states
+  const [plugins, setPlugins] = useState<Plugin[]>([]);
+  const [categories, setCategories] = useState<Array<{ id: string; name: string; icon: string; count: number }>>([
+    { id: "all", name: "All Plugins", icon: "🔌", count: 0 }
+  ]);
+  const [stats, setStats] = useState({
+    totalPlugins: 0,
+    aiPowered: 0,
+    categoriesCount: 0,
+  });
+  const [isLoading, setIsLoading] = useState(true);
+  const [installedPlugins, setInstalledPlugins] = useState<string[]>([]);
+
+  // Fetch data from backend on mount
+  useEffect(() => {
+    loadPluginData();
+  }, []);
+
+  async function loadPluginData() {
+    setIsLoading(true);
+    try {
+      // Fetch plugins, categories, stats, and installed plugins in parallel
+      const [pluginsData, categoriesData, statsData, installedData] = await Promise.all([
+        PluginAPI.getAvailablePlugins(),
+        PluginAPI.getPluginCategories(),
+        PluginAPI.getPluginStats(),
+        PluginAPI.getInstalledPlugins(),
+      ]);
+
+      // Map backend plugins to frontend format
+      const mappedPlugins = pluginsData.map(mapBackendPlugin);
+      setPlugins(mappedPlugins);
+
+      // Map categories
+      const mappedCategories = [
+        { id: "all", name: "All Plugins", icon: "🔌", count: mappedPlugins.length },
+        ...categoriesData.map(cat => ({
+          id: cat.key,
+          name: cat.name,
+          icon: cat.icon || "📦",
+          count: cat.count,
+        }))
+      ];
+      setCategories(mappedCategories);
+
+      // Set stats
+      if (statsData) {
+        setStats({
+          totalPlugins: statsData.total_plugins,
+          aiPowered: statsData.ai_powered_count,
+          categoriesCount: statsData.categories_count,
+        });
+      } else {
+        setStats({
+          totalPlugins: mappedPlugins.length,
+          aiPowered: mappedPlugins.filter(p => p.aiPowered).length,
+          categoriesCount: categoriesData.length,
+        });
+      }
+
+      setInstalledPlugins(installedData);
+    } catch (error) {
+      console.error("Error loading plugin data:", error);
+      toast.error("Failed to load plugins. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  // Refetch plugins when category changes
+  useEffect(() => {
+    async function fetchPluginsByCategory() {
+      try {
+        const pluginsData = await PluginAPI.getAvailablePlugins(
+          selectedCategory === "all" ? undefined : selectedCategory
+        );
+        const mappedPlugins = pluginsData.map(mapBackendPlugin);
+        setPlugins(mappedPlugins);
+      } catch (error) {
+        console.error("Error fetching plugins by category:", error);
+      }
+    }
+
+    if (!isLoading && selectedCategory !== "all") {
+      fetchPluginsByCategory();
+    }
+  }, [selectedCategory]);
+
+  // Search functionality using backend API
+  useEffect(() => {
+    const searchTimeout = setTimeout(async () => {
+      if (searchQuery.trim()) {
+        try {
+          const results = await PluginAPI.searchPlugins(searchQuery, {
+            category: selectedCategory !== "all" ? selectedCategory : undefined,
+          });
+          const mappedResults = results.map(mapBackendPlugin);
+          setPlugins(mappedResults);
+        } catch (error) {
+          console.error("Error searching plugins:", error);
+        }
+      } else {
+        // Reset to category view when search is cleared
+        const pluginsData = await PluginAPI.getAvailablePlugins(
+          selectedCategory === "all" ? undefined : selectedCategory
+        );
+        const mappedPlugins = pluginsData.map(mapBackendPlugin);
+        setPlugins(mappedPlugins);
+      }
+    }, 300); // Debounce search
+
+    return () => clearTimeout(searchTimeout);
+  }, [searchQuery, selectedCategory]);
+
+  const filteredPlugins = plugins;
+
+  const handleInstall = async (plugin: Plugin) => {
+    try {
+      toast.loading(`Installing ${plugin.name}...`, { id: `install-${plugin.id}` });
+      
+      const result = await PluginAPI.installPlugin(plugin.id);
+      
+      if (result.success) {
+        toast.success(result.message, { 
+          id: `install-${plugin.id}`,
+          description: "Plugin is now active and ready to use",
+        });
+        
+        // Refresh installed plugins list
+        const installed = await PluginAPI.getInstalledPlugins();
+        setInstalledPlugins(installed);
+      } else {
+        toast.error(result.message, { 
+          id: `install-${plugin.id}`,
+        });
+      }
+    } catch (error) {
+      toast.error("Failed to install plugin", { 
+        id: `install-${plugin.id}`,
+        description: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50/30 to-pink-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-slate-900 -m-6 p-6">
+      {/* Animated Background Elements */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-20 left-10 w-72 h-72 bg-purple-300/20 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-pink-300/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "1s" }}></div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-r from-purple-200/10 to-pink-200/10 rounded-full blur-3xl"></div>
+      </div>
+
+      <div className="relative z-10 max-w-7xl mx-auto space-y-8">
+        {/* Hero Header */}
+        <div className="relative overflow-hidden bg-gradient-to-r from-purple-600 via-purple-500 to-pink-500 rounded-3xl p-10 text-white shadow-2xl">
+          <div className="absolute inset-0 bg-grid-white/10"></div>
+          <div className="relative z-10">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-3 bg-white/20 backdrop-blur-sm rounded-2xl">
+                <Sparkles className="w-8 h-8" />
+              </div>
+              <div>
+                <h1 className="text-4xl font-bold">Plugin Marketplace</h1>
+                <p className="text-purple-100 mt-1">Supercharge your business with AI-powered automation</p>
+              </div>
+            </div>
+            
+            {/* Stats Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
+              <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 hover:bg-white/15 transition-all">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-white/20 rounded-xl">
+                    <Zap className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <div className="text-3xl font-bold">
+                      {isLoading ? "..." : `${stats.totalPlugins}+`}
+                    </div>
+                    <div className="text-sm text-purple-100">Plugins Available</div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 hover:bg-white/15 transition-all">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-white/20 rounded-xl">
+                    <TrendingUp className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <div className="text-3xl font-bold">
+                      {isLoading ? "..." : stats.categoriesCount}
+                    </div>
+                    <div className="text-sm text-purple-100">Categories</div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 hover:bg-white/15 transition-all">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-white/20 rounded-xl">
+                    <Sparkles className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <div className="text-3xl font-bold">
+                      {isLoading ? "..." : `${stats.aiPowered}+`}
+                    </div>
+                    <div className="text-sm text-purple-100">AI-Powered</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Search and Filters */}
+        <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-2xl p-6 shadow-lg border border-gray-200/50 dark:border-slate-700/50">
+          <div className="flex flex-col lg:flex-row gap-4">
+            {/* Search Bar */}
+            <div className="relative flex-1">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search for plugins, features, or categories..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-12 pr-4 py-3 bg-white dark:bg-slate-900 border-2 border-gray-200 dark:border-slate-700 rounded-xl focus:outline-none focus:border-purple-500 focus:ring-4 focus:ring-purple-500/20 transition-all"
+              />
+            </div>
+            
+            {/* View Toggle */}
+            <div className="flex gap-2">
+              <button
+                onClick={() => setViewMode("grid")}
+                className={`px-4 py-3 rounded-xl font-medium transition-all ${
+                  viewMode === "grid"
+                    ? "bg-purple-600 text-white shadow-lg"
+                    : "bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600"
+                }`}
+              >
+                Grid
+              </button>
+              <button
+                onClick={() => setViewMode("list")}
+                className={`px-4 py-3 rounded-xl font-medium transition-all ${
+                  viewMode === "list"
+                    ? "bg-purple-600 text-white shadow-lg"
+                    : "bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600"
+                }`}
+              >
+                List
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Category Pills */}
+        <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+          {isLoading ? (
+            // Loading skeleton
+            <>
+              {[1, 2, 3, 4, 5].map((i) => (
+                <div key={i} className="animate-pulse">
+                  <div className="flex items-center gap-2 px-5 py-3 rounded-full bg-gray-200 dark:bg-slate-700 w-32 h-11"></div>
+                </div>
+              ))}
+            </>
+          ) : (
+            categories.map((category) => (
+              <button
+                key={category.id}
+                onClick={() => setSelectedCategory(category.id)}
+                className={`flex items-center gap-2 px-5 py-3 rounded-full whitespace-nowrap font-medium transition-all transform hover:scale-105 ${
+                  selectedCategory === category.id
+                    ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-500/50"
+                    : "bg-white dark:bg-slate-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700 border border-gray-200 dark:border-slate-700"
+                }`}
+              >
+                <span className="text-xl">{category.icon}</span>
+                <span>{category.name}</span>
+                <span className={`px-2 py-0.5 rounded-full text-xs ${
+                  selectedCategory === category.id
+                    ? "bg-white/20"
+                    : "bg-gray-100 dark:bg-slate-700"
+                }`}>
+                  {category.count}
+                </span>
+              </button>
+            ))
+          )}
+        </div>
+
+        {/* Results Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+              {selectedCategory === "all" ? "All Plugins" : categories.find(c => c.id === selectedCategory)?.name}
+            </h2>
+            <p className="text-gray-600 dark:text-gray-400 mt-1">
+              {isLoading ? "Loading..." : `${filteredPlugins.length} plugin${filteredPlugins.length !== 1 ? "s" : ""} available`}
+            </p>
+          </div>
+        </div>
+
+        {/* Loading State */}
+        {isLoading && (
+          <div className="flex items-center justify-center py-20">
+            <div className="text-center">
+              <Loader2 className="w-12 h-12 text-purple-600 animate-spin mx-auto mb-4" />
+              <p className="text-gray-600 dark:text-gray-400">Loading plugins...</p>
+            </div>
+          </div>
+        )}
+
+        {/* Plugin Grid/List */}
+        {!isLoading && (
+          <div className={viewMode === "grid" 
+            ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+            : "space-y-4"
+          }>
+            {filteredPlugins.map((plugin) => (
+              <PluginCard
+                key={plugin.id}
+                plugin={plugin}
+                onInstall={() => handleInstall(plugin)}
+                onViewDetails={() => setSelectedPlugin(plugin)}
+                viewMode={viewMode}
+                isInstalled={installedPlugins.includes(plugin.id)}
+              />
+            ))}
+          </div>
+        )}
+
+        {/* Empty State */}
+        {!isLoading && filteredPlugins.length === 0 && (
+          <div className="text-center py-20">
+            <div className="inline-block p-6 bg-gray-100 dark:bg-slate-800 rounded-full mb-4">
+              <Search className="w-12 h-12 text-gray-400" />
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">No plugins found</h3>
+            <p className="text-gray-600 dark:text-gray-400">
+              Try adjusting your search or select a different category
+            </p>
+          </div>
+        )}
+
+        {/* Plugin Details Modal */}
+        {selectedPlugin && (
+          <PluginDetailsModal
+            plugin={selectedPlugin}
+            onClose={() => setSelectedPlugin(null)}
+            onInstall={() => handleInstall(selectedPlugin)}
+          />
+        )}
+      </div>
+    </div>
+  );
+}
+
+
+// Plugin Card Component
+interface PluginCardProps {
+  plugin: Plugin;
+  onInstall: () => void;
+  onViewDetails: () => void;
+  viewMode?: "grid" | "list";
+  isInstalled?: boolean;
+}
+
+function PluginCard({ plugin, onInstall, onViewDetails, viewMode = "grid", isInstalled = false }: PluginCardProps) {
+  if (viewMode === "list") {
+    return (
+      <div className="group bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-2xl border-2 border-gray-200/50 dark:border-slate-700/50 p-6 hover:border-purple-500/50 hover:shadow-2xl hover:shadow-purple-500/10 transition-all duration-300">
+        <div className="flex items-start gap-6">
+          {/* Icon */}
+          <div className="relative">
+            <div className="text-5xl group-hover:scale-110 transition-transform duration-300">
+              {plugin.icon}
+            </div>
+            {plugin.aiPowered && (
+              <div className="absolute -top-2 -right-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1 shadow-lg">
+                <Sparkles className="w-3 h-3" />
+                AI
+              </div>
+            )}
+            {isInstalled && (
+              <div className="absolute -bottom-2 -right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1 shadow-lg">
+                <CheckCircle className="w-3 h-3" />
+              </div>
+            )}
+          </div>
+
+          {/* Content */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-start justify-between gap-4 mb-3">
+              <div>
+                <h3 className="font-bold text-xl text-gray-900 dark:text-white mb-1 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
+                  {plugin.name}
+                </h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400">{plugin.category}</p>
+              </div>
+              <div className="text-right">
+                <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                  {plugin.pricing}
+                </div>
+              </div>
+            </div>
+
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+              {plugin.description}
+            </p>
+
+            {/* Stats */}
+            <div className="flex items-center gap-6 mb-4">
+              <div className="flex items-center gap-2">
+                <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                <span className="font-medium text-gray-900 dark:text-white">{plugin.rating}</span>
+              </div>
+              <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
+                <Download className="w-4 h-4" />
+                <span className="text-sm">{plugin.installs.toLocaleString()} installs</span>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex gap-3">
+              <Button 
+                onClick={onInstall}
+                disabled={isInstalled}
+                className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isInstalled ? (
+                  <>
+                    <CheckCircle className="w-4 h-4 mr-2" />
+                    Installed
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle className="w-4 h-4 mr-2" />
+                    Install Now
+                  </>
+                )}
+              </Button>
+              <Button 
+                onClick={onViewDetails}
+                variant="outline"
+                className="px-6 border-2 hover:border-purple-500 hover:bg-purple-50 dark:hover:bg-purple-900/20"
+              >
+                View Details
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="group relative bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-2xl border-2 border-gray-200/50 dark:border-slate-700/50 p-6 hover:border-purple-500/50 hover:shadow-2xl hover:shadow-purple-500/20 transition-all duration-300 hover:-translate-y-2">
+      {/* Gradient overlay on hover */}
+      <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-pink-500/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
+      
+      {/* Installed Badge */}
+      {isInstalled && (
+        <div className="absolute top-4 right-4 bg-green-500 text-white text-xs px-3 py-1.5 rounded-full flex items-center gap-1 shadow-lg z-10">
+          <CheckCircle className="w-3 h-3" />
+          Installed
+        </div>
+      )}
+      
+      <div className="relative z-10">
+        {/* Header */}
+        <div className="flex items-start justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <div className="text-4xl group-hover:scale-110 transition-transform duration-300">
+              {plugin.icon}
+            </div>
+            <div>
+              <h3 className="font-bold text-lg text-gray-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
+                {plugin.name}
+              </h3>
+              <p className="text-xs text-gray-500 dark:text-gray-400">{plugin.category}</p>
+            </div>
+          </div>
+          {plugin.aiPowered && (
+            <div className="bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1 shadow-lg animate-pulse">
+              <Sparkles className="w-3 h-3" />
+              AI
+            </div>
+          )}
+        </div>
+
+        {/* Description */}
+        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 line-clamp-2 min-h-[40px]">
+          {plugin.description}
+        </p>
+
+        {/* Stats */}
+        <div className="flex items-center gap-4 mb-4 text-sm">
+          <div className="flex items-center gap-1">
+            <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+            <span className="font-medium text-gray-900 dark:text-white">{plugin.rating}</span>
+          </div>
+          <div className="flex items-center gap-1 text-gray-500 dark:text-gray-400">
+            <Download className="w-4 h-4" />
+            <span>{plugin.installs.toLocaleString()}</span>
+          </div>
+        </div>
+
+        {/* Pricing */}
+        <div className="mb-4 pb-4 border-b border-gray-200 dark:border-slate-700">
+          <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+            {plugin.pricing}
+          </div>
+          <div className="text-xs text-gray-500 dark:text-gray-400">per month</div>
+        </div>
+
+        {/* Actions */}
+        <div className="flex gap-2">
+          <Button 
+            onClick={onInstall}
+            disabled={isInstalled}
+            className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            size="sm"
+          >
+            {isInstalled ? "Installed" : "Install"}
+          </Button>
+          <Button 
+            onClick={onViewDetails}
+            variant="outline"
+            size="sm"
+            className="flex-1 border-2 hover:border-purple-500 hover:bg-purple-50 dark:hover:bg-purple-900/20"
+          >
+            Details
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Plugin Details Modal Component
+interface PluginDetailsModalProps {
+  plugin: Plugin;
+  onClose: () => void;
+  onInstall: () => void;
+}
+
+function PluginDetailsModal({ plugin, onClose, onInstall }: PluginDetailsModalProps) {
+  return (
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+      <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-3xl w-full max-h-[90vh] overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
+        {/* Header */}
+        <div className="relative bg-gradient-to-r from-purple-600 via-purple-500 to-pink-500 text-white p-8">
+          <div className="absolute inset-0 bg-grid-white/10"></div>
+          <div className="relative z-10">
+            <button 
+              onClick={onClose}
+              className="absolute top-4 right-4 p-2 hover:bg-white/20 rounded-xl transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            
+            <div className="flex items-start gap-6">
+              <div className="relative">
+                <div className="text-7xl">{plugin.icon}</div>
+                {plugin.aiPowered && (
+                  <div className="absolute -bottom-2 -right-2 bg-white text-purple-600 text-xs px-3 py-1.5 rounded-full flex items-center gap-1 shadow-lg font-semibold">
+                    <Sparkles className="w-3 h-3" />
+                    AI-Powered
+                  </div>
+                )}
+              </div>
+              
+              <div className="flex-1">
+                <h2 className="text-3xl font-bold mb-2">{plugin.name}</h2>
+                <p className="text-purple-100 text-lg">{plugin.category}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Content */}
+        <div className="p-8 overflow-y-auto max-h-[calc(90vh-280px)]">
+          {/* Stats Row */}
+          <div className="grid grid-cols-3 gap-4 mb-8">
+            <div className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-2xl p-4 border border-purple-200 dark:border-purple-800">
+              <div className="flex items-center gap-2 mb-2">
+                <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" />
+                <span className="font-bold text-2xl text-gray-900 dark:text-white">{plugin.rating}</span>
+              </div>
+              <span className="text-sm text-gray-600 dark:text-gray-400">Rating</span>
+            </div>
+            
+            <div className="bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 rounded-2xl p-4 border border-blue-200 dark:border-blue-800">
+              <div className="flex items-center gap-2 mb-2">
+                <Download className="w-5 h-5 text-blue-500" />
+                <span className="font-bold text-2xl text-gray-900 dark:text-white">{plugin.installs.toLocaleString()}</span>
+              </div>
+              <span className="text-sm text-gray-600 dark:text-gray-400">Installs</span>
+            </div>
+            
+            <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-2xl p-4 border border-green-200 dark:border-green-800">
+              <div className="flex items-center gap-2 mb-2">
+                <TrendingUp className="w-5 h-5 text-green-500" />
+                <span className="font-bold text-2xl text-gray-900 dark:text-white">Top</span>
+              </div>
+              <span className="text-sm text-gray-600 dark:text-gray-400">Trending</span>
+            </div>
+          </div>
+
+          {/* Description */}
+          <div className="mb-8">
+            <h3 className="font-bold text-xl mb-3 text-gray-900 dark:text-white flex items-center gap-2">
+              <div className="w-1 h-6 bg-gradient-to-b from-purple-500 to-pink-500 rounded-full"></div>
+              About this plugin
+            </h3>
+            <p className="text-gray-600 dark:text-gray-400 leading-relaxed">{plugin.description}</p>
+          </div>
+
+          {/* Features Section (Mock data) */}
+          <div className="mb-8">
+            <h3 className="font-bold text-xl mb-4 text-gray-900 dark:text-white flex items-center gap-2">
+              <div className="w-1 h-6 bg-gradient-to-b from-purple-500 to-pink-500 rounded-full"></div>
+              Key Features
+            </h3>
+            <div className="grid grid-cols-2 gap-3">
+              {[
+                "Easy Integration",
+                "24/7 Support",
+                "Real-time Updates",
+                "Advanced Analytics",
+                "Customizable",
+                "Secure & Reliable"
+              ].map((feature, index) => (
+                <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-slate-800 rounded-xl">
+                  <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
+                  <span className="text-sm text-gray-700 dark:text-gray-300">{feature}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Pricing CTA */}
+          <div className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-slate-800 dark:to-slate-800 rounded-2xl p-6 border-2 border-purple-200 dark:border-purple-800">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Starting at</p>
+                <p className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                  {plugin.pricing}
+                </p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Billed monthly</p>
+              </div>
+              <Button 
+                onClick={() => {
+                  onInstall();
+                  onClose();
+                }}
+                size="lg"
+                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-2xl hover:shadow-purple-500/50 px-8"
+              >
+                <CheckCircle className="w-5 h-5 mr-2" />
+                Install Plugin
+                <ArrowRight className="w-5 h-5 ml-2" />
+              </Button>
+            </div>
+          </div>
+
+          {/* Additional Info */}
+          <div className="grid grid-cols-2 gap-4 mt-6">
+            <div className="bg-gray-50 dark:bg-slate-800 rounded-xl p-4">
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Category</p>
+              <p className="font-semibold text-gray-900 dark:text-white">{plugin.category}</p>
+            </div>
+            <div className="bg-gray-50 dark:bg-slate-800 rounded-xl p-4">
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Plugin ID</p>
+              <p className="font-mono text-sm text-gray-900 dark:text-white">{plugin.id}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -85,18 +85,33 @@ else:
         )
         
         # Keep sync engine for migrations only (with original URL format)
-        sync_url = DATABASE_URL.replace("postgresql+asyncpg://", "postgresql://")
-        sync_engine = create_engine(
-            sync_url,
-            echo=False,
-            pool_pre_ping=True,
-            pool_recycle=280,
-            connect_args={
-                "sslmode": "require",
-                "connect_timeout": 30
-            }
-        )
-        
+        # Wrap in its own try/except — sync engine is only used for migrations,
+        # not for API requests. A psycopg2/SSL failure here should not crash startup.
+        try:
+            sync_url = DATABASE_URL.replace("postgresql+asyncpg://", "postgresql://")
+            # Strip sslmode from query string; pass it via connect_args instead
+            from urllib.parse import urlparse, parse_qs, urlunparse, urlencode
+            _parsed = urlparse(sync_url)
+            _qp = parse_qs(_parsed.query)
+            _qp.pop("sslmode", None)
+            _parsed = _parsed._replace(query=urlencode(_qp, doseq=True))
+            sync_url = urlunparse(_parsed)
+            sync_engine = create_engine(
+                sync_url,
+                echo=False,
+                pool_pre_ping=False,
+                pool_recycle=280,
+                connect_args={
+                    "sslmode": "require",
+                    "connect_timeout": 30
+                }
+            )
+            logger.info("✅ Sync engine (psycopg2) configured for migrations")
+        except Exception as sync_err:
+            logger.warning(f"⚠️  Sync engine (psycopg2) unavailable: {sync_err}")
+            logger.warning("⚠️  Migration features disabled; API will use async engine only")
+            sync_engine = None
+
         IS_SQLITE = False
         logger.info("✅ Using PostgreSQL (Neon DB) database with asyncpg")
         
@@ -117,7 +132,7 @@ AsyncSessionLocal = async_sessionmaker(
 SyncSessionLocal = sessionmaker(
     bind=sync_engine,
     expire_on_commit=False
-)
+) if sync_engine is not None else None
 
 
 async def get_db() -> AsyncGenerator[AsyncSession, None]:

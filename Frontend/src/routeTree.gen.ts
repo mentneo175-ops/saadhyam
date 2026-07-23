@@ -60,6 +60,7 @@ import { Route as DashboardAeoGeoRouteImport } from './routes/dashboard.aeo-geo'
 import { Route as DashboardActionsRouteImport } from './routes/dashboard.actions'
 import { Route as DashboardVoiceAgentIndexRouteImport } from './routes/dashboard.voice-agent.index'
 import { Route as DashboardAgentsIndexRouteImport } from './routes/dashboard.agents.index'
+import { Route as DashboardSettingsApiKeysRouteImport } from './routes/dashboard.settings.api-keys'
 import { Route as DashboardInstagramAnalyticsPostsRouteImport } from './routes/dashboard.instagram-analytics.posts'
 import { Route as DashboardAgentsPartnershipRouteImport } from './routes/dashboard.agents.partnership'
 import { Route as DashboardAgentsCustomerRetentionRouteImport } from './routes/dashboard.agents.customer-retention'
@@ -325,6 +326,12 @@ const DashboardAgentsIndexRoute = DashboardAgentsIndexRouteImport.update({
   path: '/',
   getParentRoute: () => DashboardAgentsRoute,
 } as any)
+const DashboardSettingsApiKeysRoute =
+  DashboardSettingsApiKeysRouteImport.update({
+    id: '/api-keys',
+    path: '/api-keys',
+    getParentRoute: () => DashboardSettingsRoute,
+  } as any)
 const DashboardInstagramAnalyticsPostsRoute =
   DashboardInstagramAnalyticsPostsRouteImport.update({
     id: '/posts',
@@ -386,7 +393,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/review-reply': typeof DashboardReviewReplyRoute
   '/dashboard/seo': typeof DashboardSeoRoute
   '/dashboard/seo-google-maps': typeof DashboardSeoGoogleMapsRoute
-  '/dashboard/settings': typeof DashboardSettingsRoute
+  '/dashboard/settings': typeof DashboardSettingsRouteWithChildren
   '/dashboard/support': typeof DashboardSupportRoute
   '/dashboard/website': typeof DashboardWebsiteRoute
   '/dashboard/whatsapp': typeof DashboardWhatsappRoute
@@ -397,6 +404,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/agents/customer-retention': typeof DashboardAgentsCustomerRetentionRoute
   '/dashboard/agents/partnership': typeof DashboardAgentsPartnershipRoute
   '/dashboard/instagram-analytics/posts': typeof DashboardInstagramAnalyticsPostsRoute
+  '/dashboard/settings/api-keys': typeof DashboardSettingsApiKeysRoute
   '/dashboard/agents/': typeof DashboardAgentsIndexRoute
   '/dashboard/voice-agent/': typeof DashboardVoiceAgentIndexRoute
 }
@@ -440,7 +448,7 @@ export interface FileRoutesByTo {
   '/dashboard/review-reply': typeof DashboardReviewReplyRoute
   '/dashboard/seo': typeof DashboardSeoRoute
   '/dashboard/seo-google-maps': typeof DashboardSeoGoogleMapsRoute
-  '/dashboard/settings': typeof DashboardSettingsRoute
+  '/dashboard/settings': typeof DashboardSettingsRouteWithChildren
   '/dashboard/support': typeof DashboardSupportRoute
   '/dashboard/website': typeof DashboardWebsiteRoute
   '/dashboard/whatsapp': typeof DashboardWhatsappRoute
@@ -451,6 +459,7 @@ export interface FileRoutesByTo {
   '/dashboard/agents/customer-retention': typeof DashboardAgentsCustomerRetentionRoute
   '/dashboard/agents/partnership': typeof DashboardAgentsPartnershipRoute
   '/dashboard/instagram-analytics/posts': typeof DashboardInstagramAnalyticsPostsRoute
+  '/dashboard/settings/api-keys': typeof DashboardSettingsApiKeysRoute
   '/dashboard/agents': typeof DashboardAgentsIndexRoute
   '/dashboard/voice-agent': typeof DashboardVoiceAgentIndexRoute
 }
@@ -497,7 +506,7 @@ export interface FileRoutesById {
   '/dashboard/review-reply': typeof DashboardReviewReplyRoute
   '/dashboard/seo': typeof DashboardSeoRoute
   '/dashboard/seo-google-maps': typeof DashboardSeoGoogleMapsRoute
-  '/dashboard/settings': typeof DashboardSettingsRoute
+  '/dashboard/settings': typeof DashboardSettingsRouteWithChildren
   '/dashboard/support': typeof DashboardSupportRoute
   '/dashboard/website': typeof DashboardWebsiteRoute
   '/dashboard/whatsapp': typeof DashboardWhatsappRoute
@@ -508,6 +517,7 @@ export interface FileRoutesById {
   '/dashboard/agents/customer-retention': typeof DashboardAgentsCustomerRetentionRoute
   '/dashboard/agents/partnership': typeof DashboardAgentsPartnershipRoute
   '/dashboard/instagram-analytics/posts': typeof DashboardInstagramAnalyticsPostsRoute
+  '/dashboard/settings/api-keys': typeof DashboardSettingsApiKeysRoute
   '/dashboard/agents/': typeof DashboardAgentsIndexRoute
   '/dashboard/voice-agent/': typeof DashboardVoiceAgentIndexRoute
 }
@@ -566,6 +576,7 @@ export interface FileRouteTypes {
     | '/dashboard/agents/customer-retention'
     | '/dashboard/agents/partnership'
     | '/dashboard/instagram-analytics/posts'
+    | '/dashboard/settings/api-keys'
     | '/dashboard/agents/'
     | '/dashboard/voice-agent/'
   fileRoutesByTo: FileRoutesByTo
@@ -620,6 +631,7 @@ export interface FileRouteTypes {
     | '/dashboard/agents/customer-retention'
     | '/dashboard/agents/partnership'
     | '/dashboard/instagram-analytics/posts'
+    | '/dashboard/settings/api-keys'
     | '/dashboard/agents'
     | '/dashboard/voice-agent'
   id:
@@ -676,6 +688,7 @@ export interface FileRouteTypes {
     | '/dashboard/agents/customer-retention'
     | '/dashboard/agents/partnership'
     | '/dashboard/instagram-analytics/posts'
+    | '/dashboard/settings/api-keys'
     | '/dashboard/agents/'
     | '/dashboard/voice-agent/'
   fileRoutesById: FileRoutesById
@@ -1055,6 +1068,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardAgentsIndexRouteImport
       parentRoute: typeof DashboardAgentsRoute
     }
+    '/dashboard/settings/api-keys': {
+      id: '/dashboard/settings/api-keys'
+      path: '/api-keys'
+      fullPath: '/dashboard/settings/api-keys'
+      preLoaderRoute: typeof DashboardSettingsApiKeysRouteImport
+      parentRoute: typeof DashboardSettingsRoute
+    }
     '/dashboard/instagram-analytics/posts': {
       id: '/dashboard/instagram-analytics/posts'
       path: '/posts'
@@ -1110,6 +1130,17 @@ const DashboardInstagramAnalyticsRouteWithChildren =
     DashboardInstagramAnalyticsRouteChildren,
   )
 
+interface DashboardSettingsRouteChildren {
+  DashboardSettingsApiKeysRoute: typeof DashboardSettingsApiKeysRoute
+}
+
+const DashboardSettingsRouteChildren: DashboardSettingsRouteChildren = {
+  DashboardSettingsApiKeysRoute: DashboardSettingsApiKeysRoute,
+}
+
+const DashboardSettingsRouteWithChildren =
+  DashboardSettingsRoute._addFileChildren(DashboardSettingsRouteChildren)
+
 interface DashboardRouteChildren {
   DashboardActionsRoute: typeof DashboardActionsRoute
   DashboardAeoGeoRoute: typeof DashboardAeoGeoRoute
@@ -1140,7 +1171,7 @@ interface DashboardRouteChildren {
   DashboardReviewReplyRoute: typeof DashboardReviewReplyRoute
   DashboardSeoRoute: typeof DashboardSeoRoute
   DashboardSeoGoogleMapsRoute: typeof DashboardSeoGoogleMapsRoute
-  DashboardSettingsRoute: typeof DashboardSettingsRoute
+  DashboardSettingsRoute: typeof DashboardSettingsRouteWithChildren
   DashboardSupportRoute: typeof DashboardSupportRoute
   DashboardWebsiteRoute: typeof DashboardWebsiteRoute
   DashboardWhatsappRoute: typeof DashboardWhatsappRoute
@@ -1181,7 +1212,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardReviewReplyRoute: DashboardReviewReplyRoute,
   DashboardSeoRoute: DashboardSeoRoute,
   DashboardSeoGoogleMapsRoute: DashboardSeoGoogleMapsRoute,
-  DashboardSettingsRoute: DashboardSettingsRoute,
+  DashboardSettingsRoute: DashboardSettingsRouteWithChildren,
   DashboardSupportRoute: DashboardSupportRoute,
   DashboardWebsiteRoute: DashboardWebsiteRoute,
   DashboardWhatsappRoute: DashboardWhatsappRoute,

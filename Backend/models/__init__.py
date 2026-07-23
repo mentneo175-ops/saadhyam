@@ -66,6 +66,10 @@ from models.google_business import (
 # Voice Command Logs Model
 from models.voice_command import VoiceCommandLog
 
+# User API Keys and Plugins Models
+from models.user_api_keys import UserAPIKeys
+from models.plugins import Plugin, UserPlugin, PluginAnalytics, PluginCategory, PluginStatus
+
 __all__ = [
     "User",
     "SocialAccount",
@@ -105,4 +109,10 @@ __all__ = [
     "GoogleBusinessReview",
     "GoogleBusinessPost",
     "VoiceCommandLog",
+    "UserAPIKeys",
+    "Plugin",
+    "UserPlugin",
+    "PluginAnalytics",
+    "PluginCategory",
+    "PluginStatus",
 ]

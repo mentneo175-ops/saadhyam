@@ -4,6 +4,7 @@ Continues registration of enterprise plugins (E-Commerce through AI Productivity
 """
 
 import logging
+# pyrefly: ignore [missing-import]
 from sqlalchemy.ext.asyncio import AsyncSession
 from models.plugins import PluginCategory
 from services.plugin_service import plugin_manager

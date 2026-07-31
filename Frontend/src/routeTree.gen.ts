@@ -64,6 +64,7 @@ import { Route as DashboardAgentsIndexRouteImport } from './routes/dashboard.age
 import { Route as DashboardSettingsApiKeysRouteImport } from './routes/dashboard.settings.api-keys'
 import { Route as DashboardPluginsLinkedinMarketingRouteImport } from './routes/dashboard.plugins.linkedin-marketing'
 import { Route as DashboardPluginsGmailRouteImport } from './routes/dashboard.plugins.gmail'
+import { Route as DashboardPluginsEmployeeAttendanceRouteImport } from './routes/dashboard.plugins.employee-attendance'
 import { Route as DashboardPluginsEmailMarketingRouteImport } from './routes/dashboard.plugins.email-marketing'
 import { Route as DashboardPluginsEmailAssistantRouteImport } from './routes/dashboard.plugins.email-assistant'
 import { Route as DashboardInstagramAnalyticsPostsRouteImport } from './routes/dashboard.instagram-analytics.posts'
@@ -71,6 +72,7 @@ import { Route as DashboardAgentsPartnershipRouteImport } from './routes/dashboa
 import { Route as DashboardAgentsCustomerRetentionRouteImport } from './routes/dashboard.agents.customer-retention'
 import { Route as DashboardPluginsLinkedinMarketingIndexRouteImport } from './routes/dashboard.plugins.linkedin-marketing.index'
 import { Route as DashboardPluginsGmailIndexRouteImport } from './routes/dashboard.plugins.gmail.index'
+import { Route as DashboardPluginsEmployeeAttendanceIndexRouteImport } from './routes/dashboard.plugins.employee-attendance.index'
 import { Route as DashboardPluginsEmailMarketingIndexRouteImport } from './routes/dashboard.plugins.email-marketing.index'
 import { Route as DashboardPluginsEmailAssistantIndexRouteImport } from './routes/dashboard.plugins.email-assistant.index'
 import { Route as DashboardPluginsGmailMailRouteImport } from './routes/dashboard.plugins.gmail.mail'
@@ -358,6 +360,12 @@ const DashboardPluginsGmailRoute = DashboardPluginsGmailRouteImport.update({
   path: '/gmail',
   getParentRoute: () => DashboardPluginsRoute,
 } as any)
+const DashboardPluginsEmployeeAttendanceRoute =
+  DashboardPluginsEmployeeAttendanceRouteImport.update({
+    id: '/employee-attendance',
+    path: '/employee-attendance',
+    getParentRoute: () => DashboardPluginsRoute,
+  } as any)
 const DashboardPluginsEmailMarketingRoute =
   DashboardPluginsEmailMarketingRouteImport.update({
     id: '/email-marketing',
@@ -399,6 +407,12 @@ const DashboardPluginsGmailIndexRoute =
     id: '/',
     path: '/',
     getParentRoute: () => DashboardPluginsGmailRoute,
+  } as any)
+const DashboardPluginsEmployeeAttendanceIndexRoute =
+  DashboardPluginsEmployeeAttendanceIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => DashboardPluginsEmployeeAttendanceRoute,
   } as any)
 const DashboardPluginsEmailMarketingIndexRoute =
   DashboardPluginsEmailMarketingIndexRouteImport.update({
@@ -474,6 +488,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/instagram-analytics/posts': typeof DashboardInstagramAnalyticsPostsRoute
   '/dashboard/plugins/email-assistant': typeof DashboardPluginsEmailAssistantRouteWithChildren
   '/dashboard/plugins/email-marketing': typeof DashboardPluginsEmailMarketingRouteWithChildren
+  '/dashboard/plugins/employee-attendance': typeof DashboardPluginsEmployeeAttendanceRouteWithChildren
   '/dashboard/plugins/gmail': typeof DashboardPluginsGmailRouteWithChildren
   '/dashboard/plugins/linkedin-marketing': typeof DashboardPluginsLinkedinMarketingRouteWithChildren
   '/dashboard/settings/api-keys': typeof DashboardSettingsApiKeysRoute
@@ -483,6 +498,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/plugins/gmail/mail': typeof DashboardPluginsGmailMailRoute
   '/dashboard/plugins/email-assistant/': typeof DashboardPluginsEmailAssistantIndexRoute
   '/dashboard/plugins/email-marketing/': typeof DashboardPluginsEmailMarketingIndexRoute
+  '/dashboard/plugins/employee-attendance/': typeof DashboardPluginsEmployeeAttendanceIndexRoute
   '/dashboard/plugins/gmail/': typeof DashboardPluginsGmailIndexRoute
   '/dashboard/plugins/linkedin-marketing/': typeof DashboardPluginsLinkedinMarketingIndexRoute
 }
@@ -543,6 +559,7 @@ export interface FileRoutesByTo {
   '/dashboard/plugins/gmail/mail': typeof DashboardPluginsGmailMailRoute
   '/dashboard/plugins/email-assistant': typeof DashboardPluginsEmailAssistantIndexRoute
   '/dashboard/plugins/email-marketing': typeof DashboardPluginsEmailMarketingIndexRoute
+  '/dashboard/plugins/employee-attendance': typeof DashboardPluginsEmployeeAttendanceIndexRoute
   '/dashboard/plugins/gmail': typeof DashboardPluginsGmailIndexRoute
   '/dashboard/plugins/linkedin-marketing': typeof DashboardPluginsLinkedinMarketingIndexRoute
 }
@@ -602,6 +619,7 @@ export interface FileRoutesById {
   '/dashboard/instagram-analytics/posts': typeof DashboardInstagramAnalyticsPostsRoute
   '/dashboard/plugins/email-assistant': typeof DashboardPluginsEmailAssistantRouteWithChildren
   '/dashboard/plugins/email-marketing': typeof DashboardPluginsEmailMarketingRouteWithChildren
+  '/dashboard/plugins/employee-attendance': typeof DashboardPluginsEmployeeAttendanceRouteWithChildren
   '/dashboard/plugins/gmail': typeof DashboardPluginsGmailRouteWithChildren
   '/dashboard/plugins/linkedin-marketing': typeof DashboardPluginsLinkedinMarketingRouteWithChildren
   '/dashboard/settings/api-keys': typeof DashboardSettingsApiKeysRoute
@@ -611,6 +629,7 @@ export interface FileRoutesById {
   '/dashboard/plugins/gmail/mail': typeof DashboardPluginsGmailMailRoute
   '/dashboard/plugins/email-assistant/': typeof DashboardPluginsEmailAssistantIndexRoute
   '/dashboard/plugins/email-marketing/': typeof DashboardPluginsEmailMarketingIndexRoute
+  '/dashboard/plugins/employee-attendance/': typeof DashboardPluginsEmployeeAttendanceIndexRoute
   '/dashboard/plugins/gmail/': typeof DashboardPluginsGmailIndexRoute
   '/dashboard/plugins/linkedin-marketing/': typeof DashboardPluginsLinkedinMarketingIndexRoute
 }
@@ -671,6 +690,7 @@ export interface FileRouteTypes {
     | '/dashboard/instagram-analytics/posts'
     | '/dashboard/plugins/email-assistant'
     | '/dashboard/plugins/email-marketing'
+    | '/dashboard/plugins/employee-attendance'
     | '/dashboard/plugins/gmail'
     | '/dashboard/plugins/linkedin-marketing'
     | '/dashboard/settings/api-keys'
@@ -680,6 +700,7 @@ export interface FileRouteTypes {
     | '/dashboard/plugins/gmail/mail'
     | '/dashboard/plugins/email-assistant/'
     | '/dashboard/plugins/email-marketing/'
+    | '/dashboard/plugins/employee-attendance/'
     | '/dashboard/plugins/gmail/'
     | '/dashboard/plugins/linkedin-marketing/'
   fileRoutesByTo: FileRoutesByTo
@@ -740,6 +761,7 @@ export interface FileRouteTypes {
     | '/dashboard/plugins/gmail/mail'
     | '/dashboard/plugins/email-assistant'
     | '/dashboard/plugins/email-marketing'
+    | '/dashboard/plugins/employee-attendance'
     | '/dashboard/plugins/gmail'
     | '/dashboard/plugins/linkedin-marketing'
   id:
@@ -798,6 +820,7 @@ export interface FileRouteTypes {
     | '/dashboard/instagram-analytics/posts'
     | '/dashboard/plugins/email-assistant'
     | '/dashboard/plugins/email-marketing'
+    | '/dashboard/plugins/employee-attendance'
     | '/dashboard/plugins/gmail'
     | '/dashboard/plugins/linkedin-marketing'
     | '/dashboard/settings/api-keys'
@@ -807,6 +830,7 @@ export interface FileRouteTypes {
     | '/dashboard/plugins/gmail/mail'
     | '/dashboard/plugins/email-assistant/'
     | '/dashboard/plugins/email-marketing/'
+    | '/dashboard/plugins/employee-attendance/'
     | '/dashboard/plugins/gmail/'
     | '/dashboard/plugins/linkedin-marketing/'
   fileRoutesById: FileRoutesById
@@ -1214,6 +1238,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardPluginsGmailRouteImport
       parentRoute: typeof DashboardPluginsRoute
     }
+    '/dashboard/plugins/employee-attendance': {
+      id: '/dashboard/plugins/employee-attendance'
+      path: '/employee-attendance'
+      fullPath: '/dashboard/plugins/employee-attendance'
+      preLoaderRoute: typeof DashboardPluginsEmployeeAttendanceRouteImport
+      parentRoute: typeof DashboardPluginsRoute
+    }
     '/dashboard/plugins/email-marketing': {
       id: '/dashboard/plugins/email-marketing'
       path: '/email-marketing'
@@ -1262,6 +1293,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/dashboard/plugins/gmail/'
       preLoaderRoute: typeof DashboardPluginsGmailIndexRouteImport
       parentRoute: typeof DashboardPluginsGmailRoute
+    }
+    '/dashboard/plugins/employee-attendance/': {
+      id: '/dashboard/plugins/employee-attendance/'
+      path: '/'
+      fullPath: '/dashboard/plugins/employee-attendance/'
+      preLoaderRoute: typeof DashboardPluginsEmployeeAttendanceIndexRouteImport
+      parentRoute: typeof DashboardPluginsEmployeeAttendanceRoute
     }
     '/dashboard/plugins/email-marketing/': {
       id: '/dashboard/plugins/email-marketing/'
@@ -1348,6 +1386,21 @@ const DashboardPluginsEmailMarketingRouteWithChildren =
     DashboardPluginsEmailMarketingRouteChildren,
   )
 
+interface DashboardPluginsEmployeeAttendanceRouteChildren {
+  DashboardPluginsEmployeeAttendanceIndexRoute: typeof DashboardPluginsEmployeeAttendanceIndexRoute
+}
+
+const DashboardPluginsEmployeeAttendanceRouteChildren: DashboardPluginsEmployeeAttendanceRouteChildren =
+  {
+    DashboardPluginsEmployeeAttendanceIndexRoute:
+      DashboardPluginsEmployeeAttendanceIndexRoute,
+  }
+
+const DashboardPluginsEmployeeAttendanceRouteWithChildren =
+  DashboardPluginsEmployeeAttendanceRoute._addFileChildren(
+    DashboardPluginsEmployeeAttendanceRouteChildren,
+  )
+
 interface DashboardPluginsGmailRouteChildren {
   DashboardPluginsGmailMailRoute: typeof DashboardPluginsGmailMailRoute
   DashboardPluginsGmailIndexRoute: typeof DashboardPluginsGmailIndexRoute
@@ -1381,6 +1434,7 @@ const DashboardPluginsLinkedinMarketingRouteWithChildren =
 interface DashboardPluginsRouteChildren {
   DashboardPluginsEmailAssistantRoute: typeof DashboardPluginsEmailAssistantRouteWithChildren
   DashboardPluginsEmailMarketingRoute: typeof DashboardPluginsEmailMarketingRouteWithChildren
+  DashboardPluginsEmployeeAttendanceRoute: typeof DashboardPluginsEmployeeAttendanceRouteWithChildren
   DashboardPluginsGmailRoute: typeof DashboardPluginsGmailRouteWithChildren
   DashboardPluginsLinkedinMarketingRoute: typeof DashboardPluginsLinkedinMarketingRouteWithChildren
   DashboardPluginsIndexRoute: typeof DashboardPluginsIndexRoute
@@ -1391,6 +1445,8 @@ const DashboardPluginsRouteChildren: DashboardPluginsRouteChildren = {
     DashboardPluginsEmailAssistantRouteWithChildren,
   DashboardPluginsEmailMarketingRoute:
     DashboardPluginsEmailMarketingRouteWithChildren,
+  DashboardPluginsEmployeeAttendanceRoute:
+    DashboardPluginsEmployeeAttendanceRouteWithChildren,
   DashboardPluginsGmailRoute: DashboardPluginsGmailRouteWithChildren,
   DashboardPluginsLinkedinMarketingRoute:
     DashboardPluginsLinkedinMarketingRouteWithChildren,

@@ -17,6 +17,7 @@ const PLUGIN_CONFIG_PAGES: Record<string, string> = {
   ai_productivity_email_assistant: "/dashboard/plugins/email-assistant",
   sales_email_marketing: "/dashboard/plugins/email-marketing",
   marketing_linkedin: "/dashboard/plugins/linkedin-marketing",
+  hr_employee_attendance: "/dashboard/plugins/employee-attendance",
   // outlook: "/dashboard/plugins/outlook",
   // drive: "/dashboard/plugins/drive",
 };
@@ -872,6 +873,12 @@ function PluginDetailsModal({ plugin, onClose, onInstall }: PluginDetailsModalPr
     plugin.id === "linkedin-marketing" ||
     plugin.name === "LinkedIn Marketing";
 
+  const isEmployeeAttendancePlugin =
+    plugin.id === "hr_employee_attendance" ||
+    plugin.id === "employee-attendance" ||
+    plugin.name === "Employee Attendance" ||
+    plugin.name.includes("Employee Attendance");
+
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
       <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-3xl w-full max-h-[90vh] overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
@@ -913,7 +920,7 @@ function PluginDetailsModal({ plugin, onClose, onInstall }: PluginDetailsModalPr
               <div className="flex items-center gap-2 mb-2">
                 <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" />
                 <span className="font-bold text-2xl text-gray-900 dark:text-white">
-                  {isEmailMarketingPlugin || isLinkedInMarketingPlugin ? "New" : plugin.rating}
+                  {isEmailMarketingPlugin || isLinkedInMarketingPlugin || isEmployeeAttendancePlugin ? "New" : plugin.rating}
                 </span>
               </div>
               <span className="text-sm text-gray-600 dark:text-gray-400">Rating</span>
@@ -923,7 +930,7 @@ function PluginDetailsModal({ plugin, onClose, onInstall }: PluginDetailsModalPr
               <div className="flex items-center gap-2 mb-2">
                 <Download className="w-5 h-5 text-blue-500" />
                 <span className="font-bold text-2xl text-gray-900 dark:text-white">
-                  {isEmailMarketingPlugin || isLinkedInMarketingPlugin ? "Installed" : plugin.installs.toLocaleString()}
+                  {isEmailMarketingPlugin || isLinkedInMarketingPlugin || isEmployeeAttendancePlugin ? "Installed" : plugin.installs.toLocaleString()}
                 </span>
               </div>
               <span className="text-sm text-gray-600 dark:text-gray-400">Installs</span>
@@ -933,11 +940,11 @@ function PluginDetailsModal({ plugin, onClose, onInstall }: PluginDetailsModalPr
               <div className="flex items-center gap-2 mb-2">
                 <TrendingUp className="w-5 h-5 text-green-500" />
                 <span className="font-bold text-2xl text-gray-900 dark:text-white">
-                  {isEmailMarketingPlugin || isLinkedInMarketingPlugin ? "Ready" : "Top"}
+                  {isEmailMarketingPlugin || isLinkedInMarketingPlugin || isEmployeeAttendancePlugin ? "Ready" : "Top"}
                 </span>
               </div>
               <span className="text-sm text-gray-600 dark:text-gray-400">
-                {isEmailMarketingPlugin || isLinkedInMarketingPlugin ? "Production Ready" : "Trending"}
+                {isEmailMarketingPlugin || isLinkedInMarketingPlugin || isEmployeeAttendancePlugin ? "Production Ready" : "Trending"}
               </span>
             </div>
           </div>
@@ -953,6 +960,8 @@ function PluginDetailsModal({ plugin, onClose, onInstall }: PluginDetailsModalPr
                 ? "Send emails through your own SMTP server using AI-powered conversational commands. Configure SMTP once and let the AI send professional emails automatically."
                 : isLinkedInMarketingPlugin
                 ? "LinkedIn Marketing helps businesses, startups, and professionals create engaging LinkedIn content using AI. Configure your brand profile once, generate professional posts for different marketing goals, receive relevant hashtag suggestions, and manage your post history."
+                : isEmployeeAttendancePlugin
+                ? "Employee Attendance is a smart workforce management solution that allows organizations to import employee records, manage daily attendance, monitor employee status, and generate attendance reports through a modern onboarding workflow.\n\nThe plugin supports employee import using CSV and Excel files and stores employee information locally, providing a solid foundation for future HR modules."
                 : plugin.description}
             </p>
           </div>
@@ -985,6 +994,20 @@ function PluginDetailsModal({ plugin, onClose, onInstall }: PluginDetailsModalPr
                     "Step-by-step onboarding wizard",
                     "Local configuration persistence",
                   ]
+                : isEmployeeAttendancePlugin
+                ? [
+                    "Employee Import (CSV & Excel)",
+                    "Employee Data Preview",
+                    "Attendance Dashboard",
+                    "Clock In / Clock Out",
+                    "Attendance Register",
+                    "Employee Search",
+                    "Attendance Reports",
+                    "CSV Export",
+                    "TXT Export",
+                    "Local Employee Database",
+                    "Step-by-Step Setup Wizard",
+                  ]
                 : [
                     "Easy Integration",
                     "Customizable",
@@ -994,7 +1017,7 @@ function PluginDetailsModal({ plugin, onClose, onInstall }: PluginDetailsModalPr
                     "Reliable Performance",
                   ]
               ).map((feature, index) => (
-                <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-slate-800 rounded-xl">
+                <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-slate-800 rounded-xl font-medium">
                   <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
                   <span className="text-sm text-gray-700 dark:text-gray-300">{feature}</span>
                 </div>
@@ -1081,6 +1104,72 @@ function PluginDetailsModal({ plugin, onClose, onInstall }: PluginDetailsModalPr
             </>
           )}
 
+          {isEmployeeAttendancePlugin && (
+            <>
+              <div className="mb-8">
+                <h3 className="font-bold text-xl mb-4 text-gray-900 dark:text-white flex items-center gap-2">
+                  <div className="w-1 h-6 bg-gradient-to-b from-purple-500 to-pink-500 rounded-full"></div>
+                  Supported Formats
+                </h3>
+                <div className="grid grid-cols-2 gap-3">
+                  {["CSV (.csv)", "Excel (.xlsx)"].map((format, index) => (
+                    <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-slate-800 rounded-xl font-medium">
+                      <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
+                      <span className="text-sm text-gray-700 dark:text-gray-300">{format}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mb-8">
+                <h3 className="font-bold text-xl mb-4 text-gray-900 dark:text-white flex items-center gap-2">
+                  <div className="w-1 h-6 bg-gradient-to-b from-purple-500 to-pink-500 rounded-full"></div>
+                  Plugin Capabilities
+                </h3>
+                <div className="grid grid-cols-2 gap-3">
+                  {[
+                    "Import Employee Directory",
+                    "Employee Preview",
+                    "Attendance Tracking",
+                    "Clock In / Clock Out",
+                    "Attendance Register",
+                    "Search Employees",
+                    "Attendance Reports",
+                    "CSV Export",
+                    "TXT Export",
+                    "Local Data Storage",
+                  ].map((capability, index) => (
+                    <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-slate-800 rounded-xl font-medium">
+                      <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
+                      <span className="text-sm text-gray-700 dark:text-gray-300">{capability}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mb-8">
+                <h3 className="font-bold text-xl mb-4 text-gray-900 dark:text-white flex items-center gap-2">
+                  <div className="w-1 h-6 bg-gradient-to-b from-purple-500 to-pink-500 rounded-full"></div>
+                  Workflow
+                </h3>
+                <div className="grid grid-cols-2 gap-3">
+                  {[
+                    "1. Welcome",
+                    "2. Company Configuration",
+                    "3. Employee Data Setup",
+                    "4. Attendance Dashboard",
+                    "5. Reports",
+                  ].map((workflowStep, index) => (
+                    <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-slate-800 rounded-xl font-medium">
+                      <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
+                      <span className="text-sm text-gray-700 dark:text-gray-300">{workflowStep}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
+
           {/* Pricing CTA */}
           <div className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-slate-800 dark:to-slate-800 rounded-2xl p-6 border-2 border-purple-200 dark:border-purple-800">
             <div className="flex items-center justify-between">
@@ -1114,7 +1203,7 @@ function PluginDetailsModal({ plugin, onClose, onInstall }: PluginDetailsModalPr
             <div className="bg-gray-50 dark:bg-slate-800 rounded-xl p-4">
               <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Version</p>
               <p className="font-semibold text-gray-900 dark:text-white">
-                {isEmailMarketingPlugin || isLinkedInMarketingPlugin ? "v1.0" : plugin.id}
+                {isEmailMarketingPlugin || isLinkedInMarketingPlugin || isEmployeeAttendancePlugin ? "v1.0" : plugin.id}
               </p>
             </div>
           </div>
@@ -1123,7 +1212,7 @@ function PluginDetailsModal({ plugin, onClose, onInstall }: PluginDetailsModalPr
             <div className="bg-gray-50 dark:bg-slate-800 rounded-xl p-4">
               <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Status</p>
               <p className="font-semibold text-gray-900 dark:text-white">
-                {isEmailMarketingPlugin || isLinkedInMarketingPlugin ? "Production Ready" : "Active"}
+                {isEmailMarketingPlugin || isLinkedInMarketingPlugin || isEmployeeAttendancePlugin ? "Production Ready" : "Active"}
               </p>
             </div>
             <div className="bg-gray-50 dark:bg-slate-800 rounded-xl p-4">

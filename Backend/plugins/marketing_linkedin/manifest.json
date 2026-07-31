@@ -1,0 +1,26 @@
+{
+  "plugin_key": "marketing_linkedin",
+  "name": "LinkedIn Marketing",
+  "version": "v1.0",
+  "author": "Saadhyam AI",
+  "description": "Create professional LinkedIn posts with AI, generate industry-specific hashtags, and manage your content from one place.",
+  "category": "marketing",
+  "permissions": [
+    "linkedin.campaigns"
+  ],
+  "supported_features": [
+    "campaign_planning",
+    "configurable_workflows"
+  ],
+  "actions": [
+    {
+      "action": "create_campaign",
+      "name": "Create Campaign",
+      "description": "Create a LinkedIn outreach campaign draft",
+      "parameters": {
+        "campaign_name": {"type": "string", "required": true},
+        "objective": {"type": "string", "required": false}
+      }
+    }
+  ]
+}

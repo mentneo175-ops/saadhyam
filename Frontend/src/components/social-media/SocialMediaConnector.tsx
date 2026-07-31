@@ -135,6 +135,10 @@ export function SocialMediaConnector() {
     
     try {
       const token = localStorage.getItem('token');
+      if (!token) {
+        toast.error("Please login again to connect social account");
+        return;
+      }
       const config = platformConfigs[platform as keyof typeof platformConfigs];
       
       // Open OAuth popup

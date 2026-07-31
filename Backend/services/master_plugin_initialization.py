@@ -4,8 +4,9 @@ Orchestrates the complete plugin system setup
 """
 
 import logging
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from services.plugin_initialization import initialize_all_plugins
+from services.plugin_initialization import initialize_all_plugins, register_marketing_plugins
 from services.plugin_initialization_phase2 import initialize_all_phase2_plugins
 
 logger = logging.getLogger(__name__)
@@ -18,6 +19,28 @@ async def initialize_complete_plugin_system(db: AsyncSession):
     logger.info("=" * 60)
     
     try:
+        # Check if plugins are already registered in the DB
+        from models.plugins import Plugin
+        # pyrefly: ignore [missing-import]
+        from sqlalchemy import func
+        count_result = await db.execute(select(func.count(Plugin.id)))
+        count = count_result.scalar()
+        if count >= 130:
+            logger.info(f"✅ Plugin system already initialized ({count} plugins registered). Skipping registration.")
+            # Ensure key plugins are registered even if other plugins are already seeded
+            gmail_check = await db.execute(select(Plugin).where(Plugin.plugin_key == "gmail"))
+            gmail_plugin = gmail_check.scalar_one_or_none()
+            if not gmail_plugin:
+                logger.info("🔌 Gmail plugin not found in initialized database. Registering now...")
+                from services.plugin_initialization_phase2 import register_gmail_plugin
+                await register_gmail_plugin(db)
+
+            logger.info("🔌 Updating LinkedIn Marketing plugin database record to latest metadata...")
+            await register_marketing_plugins(db)
+
+            logger.info("=" * 60)
+            return True
+            
         # Phase 1: Core Business Plugins
         logger.info("📦 Phase 1: Core Business Plugins")
         try:

@@ -10,6 +10,7 @@ interface EnvConfig {
   environment: "development" | "staging" | "production";
   isDevelopment: boolean;
   isProduction: boolean;
+  VITE_API_URL: string;
 }
 
 // Get environment variables from Vite or process.env (for SSR)
@@ -113,6 +114,9 @@ export const env: EnvConfig = {
   environment: getEnvVar("VITE_ENVIRONMENT", "development") as EnvConfig["environment"],
   isDevelopment: getEnvVar("VITE_ENVIRONMENT", "development") === "development",
   isProduction: getEnvVar("VITE_ENVIRONMENT", "development") === "production",
+  get VITE_API_URL() {
+    return getDynamicApiBaseUrl(getEnvVar("VITE_API_URL", "http://localhost:8000"));
+  },
 };
 
 // Log configuration in development

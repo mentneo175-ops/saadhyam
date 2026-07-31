@@ -44,10 +44,12 @@ class APIKeyResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
     
-    # Security: Don't expose actual credentials
+    # Security: never expose raw credentials — only presence booleans and masked value
     has_api_key: bool
     has_client_id: bool
     has_client_secret: bool
+    masked_api_key: Optional[str] = None      # e.g. "****abcd" (last 4 chars of raw value)
+    masked_client_id: Optional[str] = None   # e.g. "****5678"
 
 class PlatformTemplate(BaseModel):
     platform: str
@@ -63,6 +65,23 @@ class APIKeyValidationResult(BaseModel):
     is_valid: bool
     error_message: Optional[str]
     platform_info: Optional[Dict[str, Any]] = None
+
+
+def _mask_key(encrypted_value: Optional[str]) -> Optional[str]:
+    """
+    Decrypt a stored encrypted key and return a masked version showing only
+    the last 4 characters (e.g. "sk-abc..." → "****3def").
+    Never returns the raw value.
+    """
+    if not encrypted_value:
+        return None
+    try:
+        raw = encryption_service.decrypt(encrypted_value)
+        if len(raw) <= 4:
+            return "****"
+        return "****" + raw[-4:]
+    except Exception:
+        return "****"
 
 # Platform configurations for popular social media APIs
 PLATFORM_CONFIGS = {
@@ -240,7 +259,9 @@ async def get_user_api_keys(
                 updated_at=key.updated_at,
                 has_api_key=bool(key.api_key),
                 has_client_id=bool(key.client_id),
-                has_client_secret=bool(key.client_secret)
+                has_client_secret=bool(key.client_secret),
+                masked_api_key=_mask_key(key.api_key),
+                masked_client_id=_mask_key(key.client_id),
             ))
         
         return response_data
@@ -345,7 +366,9 @@ async def add_or_update_api_keys(
             updated_at=api_key_record.updated_at,
             has_api_key=bool(api_key_record.api_key),
             has_client_id=bool(api_key_record.client_id),
-            has_client_secret=bool(api_key_record.client_secret)
+            has_client_secret=bool(api_key_record.client_secret),
+            masked_api_key=_mask_key(api_key_record.api_key),
+            masked_client_id=_mask_key(api_key_record.client_id),
         )
         
     except HTTPException:

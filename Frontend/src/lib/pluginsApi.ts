@@ -5,18 +5,26 @@ import { ALL_PLUGINS as pluginsData } from "@/config/pluginsData";
 const API_BASE_URL = env.apiBaseUrl || "http://localhost:8001";
 
 export interface BackendPlugin {
-  key: string;
+  // Fields returned by the real backend PluginResponse Pydantic model
+  key?: string;          // used in mock-data fallback path
+  plugin_key?: string;   // used in real backend response
   name: string;
   category: string;
   description: string;
-  pricing: {
+  // Real backend returns flat fields, not a nested pricing object
+  is_premium?: boolean;
+  pricing_tier?: string | null;
+  // Legacy/mock-data nested pricing (used by convertMockDataToBackendFormat)
+  pricing?: {
     free: boolean;
     monthly_price?: number;
     currency?: string;
   };
-  ai_powered: boolean;
+  ai_powered?: boolean;
+  is_ai_powered?: boolean;
   rating: number;
-  installs: number;
+  installs?: number;
+  install_count?: number;
   icon?: string;
   features?: string[];
   status?: string;
@@ -40,7 +48,7 @@ export interface PluginStats {
 // Get all available plugins from backend
 export async function getAvailablePlugins(category?: string): Promise<BackendPlugin[]> {
   try {
-    const url = new URL(`${API_BASE_URL}/plugins/available`);
+    const url = new URL(`${API_BASE_URL}/api/plugins/available`);
     if (category && category !== "all") {
       url.searchParams.append("category", category);
     }
@@ -91,7 +99,7 @@ function convertMockDataToBackendFormat(): BackendPlugin[] {
 // Get plugin categories
 export async function getPluginCategories(): Promise<PluginCategory[]> {
   try {
-    const response = await fetch(`${API_BASE_URL}/plugins/categories`);
+    const response = await fetch(`${API_BASE_URL}/api/plugins/categories`);
     if (!response.ok) {
       console.warn(`Backend returned ${response.status}, using mock categories`);
       return generateMockCategories();
@@ -174,7 +182,8 @@ export async function searchPlugins(query: string, filters?: {
 // Get plugin statistics
 export async function getPluginStats(): Promise<PluginStats | null> {
   try {
-    const response = await fetch(`${API_BASE_URL}/plugins/stats`);
+    // NOTE: must include /api prefix to match the backend router prefix
+    const response = await fetch(`${API_BASE_URL}/api/plugins/stats`);
     if (!response.ok) {
       console.warn("Backend stats not available, generating from mock data");
       return generateMockStats();
@@ -299,3 +308,205 @@ export async function getPluginInfo(pluginKey: string): Promise<BackendPlugin | 
     return null;
   }
 }
+
+export interface UserPluginDetail {
+  id: number;
+  is_enabled: boolean;
+  installed_version: string;
+  installation_date: string;
+  usage_count: number;
+  plugin_key: string;
+  plugin: BackendPlugin;
+  // Saved configuration for the plugin (e.g. SMTP credentials for Email Marketing)
+  user_config?: Record<string, any>;
+}
+
+export async function getInstalledPluginsDetailed(): Promise<UserPluginDetail[]> {
+  try {
+    const token = localStorage.getItem("saadhyam_token");
+    const headers: HeadersInit = {};
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+    
+    const response = await fetch(`${API_BASE_URL}/api/plugins/installed`, { headers });
+    if (!response.ok) {
+      throw new Error(`Failed to fetch installed plugins: ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    return data.plugins || [];
+  } catch (error) {
+    console.error("Error fetching installed plugins detailed:", error);
+    return [];
+  }
+}
+
+export async function togglePlugin(pluginKey: string): Promise<{ success: boolean; enabled: boolean; message: string }> {
+  try {
+    const token = localStorage.getItem("saadhyam_token");
+    const headers: HeadersInit = {
+      "Content-Type": "application/json",
+    };
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+    
+    const response = await fetch(`${API_BASE_URL}/api/plugins/${pluginKey}/toggle`, {
+      method: "PUT",
+      headers,
+    });
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || error.message || "Failed to toggle plugin");
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error("Error toggling plugin:", error);
+    return {
+      success: false,
+      enabled: false,
+      message: error instanceof Error ? error.message : "Failed to toggle plugin",
+    };
+  }
+}
+
+export async function uninstallPlugin(pluginKey: string): Promise<{ success: boolean; message: string }> {
+  try {
+    const token = localStorage.getItem("saadhyam_token");
+    const headers: HeadersInit = {};
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+    
+    const response = await fetch(`${API_BASE_URL}/api/plugins/${pluginKey}`, {
+      method: "DELETE",
+      headers,
+    });
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || error.message || "Failed to uninstall plugin");
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error("Error uninstalling plugin:", error);
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : "Failed to uninstall plugin",
+    };
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Generic Plugin Action Execution
+// Used by plugin dashboards (Gmail, future: Drive, Slack, etc.)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface PluginActionResult<T = unknown> {
+  success: boolean;
+  result: T;
+  execution_time: number;
+  error?: string;
+}
+
+export async function executePluginAction<T = unknown>(
+  pluginKey: string,
+  action: string,
+  params: Record<string, unknown> = {}
+): Promise<PluginActionResult<T>> {
+  const token = localStorage.getItem("saadhyam_token");
+  const headers: HeadersInit = {
+    "Content-Type": "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+
+  const response = await fetch(`${API_BASE_URL}/api/plugins/execute`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({ plugin_key: pluginKey, action, params }),
+  });
+
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    throw new Error(data?.detail ?? data?.error ?? `Execute failed (${response.status})`);
+  }
+
+  return response.json() as Promise<PluginActionResult<T>>;
+}
+
+export interface EmailMarketingDetails {
+  plugin_key: string;
+  name: string;
+  description: string;
+  version: string;
+  developer: string;
+  category: string;
+  permissions: string[];
+  features: string[];
+  required_configuration_fields: string[];
+  installed: boolean;
+  configured: boolean;
+}
+
+export async function getEmailMarketingDetails(): Promise<EmailMarketingDetails> {
+  const token = localStorage.getItem("saadhyam_token");
+  const headers: HeadersInit = {
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+
+  const response = await fetch(`${API_BASE_URL}/api/plugins/email_marketing/details`, {
+    headers,
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.detail || "Failed to load email marketing details");
+  }
+
+  return response.json();
+}
+
+export async function saveEmailMarketingConfig(config: Record<string, unknown>): Promise<{ success: boolean; message: string; config?: Record<string, unknown> }> {
+  const token = localStorage.getItem("saadhyam_token");
+  const headers: HeadersInit = {
+    "Content-Type": "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+
+  const response = await fetch(`${API_BASE_URL}/api/plugins/email_marketing/config`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify(config),
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.detail || "Failed to save configuration");
+  }
+
+  return response.json();
+}
+
+export async function testEmailMarketingConnection(): Promise<{ success: boolean; message: string }> {
+  const token = localStorage.getItem("saadhyam_token");
+  const headers: HeadersInit = {
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+
+  const response = await fetch(`${API_BASE_URL}/api/plugins/email_marketing/test`, {
+    method: "POST",
+    headers,
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.detail || "Failed to test connection");
+  }
+
+  return response.json();
+}
+

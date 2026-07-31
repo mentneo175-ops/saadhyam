@@ -276,12 +276,14 @@ async def register_marketing_plugins(db: AsyncSession):
         plugin_key="marketing_linkedin",
         name="💼 LinkedIn Marketing",
         category=PluginCategory.MARKETING,
-        description="B2B marketing campaigns and lead generation on LinkedIn",
+        description="Create professional LinkedIn posts with AI, generate industry-specific hashtags, and manage your content from one place.",
         icon="💼",
+        is_ai_powered=True,
         config_schema={
             "type": "object",
             "properties": {
                 "linkedin_access_token": {"type": "string", "required": True},
+                "company_page_url": {"type": "string"},
                 "target_audience": {"type": "object"},
                 "campaign_objectives": {"type": "array"}
             }

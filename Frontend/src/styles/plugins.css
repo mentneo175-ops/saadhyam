@@ -108,3 +108,101 @@
     border-image-source: linear-gradient(90deg, #8B5CF6, #EC4899);
   }
 }
+
+/* ═══════════════════════════════════════════════════════════
+   Mail Dashboard Styles
+   ═══════════════════════════════════════════════════════════ */
+
+/* Mail card */
+.mail-card {
+  transition: background-color 150ms ease, box-shadow 150ms ease;
+  contain: layout style;
+}
+.mail-card:focus-visible {
+  outline: 2px solid var(--color-ring, #8b5cf6);
+  outline-offset: -2px;
+}
+
+/* Batch toolbar — sticky at bottom with slide-up animation */
+.mail-batch-toolbar {
+  animation: slide-up 200ms ease-out;
+}
+@keyframes slide-up {
+  from { transform: translateY(100%); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+/* Mail body HTML content safety */
+.mail-body {
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+.mail-body img {
+  max-width: 100%;
+  height: auto;
+}
+.mail-body a {
+  color: var(--color-primary, #8b5cf6);
+  text-decoration: underline;
+}
+
+/* Prose dark-mode override for HTML email bodies */
+@media (prefers-color-scheme: dark) {
+  .prose {
+    --tw-prose-body: hsl(var(--foreground));
+    --tw-prose-headings: hsl(var(--foreground));
+    --tw-prose-links: #a78bfa;
+  }
+}
+
+/* Attachment grid responsive */
+.attachment-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 0.75rem;
+}
+
+/* Label chip */
+.label-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border: 1px solid transparent;
+  transition: background-color 150ms ease, border-color 150ms ease;
+}
+
+/* Compose form drag-over highlight */
+.compose-dropzone-active {
+  border-color: var(--color-primary, #8b5cf6) !important;
+  background-color: hsl(var(--primary) / 0.05) !important;
+}
+
+/* Skeleton shimmer enhancement */
+@keyframes skeleton-shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+
+/* Focus ring for interactive mail controls */
+.mail-action-btn:focus-visible {
+  outline: 2px solid var(--color-ring, #8b5cf6);
+  outline-offset: 2px;
+  border-radius: 0.375rem;
+}
+
+/* Responsive: collapse tab labels on mobile */
+@media (max-width: 640px) {
+  .mail-tab-label {
+    display: none;
+  }
+}
+
+/* Smooth height transition for CC/BCC reveal */
+.cc-bcc-fields {
+  animation: fade-in 0.15s ease-out;
+}
+

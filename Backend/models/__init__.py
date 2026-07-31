@@ -67,7 +67,7 @@ from models.google_business import (
 from models.voice_command import VoiceCommandLog
 
 # User API Keys and Plugins Models
-from models.user_api_keys import UserAPIKeys
+from models.user_api_keys import UserAPIKeys, APIKeyTemplate
 from models.plugins import Plugin, UserPlugin, PluginAnalytics, PluginCategory, PluginStatus
 
 __all__ = [
@@ -110,6 +110,7 @@ __all__ = [
     "GoogleBusinessPost",
     "VoiceCommandLog",
     "UserAPIKeys",
+    "APIKeyTemplate",
     "Plugin",
     "UserPlugin",
     "PluginAnalytics",

@@ -95,13 +95,7 @@ class FeatureGuardMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         path = str(request.url.path or "")
 
-        # Lazy refresh fallback: keeps flags working even if startup hooks are skipped.
-        now = time.monotonic()
-        if (not FEATURE_CACHE) or ((now - LAST_FETCH_TS) >= POLL_INTERVAL):
-            async with FETCH_LOCK:
-                now2 = time.monotonic()
-                if (not FEATURE_CACHE) or ((now2 - LAST_FETCH_TS) >= POLL_INTERVAL):
-                    await fetch_features_once(timeout=3)
+
 
         # allowlist health, docs and static routes
         allow_prefixes = ("/health", "/test", "/api/status", "/openapi.json", "/docs", "/static", "/socket.io", "/favicon")

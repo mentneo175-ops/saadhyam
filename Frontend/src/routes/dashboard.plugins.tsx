@@ -1,15 +1,9 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { PluginMarketplaceNew } from "@/components/plugins/PluginMarketplaceNew";
+import { createFileRoute, Outlet } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/dashboard/plugins")({
-  head: () => ({ meta: [{ title: "Plugin Marketplace — Saadhyam AI" }] }),
-  component: PluginsPage,
+  component: PluginsLayout,
 });
 
-function PluginsPage() {
-  return (
-    <div className="container mx-auto p-6">
-      <PluginMarketplaceNew />
-    </div>
-  );
+function PluginsLayout() {
+  return <Outlet />;
 }

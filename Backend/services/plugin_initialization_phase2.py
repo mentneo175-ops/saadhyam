@@ -1092,7 +1092,32 @@ async def register_communication_plugins(db: AsyncSession):
         }
     )
     
+    # Gmail Integration
+    await register_gmail_plugin(db)
+    
     logger.info("✅ Communication plugins registered")
+
+async def register_gmail_plugin(db: AsyncSession):
+    """Register Gmail plugin in the system"""
+    await plugin_manager.register_plugin(
+        db=db,
+        plugin_key="gmail",
+        name="Gmail Integration",
+        category=PluginCategory.COMMUNICATION,
+        description="Integrate Gmail with Saadhyam to send, search and manage emails.",
+        icon="✉️",
+        is_ai_powered=False,
+        is_premium=False,
+        config_schema={
+            "type": "object",
+            "properties": {
+                "client_id": {"type": "string", "description": "Google API Client ID"},
+                "client_secret": {"type": "string", "description": "Google API Client Secret"},
+                "refresh_token": {"type": "string", "description": "Google OAuth Refresh Token"}
+            },
+            "required": []
+        }
+    )
 
 async def register_education_plugins(db: AsyncSession):
     """Register Education category plugins"""

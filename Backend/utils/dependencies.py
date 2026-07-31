@@ -1,9 +1,11 @@
+# pyrefly: ignore [missing-import]
 from fastapi import Depends, HTTPException, status, Header
-from sqlalchemy.orm import Session
+# pyrefly: ignore [missing-import]
+from sqlalchemy.ext.asyncio import AsyncSession
 from jose import JWTError
-from config.database import get_db_sync
+from config.database import get_db
 from utils.security import decode_token
-from services.auth_service_sync import get_user_by_id
+from services.auth_service import get_user_by_id
 from services.token_blacklist_service import token_blacklist_service
 from models.user import User
 from schemas.user_schema import TokenData
@@ -13,27 +15,12 @@ from typing import Optional
 logger = logging.getLogger(__name__)
 
 
-def get_current_user(
+async def get_current_user(
     authorization: Optional[str] = Header(None),
-    db: Session = Depends(get_db_sync),
+    db: AsyncSession = Depends(get_db),
 ) -> User:
-    """
-    Dependency to get current authenticated user.
-    
-    **Single Session Enforcement**: Validates that the token matches the user's active session.
-    If user logged in from another device/browser, this token will be rejected.
-
-    Args:
-        authorization: Authorization header with Bearer token
-        db: Database session
-
-    Returns:
-        Current user object
-
-    Raises:
-        HTTPException: If token is invalid, user not found, or session is invalid
-    """
-    # Reduced logging - only log errors and warnings, not every successful auth
+    import time
+    t0 = time.monotonic()
     
     if not authorization:
         logger.warning("❌ Authorization header missing")
@@ -57,6 +44,7 @@ def get_current_user(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
+    t1 = time.monotonic()
     try:
         # Decode and validate token
         payload = decode_token(token)
@@ -82,6 +70,7 @@ def get_current_user(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
+    t2 = time.monotonic()
     # Check if token is blacklisted (revoked)
     if token_blacklist_service.is_token_blacklisted(token):
         logger.warning(f"❌ Blacklisted token attempted to be used")
@@ -91,6 +80,7 @@ def get_current_user(
             headers={"WWW-Authenticate": "Bearer"},
         )
     
+    t3 = time.monotonic()
     # Check if user is blacklisted (all sessions revoked)
     if token_blacklist_service.is_user_blacklisted(user_id):
         logger.warning(f"❌ Blacklisted user {user_id} attempted to use token")
@@ -100,9 +90,11 @@ def get_current_user(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    # Get user from database (sync call, no await needed)
-    user = get_user_by_id(db, token_data.user_id)
+    t4 = time.monotonic()
+    # Get user from database (async call, await needed)
+    user = await get_user_by_id(db, token_data.user_id)
 
+    t5 = time.monotonic()
     if user is None:
         logger.warning(f"❌ User not found for ID: {token_data.user_id}")
         raise HTTPException(
@@ -138,14 +130,16 @@ def get_current_user(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
+    t6 = time.monotonic()
+    print(f"[LATENCY DEPENDENCY] decode={t2-t1:.4f}s blacklists={t4-t2:.4f}s get_user={t5-t4:.4f}s checks={t6-t5:.4f}s total={t6-t0:.4f}s")
     # Only log successful auth at DEBUG level (won't show in production)
     logger.debug(f"✅ User authenticated: {user.email}")
     return user
 
 
-def get_current_user_optional(
+async def get_current_user_optional(
     authorization: Optional[str] = Header(None),
-    db: Session = Depends(get_db_sync),
+    db: AsyncSession = Depends(get_db),
 ) -> User | None:
     """
     Optional dependency to get current user if token provided.
@@ -160,4 +154,4 @@ def get_current_user_optional(
     if authorization is None:
         return None
 
-    return get_current_user(authorization, db)
+    return await get_current_user(authorization, db)

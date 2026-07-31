@@ -6,7 +6,15 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Search, Star, Download, Settings, Play, Pause } from 'lucide-react';
-import { toast } from '@/components/ui/use-toast';
+import { toast as sonnerToast } from 'sonner';
+
+const toast = ({ title, description, variant }: { title: string; description: string; variant?: string }) => {
+  if (variant === "destructive") {
+    sonnerToast.error(description || title);
+  } else {
+    sonnerToast.success(description || title);
+  }
+};
 
 interface Plugin {
   id: number;

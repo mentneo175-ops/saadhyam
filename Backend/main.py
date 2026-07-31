@@ -513,6 +513,14 @@ except Exception as e:
     plugins_available = False
 
 try:
+    from routes.gmail_credentials import router as gmail_credentials_router
+    gmail_credentials_available = True
+    logging.info("✅ Gmail credentials router imported successfully")
+except Exception as e:
+    logging.warning(f"Gmail credentials router not available: {e}")
+    gmail_credentials_available = False
+
+try:
     from ai_models.website_ai.app.api.v1.routes import generation as website_ai_generation
     from ai_models.website_ai.app.api.v1.routes import jobs as website_ai_jobs
     from ai_models.website_ai.app.api.v1.routes import websites as website_ai_websites
@@ -670,22 +678,27 @@ async def lifespan(app: FastAPI):
             logger.error(f"❌ Failed to start token refresh scheduler: {e}")
             logger.warning("⚠️  Tokens will not be automatically refreshed")
         
-        # Initialize Plugin System
-        logger.info("🔌 Starting comprehensive plugin system...")
+        # Initialize Plugin System in background to avoid blocking server startup
+        logger.info("🔌 Starting comprehensive plugin system in background...")
         try:
+            import asyncio
             from services.master_plugin_initialization import initialize_complete_plugin_system
             from config.database import async_engine
             from sqlalchemy.ext.asyncio import AsyncSession
             
-            # Create database session for plugin initialization
-            async with AsyncSession(async_engine) as db:
-                await initialize_complete_plugin_system(db)
+            async def run_plugin_init():
+                try:
+                    logger.info("🔌 Background: Starting plugin system initialization...")
+                    async with AsyncSession(async_engine) as db:
+                        await initialize_complete_plugin_system(db)
+                    logger.info("✅ Background: Plugin system initialized successfully")
+                except Exception as e:
+                    logger.error(f"❌ Background: Failed to initialize plugin system: {e}")
             
-            logger.info("✅ Plugin system initialized successfully")
+            asyncio.create_task(run_plugin_init())
         except Exception as e:
-            logger.error(f"❌ Failed to initialize plugin system: {e}")
-            logger.warning("⚠️  Plugin marketplace will not be available")
-            # Continue startup even if plugin system fails
+            logger.error(f"❌ Failed to start plugin system background task: {e}")
+            logger.warning("⚠️  Plugin marketplace may not be available")
         
         # NOTE: AI models configuration:
         # - Review Reply AI: TinyLlama loaded in main backend (port 8000)
@@ -1177,6 +1190,9 @@ if dashboard_analytics_available:
 if plugins_available:
     app.include_router(plugins_router, prefix="/api")
     logging.info("✅ Plugins router included in app")
+if gmail_credentials_available:
+    app.include_router(gmail_credentials_router)
+    logging.info("✅ Gmail credentials router included in app")
 if website_ai_available:
     app.include_router(
         website_ai_generation.router,

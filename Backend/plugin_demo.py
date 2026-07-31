@@ -5,6 +5,7 @@ Demonstrates the complete plugin system functionality
 
 import asyncio
 import logging
+# pyrefly: ignore [missing-import]
 from sqlalchemy.ext.asyncio import AsyncSession
 from config.database import get_db
 from services.master_plugin_initialization import initialize_complete_plugin_system, get_plugin_system_status

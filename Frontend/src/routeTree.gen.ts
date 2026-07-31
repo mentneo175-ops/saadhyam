@@ -59,11 +59,21 @@ import { Route as DashboardAgentsRouteImport } from './routes/dashboard.agents'
 import { Route as DashboardAeoGeoRouteImport } from './routes/dashboard.aeo-geo'
 import { Route as DashboardActionsRouteImport } from './routes/dashboard.actions'
 import { Route as DashboardVoiceAgentIndexRouteImport } from './routes/dashboard.voice-agent.index'
+import { Route as DashboardPluginsIndexRouteImport } from './routes/dashboard.plugins.index'
 import { Route as DashboardAgentsIndexRouteImport } from './routes/dashboard.agents.index'
 import { Route as DashboardSettingsApiKeysRouteImport } from './routes/dashboard.settings.api-keys'
+import { Route as DashboardPluginsLinkedinMarketingRouteImport } from './routes/dashboard.plugins.linkedin-marketing'
+import { Route as DashboardPluginsGmailRouteImport } from './routes/dashboard.plugins.gmail'
+import { Route as DashboardPluginsEmailMarketingRouteImport } from './routes/dashboard.plugins.email-marketing'
+import { Route as DashboardPluginsEmailAssistantRouteImport } from './routes/dashboard.plugins.email-assistant'
 import { Route as DashboardInstagramAnalyticsPostsRouteImport } from './routes/dashboard.instagram-analytics.posts'
 import { Route as DashboardAgentsPartnershipRouteImport } from './routes/dashboard.agents.partnership'
 import { Route as DashboardAgentsCustomerRetentionRouteImport } from './routes/dashboard.agents.customer-retention'
+import { Route as DashboardPluginsLinkedinMarketingIndexRouteImport } from './routes/dashboard.plugins.linkedin-marketing.index'
+import { Route as DashboardPluginsGmailIndexRouteImport } from './routes/dashboard.plugins.gmail.index'
+import { Route as DashboardPluginsEmailMarketingIndexRouteImport } from './routes/dashboard.plugins.email-marketing.index'
+import { Route as DashboardPluginsEmailAssistantIndexRouteImport } from './routes/dashboard.plugins.email-assistant.index'
+import { Route as DashboardPluginsGmailMailRouteImport } from './routes/dashboard.plugins.gmail.mail'
 
 const YoutubeOauthCallbackRoute = YoutubeOauthCallbackRouteImport.update({
   id: '/youtube-oauth-callback',
@@ -321,6 +331,11 @@ const DashboardVoiceAgentIndexRoute =
     path: '/voice-agent/',
     getParentRoute: () => DashboardRoute,
   } as any)
+const DashboardPluginsIndexRoute = DashboardPluginsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => DashboardPluginsRoute,
+} as any)
 const DashboardAgentsIndexRoute = DashboardAgentsIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -331,6 +346,29 @@ const DashboardSettingsApiKeysRoute =
     id: '/api-keys',
     path: '/api-keys',
     getParentRoute: () => DashboardSettingsRoute,
+  } as any)
+const DashboardPluginsLinkedinMarketingRoute =
+  DashboardPluginsLinkedinMarketingRouteImport.update({
+    id: '/linkedin-marketing',
+    path: '/linkedin-marketing',
+    getParentRoute: () => DashboardPluginsRoute,
+  } as any)
+const DashboardPluginsGmailRoute = DashboardPluginsGmailRouteImport.update({
+  id: '/gmail',
+  path: '/gmail',
+  getParentRoute: () => DashboardPluginsRoute,
+} as any)
+const DashboardPluginsEmailMarketingRoute =
+  DashboardPluginsEmailMarketingRouteImport.update({
+    id: '/email-marketing',
+    path: '/email-marketing',
+    getParentRoute: () => DashboardPluginsRoute,
+  } as any)
+const DashboardPluginsEmailAssistantRoute =
+  DashboardPluginsEmailAssistantRouteImport.update({
+    id: '/email-assistant',
+    path: '/email-assistant',
+    getParentRoute: () => DashboardPluginsRoute,
   } as any)
 const DashboardInstagramAnalyticsPostsRoute =
   DashboardInstagramAnalyticsPostsRouteImport.update({
@@ -349,6 +387,36 @@ const DashboardAgentsCustomerRetentionRoute =
     id: '/customer-retention',
     path: '/customer-retention',
     getParentRoute: () => DashboardAgentsRoute,
+  } as any)
+const DashboardPluginsLinkedinMarketingIndexRoute =
+  DashboardPluginsLinkedinMarketingIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => DashboardPluginsLinkedinMarketingRoute,
+  } as any)
+const DashboardPluginsGmailIndexRoute =
+  DashboardPluginsGmailIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => DashboardPluginsGmailRoute,
+  } as any)
+const DashboardPluginsEmailMarketingIndexRoute =
+  DashboardPluginsEmailMarketingIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => DashboardPluginsEmailMarketingRoute,
+  } as any)
+const DashboardPluginsEmailAssistantIndexRoute =
+  DashboardPluginsEmailAssistantIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => DashboardPluginsEmailAssistantRoute,
+  } as any)
+const DashboardPluginsGmailMailRoute =
+  DashboardPluginsGmailMailRouteImport.update({
+    id: '/mail',
+    path: '/mail',
+    getParentRoute: () => DashboardPluginsGmailRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -386,7 +454,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/instagram-analytics': typeof DashboardInstagramAnalyticsRouteWithChildren
   '/dashboard/messages': typeof DashboardMessagesRoute
   '/dashboard/meta-ads': typeof DashboardMetaAdsRoute
-  '/dashboard/plugins': typeof DashboardPluginsRoute
+  '/dashboard/plugins': typeof DashboardPluginsRouteWithChildren
   '/dashboard/pricing': typeof DashboardPricingRoute
   '/dashboard/radar': typeof DashboardRadarRoute
   '/dashboard/reports': typeof DashboardReportsRoute
@@ -404,9 +472,19 @@ export interface FileRoutesByFullPath {
   '/dashboard/agents/customer-retention': typeof DashboardAgentsCustomerRetentionRoute
   '/dashboard/agents/partnership': typeof DashboardAgentsPartnershipRoute
   '/dashboard/instagram-analytics/posts': typeof DashboardInstagramAnalyticsPostsRoute
+  '/dashboard/plugins/email-assistant': typeof DashboardPluginsEmailAssistantRouteWithChildren
+  '/dashboard/plugins/email-marketing': typeof DashboardPluginsEmailMarketingRouteWithChildren
+  '/dashboard/plugins/gmail': typeof DashboardPluginsGmailRouteWithChildren
+  '/dashboard/plugins/linkedin-marketing': typeof DashboardPluginsLinkedinMarketingRouteWithChildren
   '/dashboard/settings/api-keys': typeof DashboardSettingsApiKeysRoute
   '/dashboard/agents/': typeof DashboardAgentsIndexRoute
+  '/dashboard/plugins/': typeof DashboardPluginsIndexRoute
   '/dashboard/voice-agent/': typeof DashboardVoiceAgentIndexRoute
+  '/dashboard/plugins/gmail/mail': typeof DashboardPluginsGmailMailRoute
+  '/dashboard/plugins/email-assistant/': typeof DashboardPluginsEmailAssistantIndexRoute
+  '/dashboard/plugins/email-marketing/': typeof DashboardPluginsEmailMarketingIndexRoute
+  '/dashboard/plugins/gmail/': typeof DashboardPluginsGmailIndexRoute
+  '/dashboard/plugins/linkedin-marketing/': typeof DashboardPluginsLinkedinMarketingIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -441,7 +519,6 @@ export interface FileRoutesByTo {
   '/dashboard/instagram-analytics': typeof DashboardInstagramAnalyticsRouteWithChildren
   '/dashboard/messages': typeof DashboardMessagesRoute
   '/dashboard/meta-ads': typeof DashboardMetaAdsRoute
-  '/dashboard/plugins': typeof DashboardPluginsRoute
   '/dashboard/pricing': typeof DashboardPricingRoute
   '/dashboard/radar': typeof DashboardRadarRoute
   '/dashboard/reports': typeof DashboardReportsRoute
@@ -461,7 +538,13 @@ export interface FileRoutesByTo {
   '/dashboard/instagram-analytics/posts': typeof DashboardInstagramAnalyticsPostsRoute
   '/dashboard/settings/api-keys': typeof DashboardSettingsApiKeysRoute
   '/dashboard/agents': typeof DashboardAgentsIndexRoute
+  '/dashboard/plugins': typeof DashboardPluginsIndexRoute
   '/dashboard/voice-agent': typeof DashboardVoiceAgentIndexRoute
+  '/dashboard/plugins/gmail/mail': typeof DashboardPluginsGmailMailRoute
+  '/dashboard/plugins/email-assistant': typeof DashboardPluginsEmailAssistantIndexRoute
+  '/dashboard/plugins/email-marketing': typeof DashboardPluginsEmailMarketingIndexRoute
+  '/dashboard/plugins/gmail': typeof DashboardPluginsGmailIndexRoute
+  '/dashboard/plugins/linkedin-marketing': typeof DashboardPluginsLinkedinMarketingIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -499,7 +582,7 @@ export interface FileRoutesById {
   '/dashboard/instagram-analytics': typeof DashboardInstagramAnalyticsRouteWithChildren
   '/dashboard/messages': typeof DashboardMessagesRoute
   '/dashboard/meta-ads': typeof DashboardMetaAdsRoute
-  '/dashboard/plugins': typeof DashboardPluginsRoute
+  '/dashboard/plugins': typeof DashboardPluginsRouteWithChildren
   '/dashboard/pricing': typeof DashboardPricingRoute
   '/dashboard/radar': typeof DashboardRadarRoute
   '/dashboard/reports': typeof DashboardReportsRoute
@@ -517,9 +600,19 @@ export interface FileRoutesById {
   '/dashboard/agents/customer-retention': typeof DashboardAgentsCustomerRetentionRoute
   '/dashboard/agents/partnership': typeof DashboardAgentsPartnershipRoute
   '/dashboard/instagram-analytics/posts': typeof DashboardInstagramAnalyticsPostsRoute
+  '/dashboard/plugins/email-assistant': typeof DashboardPluginsEmailAssistantRouteWithChildren
+  '/dashboard/plugins/email-marketing': typeof DashboardPluginsEmailMarketingRouteWithChildren
+  '/dashboard/plugins/gmail': typeof DashboardPluginsGmailRouteWithChildren
+  '/dashboard/plugins/linkedin-marketing': typeof DashboardPluginsLinkedinMarketingRouteWithChildren
   '/dashboard/settings/api-keys': typeof DashboardSettingsApiKeysRoute
   '/dashboard/agents/': typeof DashboardAgentsIndexRoute
+  '/dashboard/plugins/': typeof DashboardPluginsIndexRoute
   '/dashboard/voice-agent/': typeof DashboardVoiceAgentIndexRoute
+  '/dashboard/plugins/gmail/mail': typeof DashboardPluginsGmailMailRoute
+  '/dashboard/plugins/email-assistant/': typeof DashboardPluginsEmailAssistantIndexRoute
+  '/dashboard/plugins/email-marketing/': typeof DashboardPluginsEmailMarketingIndexRoute
+  '/dashboard/plugins/gmail/': typeof DashboardPluginsGmailIndexRoute
+  '/dashboard/plugins/linkedin-marketing/': typeof DashboardPluginsLinkedinMarketingIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -576,9 +669,19 @@ export interface FileRouteTypes {
     | '/dashboard/agents/customer-retention'
     | '/dashboard/agents/partnership'
     | '/dashboard/instagram-analytics/posts'
+    | '/dashboard/plugins/email-assistant'
+    | '/dashboard/plugins/email-marketing'
+    | '/dashboard/plugins/gmail'
+    | '/dashboard/plugins/linkedin-marketing'
     | '/dashboard/settings/api-keys'
     | '/dashboard/agents/'
+    | '/dashboard/plugins/'
     | '/dashboard/voice-agent/'
+    | '/dashboard/plugins/gmail/mail'
+    | '/dashboard/plugins/email-assistant/'
+    | '/dashboard/plugins/email-marketing/'
+    | '/dashboard/plugins/gmail/'
+    | '/dashboard/plugins/linkedin-marketing/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -613,7 +716,6 @@ export interface FileRouteTypes {
     | '/dashboard/instagram-analytics'
     | '/dashboard/messages'
     | '/dashboard/meta-ads'
-    | '/dashboard/plugins'
     | '/dashboard/pricing'
     | '/dashboard/radar'
     | '/dashboard/reports'
@@ -633,7 +735,13 @@ export interface FileRouteTypes {
     | '/dashboard/instagram-analytics/posts'
     | '/dashboard/settings/api-keys'
     | '/dashboard/agents'
+    | '/dashboard/plugins'
     | '/dashboard/voice-agent'
+    | '/dashboard/plugins/gmail/mail'
+    | '/dashboard/plugins/email-assistant'
+    | '/dashboard/plugins/email-marketing'
+    | '/dashboard/plugins/gmail'
+    | '/dashboard/plugins/linkedin-marketing'
   id:
     | '__root__'
     | '/'
@@ -688,9 +796,19 @@ export interface FileRouteTypes {
     | '/dashboard/agents/customer-retention'
     | '/dashboard/agents/partnership'
     | '/dashboard/instagram-analytics/posts'
+    | '/dashboard/plugins/email-assistant'
+    | '/dashboard/plugins/email-marketing'
+    | '/dashboard/plugins/gmail'
+    | '/dashboard/plugins/linkedin-marketing'
     | '/dashboard/settings/api-keys'
     | '/dashboard/agents/'
+    | '/dashboard/plugins/'
     | '/dashboard/voice-agent/'
+    | '/dashboard/plugins/gmail/mail'
+    | '/dashboard/plugins/email-assistant/'
+    | '/dashboard/plugins/email-marketing/'
+    | '/dashboard/plugins/gmail/'
+    | '/dashboard/plugins/linkedin-marketing/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -1061,6 +1179,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardVoiceAgentIndexRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/plugins/': {
+      id: '/dashboard/plugins/'
+      path: '/'
+      fullPath: '/dashboard/plugins/'
+      preLoaderRoute: typeof DashboardPluginsIndexRouteImport
+      parentRoute: typeof DashboardPluginsRoute
+    }
     '/dashboard/agents/': {
       id: '/dashboard/agents/'
       path: '/'
@@ -1074,6 +1199,34 @@ declare module '@tanstack/react-router' {
       fullPath: '/dashboard/settings/api-keys'
       preLoaderRoute: typeof DashboardSettingsApiKeysRouteImport
       parentRoute: typeof DashboardSettingsRoute
+    }
+    '/dashboard/plugins/linkedin-marketing': {
+      id: '/dashboard/plugins/linkedin-marketing'
+      path: '/linkedin-marketing'
+      fullPath: '/dashboard/plugins/linkedin-marketing'
+      preLoaderRoute: typeof DashboardPluginsLinkedinMarketingRouteImport
+      parentRoute: typeof DashboardPluginsRoute
+    }
+    '/dashboard/plugins/gmail': {
+      id: '/dashboard/plugins/gmail'
+      path: '/gmail'
+      fullPath: '/dashboard/plugins/gmail'
+      preLoaderRoute: typeof DashboardPluginsGmailRouteImport
+      parentRoute: typeof DashboardPluginsRoute
+    }
+    '/dashboard/plugins/email-marketing': {
+      id: '/dashboard/plugins/email-marketing'
+      path: '/email-marketing'
+      fullPath: '/dashboard/plugins/email-marketing'
+      preLoaderRoute: typeof DashboardPluginsEmailMarketingRouteImport
+      parentRoute: typeof DashboardPluginsRoute
+    }
+    '/dashboard/plugins/email-assistant': {
+      id: '/dashboard/plugins/email-assistant'
+      path: '/email-assistant'
+      fullPath: '/dashboard/plugins/email-assistant'
+      preLoaderRoute: typeof DashboardPluginsEmailAssistantRouteImport
+      parentRoute: typeof DashboardPluginsRoute
     }
     '/dashboard/instagram-analytics/posts': {
       id: '/dashboard/instagram-analytics/posts'
@@ -1095,6 +1248,41 @@ declare module '@tanstack/react-router' {
       fullPath: '/dashboard/agents/customer-retention'
       preLoaderRoute: typeof DashboardAgentsCustomerRetentionRouteImport
       parentRoute: typeof DashboardAgentsRoute
+    }
+    '/dashboard/plugins/linkedin-marketing/': {
+      id: '/dashboard/plugins/linkedin-marketing/'
+      path: '/'
+      fullPath: '/dashboard/plugins/linkedin-marketing/'
+      preLoaderRoute: typeof DashboardPluginsLinkedinMarketingIndexRouteImport
+      parentRoute: typeof DashboardPluginsLinkedinMarketingRoute
+    }
+    '/dashboard/plugins/gmail/': {
+      id: '/dashboard/plugins/gmail/'
+      path: '/'
+      fullPath: '/dashboard/plugins/gmail/'
+      preLoaderRoute: typeof DashboardPluginsGmailIndexRouteImport
+      parentRoute: typeof DashboardPluginsGmailRoute
+    }
+    '/dashboard/plugins/email-marketing/': {
+      id: '/dashboard/plugins/email-marketing/'
+      path: '/'
+      fullPath: '/dashboard/plugins/email-marketing/'
+      preLoaderRoute: typeof DashboardPluginsEmailMarketingIndexRouteImport
+      parentRoute: typeof DashboardPluginsEmailMarketingRoute
+    }
+    '/dashboard/plugins/email-assistant/': {
+      id: '/dashboard/plugins/email-assistant/'
+      path: '/'
+      fullPath: '/dashboard/plugins/email-assistant/'
+      preLoaderRoute: typeof DashboardPluginsEmailAssistantIndexRouteImport
+      parentRoute: typeof DashboardPluginsEmailAssistantRoute
+    }
+    '/dashboard/plugins/gmail/mail': {
+      id: '/dashboard/plugins/gmail/mail'
+      path: '/mail'
+      fullPath: '/dashboard/plugins/gmail/mail'
+      preLoaderRoute: typeof DashboardPluginsGmailMailRouteImport
+      parentRoute: typeof DashboardPluginsGmailRoute
     }
   }
 }
@@ -1130,6 +1318,88 @@ const DashboardInstagramAnalyticsRouteWithChildren =
     DashboardInstagramAnalyticsRouteChildren,
   )
 
+interface DashboardPluginsEmailAssistantRouteChildren {
+  DashboardPluginsEmailAssistantIndexRoute: typeof DashboardPluginsEmailAssistantIndexRoute
+}
+
+const DashboardPluginsEmailAssistantRouteChildren: DashboardPluginsEmailAssistantRouteChildren =
+  {
+    DashboardPluginsEmailAssistantIndexRoute:
+      DashboardPluginsEmailAssistantIndexRoute,
+  }
+
+const DashboardPluginsEmailAssistantRouteWithChildren =
+  DashboardPluginsEmailAssistantRoute._addFileChildren(
+    DashboardPluginsEmailAssistantRouteChildren,
+  )
+
+interface DashboardPluginsEmailMarketingRouteChildren {
+  DashboardPluginsEmailMarketingIndexRoute: typeof DashboardPluginsEmailMarketingIndexRoute
+}
+
+const DashboardPluginsEmailMarketingRouteChildren: DashboardPluginsEmailMarketingRouteChildren =
+  {
+    DashboardPluginsEmailMarketingIndexRoute:
+      DashboardPluginsEmailMarketingIndexRoute,
+  }
+
+const DashboardPluginsEmailMarketingRouteWithChildren =
+  DashboardPluginsEmailMarketingRoute._addFileChildren(
+    DashboardPluginsEmailMarketingRouteChildren,
+  )
+
+interface DashboardPluginsGmailRouteChildren {
+  DashboardPluginsGmailMailRoute: typeof DashboardPluginsGmailMailRoute
+  DashboardPluginsGmailIndexRoute: typeof DashboardPluginsGmailIndexRoute
+}
+
+const DashboardPluginsGmailRouteChildren: DashboardPluginsGmailRouteChildren = {
+  DashboardPluginsGmailMailRoute: DashboardPluginsGmailMailRoute,
+  DashboardPluginsGmailIndexRoute: DashboardPluginsGmailIndexRoute,
+}
+
+const DashboardPluginsGmailRouteWithChildren =
+  DashboardPluginsGmailRoute._addFileChildren(
+    DashboardPluginsGmailRouteChildren,
+  )
+
+interface DashboardPluginsLinkedinMarketingRouteChildren {
+  DashboardPluginsLinkedinMarketingIndexRoute: typeof DashboardPluginsLinkedinMarketingIndexRoute
+}
+
+const DashboardPluginsLinkedinMarketingRouteChildren: DashboardPluginsLinkedinMarketingRouteChildren =
+  {
+    DashboardPluginsLinkedinMarketingIndexRoute:
+      DashboardPluginsLinkedinMarketingIndexRoute,
+  }
+
+const DashboardPluginsLinkedinMarketingRouteWithChildren =
+  DashboardPluginsLinkedinMarketingRoute._addFileChildren(
+    DashboardPluginsLinkedinMarketingRouteChildren,
+  )
+
+interface DashboardPluginsRouteChildren {
+  DashboardPluginsEmailAssistantRoute: typeof DashboardPluginsEmailAssistantRouteWithChildren
+  DashboardPluginsEmailMarketingRoute: typeof DashboardPluginsEmailMarketingRouteWithChildren
+  DashboardPluginsGmailRoute: typeof DashboardPluginsGmailRouteWithChildren
+  DashboardPluginsLinkedinMarketingRoute: typeof DashboardPluginsLinkedinMarketingRouteWithChildren
+  DashboardPluginsIndexRoute: typeof DashboardPluginsIndexRoute
+}
+
+const DashboardPluginsRouteChildren: DashboardPluginsRouteChildren = {
+  DashboardPluginsEmailAssistantRoute:
+    DashboardPluginsEmailAssistantRouteWithChildren,
+  DashboardPluginsEmailMarketingRoute:
+    DashboardPluginsEmailMarketingRouteWithChildren,
+  DashboardPluginsGmailRoute: DashboardPluginsGmailRouteWithChildren,
+  DashboardPluginsLinkedinMarketingRoute:
+    DashboardPluginsLinkedinMarketingRouteWithChildren,
+  DashboardPluginsIndexRoute: DashboardPluginsIndexRoute,
+}
+
+const DashboardPluginsRouteWithChildren =
+  DashboardPluginsRoute._addFileChildren(DashboardPluginsRouteChildren)
+
 interface DashboardSettingsRouteChildren {
   DashboardSettingsApiKeysRoute: typeof DashboardSettingsApiKeysRoute
 }
@@ -1164,7 +1434,7 @@ interface DashboardRouteChildren {
   DashboardInstagramAnalyticsRoute: typeof DashboardInstagramAnalyticsRouteWithChildren
   DashboardMessagesRoute: typeof DashboardMessagesRoute
   DashboardMetaAdsRoute: typeof DashboardMetaAdsRoute
-  DashboardPluginsRoute: typeof DashboardPluginsRoute
+  DashboardPluginsRoute: typeof DashboardPluginsRouteWithChildren
   DashboardPricingRoute: typeof DashboardPricingRoute
   DashboardRadarRoute: typeof DashboardRadarRoute
   DashboardReportsRoute: typeof DashboardReportsRoute
@@ -1205,7 +1475,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
     DashboardInstagramAnalyticsRouteWithChildren,
   DashboardMessagesRoute: DashboardMessagesRoute,
   DashboardMetaAdsRoute: DashboardMetaAdsRoute,
-  DashboardPluginsRoute: DashboardPluginsRoute,
+  DashboardPluginsRoute: DashboardPluginsRouteWithChildren,
   DashboardPricingRoute: DashboardPricingRoute,
   DashboardRadarRoute: DashboardRadarRoute,
   DashboardReportsRoute: DashboardReportsRoute,

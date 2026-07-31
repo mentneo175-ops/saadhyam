@@ -16,12 +16,16 @@ sys.path.insert(0, str(current_dir))
 
 try:
     from fastapi import FastAPI, HTTPException
+    # pyrefly: ignore [missing-import]
     from fastapi.responses import JSONResponse
+    # pyrefly: ignore [missing-import]
     from fastapi.middleware.cors import CORSMiddleware
+    # pyrefly: ignore [missing-import]
     import uvicorn
 except ImportError:
     print("❌ FastAPI not available. Installing...")
     import subprocess
+    # pyrefly: ignore [missing-import]
     subprocess.check_call([sys.executable, '-m', 'pip', 'install', 'fastapi', 'uvicorn', '--break-system-packages'])
     from fastapi import FastAPI, HTTPException
     from fastapi.responses import JSONResponse
@@ -59,7 +63,7 @@ COMPLETE_PLUGIN_DATABASE = [
     # 📢 Marketing (10 plugins)
     {"id": 11, "plugin_key": "marketing_meta_ads", "name": "📘 Meta Ads Manager", "description": "Manage Facebook and Instagram advertising campaigns", "icon": "📘", "category": "marketing", "version": "1.0.0", "is_premium": True, "is_ai_powered": False, "pricing_tier": "pro", "rating": 4, "install_count": 850},
     {"id": 12, "plugin_key": "marketing_google_ads", "name": "🔍 Google Ads AI", "description": "AI-powered Google Ads campaign management", "icon": "🔍", "category": "marketing", "version": "1.0.0", "is_premium": True, "is_ai_powered": True, "pricing_tier": "pro", "rating": 5, "install_count": 920},
-    {"id": 13, "plugin_key": "marketing_linkedin", "name": "💼 LinkedIn Marketing", "description": "B2B marketing campaigns on LinkedIn", "icon": "💼", "category": "marketing", "version": "1.0.0", "is_premium": True, "is_ai_powered": False, "pricing_tier": "pro", "rating": 4, "install_count": 640},
+    {"id": 13, "plugin_key": "marketing_linkedin", "name": "💼 LinkedIn Marketing", "description": "Create professional LinkedIn posts with AI, generate industry-specific hashtags, and manage your content from one place.", "icon": "💼", "category": "marketing", "version": "v1.0", "is_premium": False, "is_ai_powered": True, "pricing_tier": "free", "rating": 5, "install_count": 1200},
     {"id": 14, "plugin_key": "marketing_seo_optimizer", "name": "🎯 SEO Optimizer", "description": "Comprehensive SEO analysis and optimization", "icon": "🎯", "category": "marketing", "version": "1.0.0", "is_premium": False, "is_ai_powered": True, "pricing_tier": "free", "rating": 5, "install_count": 1650},
     {"id": 15, "plugin_key": "marketing_blog_generator", "name": "📝 Blog Generator", "description": "AI-powered blog content creation", "icon": "📝", "category": "marketing", "version": "1.0.0", "is_premium": True, "is_ai_powered": True, "pricing_tier": "premium", "rating": 5, "install_count": 1230},
     {"id": 16, "plugin_key": "marketing_landing_page_builder", "name": "🏗️ Landing Page Builder", "description": "Create high-converting landing pages", "icon": "🏗️", "category": "marketing", "version": "1.0.0", "is_premium": False, "is_ai_powered": False, "pricing_tier": "free", "rating": 4, "install_count": 1780},

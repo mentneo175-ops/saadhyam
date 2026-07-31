@@ -30,7 +30,7 @@ export const ALL_PLUGINS: Plugin[] = [
   // 📢 MARKETING
   { id: "meta-ads", name: "Meta Ads Manager", category: "Marketing", icon: "📱", description: "Manage Facebook and Instagram ads", pricing: "₹3,999/mo", rating: 4.8, installs: 1800, aiPowered: true },
   { id: "google-ads", name: "Google Ads AI", category: "Marketing", icon: "🔍", description: "AI-optimized Google advertising", pricing: "₹3,999/mo", rating: 4.7, installs: 1650, aiPowered: true },
-  { id: "linkedin-marketing", name: "LinkedIn Marketing", category: "Marketing", icon: "💼", description: "B2B marketing on LinkedIn", pricing: "₹2,999/mo", rating: 4.6, installs: 890 },
+  { id: "linkedin-marketing", name: "LinkedIn Marketing", category: "Marketing", icon: "💼", description: "Create professional LinkedIn posts with AI, generate industry-specific hashtags, and manage your content from one place.", pricing: "Free", rating: 5.0, installs: 1200, aiPowered: true },
   { id: "seo-optimizer", name: "SEO Optimizer", category: "Marketing", icon: "🎯", description: "AI-powered SEO optimization", pricing: "₹2,499/mo", rating: 4.8, installs: 2100, aiPowered: true },
   { id: "blog-generator", name: "Blog Generator", category: "Marketing", icon: "✍️", description: "AI blog writing and publishing", pricing: "₹1,999/mo", rating: 4.7, installs: 1450, aiPowered: true },
   { id: "landing-page", name: "Landing Page Builder", category: "Marketing", icon: "🎨", description: "Create high-converting landing pages", pricing: "₹1,799/mo", rating: 4.6, installs: 1200 },

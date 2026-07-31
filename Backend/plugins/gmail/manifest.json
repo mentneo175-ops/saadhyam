@@ -1,0 +1,64 @@
+{
+  "plugin_key": "gmail",
+  "name": "Gmail Integration",
+  "version": "1.0.0",
+  "author": "Saadhyam",
+  "description": "Integrate Gmail with Saadhyam to send, search, retrieve, and list emails asynchronously.",
+  "category": "communication",
+  "permissions": [
+    "gmail.send",
+    "gmail.readonly",
+    "gmail.modify"
+  ],
+  "supported_features": [
+    "oauth2",
+    "background_sync",
+    "email_tracking"
+  ],
+  "actions": [
+    {
+      "action": "test_connection",
+      "name": "Test Connection",
+      "description": "Test authentication credentials and connectivity to Gmail API",
+      "parameters": {}
+    },
+    {
+      "action": "send_email",
+      "name": "Send Email",
+      "description": "Send an email message through Gmail",
+      "parameters": {
+        "to": {"type": "string", "required": true},
+        "subject": {"type": "string", "required": true},
+        "body": {"type": "string", "required": true},
+        "cc": {"type": "array", "required": false},
+        "bcc": {"type": "array", "required": false}
+      }
+    },
+    {
+      "action": "list_emails",
+      "name": "List Emails",
+      "description": "Retrieve list of email messages",
+      "parameters": {
+        "max_results": {"type": "number", "default": 10},
+        "label_ids": {"type": "array", "default": ["INBOX"]}
+      }
+    },
+    {
+      "action": "get_email",
+      "name": "Get Email",
+      "description": "Retrieve full content of a specific email by ID",
+      "parameters": {
+        "email_id": {"type": "string", "required": true}
+      }
+    },
+    {
+      "action": "search_emails",
+      "name": "Search Emails",
+      "description": "Search email messages using Gmail search queries",
+      "parameters": {
+        "query": {"type": "string", "required": true},
+        "max_results": {"type": "number", "default": 10}
+      }
+    }
+  ]
+}

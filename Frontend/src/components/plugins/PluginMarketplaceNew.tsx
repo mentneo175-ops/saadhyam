@@ -18,6 +18,7 @@ const PLUGIN_CONFIG_PAGES: Record<string, string> = {
   sales_email_marketing: "/dashboard/plugins/email-marketing",
   marketing_linkedin: "/dashboard/plugins/linkedin-marketing",
   hr_employee_attendance: "/dashboard/plugins/employee-attendance",
+  marketing_google_ads: "/dashboard/plugins/google-ads",
   // outlook: "/dashboard/plugins/outlook",
   // drive: "/dashboard/plugins/drive",
 };
@@ -879,6 +880,12 @@ function PluginDetailsModal({ plugin, onClose, onInstall }: PluginDetailsModalPr
     plugin.name === "Employee Attendance" ||
     plugin.name.includes("Employee Attendance");
 
+  const isGoogleAdsPlugin =
+    plugin.id === "marketing_google_ads" ||
+    plugin.id === "google-ads" ||
+    plugin.name === "Google Ads AI" ||
+    plugin.name.includes("Google Ads AI");
+
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
       <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-3xl w-full max-h-[90vh] overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
@@ -920,7 +927,7 @@ function PluginDetailsModal({ plugin, onClose, onInstall }: PluginDetailsModalPr
               <div className="flex items-center gap-2 mb-2">
                 <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" />
                 <span className="font-bold text-2xl text-gray-900 dark:text-white">
-                  {isEmailMarketingPlugin || isLinkedInMarketingPlugin || isEmployeeAttendancePlugin ? "New" : plugin.rating}
+                  {isGoogleAdsPlugin ? "5.0" : isEmailMarketingPlugin || isLinkedInMarketingPlugin || isEmployeeAttendancePlugin ? "New" : plugin.rating}
                 </span>
               </div>
               <span className="text-sm text-gray-600 dark:text-gray-400">Rating</span>
@@ -930,7 +937,7 @@ function PluginDetailsModal({ plugin, onClose, onInstall }: PluginDetailsModalPr
               <div className="flex items-center gap-2 mb-2">
                 <Download className="w-5 h-5 text-blue-500" />
                 <span className="font-bold text-2xl text-gray-900 dark:text-white">
-                  {isEmailMarketingPlugin || isLinkedInMarketingPlugin || isEmployeeAttendancePlugin ? "Installed" : plugin.installs.toLocaleString()}
+                  {isEmailMarketingPlugin || isLinkedInMarketingPlugin || isEmployeeAttendancePlugin || isGoogleAdsPlugin ? "Installed" : plugin.installs.toLocaleString()}
                 </span>
               </div>
               <span className="text-sm text-gray-600 dark:text-gray-400">Installs</span>
@@ -940,11 +947,11 @@ function PluginDetailsModal({ plugin, onClose, onInstall }: PluginDetailsModalPr
               <div className="flex items-center gap-2 mb-2">
                 <TrendingUp className="w-5 h-5 text-green-500" />
                 <span className="font-bold text-2xl text-gray-900 dark:text-white">
-                  {isEmailMarketingPlugin || isLinkedInMarketingPlugin || isEmployeeAttendancePlugin ? "Ready" : "Top"}
+                  {isEmailMarketingPlugin || isLinkedInMarketingPlugin || isEmployeeAttendancePlugin || isGoogleAdsPlugin ? "Ready" : "Top"}
                 </span>
               </div>
               <span className="text-sm text-gray-600 dark:text-gray-400">
-                {isEmailMarketingPlugin || isLinkedInMarketingPlugin || isEmployeeAttendancePlugin ? "Production Ready" : "Trending"}
+                {isEmailMarketingPlugin || isLinkedInMarketingPlugin || isEmployeeAttendancePlugin || isGoogleAdsPlugin ? "Production Ready" : "Trending"}
               </span>
             </div>
           </div>
@@ -962,6 +969,8 @@ function PluginDetailsModal({ plugin, onClose, onInstall }: PluginDetailsModalPr
                 ? "LinkedIn Marketing helps businesses, startups, and professionals create engaging LinkedIn content using AI. Configure your brand profile once, generate professional posts for different marketing goals, receive relevant hashtag suggestions, and manage your post history."
                 : isEmployeeAttendancePlugin
                 ? "Employee Attendance is a smart workforce management solution that allows organizations to import employee records, manage daily attendance, monitor employee status, and generate attendance reports through a modern onboarding workflow.\n\nThe plugin supports employee import using CSV and Excel files and stores employee information locally, providing a solid foundation for future HR modules."
+                : isGoogleAdsPlugin
+                ? "Google Ads AI helps businesses plan, generate, and organize professional Google Ads campaigns using AI. Build campaign configurations, generate responsive search ad copy, manage keywords, review campaigns, and export campaign assets—all from a guided step-by-step workflow. Version 1.0 focuses on campaign planning and AI-assisted content generation without requiring Google Ads account integration."
                 : plugin.description}
             </p>
           </div>
@@ -1007,6 +1016,23 @@ function PluginDetailsModal({ plugin, onClose, onInstall }: PluginDetailsModalPr
                     "TXT Export",
                     "Local Employee Database",
                     "Step-by-Step Setup Wizard",
+                  ]
+                : isGoogleAdsPlugin
+                ? [
+                    "Five-Step Campaign Wizard",
+                    "Google Ads Account Setup",
+                    "Campaign Builder",
+                    "Responsive Search Ad Generator",
+                    "AI Headlines Generator",
+                    "AI Descriptions Generator",
+                    "Keyword Planning",
+                    "Negative Keywords Support",
+                    "Campaign Review",
+                    "Campaign History",
+                    "Copy Campaign Assets",
+                    "Export TXT",
+                    "Export CSV",
+                    "Local Storage Persistence",
                   ]
                 : [
                     "Easy Integration",
@@ -1170,6 +1196,93 @@ function PluginDetailsModal({ plugin, onClose, onInstall }: PluginDetailsModalPr
             </>
           )}
 
+          {isGoogleAdsPlugin && (
+            <>
+              <div className="mb-8">
+                <h3 className="font-bold text-xl mb-4 text-gray-900 dark:text-white flex items-center gap-2">
+                  <div className="w-1 h-6 bg-gradient-to-b from-purple-500 to-pink-500 rounded-full"></div>
+                  Supported Campaign Types
+                </h3>
+                <div className="grid grid-cols-2 gap-3">
+                  {[
+                    "Search Campaign",
+                    "Display Campaign",
+                    "Performance Max",
+                    "Shopping Campaign",
+                  ].map((type, index) => (
+                    <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-slate-800 rounded-xl font-medium">
+                      <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
+                      <span className="text-sm text-gray-700 dark:text-gray-300">{type}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mb-8">
+                <h3 className="font-bold text-xl mb-4 text-gray-900 dark:text-white flex items-center gap-2">
+                  <div className="w-1 h-6 bg-gradient-to-b from-purple-500 to-pink-500 rounded-full"></div>
+                  Plugin Capabilities
+                </h3>
+                <div className="grid grid-cols-2 gap-3">
+                  {[
+                    "Campaign Configuration",
+                    "AI Ad Copy Generation",
+                    "Responsive Search Ads",
+                    "Keyword Suggestions",
+                    "Campaign History",
+                    "TXT Export",
+                    "CSV Export",
+                    "Local Data Storage",
+                  ].map((capability, index) => (
+                    <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-slate-800 rounded-xl font-medium">
+                      <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
+                      <span className="text-sm text-gray-700 dark:text-gray-300">{capability}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mb-8">
+                <h3 className="font-bold text-xl mb-4 text-gray-900 dark:text-white flex items-center gap-2">
+                  <div className="w-1 h-6 bg-gradient-to-b from-purple-500 to-pink-500 rounded-full"></div>
+                  Workflow
+                </h3>
+                <div className="grid grid-cols-2 gap-3">
+                  {[
+                    "1. Welcome",
+                    "2. Account Setup",
+                    "3. Campaign Builder",
+                    "4. AI Ad Generator",
+                    "5. Review & Export",
+                  ].map((workflowStep, index) => (
+                    <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-slate-800 rounded-xl font-medium">
+                      <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
+                      <span className="text-sm text-gray-700 dark:text-gray-300">{workflowStep}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mb-8">
+                <h3 className="font-bold text-xl mb-4 text-gray-900 dark:text-white flex items-center gap-2">
+                  <div className="w-1 h-6 bg-gradient-to-b from-purple-500 to-pink-500 rounded-full"></div>
+                  Supported Exports
+                </h3>
+                <div className="grid grid-cols-2 gap-3">
+                  {[
+                    "TXT (.txt)",
+                    "CSV (.csv)",
+                  ].map((format, index) => (
+                    <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-slate-800 rounded-xl font-medium">
+                      <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
+                      <span className="text-sm text-gray-700 dark:text-gray-300">{format}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
+
           {/* Pricing CTA */}
           <div className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-slate-800 dark:to-slate-800 rounded-2xl p-6 border-2 border-purple-200 dark:border-purple-800">
             <div className="flex items-center justify-between">
@@ -1203,7 +1316,7 @@ function PluginDetailsModal({ plugin, onClose, onInstall }: PluginDetailsModalPr
             <div className="bg-gray-50 dark:bg-slate-800 rounded-xl p-4">
               <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Version</p>
               <p className="font-semibold text-gray-900 dark:text-white">
-                {isEmailMarketingPlugin || isLinkedInMarketingPlugin || isEmployeeAttendancePlugin ? "v1.0" : plugin.id}
+                {isEmailMarketingPlugin || isLinkedInMarketingPlugin || isEmployeeAttendancePlugin || isGoogleAdsPlugin ? "v1.0" : plugin.id}
               </p>
             </div>
           </div>
@@ -1212,13 +1325,13 @@ function PluginDetailsModal({ plugin, onClose, onInstall }: PluginDetailsModalPr
             <div className="bg-gray-50 dark:bg-slate-800 rounded-xl p-4">
               <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Status</p>
               <p className="font-semibold text-gray-900 dark:text-white">
-                {isEmailMarketingPlugin || isLinkedInMarketingPlugin || isEmployeeAttendancePlugin ? "Production Ready" : "Active"}
+                {isEmailMarketingPlugin || isLinkedInMarketingPlugin || isEmployeeAttendancePlugin || isGoogleAdsPlugin ? "Production Ready" : "Active"}
               </p>
             </div>
             <div className="bg-gray-50 dark:bg-slate-800 rounded-xl p-4">
               <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Developer</p>
               <p className="font-semibold text-gray-900 dark:text-white">
-                {isLinkedInMarketingPlugin ? "Saadhyam AI" : "Saadhyam"}
+                {isLinkedInMarketingPlugin || isGoogleAdsPlugin ? "Saadhyam AI" : "Saadhyam"}
               </p>
             </div>
           </div>
@@ -1227,12 +1340,21 @@ function PluginDetailsModal({ plugin, onClose, onInstall }: PluginDetailsModalPr
             <div className="bg-gray-50 dark:bg-slate-800 rounded-xl p-4">
               <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Installation</p>
               <p className="font-semibold text-gray-900 dark:text-white">
-                {isLinkedInMarketingPlugin ? "One Click Install" : "Standard"}
+                {isLinkedInMarketingPlugin || isGoogleAdsPlugin ? "One Click Install" : "Standard"}
               </p>
             </div>
             <div className="bg-gray-50 dark:bg-slate-800 rounded-xl p-4">
               <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Plugin ID</p>
               <p className="font-mono text-sm text-gray-900 dark:text-white">{plugin.id}</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4 mt-4">
+            <div className="bg-gray-50 dark:bg-slate-800 rounded-xl p-4">
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">AI Powered</p>
+              <p className="font-semibold text-gray-900 dark:text-white">
+                {isLinkedInMarketingPlugin || isGoogleAdsPlugin || plugin.aiPowered ? "Yes" : "No"}
+              </p>
             </div>
           </div>
 

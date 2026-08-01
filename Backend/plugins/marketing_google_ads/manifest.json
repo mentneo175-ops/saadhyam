@@ -1,0 +1,30 @@
+{
+  "plugin_key": "marketing_google_ads",
+  "name": "Google Ads AI",
+  "version": "v1.0",
+  "author": "Saadhyam AI",
+  "description": "Google Ads AI helps businesses plan and generate professional Google Ads campaigns using AI. Configure campaigns, generate responsive search ads, manage keywords, review campaigns, and export campaign assets through a guided workflow.",
+  "category": "marketing",
+  "status": "Production Ready",
+  "is_ai_powered": true,
+  "permissions": [
+    "google_ads.campaigns"
+  ],
+  "supported_features": [
+    "campaign_planning",
+    "ad_copy_generation",
+    "keyword_suggestions"
+  ],
+  "actions": [
+    {
+      "action": "create_campaign",
+      "name": "Create Campaign Draft",
+      "description": "Generate Google Ads campaign structure and ad copies",
+      "parameters": {
+        "campaign_name": {"type": "string", "required": true},
+        "daily_budget": {"type": "string", "required": true},
+        "target_country": {"type": "string", "required": true}
+      }
+    }
+  ]
+}

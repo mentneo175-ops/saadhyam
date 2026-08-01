@@ -63,6 +63,7 @@ import { Route as DashboardPluginsIndexRouteImport } from './routes/dashboard.pl
 import { Route as DashboardAgentsIndexRouteImport } from './routes/dashboard.agents.index'
 import { Route as DashboardSettingsApiKeysRouteImport } from './routes/dashboard.settings.api-keys'
 import { Route as DashboardPluginsLinkedinMarketingRouteImport } from './routes/dashboard.plugins.linkedin-marketing'
+import { Route as DashboardPluginsGoogleAdsRouteImport } from './routes/dashboard.plugins.google-ads'
 import { Route as DashboardPluginsGmailRouteImport } from './routes/dashboard.plugins.gmail'
 import { Route as DashboardPluginsEmployeeAttendanceRouteImport } from './routes/dashboard.plugins.employee-attendance'
 import { Route as DashboardPluginsEmailMarketingRouteImport } from './routes/dashboard.plugins.email-marketing'
@@ -71,6 +72,7 @@ import { Route as DashboardInstagramAnalyticsPostsRouteImport } from './routes/d
 import { Route as DashboardAgentsPartnershipRouteImport } from './routes/dashboard.agents.partnership'
 import { Route as DashboardAgentsCustomerRetentionRouteImport } from './routes/dashboard.agents.customer-retention'
 import { Route as DashboardPluginsLinkedinMarketingIndexRouteImport } from './routes/dashboard.plugins.linkedin-marketing.index'
+import { Route as DashboardPluginsGoogleAdsIndexRouteImport } from './routes/dashboard.plugins.google-ads.index'
 import { Route as DashboardPluginsGmailIndexRouteImport } from './routes/dashboard.plugins.gmail.index'
 import { Route as DashboardPluginsEmployeeAttendanceIndexRouteImport } from './routes/dashboard.plugins.employee-attendance.index'
 import { Route as DashboardPluginsEmailMarketingIndexRouteImport } from './routes/dashboard.plugins.email-marketing.index'
@@ -355,6 +357,12 @@ const DashboardPluginsLinkedinMarketingRoute =
     path: '/linkedin-marketing',
     getParentRoute: () => DashboardPluginsRoute,
   } as any)
+const DashboardPluginsGoogleAdsRoute =
+  DashboardPluginsGoogleAdsRouteImport.update({
+    id: '/google-ads',
+    path: '/google-ads',
+    getParentRoute: () => DashboardPluginsRoute,
+  } as any)
 const DashboardPluginsGmailRoute = DashboardPluginsGmailRouteImport.update({
   id: '/gmail',
   path: '/gmail',
@@ -401,6 +409,12 @@ const DashboardPluginsLinkedinMarketingIndexRoute =
     id: '/',
     path: '/',
     getParentRoute: () => DashboardPluginsLinkedinMarketingRoute,
+  } as any)
+const DashboardPluginsGoogleAdsIndexRoute =
+  DashboardPluginsGoogleAdsIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => DashboardPluginsGoogleAdsRoute,
   } as any)
 const DashboardPluginsGmailIndexRoute =
   DashboardPluginsGmailIndexRouteImport.update({
@@ -490,6 +504,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/plugins/email-marketing': typeof DashboardPluginsEmailMarketingRouteWithChildren
   '/dashboard/plugins/employee-attendance': typeof DashboardPluginsEmployeeAttendanceRouteWithChildren
   '/dashboard/plugins/gmail': typeof DashboardPluginsGmailRouteWithChildren
+  '/dashboard/plugins/google-ads': typeof DashboardPluginsGoogleAdsRouteWithChildren
   '/dashboard/plugins/linkedin-marketing': typeof DashboardPluginsLinkedinMarketingRouteWithChildren
   '/dashboard/settings/api-keys': typeof DashboardSettingsApiKeysRoute
   '/dashboard/agents/': typeof DashboardAgentsIndexRoute
@@ -500,6 +515,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/plugins/email-marketing/': typeof DashboardPluginsEmailMarketingIndexRoute
   '/dashboard/plugins/employee-attendance/': typeof DashboardPluginsEmployeeAttendanceIndexRoute
   '/dashboard/plugins/gmail/': typeof DashboardPluginsGmailIndexRoute
+  '/dashboard/plugins/google-ads/': typeof DashboardPluginsGoogleAdsIndexRoute
   '/dashboard/plugins/linkedin-marketing/': typeof DashboardPluginsLinkedinMarketingIndexRoute
 }
 export interface FileRoutesByTo {
@@ -561,6 +577,7 @@ export interface FileRoutesByTo {
   '/dashboard/plugins/email-marketing': typeof DashboardPluginsEmailMarketingIndexRoute
   '/dashboard/plugins/employee-attendance': typeof DashboardPluginsEmployeeAttendanceIndexRoute
   '/dashboard/plugins/gmail': typeof DashboardPluginsGmailIndexRoute
+  '/dashboard/plugins/google-ads': typeof DashboardPluginsGoogleAdsIndexRoute
   '/dashboard/plugins/linkedin-marketing': typeof DashboardPluginsLinkedinMarketingIndexRoute
 }
 export interface FileRoutesById {
@@ -621,6 +638,7 @@ export interface FileRoutesById {
   '/dashboard/plugins/email-marketing': typeof DashboardPluginsEmailMarketingRouteWithChildren
   '/dashboard/plugins/employee-attendance': typeof DashboardPluginsEmployeeAttendanceRouteWithChildren
   '/dashboard/plugins/gmail': typeof DashboardPluginsGmailRouteWithChildren
+  '/dashboard/plugins/google-ads': typeof DashboardPluginsGoogleAdsRouteWithChildren
   '/dashboard/plugins/linkedin-marketing': typeof DashboardPluginsLinkedinMarketingRouteWithChildren
   '/dashboard/settings/api-keys': typeof DashboardSettingsApiKeysRoute
   '/dashboard/agents/': typeof DashboardAgentsIndexRoute
@@ -631,6 +649,7 @@ export interface FileRoutesById {
   '/dashboard/plugins/email-marketing/': typeof DashboardPluginsEmailMarketingIndexRoute
   '/dashboard/plugins/employee-attendance/': typeof DashboardPluginsEmployeeAttendanceIndexRoute
   '/dashboard/plugins/gmail/': typeof DashboardPluginsGmailIndexRoute
+  '/dashboard/plugins/google-ads/': typeof DashboardPluginsGoogleAdsIndexRoute
   '/dashboard/plugins/linkedin-marketing/': typeof DashboardPluginsLinkedinMarketingIndexRoute
 }
 export interface FileRouteTypes {
@@ -692,6 +711,7 @@ export interface FileRouteTypes {
     | '/dashboard/plugins/email-marketing'
     | '/dashboard/plugins/employee-attendance'
     | '/dashboard/plugins/gmail'
+    | '/dashboard/plugins/google-ads'
     | '/dashboard/plugins/linkedin-marketing'
     | '/dashboard/settings/api-keys'
     | '/dashboard/agents/'
@@ -702,6 +722,7 @@ export interface FileRouteTypes {
     | '/dashboard/plugins/email-marketing/'
     | '/dashboard/plugins/employee-attendance/'
     | '/dashboard/plugins/gmail/'
+    | '/dashboard/plugins/google-ads/'
     | '/dashboard/plugins/linkedin-marketing/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -763,6 +784,7 @@ export interface FileRouteTypes {
     | '/dashboard/plugins/email-marketing'
     | '/dashboard/plugins/employee-attendance'
     | '/dashboard/plugins/gmail'
+    | '/dashboard/plugins/google-ads'
     | '/dashboard/plugins/linkedin-marketing'
   id:
     | '__root__'
@@ -822,6 +844,7 @@ export interface FileRouteTypes {
     | '/dashboard/plugins/email-marketing'
     | '/dashboard/plugins/employee-attendance'
     | '/dashboard/plugins/gmail'
+    | '/dashboard/plugins/google-ads'
     | '/dashboard/plugins/linkedin-marketing'
     | '/dashboard/settings/api-keys'
     | '/dashboard/agents/'
@@ -832,6 +855,7 @@ export interface FileRouteTypes {
     | '/dashboard/plugins/email-marketing/'
     | '/dashboard/plugins/employee-attendance/'
     | '/dashboard/plugins/gmail/'
+    | '/dashboard/plugins/google-ads/'
     | '/dashboard/plugins/linkedin-marketing/'
   fileRoutesById: FileRoutesById
 }
@@ -1231,6 +1255,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardPluginsLinkedinMarketingRouteImport
       parentRoute: typeof DashboardPluginsRoute
     }
+    '/dashboard/plugins/google-ads': {
+      id: '/dashboard/plugins/google-ads'
+      path: '/google-ads'
+      fullPath: '/dashboard/plugins/google-ads'
+      preLoaderRoute: typeof DashboardPluginsGoogleAdsRouteImport
+      parentRoute: typeof DashboardPluginsRoute
+    }
     '/dashboard/plugins/gmail': {
       id: '/dashboard/plugins/gmail'
       path: '/gmail'
@@ -1286,6 +1317,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/dashboard/plugins/linkedin-marketing/'
       preLoaderRoute: typeof DashboardPluginsLinkedinMarketingIndexRouteImport
       parentRoute: typeof DashboardPluginsLinkedinMarketingRoute
+    }
+    '/dashboard/plugins/google-ads/': {
+      id: '/dashboard/plugins/google-ads/'
+      path: '/'
+      fullPath: '/dashboard/plugins/google-ads/'
+      preLoaderRoute: typeof DashboardPluginsGoogleAdsIndexRouteImport
+      parentRoute: typeof DashboardPluginsGoogleAdsRoute
     }
     '/dashboard/plugins/gmail/': {
       id: '/dashboard/plugins/gmail/'
@@ -1416,6 +1454,20 @@ const DashboardPluginsGmailRouteWithChildren =
     DashboardPluginsGmailRouteChildren,
   )
 
+interface DashboardPluginsGoogleAdsRouteChildren {
+  DashboardPluginsGoogleAdsIndexRoute: typeof DashboardPluginsGoogleAdsIndexRoute
+}
+
+const DashboardPluginsGoogleAdsRouteChildren: DashboardPluginsGoogleAdsRouteChildren =
+  {
+    DashboardPluginsGoogleAdsIndexRoute: DashboardPluginsGoogleAdsIndexRoute,
+  }
+
+const DashboardPluginsGoogleAdsRouteWithChildren =
+  DashboardPluginsGoogleAdsRoute._addFileChildren(
+    DashboardPluginsGoogleAdsRouteChildren,
+  )
+
 interface DashboardPluginsLinkedinMarketingRouteChildren {
   DashboardPluginsLinkedinMarketingIndexRoute: typeof DashboardPluginsLinkedinMarketingIndexRoute
 }
@@ -1436,6 +1488,7 @@ interface DashboardPluginsRouteChildren {
   DashboardPluginsEmailMarketingRoute: typeof DashboardPluginsEmailMarketingRouteWithChildren
   DashboardPluginsEmployeeAttendanceRoute: typeof DashboardPluginsEmployeeAttendanceRouteWithChildren
   DashboardPluginsGmailRoute: typeof DashboardPluginsGmailRouteWithChildren
+  DashboardPluginsGoogleAdsRoute: typeof DashboardPluginsGoogleAdsRouteWithChildren
   DashboardPluginsLinkedinMarketingRoute: typeof DashboardPluginsLinkedinMarketingRouteWithChildren
   DashboardPluginsIndexRoute: typeof DashboardPluginsIndexRoute
 }
@@ -1448,6 +1501,7 @@ const DashboardPluginsRouteChildren: DashboardPluginsRouteChildren = {
   DashboardPluginsEmployeeAttendanceRoute:
     DashboardPluginsEmployeeAttendanceRouteWithChildren,
   DashboardPluginsGmailRoute: DashboardPluginsGmailRouteWithChildren,
+  DashboardPluginsGoogleAdsRoute: DashboardPluginsGoogleAdsRouteWithChildren,
   DashboardPluginsLinkedinMarketingRoute:
     DashboardPluginsLinkedinMarketingRouteWithChildren,
   DashboardPluginsIndexRoute: DashboardPluginsIndexRoute,

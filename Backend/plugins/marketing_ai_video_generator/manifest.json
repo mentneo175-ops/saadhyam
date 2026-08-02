@@ -1,0 +1,107 @@
+{
+  "plugin_key": "marketing_ai_video_generator",
+  "name": "AI Video Generator",
+  "version": "v2.0",
+  "author": "Saadhyam AI",
+  "status": "Production Ready",
+  "description": "Create marketing videos using AI-generated scripts, storyboards, voiceovers, captions, images, and exportable projects.",
+  "category": "marketing",
+  "is_ai_powered": true,
+  "permissions": [
+    "configuration",
+    "execution",
+    "export"
+  ],
+  "supported_features": [
+    "script_generation",
+    "storyboard_building",
+    "image_generation",
+    "voice_synthesis",
+    "caption_generation",
+    "video_preview",
+    "project_export",
+    "history_management"
+  ],
+  "actions": [
+    {
+      "action": "generate_script",
+      "name": "Generate Video Script",
+      "description": "Generate a full video script including hook, narration and CTA from product and keyword inputs",
+      "parameters": {
+        "product": {"type": "string", "required": true},
+        "offer": {"type": "string", "required": false},
+        "keywords": {"type": "array", "required": false},
+        "platform": {"type": "string", "required": false},
+        "duration": {"type": "string", "required": false}
+      }
+    },
+    {
+      "action": "generate_storyboard",
+      "name": "Generate Storyboard",
+      "description": "Generate scene-by-scene storyboard layout from an existing script",
+      "parameters": {
+        "script_title": {"type": "string", "required": true},
+        "script_narration": {"type": "string", "required": true},
+        "num_scenes": {"type": "integer", "required": false}
+      }
+    },
+    {
+      "action": "generate_images",
+      "name": "Generate Scene Images",
+      "description": "Generate placeholder image metadata for each storyboard scene",
+      "parameters": {
+        "scenes": {"type": "array", "required": true},
+        "brand_color": {"type": "string", "required": false},
+        "style": {"type": "string", "required": false}
+      }
+    },
+    {
+      "action": "generate_voice",
+      "name": "Generate Voiceover",
+      "description": "Synthesise a placeholder voiceover configuration for a given script narration",
+      "parameters": {
+        "narration": {"type": "string", "required": true},
+        "gender": {"type": "string", "required": false},
+        "accent": {"type": "string", "required": false},
+        "speed": {"type": "string", "required": false}
+      }
+    },
+    {
+      "action": "generate_captions",
+      "name": "Generate Subtitles & Captions",
+      "description": "Generate timed subtitle entries from narration text and scene durations",
+      "parameters": {
+        "narration": {"type": "string", "required": true},
+        "scenes": {"type": "array", "required": true},
+        "font_family": {"type": "string", "required": false},
+        "position": {"type": "string", "required": false}
+      }
+    },
+    {
+      "action": "preview_video",
+      "name": "Preview Video Timeline",
+      "description": "Return a structured preview manifest combining scenes, voice, captions, images and music",
+      "parameters": {
+        "scenes": {"type": "array", "required": true},
+        "voice_config": {"type": "object", "required": false},
+        "caption_config": {"type": "object", "required": false},
+        "music_track": {"type": "string", "required": false}
+      }
+    },
+    {
+      "action": "export_project",
+      "name": "Export Video Project",
+      "description": "Package all project data into exportable TXT, CSV and JSON formats",
+      "parameters": {
+        "project_data": {"type": "object", "required": true},
+        "format": {"type": "string", "required": false}
+      }
+    },
+    {
+      "action": "health_check",
+      "name": "Plugin Health Check",
+      "description": "Verify the plugin is responsive and all sub-modules are operational",
+      "parameters": {}
+    }
+  ]
+}

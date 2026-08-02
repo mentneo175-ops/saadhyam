@@ -68,6 +68,7 @@ import { Route as DashboardPluginsGmailRouteImport } from './routes/dashboard.pl
 import { Route as DashboardPluginsEmployeeAttendanceRouteImport } from './routes/dashboard.plugins.employee-attendance'
 import { Route as DashboardPluginsEmailMarketingRouteImport } from './routes/dashboard.plugins.email-marketing'
 import { Route as DashboardPluginsEmailAssistantRouteImport } from './routes/dashboard.plugins.email-assistant'
+import { Route as DashboardPluginsAiVideoGeneratorRouteImport } from './routes/dashboard.plugins.ai-video-generator'
 import { Route as DashboardInstagramAnalyticsPostsRouteImport } from './routes/dashboard.instagram-analytics.posts'
 import { Route as DashboardAgentsPartnershipRouteImport } from './routes/dashboard.agents.partnership'
 import { Route as DashboardAgentsCustomerRetentionRouteImport } from './routes/dashboard.agents.customer-retention'
@@ -77,6 +78,7 @@ import { Route as DashboardPluginsGmailIndexRouteImport } from './routes/dashboa
 import { Route as DashboardPluginsEmployeeAttendanceIndexRouteImport } from './routes/dashboard.plugins.employee-attendance.index'
 import { Route as DashboardPluginsEmailMarketingIndexRouteImport } from './routes/dashboard.plugins.email-marketing.index'
 import { Route as DashboardPluginsEmailAssistantIndexRouteImport } from './routes/dashboard.plugins.email-assistant.index'
+import { Route as DashboardPluginsAiVideoGeneratorIndexRouteImport } from './routes/dashboard.plugins.ai-video-generator.index'
 import { Route as DashboardPluginsGmailMailRouteImport } from './routes/dashboard.plugins.gmail.mail'
 
 const YoutubeOauthCallbackRoute = YoutubeOauthCallbackRouteImport.update({
@@ -386,6 +388,12 @@ const DashboardPluginsEmailAssistantRoute =
     path: '/email-assistant',
     getParentRoute: () => DashboardPluginsRoute,
   } as any)
+const DashboardPluginsAiVideoGeneratorRoute =
+  DashboardPluginsAiVideoGeneratorRouteImport.update({
+    id: '/ai-video-generator',
+    path: '/ai-video-generator',
+    getParentRoute: () => DashboardPluginsRoute,
+  } as any)
 const DashboardInstagramAnalyticsPostsRoute =
   DashboardInstagramAnalyticsPostsRouteImport.update({
     id: '/posts',
@@ -439,6 +447,12 @@ const DashboardPluginsEmailAssistantIndexRoute =
     id: '/',
     path: '/',
     getParentRoute: () => DashboardPluginsEmailAssistantRoute,
+  } as any)
+const DashboardPluginsAiVideoGeneratorIndexRoute =
+  DashboardPluginsAiVideoGeneratorIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => DashboardPluginsAiVideoGeneratorRoute,
   } as any)
 const DashboardPluginsGmailMailRoute =
   DashboardPluginsGmailMailRouteImport.update({
@@ -500,6 +514,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/agents/customer-retention': typeof DashboardAgentsCustomerRetentionRoute
   '/dashboard/agents/partnership': typeof DashboardAgentsPartnershipRoute
   '/dashboard/instagram-analytics/posts': typeof DashboardInstagramAnalyticsPostsRoute
+  '/dashboard/plugins/ai-video-generator': typeof DashboardPluginsAiVideoGeneratorRouteWithChildren
   '/dashboard/plugins/email-assistant': typeof DashboardPluginsEmailAssistantRouteWithChildren
   '/dashboard/plugins/email-marketing': typeof DashboardPluginsEmailMarketingRouteWithChildren
   '/dashboard/plugins/employee-attendance': typeof DashboardPluginsEmployeeAttendanceRouteWithChildren
@@ -511,6 +526,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/plugins/': typeof DashboardPluginsIndexRoute
   '/dashboard/voice-agent/': typeof DashboardVoiceAgentIndexRoute
   '/dashboard/plugins/gmail/mail': typeof DashboardPluginsGmailMailRoute
+  '/dashboard/plugins/ai-video-generator/': typeof DashboardPluginsAiVideoGeneratorIndexRoute
   '/dashboard/plugins/email-assistant/': typeof DashboardPluginsEmailAssistantIndexRoute
   '/dashboard/plugins/email-marketing/': typeof DashboardPluginsEmailMarketingIndexRoute
   '/dashboard/plugins/employee-attendance/': typeof DashboardPluginsEmployeeAttendanceIndexRoute
@@ -573,6 +589,7 @@ export interface FileRoutesByTo {
   '/dashboard/plugins': typeof DashboardPluginsIndexRoute
   '/dashboard/voice-agent': typeof DashboardVoiceAgentIndexRoute
   '/dashboard/plugins/gmail/mail': typeof DashboardPluginsGmailMailRoute
+  '/dashboard/plugins/ai-video-generator': typeof DashboardPluginsAiVideoGeneratorIndexRoute
   '/dashboard/plugins/email-assistant': typeof DashboardPluginsEmailAssistantIndexRoute
   '/dashboard/plugins/email-marketing': typeof DashboardPluginsEmailMarketingIndexRoute
   '/dashboard/plugins/employee-attendance': typeof DashboardPluginsEmployeeAttendanceIndexRoute
@@ -634,6 +651,7 @@ export interface FileRoutesById {
   '/dashboard/agents/customer-retention': typeof DashboardAgentsCustomerRetentionRoute
   '/dashboard/agents/partnership': typeof DashboardAgentsPartnershipRoute
   '/dashboard/instagram-analytics/posts': typeof DashboardInstagramAnalyticsPostsRoute
+  '/dashboard/plugins/ai-video-generator': typeof DashboardPluginsAiVideoGeneratorRouteWithChildren
   '/dashboard/plugins/email-assistant': typeof DashboardPluginsEmailAssistantRouteWithChildren
   '/dashboard/plugins/email-marketing': typeof DashboardPluginsEmailMarketingRouteWithChildren
   '/dashboard/plugins/employee-attendance': typeof DashboardPluginsEmployeeAttendanceRouteWithChildren
@@ -645,6 +663,7 @@ export interface FileRoutesById {
   '/dashboard/plugins/': typeof DashboardPluginsIndexRoute
   '/dashboard/voice-agent/': typeof DashboardVoiceAgentIndexRoute
   '/dashboard/plugins/gmail/mail': typeof DashboardPluginsGmailMailRoute
+  '/dashboard/plugins/ai-video-generator/': typeof DashboardPluginsAiVideoGeneratorIndexRoute
   '/dashboard/plugins/email-assistant/': typeof DashboardPluginsEmailAssistantIndexRoute
   '/dashboard/plugins/email-marketing/': typeof DashboardPluginsEmailMarketingIndexRoute
   '/dashboard/plugins/employee-attendance/': typeof DashboardPluginsEmployeeAttendanceIndexRoute
@@ -707,6 +726,7 @@ export interface FileRouteTypes {
     | '/dashboard/agents/customer-retention'
     | '/dashboard/agents/partnership'
     | '/dashboard/instagram-analytics/posts'
+    | '/dashboard/plugins/ai-video-generator'
     | '/dashboard/plugins/email-assistant'
     | '/dashboard/plugins/email-marketing'
     | '/dashboard/plugins/employee-attendance'
@@ -718,6 +738,7 @@ export interface FileRouteTypes {
     | '/dashboard/plugins/'
     | '/dashboard/voice-agent/'
     | '/dashboard/plugins/gmail/mail'
+    | '/dashboard/plugins/ai-video-generator/'
     | '/dashboard/plugins/email-assistant/'
     | '/dashboard/plugins/email-marketing/'
     | '/dashboard/plugins/employee-attendance/'
@@ -780,6 +801,7 @@ export interface FileRouteTypes {
     | '/dashboard/plugins'
     | '/dashboard/voice-agent'
     | '/dashboard/plugins/gmail/mail'
+    | '/dashboard/plugins/ai-video-generator'
     | '/dashboard/plugins/email-assistant'
     | '/dashboard/plugins/email-marketing'
     | '/dashboard/plugins/employee-attendance'
@@ -840,6 +862,7 @@ export interface FileRouteTypes {
     | '/dashboard/agents/customer-retention'
     | '/dashboard/agents/partnership'
     | '/dashboard/instagram-analytics/posts'
+    | '/dashboard/plugins/ai-video-generator'
     | '/dashboard/plugins/email-assistant'
     | '/dashboard/plugins/email-marketing'
     | '/dashboard/plugins/employee-attendance'
@@ -851,6 +874,7 @@ export interface FileRouteTypes {
     | '/dashboard/plugins/'
     | '/dashboard/voice-agent/'
     | '/dashboard/plugins/gmail/mail'
+    | '/dashboard/plugins/ai-video-generator/'
     | '/dashboard/plugins/email-assistant/'
     | '/dashboard/plugins/email-marketing/'
     | '/dashboard/plugins/employee-attendance/'
@@ -1290,6 +1314,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardPluginsEmailAssistantRouteImport
       parentRoute: typeof DashboardPluginsRoute
     }
+    '/dashboard/plugins/ai-video-generator': {
+      id: '/dashboard/plugins/ai-video-generator'
+      path: '/ai-video-generator'
+      fullPath: '/dashboard/plugins/ai-video-generator'
+      preLoaderRoute: typeof DashboardPluginsAiVideoGeneratorRouteImport
+      parentRoute: typeof DashboardPluginsRoute
+    }
     '/dashboard/instagram-analytics/posts': {
       id: '/dashboard/instagram-analytics/posts'
       path: '/posts'
@@ -1353,6 +1384,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardPluginsEmailAssistantIndexRouteImport
       parentRoute: typeof DashboardPluginsEmailAssistantRoute
     }
+    '/dashboard/plugins/ai-video-generator/': {
+      id: '/dashboard/plugins/ai-video-generator/'
+      path: '/'
+      fullPath: '/dashboard/plugins/ai-video-generator/'
+      preLoaderRoute: typeof DashboardPluginsAiVideoGeneratorIndexRouteImport
+      parentRoute: typeof DashboardPluginsAiVideoGeneratorRoute
+    }
     '/dashboard/plugins/gmail/mail': {
       id: '/dashboard/plugins/gmail/mail'
       path: '/mail'
@@ -1392,6 +1430,21 @@ const DashboardInstagramAnalyticsRouteChildren: DashboardInstagramAnalyticsRoute
 const DashboardInstagramAnalyticsRouteWithChildren =
   DashboardInstagramAnalyticsRoute._addFileChildren(
     DashboardInstagramAnalyticsRouteChildren,
+  )
+
+interface DashboardPluginsAiVideoGeneratorRouteChildren {
+  DashboardPluginsAiVideoGeneratorIndexRoute: typeof DashboardPluginsAiVideoGeneratorIndexRoute
+}
+
+const DashboardPluginsAiVideoGeneratorRouteChildren: DashboardPluginsAiVideoGeneratorRouteChildren =
+  {
+    DashboardPluginsAiVideoGeneratorIndexRoute:
+      DashboardPluginsAiVideoGeneratorIndexRoute,
+  }
+
+const DashboardPluginsAiVideoGeneratorRouteWithChildren =
+  DashboardPluginsAiVideoGeneratorRoute._addFileChildren(
+    DashboardPluginsAiVideoGeneratorRouteChildren,
   )
 
 interface DashboardPluginsEmailAssistantRouteChildren {
@@ -1484,6 +1537,7 @@ const DashboardPluginsLinkedinMarketingRouteWithChildren =
   )
 
 interface DashboardPluginsRouteChildren {
+  DashboardPluginsAiVideoGeneratorRoute: typeof DashboardPluginsAiVideoGeneratorRouteWithChildren
   DashboardPluginsEmailAssistantRoute: typeof DashboardPluginsEmailAssistantRouteWithChildren
   DashboardPluginsEmailMarketingRoute: typeof DashboardPluginsEmailMarketingRouteWithChildren
   DashboardPluginsEmployeeAttendanceRoute: typeof DashboardPluginsEmployeeAttendanceRouteWithChildren
@@ -1494,6 +1548,8 @@ interface DashboardPluginsRouteChildren {
 }
 
 const DashboardPluginsRouteChildren: DashboardPluginsRouteChildren = {
+  DashboardPluginsAiVideoGeneratorRoute:
+    DashboardPluginsAiVideoGeneratorRouteWithChildren,
   DashboardPluginsEmailAssistantRoute:
     DashboardPluginsEmailAssistantRouteWithChildren,
   DashboardPluginsEmailMarketingRoute:

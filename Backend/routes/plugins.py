@@ -4,7 +4,7 @@ API endpoints for managing and executing plugins
 """
 
 import logging
-from fastapi import APIRouter, Body, Depends, HTTPException, status
+from fastapi import APIRouter, Body, Depends, HTTPException, status, File, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from config.database import get_db
@@ -785,3 +785,704 @@ def get_category_description(category: PluginCategory) -> str:
         PluginCategory.AI_PRODUCTIVITY: "AI-powered productivity tools"
     }
     return descriptions.get(category, "No description available")
+
+
+class GenerateScriptRequest(BaseModel):
+    product: str
+    industry: str
+    targetAudience: str
+    platform: str
+    duration: str
+    tone: str
+    goal: str
+    callToAction: str
+
+
+@router.post("/marketing_ai_video_generator/generate-script")
+async def generate_video_script(
+    request: GenerateScriptRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    POST endpoint for Version 3.1 of the AI Video Generator plugin.
+    Validates required inputs and executes LLM script generation.
+    """
+    errors = []
+    if not request.product or not request.product.strip():
+        errors.append("product is required")
+    if not request.industry or not request.industry.strip():
+        errors.append("industry is required")
+    if not request.targetAudience or not request.targetAudience.strip():
+        errors.append("targetAudience is required")
+    if not request.platform or not request.platform.strip():
+        errors.append("platform is required")
+    if not request.duration or not request.duration.strip():
+        errors.append("duration is required")
+    if not request.tone or not request.tone.strip():
+        errors.append("tone is required")
+    if not request.goal or not request.goal.strip():
+        errors.append("goal is required")
+    if not request.callToAction or not request.callToAction.strip():
+        errors.append("callToAction is required")
+        
+    if errors:
+        raise HTTPException(status_code=400, detail=", ".join(errors))
+
+    try:
+        from plugins.marketing_ai_video_generator.main import PluginMain
+        plugin = PluginMain()
+        
+        import uuid
+        request_id = f"api-{str(uuid.uuid4())[:8]}"
+        
+        result = await plugin.generate_script_api({
+            "product": request.product,
+            "industry": request.industry,
+            "targetAudience": request.targetAudience,
+            "platform": request.platform,
+            "duration": request.duration,
+            "tone": request.tone,
+            "goal": request.goal,
+            "callToAction": request.callToAction,
+            "request_id": request_id
+        })
+        
+        return result
+    except Exception as e:
+        logger.error(f"Error in generate_video_script endpoint: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+class GenerateImagesRequest(BaseModel):
+    projectTitle: str
+    brand: str
+    style: str
+    aspectRatio: str
+    scenes: List[Dict[str, Any]]
+
+
+@router.post("/marketing_ai_video_generator/generate-images")
+async def generate_video_images(
+    request: GenerateImagesRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    POST endpoint for Version 3.2 of the AI Video Generator plugin.
+    Generates an image for each scene in the scenes list.
+    """
+    errors = []
+    if not request.scenes:
+        errors.append("scenes list cannot be empty")
+        
+    if errors:
+        raise HTTPException(status_code=400, detail=", ".join(errors))
+
+    try:
+        from plugins.marketing_ai_video_generator.main import PluginMain
+        plugin = PluginMain()
+        
+        import uuid
+        request_id = f"img-api-{str(uuid.uuid4())[:8]}"
+        
+        result = await plugin.generate_images_api({
+            "projectTitle": request.projectTitle,
+            "brand": request.brand,
+            "style": request.style,
+            "aspectRatio": request.aspectRatio,
+            "scenes": request.scenes,
+            "request_id": request_id
+        })
+        
+        return result
+    except Exception as e:
+        logger.error(f"Error in generate_video_images endpoint: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/marketing_ai_video_generator/upload-image")
+async def upload_video_image(
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    POST endpoint to upload custom layout assets/images for scenes (v3.2).
+    Saves the file to local static storage (or uploads to Cloudinary if configured).
+    """
+    import os
+    import time
+    from pathlib import Path
+    import uuid
+    
+    try:
+        # Define output directory
+        output_dir = Path(__file__).resolve().parents[2] / "output" / "images"
+        output_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Build safe filename
+        ext = os.path.splitext(file.filename)[1] or ".png"
+        filename = f"upload_{int(time.time())}_{uuid.uuid4().hex[:8]}{ext}"
+        file_path = output_dir / filename
+        
+        # Read and save file content
+        content = await file.read()
+        with open(file_path, "wb") as f:
+            f.write(content)
+            
+        image_url = f"/output/images/{filename}"
+        
+        # Upload to Cloudinary if configured
+        cloudinary_configured = (
+            os.getenv("CLOUDINARY_CLOUD_NAME") and
+            os.getenv("CLOUDINARY_API_KEY") and
+            os.getenv("CLOUDINARY_API_SECRET")
+        )
+        if cloudinary_configured:
+            try:
+                import cloudinary.uploader
+                import cloudinary
+                cloudinary.config(
+                    cloud_name=os.getenv("CLOUDINARY_CLOUD_NAME"),
+                    api_key=os.getenv("CLOUDINARY_API_KEY"),
+                    api_secret=os.getenv("CLOUDINARY_API_SECRET"),
+                    secure=True
+                )
+                upload_res = cloudinary.uploader.upload(
+                    str(file_path),
+                    folder="saadhyam_video_generator/uploads",
+                    public_id=filename.split('.')[0]
+                )
+                cloudinary_url = upload_res.get("secure_url")
+                if cloudinary_url:
+                    image_url = cloudinary_url
+            except Exception as cloud_err:
+                logger.error(f"Cloudinary upload failed for custom image: {cloud_err}")
+                
+        return {
+            "success": True,
+            "message": "Image uploaded successfully",
+            "imageUrl": image_url
+        }
+    except Exception as e:
+        logger.error(f"Error in upload_video_image endpoint: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed to upload image: {str(e)}")
+
+
+class GenerateVoiceRequest(BaseModel):
+    narration: str
+    voice: str
+    gender: str
+    speed: float
+    language: Optional[str] = "English"
+    style: Optional[str] = ""
+    emotion: Optional[str] = ""
+
+
+@router.post("/marketing_ai_video_generator/generate-voice")
+async def generate_video_voice(
+    request: GenerateVoiceRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    POST endpoint for Version 3.3 of the AI Video Generator plugin.
+    Generates an MP3 narration voice using priority fallback queue.
+    """
+    errors = []
+    if not request.narration or not request.narration.strip():
+        errors.append("narration cannot be empty")
+    if not request.voice or not request.voice.strip():
+        errors.append("voice cannot be empty")
+    if not request.gender or not request.gender.strip():
+        errors.append("gender cannot be empty")
+    if request.speed <= 0:
+        errors.append("speed must be a positive float value")
+
+    if errors:
+        raise HTTPException(status_code=400, detail=", ".join(errors))
+
+    try:
+        from plugins.marketing_ai_video_generator.main import PluginMain
+        plugin = PluginMain()
+        
+        import uuid
+        request_id = f"voice-api-{str(uuid.uuid4())[:8]}"
+        
+        result = await plugin.generate_voice_api({
+            "narration": request.narration,
+            "voice": request.voice,
+            "gender": request.gender,
+            "language": request.language,
+            "speed": request.speed,
+            "style": request.style,
+            "emotion": request.emotion,
+            "request_id": request_id
+        })
+        
+        return result
+    except Exception as e:
+        logger.error(f"Error in generate_video_voice endpoint: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+class RenderVideoRequest(BaseModel):
+    projectTitle: str
+    scenes: List[Dict[str, Any]]
+    images: List[str]
+    voiceAudio: str
+    captions: Dict[str, Any]
+    aspectRatio: str
+    fps: Optional[int] = 30
+    transitions: Optional[List[str]] = None
+    backgroundMusic: Optional[str] = ""
+
+
+@router.post("/marketing_ai_video_generator/render-video")
+async def render_video(
+    request: RenderVideoRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    POST endpoint for Version 3.4 of the AI Video Generator plugin.
+    Combines scenes, images, voice overs, and captions into an MP4 video.
+    """
+    errors = []
+    if not request.scenes:
+        errors.append("storyboard scenes list is missing or empty")
+    if not request.images:
+        errors.append("generated images list is missing or empty")
+    if not request.voiceAudio or not request.voiceAudio.strip():
+        errors.append("narration voice audio path is missing or empty")
+
+    if errors:
+        raise HTTPException(status_code=400, detail=", ".join(errors))
+
+    try:
+        from plugins.marketing_ai_video_generator.main import PluginMain
+        plugin = PluginMain()
+        
+        import uuid
+        request_id = f"render-api-{str(uuid.uuid4())[:8]}"
+        
+        result = await plugin.render_video_api({
+            "projectTitle": request.projectTitle,
+            "scenes": request.scenes,
+            "images": request.images,
+            "voiceAudio": request.voiceAudio,
+            "captions": request.captions,
+            "aspectRatio": request.aspectRatio,
+            "fps": request.fps,
+            "transitions": request.transitions,
+            "backgroundMusic": request.backgroundMusic,
+            "request_id": request_id
+        })
+        
+        return result
+    except Exception as e:
+        logger.error(f"Error in render_video endpoint: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+class GenerateMusicRequest(BaseModel):
+    mood: str
+    genre: str
+    duration: int
+    platform: Optional[str] = "YouTube"
+    projectTitle: Optional[str] = "Video Ad"
+
+
+class MixAudioRequest(BaseModel):
+    voiceAudio: str
+    musicAudio: str
+    volume: Optional[float] = 0.2
+    loop: Optional[bool] = True
+
+
+@router.post("/marketing_ai_video_generator/generate-music")
+async def generate_video_music(
+    request: GenerateMusicRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    POST endpoint for Version 3.5 of the AI Video Generator plugin.
+    Generates background music track using priority fallback queue.
+    """
+    errors = []
+    if not request.mood or not request.mood.strip():
+        errors.append("mood cannot be empty")
+    if not request.genre or not request.genre.strip():
+        errors.append("genre cannot be empty")
+    if request.duration <= 0:
+        errors.append("duration must be a positive integer value")
+
+    if errors:
+        raise HTTPException(status_code=400, detail=", ".join(errors))
+
+    try:
+        from plugins.marketing_ai_video_generator.main import PluginMain
+        plugin = PluginMain()
+        
+        import uuid
+        request_id = f"music-api-{str(uuid.uuid4())[:8]}"
+        
+        result = await plugin.generate_background_music_api({
+            "mood": request.mood,
+            "genre": request.genre,
+            "duration": request.duration,
+            "platform": request.platform,
+            "projectTitle": request.projectTitle,
+            "request_id": request_id
+        })
+        return result
+    except Exception as e:
+        logger.error(f"Error in generate_video_music endpoint: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/marketing_ai_video_generator/mix-audio")
+async def mix_video_audio(
+    request: MixAudioRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    POST endpoint for Version 3.5 of the AI Video Generator plugin.
+    Mixes voice narration track and background music track into a single MP3 output.
+    """
+    try:
+        from plugins.marketing_ai_video_generator.main import PluginMain
+        plugin = PluginMain()
+        
+        import uuid
+        request_id = f"mix-api-{str(uuid.uuid4())[:8]}"
+        
+        result = await plugin.mix_audio_tracks({
+            "voiceAudio": request.voiceAudio,
+            "musicAudio": request.musicAudio,
+            "volume": request.volume,
+            "loop": request.loop,
+            "request_id": request_id
+        })
+        return result
+    except Exception as e:
+        logger.error(f"Error in mix_video_audio endpoint: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# v3.6 – Subtitle Generation, Translation, Presets, Upload, Export
+# ─────────────────────────────────────────────────────────────────────────────
+
+class GenerateSubtitlesRequest(BaseModel):
+    narration: str
+    audioUrl: str = ""
+    projectTitle: str = "video"
+    language: str = "en"
+    quality: str = "balanced"          # fast | balanced | accurate
+    outputFormats: List[str] = ["srt", "vtt", "ass", "txt"]
+    captionStyle: dict = {}
+
+
+class TranslateSubtitlesRequest(BaseModel):
+    segments: List[dict]
+    targetLanguages: List[str]
+    projectTitle: str = "video"
+
+
+class UploadSubtitlesRequest(BaseModel):
+    content: str                       # raw SRT or VTT file text
+    format: str = "srt"               # srt | vtt
+
+
+class ExportSubtitlesRequest(BaseModel):
+    segments: List[dict]
+    format: str = "srt"               # srt | vtt | ass | txt
+    captionStyle: dict = {}
+    projectTitle: str = "video"
+
+
+@router.post("/marketing_ai_video_generator/generate-subtitles")
+async def generate_subtitles_endpoint(request: GenerateSubtitlesRequest):
+    """
+    Generate word- and sentence-level subtitles from narration text / audio.
+    Provider cascade: faster-whisper → openai-whisper → text-split fallback.
+    """
+    if not request.narration.strip():
+        raise HTTPException(status_code=400, detail="narration text cannot be empty")
+    try:
+        from plugins.marketing_ai_video_generator.main import PluginMain
+        plugin = PluginMain()
+        import uuid
+        request_id = f"sub-{str(uuid.uuid4())[:8]}"
+        result = await plugin.generate_subtitles_api({
+            "narration": request.narration,
+            "audioUrl": request.audioUrl,
+            "projectTitle": request.projectTitle,
+            "language": request.language,
+            "quality": request.quality,
+            "outputFormats": request.outputFormats,
+            "captionStyle": request.captionStyle,
+            "request_id": request_id
+        })
+        return {"success": True, "message": "Subtitles generated successfully", "data": result}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error in generate_subtitles endpoint: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/marketing_ai_video_generator/translate-subtitles")
+async def translate_subtitles_endpoint(request: TranslateSubtitlesRequest):
+    """Translate subtitle segments to multiple target languages."""
+    if not request.segments:
+        raise HTTPException(status_code=400, detail="segments cannot be empty")
+    if not request.targetLanguages:
+        raise HTTPException(status_code=400, detail="at least one target language is required")
+    try:
+        from plugins.marketing_ai_video_generator.main import PluginMain
+        plugin = PluginMain()
+        import uuid
+        request_id = f"trans-{str(uuid.uuid4())[:8]}"
+        result = await plugin.translate_subtitles_api({
+            "segments": request.segments,
+            "targetLanguages": request.targetLanguages,
+            "projectTitle": request.projectTitle,
+            "request_id": request_id
+        })
+        return {"success": True, "message": "Translation completed", "data": result}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error in translate_subtitles endpoint: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/marketing_ai_video_generator/subtitle-presets")
+async def get_subtitle_presets_endpoint():
+    """Return 8 built-in caption style presets."""
+    try:
+        from plugins.marketing_ai_video_generator.main import PluginMain
+        plugin = PluginMain()
+        presets = plugin.get_subtitle_presets()
+        return {"success": True, "data": presets}
+    except Exception as e:
+        logger.error(f"Error in subtitle_presets endpoint: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/marketing_ai_video_generator/upload-subtitles")
+async def upload_subtitles_endpoint(request: UploadSubtitlesRequest):
+    """Parse an uploaded .srt or .vtt file into segments array."""
+    if not request.content.strip():
+        raise HTTPException(status_code=400, detail="subtitle file content cannot be empty")
+    try:
+        from plugins.marketing_ai_video_generator.main import PluginMain
+        plugin = PluginMain()
+        result = await plugin.upload_subtitles_api({
+            "content": request.content,
+            "format": request.format
+        })
+        return {"success": True, "message": f"Parsed {result['count']} subtitle segments", "data": result}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error in upload_subtitles endpoint: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/marketing_ai_video_generator/preview-subtitles")
+async def preview_subtitles_endpoint(request: dict):
+    """
+    Return live preview HTML/CSS snippet for a subtitle segment with the given style.
+    Lightweight endpoint – no file I/O required.
+    """
+    try:
+        segment = request.get("segment", {})
+        style = request.get("captionStyle", {})
+        text = segment.get("text", "Preview text")
+        font = style.get("fontFamily", "Inter")
+        size = style.get("fontSize", 28)
+        color = style.get("color", "#FFFFFF")
+        stroke = style.get("strokeColor", "#000000")
+        stroke_w = style.get("strokeWidth", 2)
+        bg_box = style.get("bgBox", False)
+        shadow = style.get("shadow", True)
+        opacity = style.get("opacity", 1.0)
+        position = style.get("position", "Bottom Center")
+        animation = style.get("animation", "Fade")
+
+        pos_map = {
+            "Bottom Center": "bottom: 10%; left: 50%; transform: translateX(-50%);",
+            "Top Center": "top: 10%; left: 50%; transform: translateX(-50%);",
+            "Middle Center": "top: 50%; left: 50%; transform: translate(-50%, -50%);"
+        }
+        css_pos = pos_map.get(position, pos_map["Bottom Center"])
+        text_shadow = f"2px 2px 4px {stroke}" if shadow else "none"
+        background = "rgba(0,0,0,0.6)" if bg_box else "transparent"
+        web_stroke = f"-webkit-text-stroke: {stroke_w}px {stroke};" if stroke_w > 0 else ""
+
+        html = f"""
+<div style="position:absolute;{css_pos}text-align:center;font-family:'{font}',sans-serif;
+font-size:{size}px;color:{color};opacity:{opacity};
+text-shadow:{text_shadow};background:{background};
+padding:4px 12px;border-radius:4px;{web_stroke}
+white-space:pre-wrap;max-width:80%;">{text}</div>
+""".strip()
+        return {"success": True, "data": {"html": html, "animation": animation}}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/marketing_ai_video_generator/export-subtitles")
+async def export_subtitles_endpoint(request: ExportSubtitlesRequest):
+    """Re-export subtitle segments with current styling to SRT/VTT/ASS/TXT."""
+    if not request.segments:
+        raise HTTPException(status_code=400, detail="segments cannot be empty for export")
+    try:
+        from plugins.marketing_ai_video_generator.main import PluginMain
+        plugin = PluginMain()
+        import uuid
+        request_id = f"exp-{str(uuid.uuid4())[:8]}"
+        result = await plugin.export_subtitles_api({
+            "segments": request.segments,
+            "format": request.format,
+            "captionStyle": request.captionStyle,
+            "projectTitle": request.projectTitle,
+            "request_id": request_id
+        })
+        return {"success": True, "message": f"Exported {result['segmentCount']} segments as {request.format.upper()}", "data": result}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error in export_subtitles endpoint: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# v3.7 – Professional Timeline Editor  (Pydantic models + endpoints)
+# ─────────────────────────────────────────────────────────────────────────────
+
+class TimelineRequest(BaseModel):
+    scenes: List[Dict[str, Any]]
+    voice: Optional[Dict[str, Any]] = None
+    music: Optional[Dict[str, Any]] = None
+    subtitles: Optional[Dict[str, Any]] = None
+    overlays: Optional[List[Dict[str, Any]]] = None
+    fps: Optional[int] = 30
+    projectTitle: Optional[str] = ""
+
+
+class SceneAnimationRequest(BaseModel):
+    sceneId: Optional[str] = "1"
+    animation: Optional[str] = "Fade"
+    transition: Optional[str] = "CrossFade"
+    duration: Optional[float] = 0.8
+    easing: Optional[str] = "ease"
+
+
+class OverlayRequest(BaseModel):
+    type: Optional[str] = "Logo"
+    label: Optional[str] = ""
+    x: Optional[float] = 5.0
+    y: Optional[float] = 5.0
+    width: Optional[float] = 20.0
+    height: Optional[float] = 10.0
+    opacity: Optional[float] = 1.0
+    zIndex: Optional[int] = 10
+    startTime: Optional[float] = 0.0
+    endTime: Optional[float] = 999.0
+    fileData: Optional[str] = ""   # base64-encoded file
+    fileExt: Optional[str] = "png"
+    text: Optional[str] = ""
+
+
+@router.post("/marketing_ai_video_generator/timeline")
+async def timeline_endpoint(request: TimelineRequest):
+    """
+    v3.7 – Build a complete editing timeline JSON from scenes, voice, music, subtitles.
+    """
+    if not request.scenes:
+        raise HTTPException(status_code=400, detail="scenes cannot be empty for timeline generation")
+    try:
+        from plugins.marketing_ai_video_generator.main import PluginMain
+        import uuid
+        plugin = PluginMain()
+        result = await plugin.timeline_api({
+            "scenes": request.scenes,
+            "voice": request.voice or {},
+            "music": request.music or {},
+            "subtitles": request.subtitles or {},
+            "overlays": request.overlays or [],
+            "fps": request.fps or 30,
+            "projectTitle": request.projectTitle or "",
+            "request_id": f"tl-{str(uuid.uuid4())[:8]}",
+        })
+        return result
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error in timeline endpoint: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/marketing_ai_video_generator/scene-animation")
+async def scene_animation_endpoint(request: SceneAnimationRequest):
+    """
+    v3.7 – Return animation metadata for a scene block.
+    """
+    try:
+        from plugins.marketing_ai_video_generator.main import PluginMain
+        import uuid
+        plugin = PluginMain()
+        result = await plugin.scene_animation_api({
+            "sceneId": request.sceneId,
+            "animation": request.animation,
+            "transition": request.transition,
+            "duration": request.duration,
+            "easing": request.easing,
+            "request_id": f"anim-{str(uuid.uuid4())[:8]}",
+        })
+        return result
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error in scene_animation endpoint: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/marketing_ai_video_generator/overlay")
+async def overlay_endpoint(request: OverlayRequest):
+    """
+    v3.7 – Create or update overlay metadata; optionally save uploaded file.
+    """
+    try:
+        from plugins.marketing_ai_video_generator.main import PluginMain
+        import uuid
+        plugin = PluginMain()
+        result = await plugin.overlay_api({
+            "type": request.type,
+            "label": request.label,
+            "x": request.x,
+            "y": request.y,
+            "width": request.width,
+            "height": request.height,
+            "opacity": request.opacity,
+            "zIndex": request.zIndex,
+            "startTime": request.startTime,
+            "endTime": request.endTime,
+            "fileData": request.fileData,
+            "fileExt": request.fileExt,
+            "text": request.text,
+            "request_id": f"ov-{str(uuid.uuid4())[:8]}",
+        })
+        return result
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error in overlay endpoint: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))

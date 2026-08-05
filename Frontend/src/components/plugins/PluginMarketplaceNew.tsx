@@ -20,6 +20,8 @@ const PLUGIN_CONFIG_PAGES: Record<string, string> = {
   hr_employee_attendance: "/dashboard/plugins/employee-attendance",
   marketing_google_ads: "/dashboard/plugins/google-ads",
   marketing_ai_video_generator: "/dashboard/plugins/ai-video-generator",
+  sales_live_chat: "/dashboard/plugins/live-chat",
+  hr_interview_scheduler: "/dashboard/plugins/interview-scheduler",
   // outlook: "/dashboard/plugins/outlook",
   // drive: "/dashboard/plugins/drive",
 };

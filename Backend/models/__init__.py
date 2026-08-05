@@ -70,6 +70,23 @@ from models.voice_command import VoiceCommandLog
 from models.user_api_keys import UserAPIKeys, APIKeyTemplate
 from models.plugins import Plugin, UserPlugin, PluginAnalytics, PluginCategory, PluginStatus
 
+# Live Chat Plugin Models
+from models.live_chat import (
+    LiveChatVisitor,
+    LiveChatConversation,
+    LiveChatMessage,
+    LiveChatConversationStatus,
+    LiveChatSenderType,
+    LiveChatMessageType,
+)
+
+# HR Interview Scheduler Plugin Models
+from models.interview_scheduler import (
+    Interview,
+    InterviewSlot,
+    InterviewStatus,
+)
+
 __all__ = [
     "User",
     "SocialAccount",
@@ -116,4 +133,15 @@ __all__ = [
     "PluginAnalytics",
     "PluginCategory",
     "PluginStatus",
+    # Live Chat
+    "LiveChatVisitor",
+    "LiveChatConversation",
+    "LiveChatMessage",
+    "LiveChatConversationStatus",
+    "LiveChatSenderType",
+    "LiveChatMessageType",
+    # HR Interview Scheduler
+    "Interview",
+    "InterviewSlot",
+    "InterviewStatus",
 ]

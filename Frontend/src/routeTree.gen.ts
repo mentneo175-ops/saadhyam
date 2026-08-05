@@ -23,6 +23,7 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
 import { Route as WebsiteWebsiteIdRouteImport } from './routes/website.$websiteId'
+import { Route as LiveChatWidgetRouteImport } from './routes/live-chat.widget'
 import { Route as DashboardYoutubeRouteImport } from './routes/dashboard.youtube'
 import { Route as DashboardWhatsappSalesRouteImport } from './routes/dashboard.whatsapp-sales'
 import { Route as DashboardWhatsappRouteImport } from './routes/dashboard.whatsapp'
@@ -62,7 +63,9 @@ import { Route as DashboardVoiceAgentIndexRouteImport } from './routes/dashboard
 import { Route as DashboardPluginsIndexRouteImport } from './routes/dashboard.plugins.index'
 import { Route as DashboardAgentsIndexRouteImport } from './routes/dashboard.agents.index'
 import { Route as DashboardSettingsApiKeysRouteImport } from './routes/dashboard.settings.api-keys'
+import { Route as DashboardPluginsLiveChatRouteImport } from './routes/dashboard.plugins.live-chat'
 import { Route as DashboardPluginsLinkedinMarketingRouteImport } from './routes/dashboard.plugins.linkedin-marketing'
+import { Route as DashboardPluginsInterviewSchedulerRouteImport } from './routes/dashboard.plugins.interview-scheduler'
 import { Route as DashboardPluginsGoogleAdsRouteImport } from './routes/dashboard.plugins.google-ads'
 import { Route as DashboardPluginsGmailRouteImport } from './routes/dashboard.plugins.gmail'
 import { Route as DashboardPluginsEmployeeAttendanceRouteImport } from './routes/dashboard.plugins.employee-attendance'
@@ -72,7 +75,9 @@ import { Route as DashboardPluginsAiVideoGeneratorRouteImport } from './routes/d
 import { Route as DashboardInstagramAnalyticsPostsRouteImport } from './routes/dashboard.instagram-analytics.posts'
 import { Route as DashboardAgentsPartnershipRouteImport } from './routes/dashboard.agents.partnership'
 import { Route as DashboardAgentsCustomerRetentionRouteImport } from './routes/dashboard.agents.customer-retention'
+import { Route as DashboardPluginsLiveChatIndexRouteImport } from './routes/dashboard.plugins.live-chat.index'
 import { Route as DashboardPluginsLinkedinMarketingIndexRouteImport } from './routes/dashboard.plugins.linkedin-marketing.index'
+import { Route as DashboardPluginsInterviewSchedulerIndexRouteImport } from './routes/dashboard.plugins.interview-scheduler.index'
 import { Route as DashboardPluginsGoogleAdsIndexRouteImport } from './routes/dashboard.plugins.google-ads.index'
 import { Route as DashboardPluginsGmailIndexRouteImport } from './routes/dashboard.plugins.gmail.index'
 import { Route as DashboardPluginsEmployeeAttendanceIndexRouteImport } from './routes/dashboard.plugins.employee-attendance.index'
@@ -150,6 +155,11 @@ const DashboardIndexRoute = DashboardIndexRouteImport.update({
 const WebsiteWebsiteIdRoute = WebsiteWebsiteIdRouteImport.update({
   id: '/website/$websiteId',
   path: '/website/$websiteId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LiveChatWidgetRoute = LiveChatWidgetRouteImport.update({
+  id: '/live-chat/widget',
+  path: '/live-chat/widget',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardYoutubeRoute = DashboardYoutubeRouteImport.update({
@@ -353,10 +363,22 @@ const DashboardSettingsApiKeysRoute =
     path: '/api-keys',
     getParentRoute: () => DashboardSettingsRoute,
   } as any)
+const DashboardPluginsLiveChatRoute =
+  DashboardPluginsLiveChatRouteImport.update({
+    id: '/live-chat',
+    path: '/live-chat',
+    getParentRoute: () => DashboardPluginsRoute,
+  } as any)
 const DashboardPluginsLinkedinMarketingRoute =
   DashboardPluginsLinkedinMarketingRouteImport.update({
     id: '/linkedin-marketing',
     path: '/linkedin-marketing',
+    getParentRoute: () => DashboardPluginsRoute,
+  } as any)
+const DashboardPluginsInterviewSchedulerRoute =
+  DashboardPluginsInterviewSchedulerRouteImport.update({
+    id: '/interview-scheduler',
+    path: '/interview-scheduler',
     getParentRoute: () => DashboardPluginsRoute,
   } as any)
 const DashboardPluginsGoogleAdsRoute =
@@ -412,11 +434,23 @@ const DashboardAgentsCustomerRetentionRoute =
     path: '/customer-retention',
     getParentRoute: () => DashboardAgentsRoute,
   } as any)
+const DashboardPluginsLiveChatIndexRoute =
+  DashboardPluginsLiveChatIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => DashboardPluginsLiveChatRoute,
+  } as any)
 const DashboardPluginsLinkedinMarketingIndexRoute =
   DashboardPluginsLinkedinMarketingIndexRouteImport.update({
     id: '/',
     path: '/',
     getParentRoute: () => DashboardPluginsLinkedinMarketingRoute,
+  } as any)
+const DashboardPluginsInterviewSchedulerIndexRoute =
+  DashboardPluginsInterviewSchedulerIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => DashboardPluginsInterviewSchedulerRoute,
   } as any)
 const DashboardPluginsGoogleAdsIndexRoute =
   DashboardPluginsGoogleAdsIndexRouteImport.update({
@@ -509,6 +543,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/whatsapp': typeof DashboardWhatsappRoute
   '/dashboard/whatsapp-sales': typeof DashboardWhatsappSalesRoute
   '/dashboard/youtube': typeof DashboardYoutubeRoute
+  '/live-chat/widget': typeof LiveChatWidgetRoute
   '/website/$websiteId': typeof WebsiteWebsiteIdRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/dashboard/agents/customer-retention': typeof DashboardAgentsCustomerRetentionRoute
@@ -520,7 +555,9 @@ export interface FileRoutesByFullPath {
   '/dashboard/plugins/employee-attendance': typeof DashboardPluginsEmployeeAttendanceRouteWithChildren
   '/dashboard/plugins/gmail': typeof DashboardPluginsGmailRouteWithChildren
   '/dashboard/plugins/google-ads': typeof DashboardPluginsGoogleAdsRouteWithChildren
+  '/dashboard/plugins/interview-scheduler': typeof DashboardPluginsInterviewSchedulerRouteWithChildren
   '/dashboard/plugins/linkedin-marketing': typeof DashboardPluginsLinkedinMarketingRouteWithChildren
+  '/dashboard/plugins/live-chat': typeof DashboardPluginsLiveChatRouteWithChildren
   '/dashboard/settings/api-keys': typeof DashboardSettingsApiKeysRoute
   '/dashboard/agents/': typeof DashboardAgentsIndexRoute
   '/dashboard/plugins/': typeof DashboardPluginsIndexRoute
@@ -532,7 +569,9 @@ export interface FileRoutesByFullPath {
   '/dashboard/plugins/employee-attendance/': typeof DashboardPluginsEmployeeAttendanceIndexRoute
   '/dashboard/plugins/gmail/': typeof DashboardPluginsGmailIndexRoute
   '/dashboard/plugins/google-ads/': typeof DashboardPluginsGoogleAdsIndexRoute
+  '/dashboard/plugins/interview-scheduler/': typeof DashboardPluginsInterviewSchedulerIndexRoute
   '/dashboard/plugins/linkedin-marketing/': typeof DashboardPluginsLinkedinMarketingIndexRoute
+  '/dashboard/plugins/live-chat/': typeof DashboardPluginsLiveChatIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -579,6 +618,7 @@ export interface FileRoutesByTo {
   '/dashboard/whatsapp': typeof DashboardWhatsappRoute
   '/dashboard/whatsapp-sales': typeof DashboardWhatsappSalesRoute
   '/dashboard/youtube': typeof DashboardYoutubeRoute
+  '/live-chat/widget': typeof LiveChatWidgetRoute
   '/website/$websiteId': typeof WebsiteWebsiteIdRoute
   '/dashboard': typeof DashboardIndexRoute
   '/dashboard/agents/customer-retention': typeof DashboardAgentsCustomerRetentionRoute
@@ -595,7 +635,9 @@ export interface FileRoutesByTo {
   '/dashboard/plugins/employee-attendance': typeof DashboardPluginsEmployeeAttendanceIndexRoute
   '/dashboard/plugins/gmail': typeof DashboardPluginsGmailIndexRoute
   '/dashboard/plugins/google-ads': typeof DashboardPluginsGoogleAdsIndexRoute
+  '/dashboard/plugins/interview-scheduler': typeof DashboardPluginsInterviewSchedulerIndexRoute
   '/dashboard/plugins/linkedin-marketing': typeof DashboardPluginsLinkedinMarketingIndexRoute
+  '/dashboard/plugins/live-chat': typeof DashboardPluginsLiveChatIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -646,6 +688,7 @@ export interface FileRoutesById {
   '/dashboard/whatsapp': typeof DashboardWhatsappRoute
   '/dashboard/whatsapp-sales': typeof DashboardWhatsappSalesRoute
   '/dashboard/youtube': typeof DashboardYoutubeRoute
+  '/live-chat/widget': typeof LiveChatWidgetRoute
   '/website/$websiteId': typeof WebsiteWebsiteIdRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/dashboard/agents/customer-retention': typeof DashboardAgentsCustomerRetentionRoute
@@ -657,7 +700,9 @@ export interface FileRoutesById {
   '/dashboard/plugins/employee-attendance': typeof DashboardPluginsEmployeeAttendanceRouteWithChildren
   '/dashboard/plugins/gmail': typeof DashboardPluginsGmailRouteWithChildren
   '/dashboard/plugins/google-ads': typeof DashboardPluginsGoogleAdsRouteWithChildren
+  '/dashboard/plugins/interview-scheduler': typeof DashboardPluginsInterviewSchedulerRouteWithChildren
   '/dashboard/plugins/linkedin-marketing': typeof DashboardPluginsLinkedinMarketingRouteWithChildren
+  '/dashboard/plugins/live-chat': typeof DashboardPluginsLiveChatRouteWithChildren
   '/dashboard/settings/api-keys': typeof DashboardSettingsApiKeysRoute
   '/dashboard/agents/': typeof DashboardAgentsIndexRoute
   '/dashboard/plugins/': typeof DashboardPluginsIndexRoute
@@ -669,7 +714,9 @@ export interface FileRoutesById {
   '/dashboard/plugins/employee-attendance/': typeof DashboardPluginsEmployeeAttendanceIndexRoute
   '/dashboard/plugins/gmail/': typeof DashboardPluginsGmailIndexRoute
   '/dashboard/plugins/google-ads/': typeof DashboardPluginsGoogleAdsIndexRoute
+  '/dashboard/plugins/interview-scheduler/': typeof DashboardPluginsInterviewSchedulerIndexRoute
   '/dashboard/plugins/linkedin-marketing/': typeof DashboardPluginsLinkedinMarketingIndexRoute
+  '/dashboard/plugins/live-chat/': typeof DashboardPluginsLiveChatIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -721,6 +768,7 @@ export interface FileRouteTypes {
     | '/dashboard/whatsapp'
     | '/dashboard/whatsapp-sales'
     | '/dashboard/youtube'
+    | '/live-chat/widget'
     | '/website/$websiteId'
     | '/dashboard/'
     | '/dashboard/agents/customer-retention'
@@ -732,7 +780,9 @@ export interface FileRouteTypes {
     | '/dashboard/plugins/employee-attendance'
     | '/dashboard/plugins/gmail'
     | '/dashboard/plugins/google-ads'
+    | '/dashboard/plugins/interview-scheduler'
     | '/dashboard/plugins/linkedin-marketing'
+    | '/dashboard/plugins/live-chat'
     | '/dashboard/settings/api-keys'
     | '/dashboard/agents/'
     | '/dashboard/plugins/'
@@ -744,7 +794,9 @@ export interface FileRouteTypes {
     | '/dashboard/plugins/employee-attendance/'
     | '/dashboard/plugins/gmail/'
     | '/dashboard/plugins/google-ads/'
+    | '/dashboard/plugins/interview-scheduler/'
     | '/dashboard/plugins/linkedin-marketing/'
+    | '/dashboard/plugins/live-chat/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -791,6 +843,7 @@ export interface FileRouteTypes {
     | '/dashboard/whatsapp'
     | '/dashboard/whatsapp-sales'
     | '/dashboard/youtube'
+    | '/live-chat/widget'
     | '/website/$websiteId'
     | '/dashboard'
     | '/dashboard/agents/customer-retention'
@@ -807,7 +860,9 @@ export interface FileRouteTypes {
     | '/dashboard/plugins/employee-attendance'
     | '/dashboard/plugins/gmail'
     | '/dashboard/plugins/google-ads'
+    | '/dashboard/plugins/interview-scheduler'
     | '/dashboard/plugins/linkedin-marketing'
+    | '/dashboard/plugins/live-chat'
   id:
     | '__root__'
     | '/'
@@ -857,6 +912,7 @@ export interface FileRouteTypes {
     | '/dashboard/whatsapp'
     | '/dashboard/whatsapp-sales'
     | '/dashboard/youtube'
+    | '/live-chat/widget'
     | '/website/$websiteId'
     | '/dashboard/'
     | '/dashboard/agents/customer-retention'
@@ -868,7 +924,9 @@ export interface FileRouteTypes {
     | '/dashboard/plugins/employee-attendance'
     | '/dashboard/plugins/gmail'
     | '/dashboard/plugins/google-ads'
+    | '/dashboard/plugins/interview-scheduler'
     | '/dashboard/plugins/linkedin-marketing'
+    | '/dashboard/plugins/live-chat'
     | '/dashboard/settings/api-keys'
     | '/dashboard/agents/'
     | '/dashboard/plugins/'
@@ -880,7 +938,9 @@ export interface FileRouteTypes {
     | '/dashboard/plugins/employee-attendance/'
     | '/dashboard/plugins/gmail/'
     | '/dashboard/plugins/google-ads/'
+    | '/dashboard/plugins/interview-scheduler/'
     | '/dashboard/plugins/linkedin-marketing/'
+    | '/dashboard/plugins/live-chat/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -896,6 +956,7 @@ export interface RootRouteChildren {
   SignupRoute: typeof SignupRoute
   VerifyRoute: typeof VerifyRoute
   YoutubeOauthCallbackRoute: typeof YoutubeOauthCallbackRoute
+  LiveChatWidgetRoute: typeof LiveChatWidgetRoute
   WebsiteWebsiteIdRoute: typeof WebsiteWebsiteIdRoute
 }
 
@@ -997,6 +1058,13 @@ declare module '@tanstack/react-router' {
       path: '/website/$websiteId'
       fullPath: '/website/$websiteId'
       preLoaderRoute: typeof WebsiteWebsiteIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/live-chat/widget': {
+      id: '/live-chat/widget'
+      path: '/live-chat/widget'
+      fullPath: '/live-chat/widget'
+      preLoaderRoute: typeof LiveChatWidgetRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard/youtube': {
@@ -1272,11 +1340,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardSettingsApiKeysRouteImport
       parentRoute: typeof DashboardSettingsRoute
     }
+    '/dashboard/plugins/live-chat': {
+      id: '/dashboard/plugins/live-chat'
+      path: '/live-chat'
+      fullPath: '/dashboard/plugins/live-chat'
+      preLoaderRoute: typeof DashboardPluginsLiveChatRouteImport
+      parentRoute: typeof DashboardPluginsRoute
+    }
     '/dashboard/plugins/linkedin-marketing': {
       id: '/dashboard/plugins/linkedin-marketing'
       path: '/linkedin-marketing'
       fullPath: '/dashboard/plugins/linkedin-marketing'
       preLoaderRoute: typeof DashboardPluginsLinkedinMarketingRouteImport
+      parentRoute: typeof DashboardPluginsRoute
+    }
+    '/dashboard/plugins/interview-scheduler': {
+      id: '/dashboard/plugins/interview-scheduler'
+      path: '/interview-scheduler'
+      fullPath: '/dashboard/plugins/interview-scheduler'
+      preLoaderRoute: typeof DashboardPluginsInterviewSchedulerRouteImport
       parentRoute: typeof DashboardPluginsRoute
     }
     '/dashboard/plugins/google-ads': {
@@ -1342,12 +1424,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardAgentsCustomerRetentionRouteImport
       parentRoute: typeof DashboardAgentsRoute
     }
+    '/dashboard/plugins/live-chat/': {
+      id: '/dashboard/plugins/live-chat/'
+      path: '/'
+      fullPath: '/dashboard/plugins/live-chat/'
+      preLoaderRoute: typeof DashboardPluginsLiveChatIndexRouteImport
+      parentRoute: typeof DashboardPluginsLiveChatRoute
+    }
     '/dashboard/plugins/linkedin-marketing/': {
       id: '/dashboard/plugins/linkedin-marketing/'
       path: '/'
       fullPath: '/dashboard/plugins/linkedin-marketing/'
       preLoaderRoute: typeof DashboardPluginsLinkedinMarketingIndexRouteImport
       parentRoute: typeof DashboardPluginsLinkedinMarketingRoute
+    }
+    '/dashboard/plugins/interview-scheduler/': {
+      id: '/dashboard/plugins/interview-scheduler/'
+      path: '/'
+      fullPath: '/dashboard/plugins/interview-scheduler/'
+      preLoaderRoute: typeof DashboardPluginsInterviewSchedulerIndexRouteImport
+      parentRoute: typeof DashboardPluginsInterviewSchedulerRoute
     }
     '/dashboard/plugins/google-ads/': {
       id: '/dashboard/plugins/google-ads/'
@@ -1521,6 +1617,21 @@ const DashboardPluginsGoogleAdsRouteWithChildren =
     DashboardPluginsGoogleAdsRouteChildren,
   )
 
+interface DashboardPluginsInterviewSchedulerRouteChildren {
+  DashboardPluginsInterviewSchedulerIndexRoute: typeof DashboardPluginsInterviewSchedulerIndexRoute
+}
+
+const DashboardPluginsInterviewSchedulerRouteChildren: DashboardPluginsInterviewSchedulerRouteChildren =
+  {
+    DashboardPluginsInterviewSchedulerIndexRoute:
+      DashboardPluginsInterviewSchedulerIndexRoute,
+  }
+
+const DashboardPluginsInterviewSchedulerRouteWithChildren =
+  DashboardPluginsInterviewSchedulerRoute._addFileChildren(
+    DashboardPluginsInterviewSchedulerRouteChildren,
+  )
+
 interface DashboardPluginsLinkedinMarketingRouteChildren {
   DashboardPluginsLinkedinMarketingIndexRoute: typeof DashboardPluginsLinkedinMarketingIndexRoute
 }
@@ -1536,6 +1647,20 @@ const DashboardPluginsLinkedinMarketingRouteWithChildren =
     DashboardPluginsLinkedinMarketingRouteChildren,
   )
 
+interface DashboardPluginsLiveChatRouteChildren {
+  DashboardPluginsLiveChatIndexRoute: typeof DashboardPluginsLiveChatIndexRoute
+}
+
+const DashboardPluginsLiveChatRouteChildren: DashboardPluginsLiveChatRouteChildren =
+  {
+    DashboardPluginsLiveChatIndexRoute: DashboardPluginsLiveChatIndexRoute,
+  }
+
+const DashboardPluginsLiveChatRouteWithChildren =
+  DashboardPluginsLiveChatRoute._addFileChildren(
+    DashboardPluginsLiveChatRouteChildren,
+  )
+
 interface DashboardPluginsRouteChildren {
   DashboardPluginsAiVideoGeneratorRoute: typeof DashboardPluginsAiVideoGeneratorRouteWithChildren
   DashboardPluginsEmailAssistantRoute: typeof DashboardPluginsEmailAssistantRouteWithChildren
@@ -1543,7 +1668,9 @@ interface DashboardPluginsRouteChildren {
   DashboardPluginsEmployeeAttendanceRoute: typeof DashboardPluginsEmployeeAttendanceRouteWithChildren
   DashboardPluginsGmailRoute: typeof DashboardPluginsGmailRouteWithChildren
   DashboardPluginsGoogleAdsRoute: typeof DashboardPluginsGoogleAdsRouteWithChildren
+  DashboardPluginsInterviewSchedulerRoute: typeof DashboardPluginsInterviewSchedulerRouteWithChildren
   DashboardPluginsLinkedinMarketingRoute: typeof DashboardPluginsLinkedinMarketingRouteWithChildren
+  DashboardPluginsLiveChatRoute: typeof DashboardPluginsLiveChatRouteWithChildren
   DashboardPluginsIndexRoute: typeof DashboardPluginsIndexRoute
 }
 
@@ -1558,8 +1685,11 @@ const DashboardPluginsRouteChildren: DashboardPluginsRouteChildren = {
     DashboardPluginsEmployeeAttendanceRouteWithChildren,
   DashboardPluginsGmailRoute: DashboardPluginsGmailRouteWithChildren,
   DashboardPluginsGoogleAdsRoute: DashboardPluginsGoogleAdsRouteWithChildren,
+  DashboardPluginsInterviewSchedulerRoute:
+    DashboardPluginsInterviewSchedulerRouteWithChildren,
   DashboardPluginsLinkedinMarketingRoute:
     DashboardPluginsLinkedinMarketingRouteWithChildren,
+  DashboardPluginsLiveChatRoute: DashboardPluginsLiveChatRouteWithChildren,
   DashboardPluginsIndexRoute: DashboardPluginsIndexRoute,
 }
 
@@ -1675,6 +1805,7 @@ const rootRouteChildren: RootRouteChildren = {
   SignupRoute: SignupRoute,
   VerifyRoute: VerifyRoute,
   YoutubeOauthCallbackRoute: YoutubeOauthCallbackRoute,
+  LiveChatWidgetRoute: LiveChatWidgetRoute,
   WebsiteWebsiteIdRoute: WebsiteWebsiteIdRoute,
 }
 export const routeTree = rootRouteImport

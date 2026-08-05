@@ -1,0 +1,13 @@
+{
+  "plugin_key": "sales_live_chat",
+  "name": "Live Chat Support",
+  "version": "1.0",
+  "author": "Saadhyam AI",
+  "description": "Engage website visitors with real-time chat support and lead capture.",
+  "category": "sales_crm",
+  "status": "Development",
+  "is_ai_powered": true,
+  "supported_features": [],
+  "permissions": [],
+  "actions": []
+}

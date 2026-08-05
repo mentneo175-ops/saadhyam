@@ -54,29 +54,71 @@ class RealtimeService:
         async def connect(sid, environ, auth):
             """Handle client connection"""
             try:
-                # Extract user_id from auth
+                # Extract user_id/session_token from auth
                 user_id = auth.get('user_id') if auth else None
+                session_token = auth.get('session_token') if auth else None
                 
-                if user_id:
+                # Check if visitor session_token is provided
+                if session_token:
+                    from config.database import AsyncSessionLocal
+                    from sqlalchemy import select
+                    from models.live_chat import LiveChatVisitor
+                    
+                    async with AsyncSessionLocal() as db:
+                        stmt = select(LiveChatVisitor).where(LiveChatVisitor.session_token == session_token)
+                        result = await db.execute(stmt)
+                        visitor = result.scalars().first()
+                    
+                    if not visitor:
+                        logger.warning(f"[WARNING] Connection rejected: invalid session_token={session_token} (sid: {sid})")
+                        return False
+                    
+                    visitor_id = visitor.id
+                    # Add connection to visitor's connection list
+                    if visitor_id not in self.user_connections:
+                        self.user_connections[visitor_id] = []
+                    self.user_connections[visitor_id].append(sid)
+                    
+                    # Mark visitor as online
+                    self.online_users[visitor_id] = datetime.now()
+                    
+                    logger.info(f"[SUCCESS] Visitor {visitor_id} connected (sid: {sid})")
+                    
+                    # Notify others about online status
+                    await self.sio.emit('visitor_online', {
+                        'visitor_id': visitor_id,
+                        'timestamp': datetime.now().isoformat()
+                    }, skip_sid=sid)
+                    
+                    return True
+                
+                elif user_id is not None:
+                    # Cast user_id if possible
+                    try:
+                        user_id_key = int(user_id)
+                    except (ValueError, TypeError):
+                        user_id_key = user_id
+                    
                     # Add connection to user's connection list
-                    if user_id not in self.user_connections:
-                        self.user_connections[user_id] = []
-                    self.user_connections[user_id].append(sid)
+                    if user_id_key not in self.user_connections:
+                        self.user_connections[user_id_key] = []
+                    self.user_connections[user_id_key].append(sid)
                     
                     # Mark user as online
-                    self.online_users[user_id] = datetime.now()
+                    self.online_users[user_id_key] = datetime.now()
                     
-                    logger.info(f"[SUCCESS] User {user_id} connected (sid: {sid})")
+                    logger.info(f"[SUCCESS] User {user_id_key} connected (sid: {sid})")
                     
                     # Notify others about online status
                     await self.sio.emit('user_online', {
-                        'user_id': user_id,
+                        'user_id': user_id_key,
                         'timestamp': datetime.now().isoformat()
                     }, skip_sid=sid)
+                    
+                    return True
                 else:
                     logger.warning(f"[WARNING] Anonymous connection (sid: {sid})")
-                
-                return True
+                    return True
                 
             except Exception as e:
                 logger.error(f"[ERROR] Connection error: {e}")
@@ -86,7 +128,7 @@ class RealtimeService:
         async def disconnect(sid):
             """Handle client disconnection"""
             try:
-                # Find user_id for this connection
+                # Find user_id/visitor_id for this connection
                 user_id = None
                 for uid, sids in self.user_connections.items():
                     if sid in sids:
@@ -96,18 +138,26 @@ class RealtimeService:
                             del self.user_connections[uid]
                         break
                 
-                if user_id:
+                if user_id is not None:
                     # Update last seen
                     self.online_users[user_id] = datetime.now()
                     
                     # If no more connections, mark as offline
                     if user_id not in self.user_connections:
-                        await self.sio.emit('user_offline', {
-                            'user_id': user_id,
-                            'last_seen': datetime.now().isoformat()
-                        })
+                        if isinstance(user_id, str):
+                            # Visitor UUID
+                            await self.sio.emit('visitor_offline', {
+                                'visitor_id': user_id,
+                                'last_seen': datetime.now().isoformat()
+                            })
+                        else:
+                            # Agent/User integer
+                            await self.sio.emit('user_offline', {
+                                'user_id': user_id,
+                                'last_seen': datetime.now().isoformat()
+                            })
                     
-                    logger.info(f"[SUCCESS] User {user_id} disconnected (sid: {sid})")
+                    logger.info(f"[SUCCESS] User/Visitor {user_id} disconnected (sid: {sid})")
                 else:
                     logger.info(f"[SUCCESS] Anonymous user disconnected (sid: {sid})")
                     
@@ -116,20 +166,73 @@ class RealtimeService:
         
         @self.sio.event
         async def join_conversation(sid, data):
-            """Join a conversation room"""
+            """Join a conversation room with full workspace validation"""
             try:
                 conversation_id = data.get('conversation_id')
-                user_id = data.get('user_id')
                 
-                if conversation_id:
-                    room = f"conversation_{conversation_id}"
-                    await self.sio.enter_room(sid, room)
-                    logger.info(f"[SUCCESS] User {user_id} joined conversation {conversation_id}")
-                    
-                    return {'success': True, 'room': room}
-                else:
+                if not conversation_id:
                     return {'success': False, 'error': 'Missing conversation_id'}
+                
+                # Find caller_id from self.user_connections
+                caller_id = None
+                for uid, sids in self.user_connections.items():
+                    if sid in sids:
+                        caller_id = uid
+                        break
+                
+                if caller_id is None:
+                    return {'success': False, 'error': 'Unauthorized: connection not authenticated'}
+                
+                from config.database import AsyncSessionLocal
+                from sqlalchemy import select
+                from models.live_chat import LiveChatConversation
+                from models.chat import ChatRoom
+                
+                async with AsyncSessionLocal() as db:
+                    # 1. First check if it exists in LiveChatConversation (Live Chat plugin)
+                    stmt_lc = select(LiveChatConversation).where(LiveChatConversation.id == conversation_id)
+                    res_lc = await db.execute(stmt_lc)
+                    lc_conv = res_lc.scalars().first()
                     
+                    if lc_conv:
+                        # Validate Live Chat authorization
+                        if isinstance(caller_id, str):
+                            # Visitor must match the conversation's visitor_id
+                            if lc_conv.visitor_id != caller_id:
+                                return {'success': False, 'error': 'Unauthorized: Visitor does not belong to this conversation'}
+                        else:
+                            # Agent must belong to the workspace/owner user_id
+                            try:
+                                caller_id_int = int(caller_id)
+                            except (ValueError, TypeError):
+                                caller_id_int = caller_id
+                            
+                            if lc_conv.user_id != caller_id_int:
+                                return {'success': False, 'error': 'Unauthorized: Agent does not belong to this workspace'}
+                    else:
+                        # 2. Next check if it exists in ChatRoom (B2B chat)
+                        stmt_b2b = select(ChatRoom).where(ChatRoom.id == conversation_id)
+                        res_b2b = await db.execute(stmt_b2b)
+                        b2b_room = res_b2b.scalars().first()
+                        
+                        if not b2b_room:
+                            return {'success': False, 'error': 'Conversation not found'}
+                        
+                        # Validate B2B Chat access (caller must be user1_id or user2_id)
+                        try:
+                            caller_id_int = int(caller_id)
+                        except (ValueError, TypeError):
+                            caller_id_int = caller_id
+                        
+                        if b2b_room.user1_id != caller_id_int and b2b_room.user2_id != caller_id_int:
+                            return {'success': False, 'error': 'Unauthorized: User does not belong to this chat room'}
+                
+                room = f"conversation_{conversation_id}"
+                await self.sio.enter_room(sid, room)
+                logger.info(f"[SUCCESS] Caller {caller_id} joined room {room}")
+                
+                return {'success': True, 'room': room}
+                
             except Exception as e:
                 logger.error(f"[ERROR] Join conversation error: {e}")
                 return {'success': False, 'error': str(e)}
@@ -139,12 +242,11 @@ class RealtimeService:
             """Leave a conversation room"""
             try:
                 conversation_id = data.get('conversation_id')
-                user_id = data.get('user_id')
                 
                 if conversation_id:
                     room = f"conversation_{conversation_id}"
                     await self.sio.leave_room(sid, room)
-                    logger.info(f"[SUCCESS] User {user_id} left conversation {conversation_id}")
+                    logger.info(f"[SUCCESS] Connection {sid} left conversation {conversation_id}")
                     
                     return {'success': True}
                 else:
@@ -153,13 +255,38 @@ class RealtimeService:
             except Exception as e:
                 logger.error(f"[ERROR] Leave conversation error: {e}")
                 return {'success': False, 'error': str(e)}
+
+        @self.sio.event
+        async def send_message(sid, data):
+            """Receive a new message and broadcast it to the room (Version 1: only synchronizes, no DB save)"""
+            try:
+                conversation_id = data.get('conversation_id')
+                message = data.get('message')
+                
+                if conversation_id and message:
+                    room = f"conversation_{conversation_id}"
+                    
+                    # Broadcast to everyone in the room
+                    await self.sio.emit('new_message', {
+                        'conversation_id': conversation_id,
+                        'message': message,
+                        'timestamp': datetime.now().isoformat()
+                    }, room=room)
+                    
+                    return {'success': True}
+                else:
+                    return {'success': False, 'error': 'Missing conversation_id or message'}
+                    
+            except Exception as e:
+                logger.error(f"[ERROR] Send message event error: {e}")
+                return {'success': False, 'error': str(e)}
         
         @self.sio.event
         async def typing_start(sid, data):
             """Handle typing start event"""
             try:
                 conversation_id = data.get('conversation_id')
-                user_id = data.get('user_id')
+                user_id = data.get('user_id') or data.get('visitor_id')
                 
                 if conversation_id and user_id:
                     # Update typing status
@@ -188,7 +315,7 @@ class RealtimeService:
             """Handle typing stop event"""
             try:
                 conversation_id = data.get('conversation_id')
-                user_id = data.get('user_id')
+                user_id = data.get('user_id') or data.get('visitor_id')
                 
                 if conversation_id and user_id:
                     # Remove typing status
@@ -213,38 +340,47 @@ class RealtimeService:
         
         @self.sio.event
         async def mark_read(sid, data):
+            """Handle message read event (alias of message_read)"""
+            return await self._handle_read_event(sid, data)
+
+        @self.sio.event
+        async def message_read(sid, data):
             """Handle message read event"""
-            try:
-                conversation_id = data.get('conversation_id')
-                user_id = data.get('user_id')
-                message_id = data.get('message_id')
+            return await self._handle_read_event(sid, data)
+
+    async def _handle_read_event(self, sid, data):
+        """Internal helper to process read receipts"""
+        try:
+            conversation_id = data.get('conversation_id')
+            user_id = data.get('user_id') or data.get('visitor_id')
+            message_id = data.get('message_id')
+            
+            if conversation_id and user_id:
+                # Broadcast read receipt
+                room = f"conversation_{conversation_id}"
+                await self.sio.emit('message_read', {
+                    'conversation_id': conversation_id,
+                    'user_id': user_id,
+                    'message_id': message_id,
+                    'read_at': datetime.now().isoformat()
+                }, room=room, skip_sid=sid)
                 
-                if conversation_id and user_id:
-                    # Broadcast read receipt
-                    room = f"conversation_{conversation_id}"
-                    await self.sio.emit('message_read', {
-                        'conversation_id': conversation_id,
-                        'user_id': user_id,
-                        'message_id': message_id,
-                        'read_at': datetime.now().isoformat()
-                    }, room=room, skip_sid=sid)
-                    
-                    return {'success': True}
-                else:
-                    return {'success': False, 'error': 'Missing data'}
-                    
-            except Exception as e:
-                logger.error(f"[ERROR] Mark read error: {e}")
-                return {'success': False, 'error': str(e)}
+                return {'success': True}
+            else:
+                return {'success': False, 'error': 'Missing data'}
+                
+        except Exception as e:
+            logger.error(f"[ERROR] Read event processing error: {e}")
+            return {'success': False, 'error': str(e)}
     
     # ============ Public Methods for Broadcasting ============
     
-    async def broadcast_new_message(self, conversation_id: int, message: Dict[str, Any]):
+    async def broadcast_new_message(self, conversation_id: Any, message: Dict[str, Any]):
         """
         Broadcast new message to conversation participants
         
         Args:
-            conversation_id: Conversation ID
+            conversation_id: Conversation ID (int or str)
             message: Message data dictionary
         """
         try:
@@ -260,12 +396,12 @@ class RealtimeService:
         except Exception as e:
             logger.error(f"[ERROR] Broadcast message error: {e}")
 
-    async def broadcast_chat_cleared(self, conversation_id: str):
+    async def broadcast_chat_cleared(self, conversation_id: Any):
         """
         Broadcast chat cleared event to conversation participants
         
         Args:
-            conversation_id: Conversation ID
+            conversation_id: Conversation ID (int or str)
         """
         try:
             room = f"conversation_{conversation_id}"

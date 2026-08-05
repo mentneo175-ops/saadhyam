@@ -41,10 +41,35 @@ def validate_param_value(param_name: str, value: Any) -> tuple[bool, Any]:
         if not val_str:
             return False, "The subject cannot be empty. What is the subject of the email?"
         return True, val_str
-    elif param_name == "body":
+    elif param_name == "candidate_name":
         val_str = str(value).strip() if value is not None else ""
         if not val_str:
-            return False, "The email body cannot be empty. What should the email say?"
+            return False, "Candidate name cannot be empty. What is the candidate's name?"
+        return True, val_str
+    elif param_name == "candidate_email":
+        val_str = str(value).strip() if value is not None else ""
+        if not val_str:
+            return False, "Candidate email cannot be empty. What is the candidate's email address?"
+        return True, val_str
+    elif param_name == "interviewer_name":
+        val_str = str(value).strip() if value is not None else ""
+        if not val_str:
+            return False, "Interviewer name cannot be empty. Who will conduct the interview?"
+        return True, val_str
+    elif param_name == "job_role":
+        val_str = str(value).strip() if value is not None else ""
+        if not val_str:
+            return False, "Job role cannot be empty. What is the job role for this interview?"
+        return True, val_str
+    elif param_name == "interview_date":
+        val_str = str(value).strip() if value is not None else ""
+        if not val_str:
+            return False, "Interview date cannot be empty. What date should the interview be scheduled for?"
+        return True, val_str
+    elif param_name == "interview_time":
+        val_str = str(value).strip() if value is not None else ""
+        if not val_str:
+            return False, "Interview time cannot be empty. What time should the interview be scheduled for?"
         return True, val_str
     return True, value
 
@@ -52,7 +77,13 @@ def get_followup_question(param_name: str) -> str:
     prompts = {
         "recipients": "Who should receive the email?",
         "subject": "What is the subject of the email?",
-        "body": "What should the email body say?"
+        "body": "What should the email body say?",
+        "candidate_name": "What is the candidate's name?",
+        "candidate_email": "What is the candidate's email address?",
+        "interviewer_name": "Who will be conducting the interview?",
+        "job_role": "What is the job role for this interview?",
+        "interview_date": "What date should the interview be scheduled for?",
+        "interview_time": "What time should the interview be scheduled for?"
     }
     return prompts.get(param_name, f"Please provide the value for '{param_name}':")
 
@@ -383,6 +414,58 @@ def rule_based_tool_classifier(query: str, tools: List[Dict[str, Any]]) -> Optio
         if any(k in query_lower for k in ["read email", "open email", "get email"]):
             return {"is_tool_call": True, "plugin_key": "gmail", "action": "get_email", "params": {"email_id": "msg123"}}
             
+    # 3. Routing for hr_interview_scheduler (Interview Scheduler)
+    has_interview_scheduler = any(t["plugin_key"] == "hr_interview_scheduler" for t in tools)
+    if has_interview_scheduler:
+        is_interview_action = any(
+            k in query_lower for k in [
+                "schedule interview", "schedule an interview", "book interview", "book an interview",
+                "reschedule interview", "reschedule an interview", "cancel interview", "cancel an interview",
+                "interview with", "interview for", "interview scheduling"
+            ]
+        )
+        if is_interview_action:
+            params = {}
+            
+            # Extract candidate_name (e.g. "with Rahul", "candidate Rahul", "for Rahul")
+            name_match = re.search(r'(?:with|candidate|for)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)', query)
+            if not name_match:
+                name_match = re.search(r'(?:with|candidate)\s+([a-zA-Z]+)', query, re.IGNORECASE)
+            if name_match:
+                cand_name = name_match.group(1).strip()
+                if cand_name.lower() not in ["backend", "frontend", "fullstack", "developer", "engineer", "manager", "role", "position", "today", "tomorrow"]:
+                    params["candidate_name"] = cand_name
+                    
+            # Extract job_role (e.g. "for Backend Developer", "as React Engineer", "role Python Developer")
+            role_match = re.search(r'(?:for|as|role|position)\s+([A-Za-z\s]+(?:Developer|Engineer|Manager|Designer|Lead|Architect|Analyst|Specialist|Tester|QA|Intern))', query, re.IGNORECASE)
+            if role_match:
+                params["job_role"] = role_match.group(1).strip()
+                
+            # Extract interview_date (e.g. "tomorrow", "today", "on Monday", "2026-08-10")
+            date_match = re.search(r'\b(today|tomorrow|monday|tuesday|wednesday|thursday|friday|saturday|sunday|\d{4}-\d{2}-\d{2}|\d{1,2}/\d{1,2}/\d{2,4})\b', query_lower)
+            if date_match:
+                params["interview_date"] = date_match.group(1).strip()
+                
+            # Extract interview_time (e.g. "at 3 PM", "at 10:30 AM", "at 15:00")
+            time_match = re.search(r'\b(?:at\s+)?(\d{1,2}(?::\d{2})?\s*(?:am|pm|AM|PM))\b', query)
+            if time_match:
+                params["interview_time"] = time_match.group(1).strip()
+                
+            action = "schedule_interview"
+            if "cancel" in query_lower:
+                action = "cancel_interview"
+            elif "reschedule" in query_lower:
+                action = "reschedule_interview"
+            elif any(k in query_lower for k in ["list", "show", "get"]):
+                action = "list_interviews"
+
+            return {
+                "is_tool_call": True,
+                "plugin_key": "hr_interview_scheduler",
+                "action": action,
+                "params": params
+            }
+
     return None
 
 
@@ -540,6 +623,205 @@ async def generate_response(query: str, db: Session, user: User) -> str:
     tools = await build_tool_registry(user_plugins)
     logger.info(f"[AI Agent Router] Available tools: {[t['plugin_key'] for t in tools]}")
     
+async def execute_assistant_plugin_tool(
+    user: User,
+    plugin_key: str,
+    action: str,
+    params: Dict[str, Any],
+    query: str = "",
+    lang: str = "en"
+) -> Dict[str, Any]:
+    """
+    Generic Plugin Execution Pipeline (Assistant / Voice -> Plugin -> DB -> UI).
+    Shared by Typed Assistant (assistant_service.py) and Voice Assistant (voice_command_service.py).
+    
+    Flow:
+    1. Loads plugin instance via plugin_manager
+    2. Validates and collects required parameters (multi-turn if missing)
+    3. Calls PluginMain.execute() to perform DB/business operation
+    4. Formats success/failure response
+    5. Returns clean navigation route if execution succeeds (or None if failure/more params needed)
+    """
+    from services.plugin_service import plugin_manager
+    from config.database import AsyncSessionLocal
+
+    try:
+        plugin_instance = await plugin_manager._load_plugin_instance(plugin_key)
+        if not plugin_instance:
+            return {
+                "success": False,
+                "executed": False,
+                "reply": f"Plugin '{plugin_key}' is not available.",
+                "route": None,
+                "intent": "PLUGIN_NOT_FOUND",
+                "action": "NO_ACTION",
+                "params": params
+            }
+
+        # 1. Find missing required parameters
+        required_params = get_required_params(plugin_instance, action)
+        missing_params = [p for p in required_params if p not in params or params[p] is None or params[p] == ""]
+        
+        param_order = {
+            "recipients": 0, "subject": 1, "body": 2,
+            "candidate_name": 3, "job_role": 4, "interview_date": 5, "interview_time": 6,
+            "candidate_email": 7, "interviewer_name": 8
+        }
+        missing_params.sort(key=lambda p: param_order.get(p, 99))
+
+        if missing_params:
+            CONVERSATION_MEMORY[user.id] = {
+                "plugin_key": plugin_key,
+                "action": action,
+                "pending_params": params,
+                "missing": missing_params
+            }
+            logger.info(f"[Generic AI Tool Pipeline] Missing parameters for {plugin_key}:{action} -> {missing_params}")
+            followup = get_followup_question(missing_params[0])
+            return {
+                "success": False,
+                "executed": False,
+                "needs_more_params": True,
+                "reply": followup,
+                "route": None,
+                "intent": f"{plugin_key.upper()}_{action.upper()}",
+                "action": "ASK_PARAM",
+                "params": params
+            }
+
+        # 2. All required parameters present -> Execute Plugin Main!
+        CONVERSATION_MEMORY.pop(user.id, None)
+        logger.info(f"[Generic AI Tool Pipeline] Executing {plugin_key}:{action} with params: {json.dumps(params)}")
+
+        t_start = time.monotonic()
+        async with AsyncSessionLocal() as async_db:
+            try:
+                res = await plugin_manager.execute_plugin_action(
+                    async_db, user.id, plugin_key, action, params
+                )
+            except HTTPException as he:
+                if he.status_code == 404 or "not installed" in str(he.detail).lower():
+                    logger.info(f"[Generic AI Tool Pipeline] Plugin '{plugin_key}' not enabled in DB for user {user.id}. Invoking PluginMain directly.")
+                    context = {"user_id": user.id, "db": async_db}
+                    if hasattr(plugin_instance, action):
+                        action_method = getattr(plugin_instance, action)
+                        res = await action_method(context, params)
+                    else:
+                        res = await plugin_instance.execute(action, params, context)
+                else:
+                    raise
+
+        duration_ms = int((time.monotonic() - t_start) * 1000)
+        logger.info(f"[Generic AI Tool Pipeline] Execution finished in {duration_ms}ms, Result: {json.dumps(res)}")
+
+        res_data = res.get("result") if isinstance(res, dict) and "result" in res else res
+        is_success = bool(res_data.get("success", True)) if isinstance(res_data, dict) else True
+
+        # 3. Format Response & Navigation Route
+        target_route = None
+        formatted_reply = ""
+
+        if is_success:
+            plugin_routes = {
+                "hr_interview_scheduler": "/dashboard/plugins/interview-scheduler",
+                "sales_email_marketing": "/dashboard/plugins/email-marketing",
+                "gmail": "/dashboard/plugins/gmail",
+                "marketing_google_ads": "/dashboard/plugins/google-ads",
+                "sales_live_chat": "/dashboard/plugins/live-chat",
+                "marketing_linkedin": "/dashboard/plugins/linkedin-marketing",
+            }
+            target_route = plugin_routes.get(plugin_key, f"/dashboard/plugins/{plugin_key}")
+
+            if plugin_key == "hr_interview_scheduler" and action == "schedule_interview":
+                data = res_data.get("data", {}) if isinstance(res_data, dict) else {}
+                cand = data.get("candidate_name") or params.get("candidate_name") or "Candidate"
+                role = data.get("job_role") or params.get("job_role") or "Role"
+                dt = data.get("interview_date") or params.get("interview_date") or "Date"
+                tm = data.get("interview_time") or params.get("interview_time") or "Time"
+                formatted_reply = (
+                    f"✅ Interview scheduled successfully.\n\n"
+                    f"Candidate: {cand}\n"
+                    f"Role: {role}\n"
+                    f"Date: {str(dt).capitalize()}\n"
+                    f"Time: {tm}"
+                )
+            elif plugin_key == "hr_interview_scheduler" and action == "cancel_interview":
+                int_id = params.get("interview_id") or params.get("id")
+                formatted_reply = f"✅ Interview {int_id} has been cancelled successfully."
+            elif plugin_key == "hr_interview_scheduler" and action == "reschedule_interview":
+                int_id = params.get("interview_id") or params.get("id")
+                dt = params.get("new_date") or params.get("interview_date")
+                tm = params.get("new_time") or params.get("interview_time")
+                formatted_reply = f"✅ Interview {int_id} has been rescheduled to {dt} at {tm}."
+            else:
+                api_key = (settings.GROQ_API_KEY or "").strip()
+                formatted_reply = await format_generic_response(query, plugin_key, action, res, api_key)
+        else:
+            target_route = None
+            error_detail = res_data.get("message") or res_data.get("error") if isinstance(res_data, dict) else str(res_data)
+            formatted_reply = f"Interview could not be scheduled: {error_detail}"
+
+        return {
+            "success": is_success,
+            "executed": True,
+            "reply": formatted_reply,
+            "route": target_route,
+            "result": res_data,
+            "intent": f"{plugin_key.upper()}_{action.upper()}",
+            "action": "NAVIGATE" if (is_success and target_route) else "NO_ACTION",
+            "params": params
+        }
+    except Exception as exc:
+        logger.error(f"[Generic AI Tool Pipeline] Error executing plugin action: {exc}", exc_info=True)
+        return {
+            "success": False,
+            "executed": False,
+            "reply": f"Failed to execute action '{action}' on plugin '{plugin_key}'. Error: {str(exc)}",
+            "route": None,
+            "intent": "EXECUTION_ERROR",
+            "action": "NO_ACTION",
+            "params": params
+        }
+
+
+async def generate_response(query: str, db: Session, user: User) -> str:
+    """
+    Generate AI response with business context from Pinecone, semantic search, and live search data.
+    Optimized for voice interaction - concise and conversational.
+    Includes rate limit handling and automatic fallback to faster model.
+    """
+    # 0. Check for cancel intent
+    if query.lower().strip() in ["cancel", "stop", "start over", "abort"]:
+        if user.id in CONVERSATION_MEMORY:
+            CONVERSATION_MEMORY.pop(user.id, None)
+            return "Okay, I have cancelled the active flow."
+            
+    # 1. Fetch enabled plugins for this user
+    from sqlalchemy.orm import selectinload
+    from sqlalchemy import select
+    from models.plugins import UserPlugin
+    from services.plugin_service import plugin_manager
+    from config.database import AsyncSessionLocal
+    
+    try:
+        async with AsyncSessionLocal() as async_db:
+            stmt = (
+                select(UserPlugin)
+                .where(UserPlugin.user_id == user.id, UserPlugin.is_enabled == True)
+                .options(selectinload(UserPlugin.plugin))
+            )
+            result = await async_db.execute(stmt)
+            user_plugins = result.scalars().all()
+    except Exception as e:
+        logger.warning(f"Failed to check user plugins in assistant: {e}")
+        user_plugins = []
+
+    api_key = (settings.GROQ_API_KEY or "").strip()
+
+    # 2. Build the Tool Registry dynamically
+    tools = await build_tool_registry(user_plugins)
+    logger.info(f"[AI Agent Router] Available tools: {[t['plugin_key'] for t in tools]}")
+    
     # 0.5. Check if user has an active pending parameter collection state
     if user.id in CONVERSATION_MEMORY:
         state = CONVERSATION_MEMORY[user.id]
@@ -561,35 +843,15 @@ async def generate_response(query: str, db: Session, user: User) -> str:
         if missing:
             return get_followup_question(missing[0])
             
-        # All parameters collected! Let's execute.
+        # All parameters collected! Delegate to generic execution pipeline
         CONVERSATION_MEMORY.pop(user.id, None)
-        logger.info(f"[AI Agent Conversational] Execution triggered for {plugin_key}:{action}")
-        
-        try:
-            plugin_instance = await plugin_manager._load_plugin_instance(plugin_key)
-            if plugin_instance:
-                t_exec_start = time.monotonic()
-                async with AsyncSessionLocal() as async_db:
-                    res = await plugin_manager.execute_plugin_action(
-                        async_db, user.id, plugin_key, action, pending_params
-                    )
-                t_exec_end = time.monotonic()
-                duration_ms = int((t_exec_end - t_exec_start) * 1000)
-                logger.info(f"[AI Agent Conversational] Success. Duration: {duration_ms}ms, Result: {json.dumps(res)}")
-                return await format_generic_response(query, plugin_key, action, res, api_key)
-        except HTTPException as he:
-            detail = he.detail
-            error_msg = detail.get("message") or detail.get("error") or str(detail) if isinstance(detail, dict) else str(detail)
-            logger.error(f"[AI Agent Conversational] Failed: {error_msg}")
-            return error_msg
-        except Exception as e:
-            logger.error(f"[AI Agent Conversational] Failed unexpectedly: {e}")
-            return f"Failed to execute action '{action}' on plugin '{plugin_key}'."
+        tool_res = await execute_assistant_plugin_tool(user, plugin_key, action, pending_params, query)
+        return tool_res.get("reply", "Action executed.")
 
     # 3. Perform tool selection
     tool_call = None
     
-    # Try deterministic rule-based mapping first (very helpful in test suites/fallback)
+    # Try deterministic rule-based mapping first
     tool_call = rule_based_tool_classifier(query, tools)
     
     # If no deterministic match and we have an API Key, run LLM Tool Selection
@@ -618,7 +880,7 @@ async def generate_response(query: str, db: Session, user: User) -> str:
         except Exception as e:
             logger.warning(f"LLM tool routing failed: {e}")
 
-    # 4. If a tool call is resolved
+    # 4. If a tool call is resolved -> Delegate to generic execution pipeline
     if tool_call and isinstance(tool_call, dict) and tool_call.get("is_tool_call"):
         plugin_key = tool_call.get("plugin_key")
         action = tool_call.get("action")
@@ -629,51 +891,8 @@ async def generate_response(query: str, db: Session, user: User) -> str:
             f"Params: {json.dumps(params)}"
         )
         
-        try:
-            plugin_instance = await plugin_manager._load_plugin_instance(plugin_key)
-            if plugin_instance:
-                # Find missing required parameters
-                required_params = get_required_params(plugin_instance, action)
-                missing_params = [p for p in required_params if p not in params]
-                # Sort standard parameters logically (recipients -> subject -> body)
-                param_order = {"recipients": 0, "subject": 1, "body": 2}
-                missing_params.sort(key=lambda p: param_order.get(p, 99))
-                
-                if missing_params:
-                    # We need conversational parameters collection!
-                    CONVERSATION_MEMORY[user.id] = {
-                        "plugin_key": plugin_key,
-                        "action": action,
-                        "pending_params": params,
-                        "missing": missing_params
-                    }
-                    logger.info(f"[AI Agent Conversational] Missing parameters detected for {plugin_key}: {missing_params}")
-                    return get_followup_question(missing_params[0])
-                    
-                # Execute plugin action directly since all params are provided
-                t_exec_start = time.monotonic()
-                async with AsyncSessionLocal() as async_db:
-                    res = await plugin_manager.execute_plugin_action(
-                        async_db, user.id, plugin_key, action, params
-                    )
-                t_exec_end = time.monotonic()
-                duration_ms = int((t_exec_end - t_exec_start) * 1000)
-                
-                logger.info(
-                    f"[AI Agent Router] Execution finished. Duration: {duration_ms}ms, "
-                    f"Result: {json.dumps(res)}"
-                )
-                
-                # Convert to natural language response
-                return await format_generic_response(query, plugin_key, action, res, api_key)
-        except HTTPException as he:
-            detail = he.detail
-            error_msg = detail.get("message") or detail.get("error") or str(detail) if isinstance(detail, dict) else str(detail)
-            logger.error(f"[AI Agent Router] Execution failed with status {he.status_code}: {error_msg}")
-            return error_msg
-        except Exception as e:
-            logger.error(f"[AI Agent Router] Execution failed unexpectedly: {e}")
-            return f"Failed to execute action '{action}' on plugin '{plugin_key}'."
+        tool_res = await execute_assistant_plugin_tool(user, plugin_key, action, params, query)
+        return tool_res.get("reply", "Action executed.")
             
     # Get business context from Pinecone (NOT NeonDB)
     business_context_results = await get_business_context_from_pinecone(user.id, query, top_k=3)

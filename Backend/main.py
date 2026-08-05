@@ -521,6 +521,30 @@ except Exception as e:
     gmail_credentials_available = False
 
 try:
+    from routes.live_chat import router as live_chat_router
+    live_chat_available = True
+    logging.info("✅ Live Chat router imported successfully")
+except Exception as e:
+    logging.warning(f"Live Chat router not available: {e}")
+    live_chat_available = False
+
+try:
+    from routes.interview_scheduler import router as interview_scheduler_router
+    interview_scheduler_available = True
+    logging.info("✅ Interview Scheduler router imported successfully")
+except Exception as e:
+    logging.warning(f"Interview Scheduler router not available: {e}")
+    interview_scheduler_available = False
+
+try:
+    from routes.public_live_chat import router as public_live_chat_router
+    public_live_chat_available = True
+    logging.info("✅ Live Chat Public router imported successfully")
+except Exception as e:
+    logging.warning(f"Live Chat Public router not available: {e}")
+    public_live_chat_available = False
+
+try:
     from ai_models.website_ai.app.api.v1.routes import generation as website_ai_generation
     from ai_models.website_ai.app.api.v1.routes import jobs as website_ai_jobs
     from ai_models.website_ai.app.api.v1.routes import websites as website_ai_websites
@@ -1190,6 +1214,15 @@ if dashboard_analytics_available:
 if plugins_available:
     app.include_router(plugins_router, prefix="/api")
     logging.info("✅ Plugins router included in app")
+if live_chat_available:
+    app.include_router(live_chat_router)
+    logging.info("✅ Live Chat router included in app")
+if interview_scheduler_available:
+    app.include_router(interview_scheduler_router)
+    logging.info("✅ Interview Scheduler router included in app")
+if public_live_chat_available:
+    app.include_router(public_live_chat_router)
+    logging.info("✅ Live Chat Public router included in app")
 if gmail_credentials_available:
     app.include_router(gmail_credentials_router)
     logging.info("✅ Gmail credentials router included in app")

@@ -70,6 +70,31 @@ class RealtimeService {
   }
 
   /**
+   * Connect to Socket.IO server as a visitor
+   */
+  connectVisitor(visitorId: string, sessionToken: string): void {
+    if (this.socket?.connected) {
+      return;
+    }
+
+    this.userId = visitorId as any;
+
+    this.socket = io(BACKEND_URL, {
+      auth: {
+        session_token: sessionToken,
+      },
+      transports: ['websocket', 'polling'],
+      reconnection: true,
+      reconnectionDelay: 2000,
+      reconnectionDelayMax: 10000,
+      reconnectionAttempts: 3,
+      timeout: 5000,
+    });
+
+    this.setupEventHandlers();
+  }
+
+  /**
    * Disconnect from Socket.IO server
    */
   disconnect(): void {

@@ -227,12 +227,8 @@ export default function AssistantWidget() {
     try {
       if (parsedCommand && parsedCommand.intent !== "UNKNOWN" && parsedCommand.action !== "NO_ACTION") {
         setReplyText(parsedCommand.reply_te);
-        // Save to messages history (in case they switch to chat mode)
-        setMessages((prev) => [
-          ...prev, 
-          { role: "user", content: transcriptText }, 
-          { role: "assistant", content: parsedCommand.reply_te }
-        ]);
+        // Speak response in Voice Mode via TTS
+        speak(parsedCommand.reply_te);
 
         const executed = await executeCommand(parsedCommand);
         if (!executed) {
@@ -250,11 +246,6 @@ export default function AssistantWidget() {
             : "Please log in again to use the assistant.";
           setReplyText(noAuthMsg);
           speak(noAuthMsg);
-          setMessages((prev) => [
-            ...prev, 
-            { role: "user", content: transcriptText }, 
-            { role: "assistant", content: noAuthMsg }
-          ]);
           setVoiceStatus("idle");
           setIsLoading(false);
           return;
@@ -264,14 +255,7 @@ export default function AssistantWidget() {
         console.log('[Voice] Response received:', responseText);
         setReplyText(responseText);
 
-        // Save to messages history
-        setMessages((prev) => [
-          ...prev, 
-          { role: "user", content: transcriptText }, 
-          { role: "assistant", content: responseText }
-        ]);
-        
-        // Speak the response immediately
+        // Speak the response immediately via TTS
         console.log('[Voice] Calling speak function...');
         speak(responseText);
       }

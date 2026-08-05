@@ -205,6 +205,52 @@ def match_rule_based_intent(text: str, current_route: str) -> Optional[Dict[str,
             "reply_te": "కోల్డ్ లీడ్స్ చూపిస్తున్నాను."
         }
  
+    # Interview Scheduling
+    if any(k in normalized for k in ["ఇంటర్వ్యూ షెడ్యూల్", "ఇంటర్వ్యూ బుక్", "schedule interview", "interview schedule", "book interview", "reschedule interview", "cancel interview", "interview scheduler", "interview"]):
+        params = {}
+        
+        # Extract candidate_name (e.g. "with Rahul", "candidate Rahul", "for Rahul")
+        name_match = re.search(r'(?:with|candidate|for)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)', text)
+        if not name_match:
+            name_match = re.search(r'(?:with|candidate)\s+([a-zA-Z]+)', text, re.IGNORECASE)
+        if name_match:
+            cand_name = name_match.group(1).strip()
+            if cand_name.lower() not in ["backend", "frontend", "fullstack", "developer", "engineer", "manager", "role", "position", "today", "tomorrow"]:
+                params["candidate_name"] = cand_name
+                
+        # Extract job_role (e.g. "for Backend Developer", "as React Engineer", "role Python Developer")
+        role_match = re.search(r'(?:for|as|role|position)\s+([A-Za-z\s]+(?:Developer|Engineer|Manager|Designer|Lead|Architect|Analyst|Specialist|Tester|QA|Intern))', text, re.IGNORECASE)
+        if role_match:
+            params["job_role"] = role_match.group(1).strip()
+            
+        # Extract interview_date (e.g. "tomorrow", "today", "on Monday", "2026-08-10")
+        date_match = re.search(r'\b(today|tomorrow|monday|tuesday|wednesday|thursday|friday|saturday|sunday|\d{4}-\d{2}-\d{2}|\d{1,2}/\d{1,2}/\d{2,4})\b', text, re.IGNORECASE)
+        if date_match:
+            params["interview_date"] = date_match.group(1).strip()
+            
+        # Extract interview_time (e.g. "at 3 PM", "at 10:30 AM", "at 15:00")
+        time_match = re.search(r'\b(?:at\s+)?(\d{1,2}(?::\d{2})?\s*(?:am|pm|AM|PM))\b', text)
+        if time_match:
+            params["interview_time"] = time_match.group(1).strip()
+
+        action = "schedule_interview"
+        if "cancel" in normalized:
+            action = "cancel_interview"
+        elif "reschedule" in normalized:
+            action = "reschedule_interview"
+        elif any(k in normalized for k in ["list", "show", "get"]):
+            action = "list_interviews"
+
+        return {
+            "intent": "SCHEDULE_INTERVIEW",
+            "is_plugin_tool": True,
+            "plugin_key": "hr_interview_scheduler",
+            "action": action,
+            "params": params,
+            "confidence": 0.95,
+            "requiresConfirmation": False
+        }
+
     # Lead creation
     if any(k in normalized for k in ["కొత్త లీడ్ యాడ్ చేయి", "కొత్త లీడ్", "లీడ్ యాడ్", "create lead", "add lead", "new lead", "create a new lead"]):
         return {
@@ -475,6 +521,7 @@ The supported intents are:
 - OPEN_CAMPAIGNS (action: NAVIGATE, route: /dashboard/voice-agent/campaigns, requiresConfirmation: false)
 - CREATE_CAMPAIGN (action: NAVIGATE, route: /dashboard/voice-agent/create-campaign, requiresConfirmation: false)
 - CREATE_LEAD (action: NAVIGATE, route: /dashboard/voice-agent/leads?action=create, requiresConfirmation: false)
+- SCHEDULE_INTERVIEW (action: NAVIGATE, route: /dashboard/plugins/interview-scheduler?action=schedule, requiresConfirmation: false)
 - OPEN_ANALYTICS (action: NAVIGATE, route: /dashboard/voice-agent/analytics, requiresConfirmation: false)
 - OPEN_VOICE_AGENT (action: NAVIGATE, route: /dashboard/voice-agent, requiresConfirmation: false)
 - OPEN_AGENT_SETTINGS (action: NAVIGATE, route: /dashboard/voice-agent/simulator, requiresConfirmation: false)
@@ -556,6 +603,7 @@ ENGLISH_REPLIES = {
     "OPEN_WARM_LEADS": "Showing warm leads.",
     "OPEN_COLD_LEADS": "Showing cold leads.",
     "CREATE_LEAD": "Opening window to add a new lead.",
+    "SCHEDULE_INTERVIEW": "Opening interview scheduler.",
     "SEARCH_LEAD_BY_NAME": "Searching for lead: {name}.",
     "FILTER_LEADS_BY_CITY": "Showing leads from {city}.",
     "OPEN_DASHBOARD": "Opening dashboard.",
@@ -620,7 +668,7 @@ async def parse_command(text: str, current_route: str, user: User, db: Session, 
     # 4. Permission validation
     intent = parsed.get("intent", "UNKNOWN")
     if intent != "UNKNOWN" and not check_permission(intent, user, db):
-        parsed = {
+        return {
             "intent": "PERMISSION_DENIED",
             "action": ACTION_NO_ACTION,
             "route": None,
@@ -628,6 +676,32 @@ async def parse_command(text: str, current_route: str, user: User, db: Session, 
             "confidence": 1.0,
             "requiresConfirmation": False,
             "reply_te": "మీకు ఈ చర్యకు permission లేదు."
+        }
+
+    # 4.5 If parsed intent represents a generic plugin tool action -> Delegate to shared tool execution pipeline
+    if parsed and parsed.get("is_plugin_tool"):
+        from services.assistant_service import execute_assistant_plugin_tool
+        plugin_key = parsed.get("plugin_key")
+        action = parsed.get("action")
+        params = parsed.get("params", {})
+        
+        exec_res = await execute_assistant_plugin_tool(
+            user=user,
+            plugin_key=plugin_key,
+            action=action,
+            params=params,
+            query=text,
+            lang=lang
+        )
+        
+        return {
+            "intent": parsed.get("intent", "PLUGIN_ACTION"),
+            "action": exec_res.get("action", ACTION_NAVIGATE if exec_res.get("route") else ACTION_NO_ACTION),
+            "route": exec_res.get("route"),
+            "params": params,
+            "confidence": parsed.get("confidence", 0.95),
+            "requiresConfirmation": False,
+            "reply_te": exec_res.get("reply", "Command processed successfully.")
         }
         
     # 5. Translate reply to English if requested

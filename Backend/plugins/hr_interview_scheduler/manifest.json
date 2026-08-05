@@ -1,0 +1,62 @@
+{
+  "plugin_key": "hr_interview_scheduler",
+  "name": "Interview Scheduler",
+  "version": "v1.0",
+  "author": "Saadhyam AI",
+  "description": "Automate interview scheduling with calendar integration, candidate notifications, and interviewer reminders. Schedule, reschedule, and cancel interviews through a guided workflow.",
+  "category": "hr",
+  "status": "Development",
+  "is_ai_powered": true,
+  "permissions": [
+    "hr.interviews"
+  ],
+  "supported_features": [
+    "interview_scheduling",
+    "calendar_integration",
+    "candidate_notifications",
+    "interviewer_reminders"
+  ],
+  "actions": [
+    {
+      "action": "schedule_interview",
+      "name": "Schedule Interview",
+      "description": "Schedule a new interview between a candidate and an interviewer",
+      "parameters": {
+        "candidate_name": {"type": "string", "required": true},
+        "candidate_email": {"type": "string", "required": true},
+        "interviewer_name": {"type": "string", "required": true},
+        "interview_date": {"type": "string", "required": true},
+        "interview_time": {"type": "string", "required": true},
+        "job_role": {"type": "string", "required": false},
+        "meeting_link": {"type": "string", "required": false}
+      }
+    },
+    {
+      "action": "list_interviews",
+      "name": "List Interviews",
+      "description": "Retrieve a list of all scheduled interviews",
+      "parameters": {
+        "status": {"type": "string", "required": false}
+      }
+    },
+    {
+      "action": "cancel_interview",
+      "name": "Cancel Interview",
+      "description": "Cancel a previously scheduled interview",
+      "parameters": {
+        "interview_id": {"type": "string", "required": true},
+        "reason": {"type": "string", "required": false}
+      }
+    },
+    {
+      "action": "reschedule_interview",
+      "name": "Reschedule Interview",
+      "description": "Move an existing interview to a new date and time",
+      "parameters": {
+        "interview_id": {"type": "string", "required": true},
+        "new_date": {"type": "string", "required": true},
+        "new_time": {"type": "string", "required": true}
+      }
+    }
+  ]
+}

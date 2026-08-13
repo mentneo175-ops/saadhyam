@@ -8,9 +8,13 @@ from __future__ import annotations
 from datetime import datetime
 from typing import List, Optional
 
-from pydantic import BaseModel, Field, EmailStr
+from pydantic import BaseModel, Field, EmailStr, field_validator
 
 from models.interview_scheduler import InterviewStatus
+from services.interview_automation_service import (
+    validate_and_normalize_date,
+    validate_and_normalize_time,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -25,10 +29,20 @@ class InterviewCreateRequest(BaseModel):
     interviewer_name: str = Field(..., min_length=1, description="Full name of the interviewer")
     job_role: str = Field(..., min_length=1, description="Job role or position title")
     interview_date: str = Field(..., min_length=1, description="Date of the interview (e.g. 2026-08-10 or 'tomorrow')")
-    interview_time: str = Field(..., min_length=1, description="Time of the interview (e.g. 15:00 or '3 PM')")
+    interview_time: str = Field(..., min_length=1, description="Time of the interview (e.g. 15:00, 2:30 PM, or 2 PM)")
     meeting_link: Optional[str] = Field(None, description="Virtual meeting link (Google Meet, Zoom, Teams)")
     interview_status: Optional[InterviewStatus] = Field(default=InterviewStatus.SCHEDULED, description="Interview status")
     notes: Optional[str] = Field(None, description="Additional notes or instructions")
+
+    @field_validator("interview_date")
+    @classmethod
+    def validate_date(cls, v: str) -> str:
+        return validate_and_normalize_date(v)
+
+    @field_validator("interview_time")
+    @classmethod
+    def validate_time(cls, v: str) -> str:
+        return validate_and_normalize_time(v)
 
 
 class InterviewUpdateRequest(BaseModel):
@@ -43,6 +57,21 @@ class InterviewUpdateRequest(BaseModel):
     meeting_link: Optional[str] = Field(None, description="Virtual meeting link")
     interview_status: Optional[InterviewStatus] = Field(None, description="Updated interview status")
     notes: Optional[str] = Field(None, description="Additional notes or instructions")
+
+    @field_validator("interview_date")
+    @classmethod
+    def validate_date(cls, v: Optional[str]) -> Optional[str]:
+        if v is not None:
+            return validate_and_normalize_date(v)
+        return v
+
+    @field_validator("interview_time")
+    @classmethod
+    def validate_time(cls, v: Optional[str]) -> Optional[str]:
+        if v is not None:
+            return validate_and_normalize_time(v)
+        return v
+
 
 
 class InterviewResponse(BaseModel):
@@ -59,6 +88,10 @@ class InterviewResponse(BaseModel):
     meeting_link: Optional[str] = None
     interview_status: InterviewStatus
     notes: Optional[str] = None
+    confirmation_sent: bool = False
+    reminder_sent: bool = False
+    google_calendar_event_id: Optional[str] = None
+    google_calendar_event_url: Optional[str] = None
     created_at: datetime
     updated_at: datetime
 

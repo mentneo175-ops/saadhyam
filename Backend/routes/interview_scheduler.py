@@ -23,9 +23,136 @@ from schemas.interview_scheduler_schema import (
 )
 from utils.dependencies import get_current_user
 
+from pydantic import BaseModel, Field
+
+from services.interview_automation_service import (
+    generate_meeting_link,
+    process_google_calendar_automation,
+    update_google_calendar_automation,
+    delete_google_calendar_automation,
+    send_interview_confirmation_email,
+    send_interview_cancellation_email,
+    send_interview_reminder_email,
+    schedule_interview_reminder,
+    cancel_interview_reminder,
+)
+from services.google_calendar_service import GoogleCalendarService
+
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/interview-scheduler", tags=["Interview Scheduler"])
+
+
+class GoogleCalendarOAuthRequest(BaseModel):
+    code: str
+    redirect_uri: Optional[str] = None
+
+
+from fastapi.responses import RedirectResponse
+import urllib.parse
+
+# ---------------------------------------------------------------------------
+# Google Calendar Connection Endpoints
+# ---------------------------------------------------------------------------
+
+@router.get("/google-calendar/status")
+async def get_google_calendar_status(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Check if the current user has connected Google Calendar."""
+    token = await GoogleCalendarService.get_valid_access_token(current_user.id, db)
+    return {"connected": bool(token)}
+
+
+@router.get("/google-calendar/auth-url")
+async def get_google_calendar_auth_url(
+    redirect_uri: Optional[str] = Query(None),
+    current_user: User = Depends(get_current_user),
+):
+    """Generate Google OAuth 2.0 authorization URL for Google Calendar with signed state token."""
+    state = GoogleCalendarService.generate_oauth_state(current_user.id)
+    target_redirect = redirect_uri or GoogleCalendarService.get_default_redirect_uri()
+    url = GoogleCalendarService.get_auth_url(redirect_uri=target_redirect, state=state)
+    return {"auth_url": url}
+
+
+@router.get("/google-calendar/callback")
+async def handle_google_calendar_callback_get(
+    code: Optional[str] = Query(None),
+    state: Optional[str] = Query(None),
+    error: Optional[str] = Query(None),
+    db: AsyncSession = Depends(get_db),
+):
+    """Handle Google OAuth 2.0 GET redirect from Google authorization server."""
+    frontend_url = "http://localhost:5173/dashboard/plugins/interview-scheduler"
+    if error:
+        logger.warning(f"OAuth callback received error from Google: {error}")
+        err_msg = urllib.parse.quote("Google Calendar connection failed. Please check your Google Calendar configuration.")
+        return RedirectResponse(url=f"{frontend_url}?google_calendar=error&message={err_msg}", status_code=302)
+
+    if not code or not state:
+        err_msg = urllib.parse.quote("Invalid OAuth callback parameters.")
+        return RedirectResponse(url=f"{frontend_url}?google_calendar=error&message={err_msg}", status_code=302)
+
+    user_id = GoogleCalendarService.verify_oauth_state(state)
+    if not user_id:
+        logger.warning("OAuth callback failed state token verification")
+        err_msg = urllib.parse.quote("Invalid or expired OAuth session. Please try connecting again.")
+        return RedirectResponse(url=f"{frontend_url}?google_calendar=error&message={err_msg}", status_code=302)
+
+    target_redirect = GoogleCalendarService.get_default_redirect_uri()
+    res = await GoogleCalendarService.exchange_code(
+        code=code,
+        redirect_uri=target_redirect,
+        user_id=user_id,
+        db=db
+    )
+
+    if res.get("success"):
+        return RedirectResponse(url=f"{frontend_url}?google_calendar=connected", status_code=302)
+    else:
+        err_msg = urllib.parse.quote("Google Calendar connection failed. Please check your Google Calendar configuration.")
+        return RedirectResponse(url=f"{frontend_url}?google_calendar=error&message={err_msg}", status_code=302)
+
+
+@router.post("/google-calendar/callback")
+async def handle_google_calendar_callback(
+    request: GoogleCalendarOAuthRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Exchange authorization code for Google Calendar OAuth tokens (POST fallback)."""
+    target_redirect = request.redirect_uri or GoogleCalendarService.get_default_redirect_uri()
+    res = await GoogleCalendarService.exchange_code(
+        code=request.code,
+        redirect_uri=target_redirect,
+        user_id=current_user.id,
+        db=db
+    )
+    if not res.get("success"):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=res.get("error"))
+    return res
+
+
+
+@router.delete("/google-calendar/disconnect")
+async def disconnect_google_calendar(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Disconnect Google Calendar for current user."""
+    from models.user_api_keys import UserAPIKeys
+    stmt = select(UserAPIKeys).where(
+        UserAPIKeys.user_id == current_user.id,
+        UserAPIKeys.platform == "google_calendar"
+    )
+    res = await db.execute(stmt)
+    record = res.scalar_one_or_none()
+    if record:
+        record.is_active = False
+        await db.commit()
+    return {"success": True, "message": "Google Calendar disconnected"}
 
 
 # ---------------------------------------------------------------------------
@@ -91,7 +218,7 @@ async def create_interview(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """Schedule a new interview appointment."""
+    """Schedule a new interview appointment with automated Google Calendar + Google Meet creation, email, and reminder."""
     try:
         interview = Interview(
             user_id=current_user.id,
@@ -109,8 +236,34 @@ async def create_interview(
         await db.commit()
         await db.refresh(interview)
 
-        logger.info(f"Scheduled new interview ID={interview.id} for candidate '{interview.candidate_name}'")
+        # 1. Automation: Process Google Calendar Event + Real Google Meet URL creation
+        try:
+            await process_google_calendar_automation(current_user.id, interview, db)
+        except Exception as cal_err:
+            logger.error(f"Error processing Google Calendar automation for interview ID={interview.id}: {cal_err}")
+
+        await db.refresh(interview)
+        meeting_link_persisted = bool(interview.meeting_link)
+
+        logger.info(
+            f"Scheduled new interview ID={interview.id} for candidate '{interview.candidate_name}', "
+            f"meeting_link_persisted={meeting_link_persisted}"
+        )
+
+        # 2. Automation: Send confirmation email with .ics attachment
+        try:
+            await send_interview_confirmation_email(current_user.id, interview.id, db)
+        except Exception as email_err:
+            logger.error(f"Error sending confirmation email for interview ID={interview.id}: {email_err}")
+
+        # 3. Automation: Schedule 10-minute reminder job
+        try:
+            schedule_interview_reminder(interview)
+        except Exception as rem_err:
+            logger.error(f"Error scheduling 10-minute reminder for interview ID={interview.id}: {rem_err}")
+
         return InterviewResponse.from_orm(interview)
+
     except Exception as e:
         await db.rollback()
         logger.error(f"Failed to create interview: {e}")
@@ -131,6 +284,10 @@ async def update_interview(
     interview = await _get_interview_or_404(id, current_user.id, db)
 
     try:
+        date_changed = request.interview_date is not None and request.interview_date != interview.interview_date
+        time_changed = request.interview_time is not None and request.interview_time != interview.interview_time
+        rescheduled = date_changed or time_changed
+
         if request.candidate_name is not None:
             interview.candidate_name = request.candidate_name
         if request.candidate_email is not None:
@@ -150,8 +307,40 @@ async def update_interview(
         if request.notes is not None:
             interview.notes = request.notes
 
+        if rescheduled:
+            interview.interview_status = InterviewStatus.RESCHEDULED
+            interview.reminder_sent = False
+
         await db.commit()
         await db.refresh(interview)
+
+        # Automation status management
+        if interview.interview_status in [InterviewStatus.CANCELLED, InterviewStatus.COMPLETED, InterviewStatus.NO_SHOW]:
+            cancel_interview_reminder(interview.id)
+            if interview.google_calendar_event_id:
+                try:
+                    await delete_google_calendar_automation(current_user.id, interview.google_calendar_event_id, db)
+                except Exception as del_cal_err:
+                    logger.error(f"Error deleting Google Calendar event: {del_cal_err}")
+            if interview.interview_status == InterviewStatus.CANCELLED:
+                try:
+                    await send_interview_cancellation_email(current_user.id, interview, db)
+                except Exception as email_err:
+                    logger.warning(f"Error sending cancellation email for interview ID={id}: {email_err}")
+        elif rescheduled:
+            cancel_interview_reminder(interview.id)
+            try:
+                await update_google_calendar_automation(current_user.id, interview, db)
+            except Exception as upd_cal_err:
+                logger.error(f"Error updating Google Calendar event for interview ID={id}: {upd_cal_err}")
+            try:
+                await send_interview_confirmation_email(current_user.id, interview.id, db)
+            except Exception as email_err:
+                logger.error(f"Error sending updated confirmation email for interview ID={id}: {email_err}")
+            try:
+                schedule_interview_reminder(interview)
+            except Exception as rem_err:
+                logger.error(f"Error rescheduling reminder job for interview ID={id}: {rem_err}")
 
         logger.info(f"Updated interview ID={interview.id}")
         return InterviewResponse.from_orm(interview)
@@ -174,6 +363,18 @@ async def delete_interview(
     interview = await _get_interview_or_404(id, current_user.id, db)
 
     try:
+        cancel_interview_reminder(interview.id)
+        if interview.google_calendar_event_id:
+            try:
+                await delete_google_calendar_automation(current_user.id, interview.google_calendar_event_id, db)
+            except Exception as del_cal_err:
+                logger.error(f"Error deleting Google Calendar event: {del_cal_err}")
+
+        try:
+            await send_interview_cancellation_email(current_user.id, interview, db)
+        except Exception as email_err:
+            logger.warning(f"Error sending cancellation email for interview ID={id}: {email_err}")
+
         await db.delete(interview)
         await db.commit()
 
@@ -190,6 +391,18 @@ async def delete_interview(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to cancel interview: {str(e)}",
         )
+
+
+@router.post("/interviews/{id}/trigger-reminder")
+async def trigger_interview_reminder(
+    id: int,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Manually trigger the 10-minute reminder email for testing purposes."""
+    interview = await _get_interview_or_404(id, current_user.id, db)
+    res = await send_interview_reminder_email(interview.id)
+    return res
 
 
 # ---------------------------------------------------------------------------

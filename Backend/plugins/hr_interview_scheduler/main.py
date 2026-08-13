@@ -16,6 +16,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from plugins.base import BasePlugin
 from models.interview_scheduler import Interview, InterviewSlot, InterviewStatus
 from config.database import AsyncSessionLocal
+from services.interview_automation_service import (
+    generate_meeting_link,
+    send_interview_confirmation_email,
+    schedule_interview_reminder,
+    cancel_interview_reminder,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -195,6 +201,20 @@ class PluginMain(BasePlugin):
                 "error": "MISSING_PARAMETERS",
             }
 
+        try:
+            from services.interview_automation_service import (
+                validate_and_normalize_date,
+                validate_and_normalize_time,
+            )
+            norm_date = validate_and_normalize_date(str(interview_date))
+            norm_time = validate_and_normalize_time(str(interview_time))
+        except ValueError as val_err:
+            return {
+                "success": False,
+                "message": f"Invalid datetime input: {str(val_err)}",
+                "error": "INVALID_DATETIME_FORMAT",
+            }
+
         async def _do_schedule(session: AsyncSession):
             interview = Interview(
                 user_id=user_id,
@@ -202,8 +222,8 @@ class PluginMain(BasePlugin):
                 candidate_email=params.get("candidate_email"),
                 interviewer_name=interviewer_name,
                 job_role=job_role,
-                interview_date=str(interview_date),
-                interview_time=str(interview_time),
+                interview_date=norm_date,
+                interview_time=norm_time,
                 meeting_link=params.get("meeting_link"),
                 interview_status=InterviewStatus.SCHEDULED,
                 notes=params.get("notes"),
@@ -213,12 +233,43 @@ class PluginMain(BasePlugin):
             await session.refresh(interview)
             return interview
 
+
         try:
             if db:
                 interview = await _do_schedule(db)
             else:
                 async with AsyncSessionLocal() as session:
                     interview = await _do_schedule(session)
+
+            # 1. Automation: Process Google Calendar Event + Real Google Meet URL creation
+            try:
+                from services.interview_automation_service import process_google_calendar_automation
+                if db:
+                    await process_google_calendar_automation(user_id, interview, db)
+                else:
+                    async with AsyncSessionLocal() as session:
+                        res = await session.execute(select(Interview).where(Interview.id == interview.id))
+                        item = res.scalars().first()
+                        if item:
+                            await process_google_calendar_automation(user_id, item, session)
+            except Exception as cal_err:
+                logger.error(f"Error processing Google Calendar in plugin schedule_interview: {cal_err}")
+
+            # 2. Automation: Send confirmation email
+            try:
+                if db:
+                    await send_interview_confirmation_email(user_id, interview.id, db)
+                else:
+                    async with AsyncSessionLocal() as session:
+                        await send_interview_confirmation_email(user_id, interview.id, session)
+            except Exception as email_err:
+                logger.error(f"Error sending confirmation email in plugin schedule_interview: {email_err}")
+
+            # 3. Automation: Schedule reminder
+            try:
+                schedule_interview_reminder(interview)
+            except Exception as rem_err:
+                logger.error(f"Error scheduling reminder in plugin schedule_interview: {rem_err}")
 
             logger.info("Interview Scheduler: Scheduled interview ID=%s for '%s'", interview.id, candidate_name)
             return {
@@ -339,6 +390,36 @@ class PluginMain(BasePlugin):
                     "error": "NOT_FOUND",
                 }
 
+            # 1. Automation: Cancel old APScheduler reminder job
+            try:
+                from services.interview_automation_service import cancel_interview_reminder
+                cancel_interview_reminder(interview.id)
+            except Exception as rem_err:
+                logger.error(f"Error cancelling reminder in plugin cancel_interview: {rem_err}")
+
+            # 2. Automation: Delete Google Calendar event
+            try:
+                from services.interview_automation_service import delete_google_calendar_automation
+                if interview.google_calendar_event_id:
+                    if db:
+                        await delete_google_calendar_automation(user_id, interview.google_calendar_event_id, db)
+                    else:
+                        async with AsyncSessionLocal() as session:
+                            await delete_google_calendar_automation(user_id, interview.google_calendar_event_id, session)
+            except Exception as cal_err:
+                logger.error(f"Error deleting Google Calendar event in plugin cancel_interview: {cal_err}")
+
+            # 3. Automation: Send cancellation email to candidate
+            try:
+                from services.interview_automation_service import send_interview_cancellation_email
+                if db:
+                    await send_interview_cancellation_email(user_id, interview, db)
+                else:
+                    async with AsyncSessionLocal() as session:
+                        await send_interview_cancellation_email(user_id, interview, session)
+            except Exception as email_err:
+                logger.warning(f"Error sending cancellation email in plugin cancel_interview: {email_err}")
+
             logger.info("Interview Scheduler: Cancelled interview ID=%s", int_id)
             return {
                 "success": True,
@@ -377,15 +458,30 @@ class PluginMain(BasePlugin):
                 "error": "INVALID_PARAMETER",
             }
 
+        try:
+            from services.interview_automation_service import (
+                validate_and_normalize_date,
+                validate_and_normalize_time,
+            )
+            norm_date = validate_and_normalize_date(str(new_date))
+            norm_time = validate_and_normalize_time(str(new_time))
+        except ValueError as val_err:
+            return {
+                "success": False,
+                "message": f"Invalid datetime input: {str(val_err)}",
+                "error": "INVALID_DATETIME_FORMAT",
+            }
+
         async def _do_reschedule(session: AsyncSession):
             stmt = select(Interview).where(Interview.id == int_id, Interview.user_id == user_id)
             result = await session.execute(stmt)
             interview = result.scalars().first()
             if not interview:
                 return None
-            interview.interview_date = str(new_date)
-            interview.interview_time = str(new_time)
+            interview.interview_date = norm_date
+            interview.interview_time = norm_time
             interview.interview_status = InterviewStatus.RESCHEDULED
+            interview.reminder_sent = False
             await session.commit()
             await session.refresh(interview)
             return interview
@@ -404,6 +500,45 @@ class PluginMain(BasePlugin):
                     "error": "NOT_FOUND",
                 }
 
+            # 1. Automation: Cancel old APScheduler reminder job
+            try:
+                from services.interview_automation_service import cancel_interview_reminder
+                cancel_interview_reminder(interview.id)
+            except Exception as rem_err:
+                logger.error(f"Error cancelling reminder in plugin reschedule_interview: {rem_err}")
+
+            # 2. Automation: Update existing Google Calendar Event (preserves Google Meet URL)
+            try:
+                from services.interview_automation_service import update_google_calendar_automation
+                if db:
+                    await update_google_calendar_automation(user_id, interview, db)
+                else:
+                    async with AsyncSessionLocal() as session:
+                        res = await session.execute(select(Interview).where(Interview.id == interview.id))
+                        item = res.scalars().first()
+                        if item:
+                            await update_google_calendar_automation(user_id, item, session)
+            except Exception as cal_err:
+                logger.error(f"Error updating Google Calendar event in plugin reschedule_interview: {cal_err}")
+
+            # 3. Automation: Send updated confirmation email with .ics attachment
+            try:
+                from services.interview_automation_service import send_interview_confirmation_email
+                if db:
+                    await send_interview_confirmation_email(user_id, interview.id, db)
+                else:
+                    async with AsyncSessionLocal() as session:
+                        await send_interview_confirmation_email(user_id, interview.id, session)
+            except Exception as email_err:
+                logger.error(f"Error sending confirmation email in plugin reschedule_interview: {email_err}")
+
+            # 4. Automation: Schedule new 10-minute reminder job
+            try:
+                from services.interview_automation_service import schedule_interview_reminder
+                schedule_interview_reminder(interview)
+            except Exception as rem_err:
+                logger.error(f"Error scheduling new reminder in plugin reschedule_interview: {rem_err}")
+
             logger.info("Interview Scheduler: Rescheduled interview ID=%s to %s %s", int_id, new_date, new_time)
             return {
                 "success": True,
@@ -413,9 +548,11 @@ class PluginMain(BasePlugin):
                     "candidate_name": interview.candidate_name,
                     "interview_date": interview.interview_date,
                     "interview_time": interview.interview_time,
+                    "meeting_link": interview.meeting_link,
                     "status": interview.interview_status.value if hasattr(interview.interview_status, "value") else str(interview.interview_status),
                 },
             }
+
         except Exception as e:
             logger.error("Interview Scheduler: Database error in reschedule_interview: %s", e)
             return {

@@ -72,6 +72,8 @@ export interface Interview {
   meeting_link?: string | null;
   interview_status: "scheduled" | "completed" | "cancelled" | "rescheduled" | "no_show";
   notes?: string | null;
+  confirmation_sent?: boolean;
+  reminder_sent?: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -135,6 +137,10 @@ function InterviewSchedulerPage() {
     end_time: "",
   });
 
+  // Google Calendar Connection states
+  const [isGoogleCalConnected, setIsGoogleCalConnected] = useState<boolean>(false);
+  const [isCheckingGoogleCal, setIsCheckingGoogleCal] = useState<boolean>(true);
+
   // Fetch interviews from API
   const fetchInterviews = async () => {
     setIsLoadingInterviews(true);
@@ -164,23 +170,149 @@ function InterviewSchedulerPage() {
     }
   };
 
+  // Check Google Calendar OAuth Status
+  const checkGoogleCalStatus = async () => {
+    setIsCheckingGoogleCal(true);
+    try {
+      const res: any = await apiClient.get("/api/interview-scheduler/google-calendar/status");
+      setIsGoogleCalConnected(Boolean(res?.connected));
+    } catch (error) {
+      setIsGoogleCalConnected(false);
+    } finally {
+      setIsCheckingGoogleCal(false);
+    }
+  };
+
+  // Initiate Google Calendar OAuth Connect
+  const handleConnectGoogleCalendar = async () => {
+    try {
+      const res: any = await apiClient.get("/api/interview-scheduler/google-calendar/auth-url");
+      if (res?.auth_url) {
+        window.location.href = res.auth_url;
+      }
+    } catch (error: any) {
+      console.error("Error getting Google Calendar auth URL:", error);
+      toast.error("Google Calendar connection failed. Please check your Google Calendar configuration.");
+    }
+  };
+
+  // Disconnect Google Calendar
+  const handleDisconnectGoogleCalendar = async () => {
+    try {
+      await apiClient.delete("/api/interview-scheduler/google-calendar/disconnect");
+      setIsGoogleCalConnected(false);
+      toast.success("Google Calendar disconnected.");
+    } catch (error: any) {
+      toast.error("Failed to disconnect Google Calendar.");
+    }
+  };
+
   useEffect(() => {
     fetchInterviews();
     fetchSlots();
+    checkGoogleCalStatus();
+
+    // Handle OAuth Callback status & error query parameters returned from redirect
+    const urlParams = new URLSearchParams(window.location.search);
+    const gcalStatus = urlParams.get("google_calendar");
+    const errorMsg = urlParams.get("message");
+    const code = urlParams.get("code");
+
+    if (gcalStatus === "connected") {
+      toast.success("Google Calendar connected successfully! Real Google Meet links will now be generated automatically.");
+      setIsGoogleCalConnected(true);
+      window.history.replaceState({}, document.title, window.location.pathname);
+    } else if (gcalStatus === "error") {
+      toast.error(errorMsg || "Google Calendar connection failed. Please check your Google Calendar configuration.");
+      setIsGoogleCalConnected(false);
+      window.history.replaceState({}, document.title, window.location.pathname);
+    } else if (code) {
+      // Fallback direct POST code handling
+      const cleanUrl = window.location.origin + window.location.pathname;
+      apiClient.post("/api/interview-scheduler/google-calendar/callback", {
+        code,
+        redirect_uri: cleanUrl
+      }).then(() => {
+        toast.success("Google Calendar connected successfully! Real Google Meet links will now be generated automatically.");
+        setIsGoogleCalConnected(true);
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }).catch((err) => {
+        console.error("OAuth callback error:", err);
+        toast.error("Google Calendar connection failed. Please check your Google Calendar configuration.");
+        window.history.replaceState({}, document.title, window.location.pathname);
+      });
+    }
   }, []);
+
+
+  // Permissive email validation helper permitting dots and standard email formats
+  const isValidEmailAddress = (email: string): boolean => {
+    const trimmed = email.trim();
+    if (!trimmed) return true; // Optional field: empty candidate_email is valid
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed);
+  };
 
   // Handle Schedule Interview submission (POST)
   const handleScheduleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!scheduleForm.candidate_name || !scheduleForm.interviewer_name || !scheduleForm.job_role || !scheduleForm.interview_date || !scheduleForm.interview_time) {
+    const trimmedCandidateName = scheduleForm.candidate_name.trim();
+    const trimmedInterviewerName = scheduleForm.interviewer_name.trim();
+    const trimmedJobRole = scheduleForm.job_role.trim();
+    const trimmedDate = scheduleForm.interview_date.trim();
+    const trimmedTime = scheduleForm.interview_time.trim();
+    const trimmedEmail = scheduleForm.candidate_email.trim();
+
+    if (!trimmedCandidateName || !trimmedInterviewerName || !trimmedJobRole || !trimmedDate || !trimmedTime) {
       toast.error("Please fill in all required fields.");
       return;
     }
 
+    if (trimmedEmail && !isValidEmailAddress(trimmedEmail)) {
+      toast.error("Please enter a valid candidate email address (e.g. name@example.com).");
+      return;
+    }
+
+    const payload = {
+      ...scheduleForm,
+      candidate_name: trimmedCandidateName,
+      candidate_email: trimmedEmail || null,
+      interviewer_name: trimmedInterviewerName,
+      job_role: trimmedJobRole,
+      interview_date: trimmedDate,
+      interview_time: trimmedTime,
+      meeting_link: scheduleForm.meeting_link.trim(),
+      notes: scheduleForm.notes.trim(),
+    };
+
     setIsSubmitting(true);
     try {
-      await apiClient.post("/api/interview-scheduler/interviews", scheduleForm);
-      toast.success(`Interview scheduled for ${scheduleForm.candidate_name}!`);
+      const res: any = await apiClient.post("/api/interview-scheduler/interviews", payload);
+      const isConfirmationSent = res?.confirmation_sent;
+      const meetingLink = res?.meeting_link;
+
+      if (!isGoogleCalConnected && !meetingLink) {
+        toast.info(
+          `Interview scheduled for ${trimmedCandidateName}! Note: Google Calendar is not connected, so no Google Meet link was generated. Connect Google Calendar to enable real Google Meet links.`,
+          { duration: 7000 }
+        );
+      } else if (isConfirmationSent) {
+        toast.success(
+          `Interview scheduled! Meeting link created, confirmation email & .ics invitation sent to ${trimmedEmail || "candidate"}. 10-min reminder scheduled.`,
+          { duration: 6000 }
+        );
+      } else if (trimmedEmail) {
+        toast.info(
+          `Interview scheduled & meeting link created (${meetingLink ? "generated" : "saved"}). ⚠️ Email confirmation skipped (configure Email Marketing plugin with SMTP to enable auto-send).`,
+          { duration: 7000 }
+        );
+      } else {
+        toast.success(
+          `Interview scheduled for ${trimmedCandidateName}! Meeting link: ${meetingLink || "None"}`,
+          { duration: 5000 }
+        );
+      }
+
+
       setIsScheduleOpen(false);
       setScheduleForm({
         candidate_name: "",
@@ -223,9 +355,27 @@ function InterviewSchedulerPage() {
     e.preventDefault();
     if (!selectedInterview) return;
 
+    const trimmedEmail = editForm.candidate_email.trim();
+    if (trimmedEmail && !isValidEmailAddress(trimmedEmail)) {
+      toast.error("Please enter a valid candidate email address.");
+      return;
+    }
+
+    const payload = {
+      ...editForm,
+      candidate_name: editForm.candidate_name.trim(),
+      candidate_email: trimmedEmail || null,
+      interviewer_name: editForm.interviewer_name.trim(),
+      job_role: editForm.job_role.trim(),
+      interview_date: editForm.interview_date.trim(),
+      interview_time: editForm.interview_time.trim(),
+      meeting_link: editForm.meeting_link.trim(),
+      notes: editForm.notes.trim(),
+    };
+
     setIsSubmitting(true);
     try {
-      await apiClient.put(`/api/interview-scheduler/interviews/${selectedInterview.id}`, editForm);
+      await apiClient.put(`/api/interview-scheduler/interviews/${selectedInterview.id}`, payload);
       toast.success("Interview updated successfully!");
       setIsEditOpen(false);
       setSelectedInterview(null);
@@ -337,6 +487,51 @@ function InterviewSchedulerPage() {
           </Button>
         </div>
       </div>
+
+      {/* Google Calendar Connection Status Banner */}
+      <Card className={isGoogleCalConnected ? "border-emerald-200 bg-emerald-50/50 dark:border-emerald-900/50 dark:bg-emerald-950/20" : "border-amber-200 bg-amber-50/50 dark:border-amber-900/50 dark:bg-amber-950/20"}>
+        <CardContent className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4">
+          <div className="flex items-center gap-3">
+            <div className={`p-2 rounded-full shrink-0 ${isGoogleCalConnected ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300" : "bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300"}`}>
+              <Calendar className="h-5 w-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h4 className="font-semibold text-sm">
+                  {isGoogleCalConnected ? "Google Calendar Connected" : "Google Calendar Not Connected"}
+                </h4>
+                {isGoogleCalConnected ? (
+                  <Badge variant="outline" className="text-emerald-700 border-emerald-300 bg-emerald-100 dark:bg-emerald-950 dark:text-emerald-300">
+                    <CheckCircle2 className="h-3 w-3 mr-1" />
+                    Real Google Meet Active
+                  </Badge>
+                ) : (
+                  <Badge variant="outline" className="text-amber-700 border-amber-300 bg-amber-100 dark:bg-amber-950 dark:text-amber-300">
+                    Optional
+                  </Badge>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {isGoogleCalConnected
+                  ? "Automatic Google Calendar event & real Google Meet link creation is active for all scheduled interviews."
+                  : "Connect Google Calendar to automatically create real Google Meet links for every scheduled interview."}
+              </p>
+            </div>
+          </div>
+          <div className="shrink-0">
+            {isGoogleCalConnected ? (
+              <Button variant="outline" size="sm" onClick={handleDisconnectGoogleCalendar} className="text-xs text-rose-600 border-rose-200 hover:bg-rose-50">
+                Disconnect
+              </Button>
+            ) : (
+              <Button size="sm" onClick={handleConnectGoogleCalendar} className="gap-2 bg-blue-600 hover:bg-blue-700 text-white">
+                <Video className="h-4 w-4" />
+                Connect Google Calendar
+              </Button>
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Info Banner */}
       <Card className="border-blue-200 bg-blue-50/50 dark:border-blue-900/50 dark:bg-blue-950/20">
@@ -602,7 +797,7 @@ function InterviewSchedulerPage() {
             </DialogDescription>
           </DialogHeader>
 
-          <form onSubmit={handleScheduleSubmit} className="space-y-4 py-2">
+          <form onSubmit={handleScheduleSubmit} noValidate className="space-y-4 py-2">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="candidate_name">Candidate Name *</Label>
@@ -722,7 +917,7 @@ function InterviewSchedulerPage() {
             </DialogDescription>
           </DialogHeader>
 
-          <form onSubmit={handleEditSubmit} className="space-y-4 py-2">
+          <form onSubmit={handleEditSubmit} noValidate className="space-y-4 py-2">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="edit_candidate_name">Candidate Name</Label>

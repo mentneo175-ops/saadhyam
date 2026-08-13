@@ -1,0 +1,84 @@
+{
+  "plugin_key": "ai_productivity_email_assistant",
+  "name": "AI Email Assistant",
+  "version": "v1.0",
+  "author": "Saadhyam AI",
+  "description": "AI assistant for professional email composition, smart reply generation, thread summarization, action item extraction, formatting, and tone analysis.",
+  "category": "ai_productivity",
+  "status": "Production Ready",
+  "is_ai_powered": true,
+  "permissions": [
+    "email.compose",
+    "email.read"
+  ],
+  "supported_features": [
+    "compose_email",
+    "generate_reply",
+    "summarize_thread",
+    "extract_action_items",
+    "format_email",
+    "check_tone"
+  ],
+  "actions": [
+    {
+      "action": "compose_email",
+      "name": "Compose Email",
+      "description": "Generate a professional email draft based on recipient, subject, and prompt",
+      "parameters": {
+        "recipient": {"type": "string", "required": false},
+        "subject": {"type": "string", "required": false},
+        "purpose": {"type": "string", "required": false},
+        "tone": {"type": "string", "required": false}
+      }
+    },
+    {
+      "action": "generate_reply",
+      "name": "Generate Email Reply",
+      "description": "Generate a contextual response draft for an incoming email",
+      "parameters": {
+        "original_email": {"type": "string", "required": false},
+        "response_type": {"type": "string", "required": false},
+        "tone": {"type": "string", "required": false}
+      }
+    },
+    {
+      "action": "summarize_thread",
+      "name": "Summarize Email Thread",
+      "description": "Summarize a multi-message email thread into key executive points",
+      "parameters": {
+        "thread_content": {"type": "string", "required": false}
+      }
+    },
+    {
+      "action": "extract_action_items",
+      "name": "Extract Action Items",
+      "description": "Extract actionable tasks, assignees, and deadlines from email content",
+      "parameters": {
+        "email_content": {"type": "string", "required": false}
+      }
+    },
+    {
+      "action": "format_email",
+      "name": "Format & Polish Email",
+      "description": "Clean up, format, and polish an email draft into structured Markdown/HTML",
+      "parameters": {
+        "draft_content": {"type": "string", "required": false},
+        "style": {"type": "string", "required": false}
+      }
+    },
+    {
+      "action": "check_tone",
+      "name": "Analyze Email Tone",
+      "description": "Analyze emotional tone, formality, and constructiveness of an email draft",
+      "parameters": {
+        "email_content": {"type": "string", "required": false}
+      }
+    },
+    {
+      "action": "get_health",
+      "name": "Plugin Health Diagnostic",
+      "description": "Return plugin system diagnostic health metrics and version info",
+      "parameters": {}
+    }
+  ]
+}

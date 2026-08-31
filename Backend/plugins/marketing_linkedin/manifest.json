@@ -1,0 +1,150 @@
+{
+  "plugin_key": "marketing_linkedin",
+  "name": "LinkedIn Marketing",
+  "version": "v1.0",
+  "author": "Saadhyam AI",
+  "description": "Create professional LinkedIn marketing campaigns, update budgets, toggle campaign statuses, track analytics, and manage outreach.",
+  "category": "marketing",
+  "permissions": [
+    "linkedin.campaigns"
+  ],
+  "supported_features": [
+    "campaign_planning",
+    "budget_management",
+    "status_control",
+    "performance_analytics",
+    "configurable_workflows"
+  ],
+  "actions": [
+    {
+      "action": "create_campaign",
+      "name": "Create LinkedIn Campaign",
+      "description": "Create a new LinkedIn marketing campaign with target budget, objective, audience, and location",
+      "parameters": {
+        "campaign_name": {
+          "type": "string",
+          "required": true,
+          "description": "Name of the LinkedIn campaign or product/business concept"
+        },
+        "budget": {
+          "type": "number",
+          "required": false,
+          "description": "Daily or total campaign budget amount"
+        },
+        "objective": {
+          "type": "string",
+          "required": false,
+          "description": "Campaign objective e.g. Lead Generation, Brand Awareness, Website Visits"
+        },
+        "audience": {
+          "type": "string",
+          "required": false,
+          "description": "Target audience segment"
+        },
+        "location": {
+          "type": "string",
+          "required": false,
+          "description": "Target geographical location"
+        }
+      }
+    },
+    {
+      "action": "list_campaigns",
+      "name": "List LinkedIn Campaigns",
+      "description": "Retrieve list of all active, paused, or draft LinkedIn campaigns",
+      "parameters": {
+        "status": {
+          "type": "string",
+          "required": false,
+          "description": "Filter campaigns by status: Enabled, Paused, Draft"
+        },
+        "max_results": {
+          "type": "number",
+          "required": false,
+          "description": "Maximum number of campaigns to return"
+        }
+      }
+    },
+    {
+      "action": "get_campaign",
+      "name": "Get Campaign Details",
+      "description": "Retrieve full details and performance metrics for a specific LinkedIn campaign",
+      "parameters": {
+        "campaign_name": {
+          "type": "string",
+          "required": true,
+          "description": "Name of the LinkedIn campaign to inspect"
+        },
+        "campaign_id": {
+          "type": "string",
+          "required": false,
+          "description": "Optional LinkedIn Campaign ID"
+        }
+      }
+    },
+    {
+      "action": "update_budget",
+      "name": "Update Campaign Budget",
+      "description": "Update daily budget allocation for a LinkedIn campaign",
+      "parameters": {
+        "campaign_name": {
+          "type": "string",
+          "required": true,
+          "description": "Name of the LinkedIn campaign to update"
+        },
+        "budget": {
+          "type": "number",
+          "required": true,
+          "description": "New budget amount for the campaign"
+        }
+      }
+    },
+    {
+      "action": "pause_campaign",
+      "name": "Pause LinkedIn Campaign",
+      "description": "Pause an active LinkedIn campaign",
+      "parameters": {
+        "campaign_name": {
+          "type": "string",
+          "required": true,
+          "description": "Name of the LinkedIn campaign to pause"
+        }
+      }
+    },
+    {
+      "action": "resume_campaign",
+      "name": "Resume LinkedIn Campaign",
+      "description": "Resume a paused LinkedIn campaign",
+      "parameters": {
+        "campaign_name": {
+          "type": "string",
+          "required": true,
+          "description": "Name of the LinkedIn campaign to resume"
+        }
+      }
+    },
+    {
+      "action": "campaign_statistics",
+      "name": "LinkedIn Campaign Statistics",
+      "description": "Retrieve performance analytics including impressions, clicks, CTR, conversions, and total spend",
+      "parameters": {
+        "campaign_name": {
+          "type": "string",
+          "required": false,
+          "description": "Optional campaign name to filter statistics"
+        },
+        "time_frame": {
+          "type": "string",
+          "required": false,
+          "description": "Time frame filter e.g. last_7_days, last_30_days"
+        }
+      }
+    },
+    {
+      "action": "get_health",
+      "name": "Plugin Health Status",
+      "description": "Return plugin diagnostic health status and operational metrics",
+      "parameters": {}
+    }
+  ]
+}

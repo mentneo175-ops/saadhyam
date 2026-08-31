@@ -1,0 +1,7 @@
+"""
+Sales Order Management Plugin Package.
+"""
+
+from plugins.sales_order_management.main import PluginMain
+
+__all__ = ["PluginMain"]

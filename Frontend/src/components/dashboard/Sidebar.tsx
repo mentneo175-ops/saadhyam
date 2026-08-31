@@ -38,6 +38,7 @@ import {
   LifeBuoy,
   Radio,
   Puzzle,
+  ShoppingBag,
   Lock,
 } from "lucide-react";
 
@@ -81,6 +82,7 @@ const items: NavItem[] = [
   { to: "/dashboard/website", label: "Website AI", icon: FileText },
   { to: "/dashboard/review-reply", label: "Review Reply", icon: MessageSquare },
   { to: "/dashboard/plugins", label: "Plugins Store", icon: Puzzle },
+  { to: "/dashboard/store", label: "Store", icon: ShoppingBag },
   { to: "/dashboard/pricing", label: "Pricing", icon: DollarSign },
   // { to: "/dashboard/automation", label: "Automation", icon: Workflow },
   { to: "/dashboard/settings", label: "Settings", icon: Settings },
@@ -105,6 +107,7 @@ function getFeatureKeyFromPath(pathname: string): string | null {
   if (path.includes("/dashboard/youtube")) return "youtube_manager";
   if (path.includes("/dashboard/review-reply")) return "review_reply";
   if (path.includes("/dashboard/plugins")) return "plugins_store";
+  if (path.includes("/dashboard/store")) return "store";
   if (path.includes("/dashboard/reports") || path.includes("/dashboard/insights") || path.includes("/dashboard/growth")) return "reports_insights";
   if (path.includes("/dashboard/assistant")) return "assistant";
   return null;

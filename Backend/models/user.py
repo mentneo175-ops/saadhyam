@@ -106,6 +106,12 @@ class User(Base):
     user_plugins = relationship(
         "UserPlugin", back_populates="user", cascade="all, delete-orphan"
     )
+    linkedin_connection = relationship(
+        "LinkedInConnection", back_populates="user", uselist=False, cascade="all, delete-orphan"
+    )
+    linkedin_posts = relationship(
+        "LinkedInPostHistory", back_populates="user", cascade="all, delete-orphan"
+    )
 
     def __repr__(self):
         return f"<User(id={self.id}, email='{self.email}', name='{self.name}', business='{self.business_name}', provider='{self.auth_provider}')>"

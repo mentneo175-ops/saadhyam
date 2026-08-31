@@ -111,6 +111,11 @@ class Settings(BaseSettings):
     # Meta Ads Configuration (Facebook/Instagram Ads)
     META_REDIRECT_URI: str = "http://localhost:8000/auth/meta/callback"
 
+    # LinkedIn OAuth Configuration
+    LINKEDIN_CLIENT_ID: str = ""
+    LINKEDIN_CLIENT_SECRET: str = ""
+    LINKEDIN_REDIRECT_URI: str = "http://localhost:8000/api/linkedin/oauth/callback"
+
     # YouTube API Configuration (Google OAuth)
     YOUTUBE_CLIENT_ID: str = ""
     YOUTUBE_CLIENT_SECRET: str = ""

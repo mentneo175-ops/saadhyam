@@ -1,1 +1,728 @@
-import { createFileRoute, Link } from "@tanstack/react-router";import { useState, useEffect } from "react";import {  ArrowLeft,  Sparkles,  Loader2,  Mail,  Send,  Save,  CheckCircle,  AlertCircle,  ShoppingBag,  Server,  Wand2,  Eye,  EyeOff,} from "lucide-react";import { Button } from "@/components/ui/button";import {  Card,  CardContent,  CardDescription,  CardHeader,  CardTitle,} from "@/components/ui/card";import { Input } from "@/components/ui/input";import { Label } from "@/components/ui/label";import { Textarea } from "@/components/ui/textarea";import {  Select,  SelectContent,  SelectItem,  SelectTrigger,  SelectValue,} from "@/components/ui/select";import { Badge } from "@/components/ui/badge";import { toast } from "sonner";import {  generateStoreEmailMarketingAI,  saveStoreEmailMarketingConfig,  testStoreEmailMarketingConnection,  getStoreEmailMarketingDetails,  sendStoreEmailCampaign,} from "@/lib/storeApi";import * as PluginAPI from "@/lib/pluginsApi";type ProviderPreset = "gmail" | "outlook" | "yahoo" | "custom";export const Route = createFileRoute("/dashboard/store/email-marketing")({  head: () => ({    meta: [{ title: "Store G泅 Email Marketing G泅 Saadhyam AI" }],  }),  component: StoreEmailMarketingPage,});function StoreEmailMarketingPage() {  // Page Loading State  const [isLoadingDetails, setIsLoadingDetails] = useState(true);  const [isConfigured, setIsConfigured] = useState(false);  // SMTP Settings State  const [smtpHost, setSmtpHost] = useState("");  const [smtpPort, setSmtpPort] = useState("587");  const [senderEmail, setSenderEmail] = useState("");  const [senderName, setSenderName] = useState("");  const [passwordOrApiKey, setPasswordOrApiKey] = useState("");  const [showPassword, setShowPassword] = useState(false);  const [selectedPreset, setSelectedPreset] = useState<ProviderPreset>("gmail");  const [isSavingConfig, setIsSavingConfig] = useState(false);  const [isTestingConfig, setIsTestingConfig] = useState(false);  const [testSuccess, setTestSuccess] = useState<boolean | null>(null);  // Campaign Composer State  const [recipients, setRecipients] = useState("");  const [subject, setSubject] = useState("");  const [body, setBody] = useState("");  const [tone, setTone] = useState("Professional");  const [length, setLength] = useState("Medium");  const [isSendingCampaign, setIsSendingCampaign] = useState(false);  // AI Assistant States  const [aiPrompt, setAiPrompt] = useState("");  const [isGeneratingFull, setIsGeneratingFull] = useState(false);  const [isGeneratingSubject, setIsGeneratingSubject] = useState(false);  const [isGeneratingBody, setIsGeneratingBody] = useState(false);  const [showAiStudio, setShowAiStudio] = useState(false);  // Load existing SMTP configuration on mount  useEffect(() => {    loadConfig();  }, []);  const loadConfig = async () => {    setIsLoadingDetails(true);    try {      const details = await getStoreEmailMarketingDetails();      const installed = await PluginAPI.getInstalledPluginsDetailed();      const match = installed.find((p) => p.plugin_key === "sales_email_marketing");      if (match && match.user_config) {        const cfg = match.user_config as Record<string, any>;        setSmtpHost(cfg.smtp_host || "");        setSmtpPort(cfg.smtp_port ? String(cfg.smtp_port) : "587");        setSenderEmail(cfg.sender_email || "");        setSenderName(cfg.sender_name || "");        setPasswordOrApiKey(cfg.password_or_api_key || "");        setIsConfigured(Boolean(cfg.smtp_host && cfg.sender_email && cfg.password_or_api_key));      } else if (details.configured) {        setIsConfigured(true);      }    } catch (err) {      console.warn("Could not fetch existing SMTP config:", err);    } finally {      setIsLoadingDetails(false);    }  };  // Handle Preset Switching  const handlePresetSelect = (preset: ProviderPreset) => {    setSelectedPreset(preset);    if (preset === "gmail") {      setSmtpHost("smtp.gmail.com");      setSmtpPort("587");    } else if (preset === "outlook") {      setSmtpHost("smtp-mail.outlook.com");      setSmtpPort("587");    } else if (preset === "yahoo") {      setSmtpHost("smtp.mail.yahoo.com");      setSmtpPort("587");    }  };  // Save SMTP Settings  const handleSaveConfig = async () => {    if (!smtpHost.trim() || !smtpPort.trim() || !senderEmail.trim() || !passwordOrApiKey.trim()) {      toast.error("Please fill in all required SMTP configuration fields.");      return;    }    setIsSavingConfig(true);    try {      const res = await saveStoreEmailMarketingConfig({        smtp_host: smtpHost.trim(),        smtp_port: parseInt(smtpPort.trim(), 10),        sender_email: senderEmail.trim(),        password_or_api_key: passwordOrApiKey.trim(),        sender_name: senderName.trim() || undefined,      });      if (res.success) {        setIsConfigured(true);        toast.success("SMTP Configuration saved successfully!");      } else {        toast.error(res.message || "Failed to save configuration.");      }    } catch (err) {      toast.error(err instanceof Error ? err.message : "Failed to save configuration.");    } finally {      setIsSavingConfig(false);    }  };  // Test SMTP Connection  const handleTestConnection = async () => {    setIsTestingConfig(true);    setTestSuccess(null);    try {      const res = await testStoreEmailMarketingConnection();      if (res.success) {        setTestSuccess(true);        toast.success("SMTP Connection verified successfully!");      } else {        setTestSuccess(false);        toast.error(res.message || "SMTP Connection test failed. Check your credentials.");      }    } catch (err) {      setTestSuccess(false);      toast.error(err instanceof Error ? err.message : "Connection test failed.");    } finally {      setIsTestingConfig(false);    }  };  // AI Generation Handlers (Connected directly to POST /api/store/email-marketing/generate-ai)  const handleGenerateSubjectAi = async () => {    const promptText = aiPrompt.trim() || subject.trim() || "Promotional newsletter for customer leads";    setIsGeneratingSubject(true);    try {      const res = await generateStoreEmailMarketingAI({        mode: "subject",        prompt: promptText,        recipient: recipients.split(",")[0]?.trim() || "Recipient",        tone,        length,      });      if (res.success && res.subject) {        setSubject(res.subject);        toast.success("AI Subject generated successfully!");      } else {        toast.error(res.error || res.message || "Failed to generate subject.");      }    } catch (err) {      toast.error(err instanceof Error ? err.message : "AI generation failed.");    } finally {      setIsGeneratingSubject(false);    }  };  const handleGenerateBodyAi = async () => {    const promptText = aiPrompt.trim() || "Promotional email introducing new service features";    setIsGeneratingBody(true);    try {      const res = await generateStoreEmailMarketingAI({        mode: "body",        prompt: promptText,        recipient: recipients.split(",")[0]?.trim() || "Valued Customer",        existing_subject: subject.trim() || undefined,        tone,        length,      });      if (res.success && res.body) {        setBody(res.body);        toast.success("AI Body copy generated successfully!");      } else {        toast.error(res.error || res.message || "Failed to generate email body.");      }    } catch (err) {      toast.error(err instanceof Error ? err.message : "AI generation failed.");    } finally {      setIsGeneratingBody(false);    }  };  const handleDraftFullEmailAi = async () => {    if (!aiPrompt.trim()) {      toast.error("Please enter a campaign topic or objective in the AI Studio prompt box.");      return;    }    setIsGeneratingFull(true);    try {      const res = await generateStoreEmailMarketingAI({        mode: "full",        prompt: aiPrompt.trim(),        recipient: recipients.split(",")[0]?.trim() || "Customer",        tone,        length,      });      if (res.success) {        if (res.subject) setSubject(res.subject);        if (res.body) setBody(res.body);        toast.success("Full campaign draft generated by local FLAN-T5 AI!");      } else {        toast.error(res.error || res.message || "Failed to generate full email.");      }    } catch (err) {      toast.error(err instanceof Error ? err.message : "AI generation failed.");    } finally {      setIsGeneratingFull(false);    }  };  // Send Campaign Handler  const handleSendCampaign = async (e: React.FormEvent) => {    e.preventDefault();    if (!recipients.trim()) {      toast.error("Please enter at least one recipient email address.");      return;    }    if (!subject.trim()) {      toast.error("Subject is required.");      return;    }    if (!body.trim()) {      toast.error("Email body is required.");      return;    }    const recipientList = recipients      .split(",")      .map((r) => r.trim())      .filter(Boolean);    setIsSendingCampaign(true);    try {      const res = await sendStoreEmailCampaign({        subject: subject.trim(),        body: body.trim(),        recipients: recipientList,        is_html: true,      });      if (res.success && res.result?.success) {        toast.success(`Campaign sent successfully to ${recipientList.length} recipient(s)!`);      } else {        const errorMsg =          res.error ||          (res.result as any)?.error ||          "Campaign send failed. Please verify your SMTP settings.";        toast.error(errorMsg);      }    } catch (err) {      toast.error(err instanceof Error ? err.message : "Failed to send email campaign.");    } finally {      setIsSendingCampaign(false);    }  };  return (    <div className="container mx-auto p-6 max-w-7xl space-y-6">      {/* Header Bar */}      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border/40 pb-4">        <div>          <div className="flex items-center gap-2 mb-1">            <Link              to="/dashboard/store"              className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"            >              <ArrowLeft className="h-4 w-4 mr-1" />              Back to Store            </Link>          </div>          <div className="flex items-center gap-3">            <div className="p-2 rounded-xl bg-primary/10 text-primary border border-primary/20">              <Mail className="h-6 w-6" />            </div>            <div>              <div className="flex items-center gap-2">                <h1 className="text-2xl font-bold tracking-tight">Email Marketing</h1>                <Badge variant="outline" className="border-primary/40 text-primary bg-primary/5">                  Store Native                </Badge>                <Badge variant="secondary" className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20">                  FLAN-T5 Local AI                </Badge>              </div>              <p className="text-sm text-muted-foreground">                Automated bulk email marketing with local AI copy drafting & SMTP transport.              </p>            </div>          </div>        </div>        <div className="flex items-center gap-2">          <Button            variant="outline"            size="sm"            onClick={() => setShowAiStudio(!showAiStudio)}            className="border-primary/30 hover:border-primary/60 text-primary"          >            <Sparkles className="h-4 w-4 mr-2" />            {showAiStudio ? "Hide AI Studio" : "Open AI Studio"}          </Button>          <Link to="/dashboard/store">            <Button variant="secondary" size="sm">              <ShoppingBag className="h-4 w-4 mr-2" />              All Store Apps            </Button>          </Link>        </div>      </div>      {/* Main Grid: Left Column (SMTP Config), Right Column (Composer & AI Studio) */}      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">                {/* Left: SMTP Configuration Panel (5 cols) */}        <div className="lg:col-span-5 space-y-6">          <Card className="border-border/60 shadow-sm">            <CardHeader className="pb-3">              <div className="flex items-center justify-between">                <div className="flex items-center gap-2">                  <Server className="h-5 w-5 text-primary" />                  <CardTitle className="text-lg">SMTP Connection</CardTitle>                </div>                {isConfigured ? (                  <Badge variant="outline" className="bg-emerald-500/10 text-emerald-500 border-emerald-500/30">                    <CheckCircle className="h-3 w-3 mr-1" /> Configured                  </Badge>                ) : (                  <Badge variant="outline" className="bg-amber-500/10 text-amber-500 border-amber-500/30">                    <AlertCircle className="h-3 w-3 mr-1" /> Setup Required                  </Badge>                )}              </div>              <CardDescription>                Configure the outgoing mail server for your bulk email campaigns.              </CardDescription>            </CardHeader>            <CardContent className="space-y-4">              {/* Presets */}              <div className="space-y-1.5">                <Label className="text-xs text-muted-foreground">Quick Presets</Label>                <div className="grid grid-cols-4 gap-2">                  {(["gmail", "outlook", "yahoo", "custom"] as ProviderPreset[]).map((p) => (                    <Button                      key={p}                      type="button"                      variant={selectedPreset === p ? "default" : "outline"}                      size="sm"                      className="text-xs capitalize"                      onClick={() => handlePresetSelect(p)}                    >                      {p}                    </Button>                  ))}                </div>              </div>              {/* Host & Port */}              <div className="grid grid-cols-3 gap-3">                <div className="col-span-2 space-y-1">                  <Label htmlFor="smtpHost" className="text-xs">SMTP Host</Label>                  <Input                    id="smtpHost"                    value={smtpHost}                    onChange={(e) => setSmtpHost(e.target.value)}                    placeholder="smtp.gmail.com"                    className="text-sm"                  />                </div>                <div className="space-y-1">                  <Label htmlFor="smtpPort" className="text-xs">Port</Label>                  <Input                    id="smtpPort"                    value={smtpPort}                    onChange={(e) => setSmtpPort(e.target.value)}                    placeholder="587"                    className="text-sm"                  />                </div>              </div>              {/* Sender Email */}              <div className="space-y-1">                <Label htmlFor="senderEmail" className="text-xs">Sender Email</Label>                <Input                  id="senderEmail"                  type="email"                  value={senderEmail}                  onChange={(e) => setSenderEmail(e.target.value)}                  placeholder="marketing@company.com"                  className="text-sm"                />              </div>              {/* Sender Name */}              <div className="space-y-1">                <Label htmlFor="senderName" className="text-xs">Sender Display Name (Optional)</Label>                <Input                  id="senderName"                  value={senderName}                  onChange={(e) => setSenderName(e.target.value)}                  placeholder="Acme Growth Team"                  className="text-sm"                />              </div>              {/* Password / App Password */}              <div className="space-y-1">                <Label htmlFor="passwordOrApiKey" className="text-xs">Password / App Password</Label>                <div className="relative">                  <Input                    id="passwordOrApiKey"                    type={showPassword ? "text" : "password"}                    value={passwordOrApiKey}                    onChange={(e) => setPasswordOrApiKey(e.target.value)}                    placeholder="G求G求G求G求G求G求G求G求G求G求G求G求G求G求G求G求"                    className="text-sm pr-10"                  />                  <Button                    type="button"                    variant="ghost"                    size="sm"                    className="absolute right-0 top-0 h-full px-3 text-muted-foreground hover:text-foreground"                    onClick={() => setShowPassword(!showPassword)}                  >                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}                  </Button>                </div>                <p className="text-[11px] text-muted-foreground">                  For Gmail, use a 16-character <em>App Password</em> with 2FA enabled.                </p>              </div>              {/* Actions */}              <div className="pt-2 flex items-center gap-2">                <Button                  onClick={handleSaveConfig}                  disabled={isSavingConfig}                  className="flex-1"                  size="sm"                >                  {isSavingConfig ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}                  Save Config                </Button>                <Button                  onClick={handleTestConnection}                  disabled={isTestingConfig || !isConfigured}                  variant="outline"                  size="sm"                  className="flex-1"                >                  {isTestingConfig ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Server className="h-4 w-4 mr-2" />}                  Test Connection                </Button>              </div>              {testSuccess !== null && (                <div                  className={`text-xs p-2.5 rounded-lg border ${                    testSuccess                      ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400"                      : "bg-destructive/10 border-destructive/20 text-destructive"                  }`}                >                  {testSuccess ? "G｀ SMTP server connection verified successfully!" : "Gヮ Connection test failed. Please verify credentials."}                </div>              )}            </CardContent>          </Card>        </div>        {/* Right: Campaign Composer & Local AI Studio (7 cols) */}        <div className="lg:col-span-7 space-y-6">                    {/* AI Drafting Studio Banner / Drawer */}          {(showAiStudio || !subject) && (            <Card className="border-primary/30 bg-primary/5 shadow-sm">              <CardHeader className="pb-2">                <div className="flex items-center justify-between">                  <div className="flex items-center gap-2">                    <Sparkles className="h-5 w-5 text-primary" />                    <CardTitle className="text-base font-semibold">Local FLAN-T5 AI Studio</CardTitle>                  </div>                  <Badge variant="outline" className="border-primary/30 text-primary text-[11px]">                    No external APIs                  </Badge>                </div>                <CardDescription className="text-xs">                  Describe what your campaign should communicate and let our local model draft subject and copy.                </CardDescription>              </CardHeader>              <CardContent className="space-y-3">                <div className="space-y-1">                  <Label htmlFor="aiPrompt" className="text-xs font-medium">Campaign Purpose / Context</Label>                  <Textarea                    id="aiPrompt"                    rows={2}                    value={aiPrompt}                    onChange={(e) => setAiPrompt(e.target.value)}                    placeholder="e.g. Notify clients about an upcoming recommendation engine update in Project Nimbus"                    className="text-sm bg-background/80"                  />                </div>                <div className="grid grid-cols-2 gap-3">                  <div className="space-y-1">                    <Label className="text-xs">Tone</Label>                    <Select value={tone} onValueChange={setTone}>                      <SelectTrigger className="text-xs bg-background/80">                        <SelectValue placeholder="Tone" />                      </SelectTrigger>                      <SelectContent>                        <SelectItem value="Professional">Professional</SelectItem>                        <SelectItem value="Friendly">Friendly</SelectItem>                        <SelectItem value="Persuasive">Persuasive</SelectItem>                        <SelectItem value="Urgent">Urgent</SelectItem>                      </SelectContent>                    </Select>                  </div>                  <div className="space-y-1">                    <Label className="text-xs">Length</Label>                    <Select value={length} onValueChange={setLength}>                      <SelectTrigger className="text-xs bg-background/80">                        <SelectValue placeholder="Length" />                      </SelectTrigger>                      <SelectContent>                        <SelectItem value="Short">Short</SelectItem>                        <SelectItem value="Medium">Medium</SelectItem>                        <SelectItem value="Detailed">Detailed</SelectItem>                      </SelectContent>                    </Select>                  </div>                </div>                <div className="flex flex-wrap items-center gap-2 pt-1">                  <Button                    type="button"                    onClick={handleDraftFullEmailAi}                    disabled={isGeneratingFull || isGeneratingSubject || isGeneratingBody}                    size="sm"                    className="bg-primary hover:bg-primary/90 text-xs"                  >                    {isGeneratingFull ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" /> : <Wand2 className="h-3.5 w-3.5 mr-1.5" />}                    Draft Entire Email                  </Button>                  <Button                    type="button"                    variant="outline"                    onClick={handleGenerateSubjectAi}                    disabled={isGeneratingSubject || isGeneratingFull}                    size="sm"                    className="text-xs"                  >                    {isGeneratingSubject ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" /> : <Sparkles className="h-3.5 w-3.5 mr-1.5" />}                    Generate Subject                  </Button>                  <Button                    type="button"                    variant="outline"                    onClick={handleGenerateBodyAi}                    disabled={isGeneratingBody || isGeneratingFull}                    size="sm"                    className="text-xs"                  >                    {isGeneratingBody ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" /> : <Sparkles className="h-3.5 w-3.5 mr-1.5" />}                    Generate Body                  </Button>                </div>              </CardContent>            </Card>          )}          {/* Campaign Composer Form */}          <Card className="border-border/60 shadow-sm">            <CardHeader className="pb-3">              <CardTitle className="text-lg">Campaign Composer</CardTitle>              <CardDescription>                Compose your message and dispatch to your recipient list.              </CardDescription>            </CardHeader>            <CardContent>              <form onSubmit={handleSendCampaign} className="space-y-4">                {/* Recipients */}                <div className="space-y-1">                  <Label htmlFor="recipients" className="text-xs font-medium">Recipients (comma-separated)</Label>                  <Input                    id="recipients"                    value={recipients}                    onChange={(e) => setRecipients(e.target.value)}                    placeholder="chloe.taylor@example.com, rahul.naidu@example.com"                    className="text-sm"                  />                </div>                {/* Subject Line */}                <div className="space-y-1">                  <div className="flex items-center justify-between">                    <Label htmlFor="subject" className="text-xs font-medium">Subject Line</Label>                    <Button                      type="button"                      variant="ghost"                      size="sm"                      onClick={handleGenerateSubjectAi}                      disabled={isGeneratingSubject}                      className="h-6 text-[11px] text-primary hover:text-primary px-2"                    >                      {isGeneratingSubject ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : <Wand2 className="h-3 w-3 mr-1" />}                      AI Subject                    </Button>                  </div>                  <Input                    id="subject"                    value={subject}                    onChange={(e) => setSubject(e.target.value)}                    placeholder="e.g. Project Nimbus: Recommendation Engine Update"                    className="text-sm"                  />                </div>                {/* Email Body */}                <div className="space-y-1">                  <div className="flex items-center justify-between">                    <Label htmlFor="body" className="text-xs font-medium">Email Body</Label>                    <Button                      type="button"                      variant="ghost"                      size="sm"                      onClick={handleGenerateBodyAi}                      disabled={isGeneratingBody}                      className="h-6 text-[11px] text-primary hover:text-primary px-2"                    >                      {isGeneratingBody ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : <Wand2 className="h-3 w-3 mr-1" />}                      AI Body                    </Button>                  </div>                  <Textarea                    id="body"                    rows={8}                    value={body}                    onChange={(e) => setBody(e.target.value)}                    placeholder="Write your email body here or use AI to draft it..."                    className="text-sm font-sans leading-relaxed"                  />                </div>                {/* Send Action */}                <div className="pt-2 flex items-center justify-between">                  <div className="text-xs text-muted-foreground">                    {body.trim() ? `${body.trim().split(/\s+/).length} words` : "0 words"}                  </div>                  <Button                    type="submit"                    disabled={isSendingCampaign || !body.trim() || !subject.trim() || !recipients.trim()}                    className="bg-primary hover:bg-primary/90"                  >                    {isSendingCampaign ? (                      <>                        <Loader2 className="h-4 w-4 animate-spin mr-2" /> Sending Campaign...                      </>                    ) : (                      <>                        <Send className="h-4 w-4 mr-2" /> Send Campaign                      </>                    )}                  </Button>                </div>              </form>            </CardContent>          </Card>        </div>      </div>    </div>  );}
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useState, useEffect } from "react";
+import {
+  ArrowLeft,
+  Sparkles,
+  Loader2,
+  Mail,
+  Send,
+  Save,
+  CheckCircle,
+  AlertCircle,
+  ShoppingBag,
+  Server,
+  Wand2,
+  Eye,
+  EyeOff,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
+import {
+  generateStoreEmailMarketingAI,
+  saveStoreEmailMarketingConfig,
+  testStoreEmailMarketingConnection,
+  getStoreEmailMarketingDetails,
+  sendStoreEmailCampaign,
+} from "@/lib/storeApi";
+import * as PluginAPI from "@/lib/pluginsApi";
+
+type ProviderPreset = "gmail" | "outlook" | "yahoo" | "custom";
+
+export const Route = createFileRoute("/dashboard/store/email-marketing")({
+  head: () => ({
+    meta: [{ title: "Store 螕脟枚 Email Marketing 螕脟枚 Saadhyam AI" }],
+  }),
+  component: StoreEmailMarketingPage,
+});
+
+function StoreEmailMarketingPage() {
+  // Page Loading State
+  const [isLoadingDetails, setIsLoadingDetails] = useState(true);
+  const [isConfigured, setIsConfigured] = useState(false);
+
+  // SMTP Settings State
+  const [smtpHost, setSmtpHost] = useState("");
+  const [smtpPort, setSmtpPort] = useState("587");
+  const [senderEmail, setSenderEmail] = useState("");
+  const [senderName, setSenderName] = useState("");
+  const [passwordOrApiKey, setPasswordOrApiKey] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [selectedPreset, setSelectedPreset] = useState<ProviderPreset>("gmail");
+  const [isSavingConfig, setIsSavingConfig] = useState(false);
+  const [isTestingConfig, setIsTestingConfig] = useState(false);
+  const [testSuccess, setTestSuccess] = useState<boolean | null>(null);
+
+  // Campaign Composer State
+  const [recipients, setRecipients] = useState("");
+  const [subject, setSubject] = useState("");
+  const [body, setBody] = useState("");
+  const [tone, setTone] = useState("Professional");
+  const [length, setLength] = useState("Medium");
+  const [isSendingCampaign, setIsSendingCampaign] = useState(false);
+
+  // AI Assistant States
+  const [aiPrompt, setAiPrompt] = useState("");
+  const [isGeneratingFull, setIsGeneratingFull] = useState(false);
+  const [isGeneratingSubject, setIsGeneratingSubject] = useState(false);
+  const [isGeneratingBody, setIsGeneratingBody] = useState(false);
+  const [showAiStudio, setShowAiStudio] = useState(false);
+
+  // Load existing SMTP configuration on mount
+  useEffect(() => {
+    loadConfig();
+  }, []);
+
+  const loadConfig = async () => {
+    setIsLoadingDetails(true);
+    try {
+      const details = await getStoreEmailMarketingDetails();
+      const installed = await PluginAPI.getInstalledPluginsDetailed();
+      const match = installed.find((p) => p.plugin_key === "sales_email_marketing");
+
+      if (match && match.user_config) {
+        const cfg = match.user_config as Record<string, any>;
+        setSmtpHost(cfg.smtp_host || "");
+        setSmtpPort(cfg.smtp_port ? String(cfg.smtp_port) : "587");
+        setSenderEmail(cfg.sender_email || "");
+        setSenderName(cfg.sender_name || "");
+        setPasswordOrApiKey(cfg.password_or_api_key || "");
+        setIsConfigured(Boolean(cfg.smtp_host && cfg.sender_email && cfg.password_or_api_key));
+      } else if (details.configured) {
+        setIsConfigured(true);
+      }
+    } catch (err) {
+      console.warn("Could not fetch existing SMTP config:", err);
+    } finally {
+      setIsLoadingDetails(false);
+    }
+  };
+
+  // Handle Preset Switching
+  const handlePresetSelect = (preset: ProviderPreset) => {
+    setSelectedPreset(preset);
+    if (preset === "gmail") {
+      setSmtpHost("smtp.gmail.com");
+      setSmtpPort("587");
+    } else if (preset === "outlook") {
+      setSmtpHost("smtp-mail.outlook.com");
+      setSmtpPort("587");
+    } else if (preset === "yahoo") {
+      setSmtpHost("smtp.mail.yahoo.com");
+      setSmtpPort("587");
+    }
+  };
+
+  // Save SMTP Settings
+  const handleSaveConfig = async () => {
+    if (!smtpHost.trim() || !smtpPort.trim() || !senderEmail.trim() || !passwordOrApiKey.trim()) {
+      toast.error("Please fill in all required SMTP configuration fields.");
+      return;
+    }
+
+    setIsSavingConfig(true);
+    try {
+      const res = await saveStoreEmailMarketingConfig({
+        smtp_host: smtpHost.trim(),
+        smtp_port: parseInt(smtpPort.trim(), 10),
+        sender_email: senderEmail.trim(),
+        password_or_api_key: passwordOrApiKey.trim(),
+        sender_name: senderName.trim() || undefined,
+      });
+
+      if (res.success) {
+        setIsConfigured(true);
+        toast.success("SMTP Configuration saved successfully!");
+      } else {
+        toast.error(res.message || "Failed to save configuration.");
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to save configuration.");
+    } finally {
+      setIsSavingConfig(false);
+    }
+  };
+
+  // Test SMTP Connection
+  const handleTestConnection = async () => {
+    setIsTestingConfig(true);
+    setTestSuccess(null);
+    try {
+      const res = await testStoreEmailMarketingConnection();
+      if (res.success) {
+        setTestSuccess(true);
+        toast.success("SMTP Connection verified successfully!");
+      } else {
+        setTestSuccess(false);
+        toast.error(res.message || "SMTP Connection test failed. Check your credentials.");
+      }
+    } catch (err) {
+      setTestSuccess(false);
+      toast.error(err instanceof Error ? err.message : "Connection test failed.");
+    } finally {
+      setIsTestingConfig(false);
+    }
+  };
+
+  // AI Generation Handlers (Connected directly to POST /api/store/email-marketing/generate-ai)
+  const handleGenerateSubjectAi = async () => {
+    const promptText = aiPrompt.trim() || subject.trim() || "Promotional newsletter for customer leads";
+    setIsGeneratingSubject(true);
+    try {
+      const res = await generateStoreEmailMarketingAI({
+        mode: "subject",
+        prompt: promptText,
+        recipient: recipients.split(",")[0]?.trim() || "Recipient",
+        tone,
+        length,
+      });
+
+      if (res.success && res.subject) {
+        setSubject(res.subject);
+        toast.success("AI Subject generated successfully!");
+      } else {
+        toast.error(res.error || res.message || "Failed to generate subject.");
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "AI generation failed.");
+    } finally {
+      setIsGeneratingSubject(false);
+    }
+  };
+
+  const handleGenerateBodyAi = async () => {
+    const promptText = aiPrompt.trim() || "Promotional email introducing new service features";
+    setIsGeneratingBody(true);
+    try {
+      const res = await generateStoreEmailMarketingAI({
+        mode: "body",
+        prompt: promptText,
+        recipient: recipients.split(",")[0]?.trim() || "Valued Customer",
+        existing_subject: subject.trim() || undefined,
+        tone,
+        length,
+      });
+
+      if (res.success && res.body) {
+        setBody(res.body);
+        toast.success("AI Body copy generated successfully!");
+      } else {
+        toast.error(res.error || res.message || "Failed to generate email body.");
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "AI generation failed.");
+    } finally {
+      setIsGeneratingBody(false);
+    }
+  };
+
+  const handleDraftFullEmailAi = async () => {
+    if (!aiPrompt.trim()) {
+      toast.error("Please enter a campaign topic or objective in the AI Studio prompt box.");
+      return;
+    }
+
+    setIsGeneratingFull(true);
+    try {
+      const res = await generateStoreEmailMarketingAI({
+        mode: "full",
+        prompt: aiPrompt.trim(),
+        recipient: recipients.split(",")[0]?.trim() || "Customer",
+        tone,
+        length,
+      });
+
+      if (res.success) {
+        if (res.subject) setSubject(res.subject);
+        if (res.body) setBody(res.body);
+        toast.success("Full campaign draft generated by local FLAN-T5 AI!");
+      } else {
+        toast.error(res.error || res.message || "Failed to generate full email.");
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "AI generation failed.");
+    } finally {
+      setIsGeneratingFull(false);
+    }
+  };
+
+  // Send Campaign Handler
+  const handleSendCampaign = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!recipients.trim()) {
+      toast.error("Please enter at least one recipient email address.");
+      return;
+    }
+    if (!subject.trim()) {
+      toast.error("Subject is required.");
+      return;
+    }
+    if (!body.trim()) {
+      toast.error("Email body is required.");
+      return;
+    }
+
+    const recipientList = recipients
+      .split(",")
+      .map((r) => r.trim())
+      .filter(Boolean);
+
+    setIsSendingCampaign(true);
+    try {
+      const res = await sendStoreEmailCampaign({
+        subject: subject.trim(),
+        body: body.trim(),
+        recipients: recipientList,
+        is_html: true,
+      });
+
+      if (res.success && res.result?.success) {
+        toast.success(`Campaign sent successfully to ${recipientList.length} recipient(s)!`);
+      } else {
+        const errorMsg =
+          res.error ||
+          (res.result as any)?.error ||
+          "Campaign send failed. Please verify your SMTP settings.";
+        toast.error(errorMsg);
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to send email campaign.");
+    } finally {
+      setIsSendingCampaign(false);
+    }
+  };
+
+  return (
+    <div className="container mx-auto p-6 max-w-7xl space-y-6">
+      {/* Header Bar */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border/40 pb-4">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <Link
+              to="/dashboard/store"
+              className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <ArrowLeft className="h-4 w-4 mr-1" />
+              Back to Store
+            </Link>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-xl bg-primary/10 text-primary border border-primary/20">
+              <Mail className="h-6 w-6" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h1 className="text-2xl font-bold tracking-tight">Email Marketing</h1>
+                <Badge variant="outline" className="border-primary/40 text-primary bg-primary/5">
+                  Store Native
+                </Badge>
+                <Badge variant="secondary" className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20">
+                  FLAN-T5 Local AI
+                </Badge>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Automated bulk email marketing with local AI copy drafting & SMTP transport.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowAiStudio(!showAiStudio)}
+            className="border-primary/30 hover:border-primary/60 text-primary"
+          >
+            <Sparkles className="h-4 w-4 mr-2" />
+            {showAiStudio ? "Hide AI Studio" : "Open AI Studio"}
+          </Button>
+          <Link to="/dashboard/store">
+            <Button variant="secondary" size="sm">
+              <ShoppingBag className="h-4 w-4 mr-2" />
+              All Store Apps
+            </Button>
+          </Link>
+        </div>
+      </div>
+
+      {/* Main Grid: Left Column (SMTP Config), Right Column (Composer & AI Studio) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        {/* Left: SMTP Configuration Panel (5 cols) */}
+        <div className="lg:col-span-5 space-y-6">
+          <Card className="border-border/60 shadow-sm">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Server className="h-5 w-5 text-primary" />
+                  <CardTitle className="text-lg">SMTP Connection</CardTitle>
+                </div>
+                {isConfigured ? (
+                  <Badge variant="outline" className="bg-emerald-500/10 text-emerald-500 border-emerald-500/30">
+                    <CheckCircle className="h-3 w-3 mr-1" /> Configured
+                  </Badge>
+                ) : (
+                  <Badge variant="outline" className="bg-amber-500/10 text-amber-500 border-amber-500/30">
+                    <AlertCircle className="h-3 w-3 mr-1" /> Setup Required
+                  </Badge>
+                )}
+              </div>
+              <CardDescription>
+                Configure the outgoing mail server for your bulk email campaigns.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Presets */}
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">Quick Presets</Label>
+                <div className="grid grid-cols-4 gap-2">
+                  {(["gmail", "outlook", "yahoo", "custom"] as ProviderPreset[]).map((p) => (
+                    <Button
+                      key={p}
+                      type="button"
+                      variant={selectedPreset === p ? "default" : "outline"}
+                      size="sm"
+                      className="text-xs capitalize"
+                      onClick={() => handlePresetSelect(p)}
+                    >
+                      {p}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Host & Port */}
+              <div className="grid grid-cols-3 gap-3">
+                <div className="col-span-2 space-y-1">
+                  <Label htmlFor="smtpHost" className="text-xs">SMTP Host</Label>
+                  <Input
+                    id="smtpHost"
+                    value={smtpHost}
+                    onChange={(e) => setSmtpHost(e.target.value)}
+                    placeholder="smtp.gmail.com"
+                    className="text-sm"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor="smtpPort" className="text-xs">Port</Label>
+                  <Input
+                    id="smtpPort"
+                    value={smtpPort}
+                    onChange={(e) => setSmtpPort(e.target.value)}
+                    placeholder="587"
+                    className="text-sm"
+                  />
+                </div>
+              </div>
+
+              {/* Sender Email */}
+              <div className="space-y-1">
+                <Label htmlFor="senderEmail" className="text-xs">Sender Email</Label>
+                <Input
+                  id="senderEmail"
+                  type="email"
+                  value={senderEmail}
+                  onChange={(e) => setSenderEmail(e.target.value)}
+                  placeholder="marketing@company.com"
+                  className="text-sm"
+                />
+              </div>
+
+              {/* Sender Name */}
+              <div className="space-y-1">
+                <Label htmlFor="senderName" className="text-xs">Sender Display Name (Optional)</Label>
+                <Input
+                  id="senderName"
+                  value={senderName}
+                  onChange={(e) => setSenderName(e.target.value)}
+                  placeholder="Acme Growth Team"
+                  className="text-sm"
+                />
+              </div>
+
+              {/* Password / App Password */}
+              <div className="space-y-1">
+                <Label htmlFor="passwordOrApiKey" className="text-xs">Password / App Password</Label>
+                <div className="relative">
+                  <Input
+                    id="passwordOrApiKey"
+                    type={showPassword ? "text" : "password"}
+                    value={passwordOrApiKey}
+                    onChange={(e) => setPasswordOrApiKey(e.target.value)}
+                    placeholder="螕脟贸螕脟贸螕脟贸螕脟贸螕脟贸螕脟贸螕脟贸螕脟贸螕脟贸螕脟贸螕脟贸螕脟贸螕脟贸螕脟贸螕脟贸螕脟贸"
+                    className="text-sm pr-10"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-0 top-0 h-full px-3 text-muted-foreground hover:text-foreground"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </Button>
+                </div>
+                <p className="text-[11px] text-muted-foreground">
+                  For Gmail, use a 16-character <em>App Password</em> with 2FA enabled.
+                </p>
+              </div>
+
+              {/* Actions */}
+              <div className="pt-2 flex items-center gap-2">
+                <Button
+                  onClick={handleSaveConfig}
+                  disabled={isSavingConfig}
+                  className="flex-1"
+                  size="sm"
+                >
+                  {isSavingConfig ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
+                  Save Config
+                </Button>
+                <Button
+                  onClick={handleTestConnection}
+                  disabled={isTestingConfig || !isConfigured}
+                  variant="outline"
+                  size="sm"
+                  className="flex-1"
+                >
+                  {isTestingConfig ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Server className="h-4 w-4 mr-2" />}
+                  Test Connection
+                </Button>
+              </div>
+
+              {testSuccess !== null && (
+                <div
+                  className={`text-xs p-2.5 rounded-lg border ${
+                    testSuccess
+                      ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400"
+                      : "bg-destructive/10 border-destructive/20 text-destructive"
+                  }`}
+                >
+                  {testSuccess ? "螕拢脿 SMTP server connection verified successfully!" : "螕楼卯 Connection test failed. Please verify credentials."}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Right: Campaign Composer & Local AI Studio (7 cols) */}
+        <div className="lg:col-span-7 space-y-6">
+          
+          {/* AI Drafting Studio Banner / Drawer */}
+          {(showAiStudio || !subject) && (
+            <Card className="border-primary/30 bg-primary/5 shadow-sm">
+              <CardHeader className="pb-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="h-5 w-5 text-primary" />
+                    <CardTitle className="text-base font-semibold">Local FLAN-T5 AI Studio</CardTitle>
+                  </div>
+                  <Badge variant="outline" className="border-primary/30 text-primary text-[11px]">
+                    No external APIs
+                  </Badge>
+                </div>
+                <CardDescription className="text-xs">
+                  Describe what your campaign should communicate and let our local model draft subject and copy.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="space-y-1">
+                  <Label htmlFor="aiPrompt" className="text-xs font-medium">Campaign Purpose / Context</Label>
+                  <Textarea
+                    id="aiPrompt"
+                    rows={2}
+                    value={aiPrompt}
+                    onChange={(e) => setAiPrompt(e.target.value)}
+                    placeholder="e.g. Notify clients about an upcoming recommendation engine update in Project Nimbus"
+                    className="text-sm bg-background/80"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <Label className="text-xs">Tone</Label>
+                    <Select value={tone} onValueChange={setTone}>
+                      <SelectTrigger className="text-xs bg-background/80">
+                        <SelectValue placeholder="Tone" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Professional">Professional</SelectItem>
+                        <SelectItem value="Friendly">Friendly</SelectItem>
+                        <SelectItem value="Persuasive">Persuasive</SelectItem>
+                        <SelectItem value="Urgent">Urgent</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs">Length</Label>
+                    <Select value={length} onValueChange={setLength}>
+                      <SelectTrigger className="text-xs bg-background/80">
+                        <SelectValue placeholder="Length" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Short">Short</SelectItem>
+                        <SelectItem value="Medium">Medium</SelectItem>
+                        <SelectItem value="Detailed">Detailed</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2 pt-1">
+                  <Button
+                    type="button"
+                    onClick={handleDraftFullEmailAi}
+                    disabled={isGeneratingFull || isGeneratingSubject || isGeneratingBody}
+                    size="sm"
+                    className="bg-primary hover:bg-primary/90 text-xs"
+                  >
+                    {isGeneratingFull ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" /> : <Wand2 className="h-3.5 w-3.5 mr-1.5" />}
+                    Draft Entire Email
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleGenerateSubjectAi}
+                    disabled={isGeneratingSubject || isGeneratingFull}
+                    size="sm"
+                    className="text-xs"
+                  >
+                    {isGeneratingSubject ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" /> : <Sparkles className="h-3.5 w-3.5 mr-1.5" />}
+                    Generate Subject
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleGenerateBodyAi}
+                    disabled={isGeneratingBody || isGeneratingFull}
+                    size="sm"
+                    className="text-xs"
+                  >
+                    {isGeneratingBody ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" /> : <Sparkles className="h-3.5 w-3.5 mr-1.5" />}
+                    Generate Body
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Campaign Composer Form */}
+          <Card className="border-border/60 shadow-sm">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg">Campaign Composer</CardTitle>
+              <CardDescription>
+                Compose your message and dispatch to your recipient list.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSendCampaign} className="space-y-4">
+                {/* Recipients */}
+                <div className="space-y-1">
+                  <Label htmlFor="recipients" className="text-xs font-medium">Recipients (comma-separated)</Label>
+                  <Input
+                    id="recipients"
+                    value={recipients}
+                    onChange={(e) => setRecipients(e.target.value)}
+                    placeholder="chloe.taylor@example.com, rahul.naidu@example.com"
+                    className="text-sm"
+                  />
+                </div>
+
+                {/* Subject Line */}
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="subject" className="text-xs font-medium">Subject Line</Label>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleGenerateSubjectAi}
+                      disabled={isGeneratingSubject}
+                      className="h-6 text-[11px] text-primary hover:text-primary px-2"
+                    >
+                      {isGeneratingSubject ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : <Wand2 className="h-3 w-3 mr-1" />}
+                      AI Subject
+                    </Button>
+                  </div>
+                  <Input
+                    id="subject"
+                    value={subject}
+                    onChange={(e) => setSubject(e.target.value)}
+                    placeholder="e.g. Project Nimbus: Recommendation Engine Update"
+                    className="text-sm"
+                  />
+                </div>
+
+                {/* Email Body */}
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="body" className="text-xs font-medium">Email Body</Label>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleGenerateBodyAi}
+                      disabled={isGeneratingBody}
+                      className="h-6 text-[11px] text-primary hover:text-primary px-2"
+                    >
+                      {isGeneratingBody ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : <Wand2 className="h-3 w-3 mr-1" />}
+                      AI Body
+                    </Button>
+                  </div>
+                  <Textarea
+                    id="body"
+                    rows={8}
+                    value={body}
+                    onChange={(e) => setBody(e.target.value)}
+                    placeholder="Write your email body here or use AI to draft it..."
+                    className="text-sm font-sans leading-relaxed"
+                  />
+                </div>
+
+                {/* Send Action */}
+                <div className="pt-2 flex items-center justify-between">
+                  <div className="text-xs text-muted-foreground">
+                    {body.trim() ? `${body.trim().split(/\s+/).length} words` : "0 words"}
+                  </div>
+                  <Button
+                    type="submit"
+                    disabled={isSendingCampaign || !body.trim() || !subject.trim() || !recipients.trim()}
+                    className="bg-primary hover:bg-primary/90"
+                  >
+                    {isSendingCampaign ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin mr-2" /> Sending Campaign...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="h-4 w-4 mr-2" /> Send Campaign
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
+}

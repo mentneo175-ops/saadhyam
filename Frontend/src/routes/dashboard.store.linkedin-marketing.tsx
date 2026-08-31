@@ -1,1 +1,1292 @@
-import { useState, useEffect } from "react";import { createFileRoute, Link } from "@tanstack/react-router";import {  ArrowLeft,  Sparkles,  Loader2,  Copy,  CheckCircle,  Download,  Trash2,  Clock,  Info,  CheckCircle2,  AlertCircle,  Send,  ExternalLink,  RefreshCw,  Share2,  ThumbsUp,  MessageSquare,  Repeat,  ShoppingBag,  Unlink,  Globe,  Settings,  ChevronDown,  ChevronUp,  Shield,  KeyRound,  Lock,  Save,} from "lucide-react";import { Button } from "@/components/ui/button";import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";import { Input } from "@/components/ui/input";import { Textarea } from "@/components/ui/textarea";import { Label } from "@/components/ui/label";import { Badge } from "@/components/ui/badge";import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";import {  Dialog,  DialogContent,  DialogDescription,  DialogFooter,  DialogHeader,  DialogTitle,} from "@/components/ui/dialog";import { toast } from "sonner";import { useAuthContext } from "@/lib/AuthContext";import {  getLinkedInConnectionStatus,  getLinkedInAuthorizationUrl,  disconnectLinkedIn,  publishLinkedInPost,  getLinkedInPostHistory,  generateLinkedInPost,  getLinkedInPluginConfig,  saveLinkedInPluginConfig,  LinkedInConnectionStatus,  LinkedInPostHistoryItem,  LinkedInPluginConfigStatus,} from "@/lib/storeApi";export const Route = createFileRoute("/dashboard/store/linkedin-marketing")({  head: () => ({    meta: [{ title: "Store GÇö LinkedIn Marketing GÇö Saadhyam AI" }],  }),  component: StoreLinkedInMarketingPage,});export function StoreLinkedInMarketingPage() {  const { user } = useAuthContext();  const isAdmin =    user?.role === "ADMIN" ||    user?.role === "SUPER_ADMIN" ||    (typeof user?.role === "string" && user.role.toUpperCase() === "ADMIN");  // Connection states  const [connection, setConnection] = useState<LinkedInConnectionStatus | null>(null);  const [isCheckingConnection, setIsCheckingConnection] = useState(true);  const [isConnecting, setIsConnecting] = useState(false);  const [isDisconnecting, setIsDisconnecting] = useState(false);  const [isDisconnectOpen, setIsDisconnectOpen] = useState(false);  // Admin OAuth Application Config states (Admin Only)  const [adminConfig, setAdminConfig] = useState<LinkedInPluginConfigStatus | null>(null);  const [isAdminConfigLoading, setIsAdminConfigLoading] = useState(false);  const [isAdminSaving, setIsAdminSaving] = useState(false);  const [showAdminConfig, setShowAdminConfig] = useState(false);  const [adminClientId, setAdminClientId] = useState("");  const [adminClientSecret, setAdminClientSecret] = useState("");  const [adminRedirectUri, setAdminRedirectUri] = useState("http://localhost:8000/api/linkedin/oauth/callback");  const [adminIsActive, setAdminIsActive] = useState(true);  // Brand Configuration states  const [showBrandConfig, setShowBrandConfig] = useState(false);  const [companyName, setCompanyName] = useState("");  const [brandName, setBrandName] = useState("");  const [industry, setIndustry] = useState("Technology / B2B");  const [targetAudience, setTargetAudience] = useState("B2B Decision Makers & Leaders");  const [tone, setTone] = useState("Professional");  // Post Generator & Composer states  const [topic, setTopic] = useState("");  const [keyPoints, setKeyPoints] = useState("");  const [callToAction, setCallToAction] = useState("");  const [desiredLength, setDesiredLength] = useState("Medium");  const [goal, setGoal] = useState("Brand Awareness");  const [template, setTemplate] = useState("Thought Leadership");  const [hashtagCount, setHashtagCount] = useState<string>("5");  const [isGenerating, setIsGenerating] = useState(false);  // Editor states  const [generatedText, setGeneratedText] = useState("");  const [generatedHashtags, setGeneratedHashtags] = useState<string[]>([]);  const [isCopied, setIsCopied] = useState(false);  const [isHashtagsCopied, setIsHashtagsCopied] = useState(false);  // Publishing states  const [isPublishing, setIsPublishing] = useState(false);  const [isPublishConfirmOpen, setIsPublishConfirmOpen] = useState(false);  // Post History states  const [history, setHistory] = useState<LinkedInPostHistoryItem[]>([]);  const [isLoadingHistory, setIsLoadingHistory] = useState(false);  // Parse URL query params for OAuth redirect results  useEffect(() => {    if (typeof window !== "undefined") {      const urlParams = new URLSearchParams(window.location.search);      const isConnected = urlParams.get("connected");      const errorMsg = urlParams.get("error");      if (isConnected === "true") {        toast.success("LinkedIn account connected successfully!");        window.history.replaceState({}, document.title, window.location.pathname);      } else if (errorMsg) {        toast.error(`LinkedIn connection failed: ${decodeURIComponent(errorMsg)}`);        window.history.replaceState({}, document.title, window.location.pathname);      }    }    // Load saved brand guidelines from localStorage    try {      const savedConfig = localStorage.getItem("saadhyam_linkedin_config");      if (savedConfig) {        const parsed = JSON.parse(savedConfig);        if (parsed.companyName) setCompanyName(parsed.companyName);        if (parsed.brandName) setBrandName(parsed.brandName);        if (parsed.industry) setIndustry(parsed.industry);        if (parsed.targetAudience) setTargetAudience(parsed.targetAudience);        if (parsed.tone) setTone(parsed.tone);      }    } catch {      // Ignore localStorage errors    }    fetchConnectionStatus();    fetchHistory();  }, []);  // Fetch admin config if user has admin role  useEffect(() => {    if (isAdmin) {      fetchAdminConfig();    }  }, [isAdmin]);  const fetchAdminConfig = async () => {    setIsAdminConfigLoading(true);    try {      const cfg = await getLinkedInPluginConfig();      setAdminConfig(cfg);      if (cfg.client_id) setAdminClientId(cfg.client_id);      if (cfg.redirect_uri) setAdminRedirectUri(cfg.redirect_uri);      setAdminIsActive(cfg.is_active);    } catch (err) {      console.error("Failed to load LinkedIn admin config:", err);    } finally {      setIsAdminConfigLoading(false);    }  };  const handleSaveAdminConfig = async (e: React.FormEvent) => {    e.preventDefault();    if (!adminClientId.trim() || !adminClientSecret.trim()) {      toast.error("Please provide both LinkedIn Client ID and Client Secret.");      return;    }    setIsAdminSaving(true);    try {      const res = await saveLinkedInPluginConfig({        client_id: adminClientId.trim(),        client_secret: adminClientSecret.trim(),        redirect_uri: adminRedirectUri.trim() || "http://localhost:8000/api/linkedin/oauth/callback",        is_active: adminIsActive,      });      setAdminConfig(res);      setAdminClientSecret("");      toast.success("LinkedIn OAuth application configuration saved securely!");      setShowAdminConfig(false);    } catch (err: any) {      console.error("Failed to save LinkedIn OAuth config:", err);      toast.error(err?.message || "Failed to save LinkedIn OAuth configuration.");    } finally {      setIsAdminSaving(false);    }  };  const fetchConnectionStatus = async () => {    setIsCheckingConnection(true);    try {      const status = await getLinkedInConnectionStatus();      setConnection(status);    } catch (err: any) {      console.error("Failed to check LinkedIn status:", err);      setConnection({        connected: false,        is_active: false,        member_name: null,        member_email: null,        member_id: null,        profile_picture: null,        connected_at: null,        expires_at: null,        is_expired: false,      });    } finally {      setIsCheckingConnection(false);    }  };  const fetchHistory = async () => {    setIsLoadingHistory(true);    try {      const list = await getLinkedInPostHistory(50);      setHistory(list);    } catch (err) {      console.error("Failed to fetch LinkedIn post history:", err);    } finally {      setIsLoadingHistory(false);    }  };  const handleConnectLinkedIn = async () => {    setIsConnecting(true);    try {      const res = await getLinkedInAuthorizationUrl();      if (res.success && res.auth_url) {        toast.info("Redirecting to LinkedIn for secure authorization...");        window.location.href = res.auth_url;      } else {        toast.error("Failed to retrieve LinkedIn authorization URL.");      }    } catch (err: any) {      console.error("LinkedIn OAuth initiation failed:", err);      toast.error(err?.message || "Failed to initiate LinkedIn connection.");    } finally {      setIsConnecting(false);    }  };  const handleDisconnectLinkedIn = async () => {    setIsDisconnecting(true);    try {      await disconnectLinkedIn();      toast.success("LinkedIn disconnected successfully.");      setIsDisconnectOpen(false);      await fetchConnectionStatus();    } catch (err: any) {      toast.error(err?.message || "Failed to disconnect LinkedIn.");    } finally {      setIsDisconnecting(false);    }  };  const handleSaveBrandConfig = () => {    try {      const cfg = { companyName, brandName, industry, targetAudience, tone };      localStorage.setItem("saadhyam_linkedin_config", JSON.stringify(cfg));      toast.success("Brand guidelines saved!");      setShowBrandConfig(false);    } catch {      toast.error("Failed to save brand settings.");    }  };  const handleGeneratePost = async () => {    if (!topic.trim()) {      toast.error("Please enter a topic or concept for your post.");      return;    }    setIsGenerating(true);    try {      const response = await generateLinkedInPost({        topic: topic.trim(),        goal,        tone,        company_name: companyName.trim() || undefined,        brand_name: brandName.trim() || undefined,        industry: industry.trim() || undefined,        target_audience: targetAudience.trim() || undefined,        key_points: keyPoints.trim() || undefined,        call_to_action: callToAction.trim() || undefined,        desired_length: desiredLength,        template,        hashtag_count: parseInt(hashtagCount, 10) || 5,      });      if (response.success && response.formatted_post) {        setGeneratedText(response.formatted_post);        setGeneratedHashtags(response.hashtags || []);        toast.success("LinkedIn post generated successfully!");      } else {        toast.error(response.message || "Failed to generate post.");      }    } catch (err: any) {      console.error("Failed to generate LinkedIn post:", err);      toast.error(err?.message || "An error occurred while generating post.");    } finally {      setIsGenerating(false);    }  };  const handlePublishPost = async () => {    if (!generatedText.trim()) {      toast.error("Composer is empty. Please generate or write a post first.");      return;    }    if (!connection?.connected) {      toast.error("Please connect your LinkedIn account first before publishing.");      return;    }    setIsPublishing(true);    try {      const response = await publishLinkedInPost({        content: generatedText.trim(),        topic: topic.trim() || "LinkedIn Post",        hashtags: generatedHashtags,      });      if (response.success) {        toast.success("=ƒÄë Post published to your LinkedIn profile successfully!");        setIsPublishConfirmOpen(false);        await fetchHistory();      } else {        toast.error(response.message || "Failed to publish post.");      }    } catch (err: any) {      console.error("Failed to publish to LinkedIn:", err);      toast.error(err?.message || "Failed to publish post to LinkedIn.");    } finally {      setIsPublishing(false);    }  };  const handleCopyPost = () => {    if (!generatedText) return;    navigator.clipboard.writeText(generatedText);    setIsCopied(true);    toast.success("Post content copied to clipboard!");    setTimeout(() => setIsCopied(false), 2000);  };  const handleCopyHashtags = () => {    if (!generatedHashtags.length) return;    navigator.clipboard.writeText(generatedHashtags.join(" "));    setIsHashtagsCopied(true);    toast.success("Hashtags copied to clipboard!");    setTimeout(() => setIsHashtagsCopied(false), 2000);  };  const handleDownloadTxt = () => {    if (!generatedText) return;    try {      const element = document.createElement("a");      const file = new Blob([generatedText], { type: "text/plain" });      element.href = URL.createObjectURL(file);      element.download = `linkedin-post-${Date.now()}.txt`;      document.body.appendChild(element);      element.click();      element.remove();      URL.revokeObjectURL(element.href);      toast.success("Post downloaded as TXT file!");    } catch {      toast.error("Download failed.");    }  };  const handleClear = () => {    setGeneratedText("");    setGeneratedHashtags([]);    toast.info("Composer cleared.");  };  const handleLoadFromHistory = (item: LinkedInPostHistoryItem) => {    setGeneratedText(item.content);    if (item.topic) setTopic(item.topic);    const tags = item.content.match(/#[a-zA-Z0-9_]+/g) || [];    setGeneratedHashtags(tags);    toast.success("Post loaded into editor!");    window.scrollTo({ top: 400, behavior: "smooth" });  };  return (    <div className="space-y-6 max-w-7xl mx-auto pb-16 animate-in fade-in duration-200">      {/* Breadcrumb Navigation */}      <div>        <Link          to="/dashboard/store"          className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors mb-2"        >          <ArrowLeft className="h-3.5 w-3.5" />          Back to Saadhyam Store        </Link>      </div>      {/* Main Header */}      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border/60 pb-6">        <div>          <div className="flex items-center gap-3">            <div className="w-12 h-12 rounded-2xl bg-[#0A66C2] text-white flex items-center justify-center text-2xl shadow-md shrink-0 font-bold">              in            </div>            <div>              <div className="flex flex-wrap items-center gap-2">                <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">LinkedIn Marketing</h1>                <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20 text-xs">                  <ShoppingBag className="h-3 w-3 mr-1" />                  Saadhyam Store Solution                </Badge>                <Badge variant="secondary" className="bg-purple-100 text-purple-700 dark:bg-purple-950 dark:text-purple-300 border-purple-200 text-xs">                  <Sparkles className="h-3 w-3 mr-1" />                  AI Powered                </Badge>              </div>              <p className="text-sm text-muted-foreground mt-0.5">                Create high-converting B2B LinkedIn posts with AI, research trending hashtags, and publish directly to your verified LinkedIn profile.              </p>            </div>          </div>        </div>        <div className="flex items-center gap-2 shrink-0">          {/* Admin OAuth App Configuration Toggle (Only visible to Admin) */}          {isAdmin && (            <Button              variant="outline"              size="sm"              onClick={() => setShowAdminConfig(!showAdminConfig)}              className="gap-1.5 text-xs border-amber-500/30 hover:bg-amber-500/10 text-amber-700 dark:text-amber-300"            >              <Shield className="w-3.5 h-3.5 text-amber-500" />              Admin OAuth App Settings              {adminConfig?.configured ? (                <Badge className="bg-emerald-500/15 text-emerald-600 border-emerald-500/30 text-[10px] py-0 px-1 ml-1">                  Configured                </Badge>              ) : (                <Badge className="bg-amber-500/15 text-amber-600 border-amber-500/30 text-[10px] py-0 px-1 ml-1">                  Unconfigured                </Badge>              )}            </Button>          )}          <Button            variant="outline"            size="sm"            onClick={() => {              fetchConnectionStatus();              fetchHistory();              if (isAdmin) fetchAdminConfig();            }}            disabled={isCheckingConnection || isLoadingHistory}            className="gap-1.5"          >            <RefreshCw className={`h-4 w-4 ${isCheckingConnection || isLoadingHistory ? "animate-spin" : ""}`} />            Refresh          </Button>        </div>      </div>      {/* Admin-Only OAuth Configuration Panel */}      {isAdmin && showAdminConfig && (        <Card className="border-amber-500/30 bg-amber-500/[0.02] shadow-sm animate-in slide-in-from-top-2 duration-200">          <CardHeader className="pb-3 border-b border-border/40">            <div className="flex items-center justify-between">              <div className="flex items-center gap-2">                <Shield className="w-5 h-5 text-amber-500" />                <div>                  <CardTitle className="text-base font-semibold">LinkedIn OAuth Application Configuration (Admin Only)</CardTitle>                  <CardDescription className="text-xs">                    Configure the platform LinkedIn Developer App credentials stored securely encrypted in <code className="font-mono text-[11px] bg-muted px-1 py-0.5 rounded">linkedin_plugin_config</code>.                  </CardDescription>                </div>              </div>              <Badge variant="outline" className="border-amber-500/40 text-amber-600 text-xs">                Platform Credentials              </Badge>            </div>          </CardHeader>          <CardContent className="pt-4">            <form onSubmit={handleSaveAdminConfig} className="space-y-4">              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">                <div className="space-y-1.5">                  <Label htmlFor="admin_client_id" className="text-xs font-medium">LinkedIn Client ID *</Label>                  <Input                    id="admin_client_id"                    placeholder="e.g. 78xxxxxxxxxxxx"                    value={adminClientId}                    onChange={(e) => setAdminClientId(e.target.value)}                    required                    className="font-mono text-xs"                  />                  <p className="text-[11px] text-muted-foreground">Found in your LinkedIn Developer App &gt; Auth tab.</p>                </div>                <div className="space-y-1.5">                  <Label htmlFor="admin_client_secret" className="text-xs font-medium">                    LinkedIn Client Secret * {adminConfig?.is_secret_set && <span className="text-emerald-600 font-normal">(Encrypted Secret Already Set)</span>}                  </Label>                  <Input                    id="admin_client_secret"                    type="password"                    placeholder={adminConfig?.is_secret_set ? "GÇóGÇóGÇóGÇóGÇóGÇóGÇóGÇóGÇóGÇóGÇóGÇóGÇóGÇóGÇóGÇó (Leave blank to keep existing)" : "Enter LinkedIn Client Secret"}                    value={adminClientSecret}                    onChange={(e) => setAdminClientSecret(e.target.value)}                    required={!adminConfig?.is_secret_set}                    className="font-mono text-xs"                  />                  <p className="text-[11px] text-muted-foreground">Stored encrypted at rest using AES/Fernet encryption.</p>                </div>              </div>              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">                <div className="space-y-1.5">                  <Label htmlFor="admin_redirect_uri" className="text-xs font-medium">Authorized Redirect URI</Label>                  <Input                    id="admin_redirect_uri"                    value={adminRedirectUri}                    onChange={(e) => setAdminRedirectUri(e.target.value)}                    className="font-mono text-xs"                  />                  <p className="text-[11px] text-muted-foreground">Must be registered in your LinkedIn Developer App &gt; Authorized redirect URLs.</p>                </div>                <div className="flex items-center gap-3 pt-6">                  <input                    type="checkbox"                    id="admin_is_active"                    checked={adminIsActive}                    onChange={(e) => setAdminIsActive(e.target.checked)}                    className="rounded border-gray-300 text-[#0A66C2] focus:ring-[#0A66C2] h-4 w-4"                  />                  <Label htmlFor="admin_is_active" className="text-xs font-medium cursor-pointer">                    Enable LinkedIn OAuth 2.0 Integration for Saadhyam Store                  </Label>                </div>              </div>              <div className="flex items-center justify-end gap-2 pt-2 border-t border-border/40">                <Button                  type="button"                  variant="ghost"                  size="sm"                  onClick={() => setShowAdminConfig(false)}                  className="text-xs"                >                  Cancel                </Button>                <Button                  type="submit"                  size="sm"                  disabled={isAdminSaving}                  className="gap-1.5 bg-amber-600 hover:bg-amber-700 text-white text-xs"                >                  {isAdminSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}                  Save OAuth App Configuration                </Button>              </div>            </form>          </CardContent>        </Card>      )}      {/* 1. LinkedIn Connection Status Card */}      <Card className="border-border/80 shadow-sm overflow-hidden">        <div className="h-1.5 bg-[#0A66C2]"></div>        <CardHeader className="pb-3">          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">            <div className="flex items-center gap-3">              <div className="w-10 h-10 rounded-full bg-[#0A66C2]/10 text-[#0A66C2] flex items-center justify-center font-bold text-lg">                in              </div>              <div>                <CardTitle className="text-lg font-semibold flex items-center gap-2">                  LinkedIn Account Connection                  {isCheckingConnection ? (                    <Loader2 className="w-4 h-4 text-muted-foreground animate-spin" />                  ) : connection?.connected ? (                    <Badge className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20 border-emerald-200 dark:border-emerald-800 text-xs gap-1">                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>                      Connected                    </Badge>                  ) : (                    <Badge variant="outline" className="text-muted-foreground text-xs">                      Not Connected                    </Badge>                  )}                </CardTitle>                <CardDescription className="text-xs mt-0.5">                  Official OAuth 2.0 3-legged connection with <code className="font-mono text-[11px] bg-muted px-1 py-0.5 rounded">w_member_social</code> scope. Tokens are encrypted at rest.                </CardDescription>              </div>            </div>            <div>              {connection?.connected ? (                <Button                  variant="outline"                  size="sm"                  onClick={() => setIsDisconnectOpen(true)}                  className="text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/40 border-rose-200 dark:border-rose-900 gap-1.5 text-xs"                >                  <Unlink className="w-3.5 h-3.5" />                  Disconnect Account                </Button>              ) : (                <Button                  size="sm"                  onClick={handleConnectLinkedIn}                  disabled={isConnecting || isCheckingConnection}                  className="bg-[#0A66C2] hover:bg-[#084e96] text-white gap-1.5 text-xs shadow-sm"                >                  {isConnecting ? (                    <Loader2 className="w-3.5 h-3.5 animate-spin" />                  ) : (                    <ExternalLink className="w-3.5 h-3.5" />                  )}                  Connect LinkedIn                </Button>              )}            </div>          </div>        </CardHeader>        <CardContent className="pt-2">          {connection?.connected ? (            <div className="bg-muted/40 border border-border/60 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">              <div className="flex items-center gap-3">                {connection.profile_picture ? (                  <img                    src={connection.profile_picture}                    alt={connection.member_name || "Profile"}                    className="w-12 h-12 rounded-full border-2 border-white shadow-sm object-cover"                  />                ) : (                  <div className="w-12 h-12 rounded-full bg-[#0A66C2] text-white flex items-center justify-center font-bold text-lg shadow-sm">                    {connection.member_name ? connection.member_name.charAt(0).toUpperCase() : "IN"}                  </div>                )}                <div>                  <div className="flex items-center gap-2">                    <p className="font-semibold text-sm text-foreground">{connection.member_name || "LinkedIn Member"}</p>                    <Badge variant="secondary" className="text-[10px] py-0 px-1.5 bg-emerald-500/10 text-emerald-600">                      Verified Member                    </Badge>                  </div>                  {connection.member_email && (                    <p className="text-xs text-muted-foreground">{connection.member_email}</p>                  )}                  {connection.member_id && (                    <p className="text-[11px] text-muted-foreground/70 font-mono">ID: {connection.member_id}</p>                  )}                </div>              </div>              <div className="text-xs text-muted-foreground sm:text-right space-y-1">                {connection.connected_at && (                  <p className="flex items-center sm:justify-end gap-1">                    <Clock className="w-3 h-3 text-muted-foreground" />                    Connected on: {new Date(connection.connected_at).toLocaleDateString()}                  </p>                )}                {connection.expires_at && (                  <p className="text-[11px]">                    Token valid until: {new Date(connection.expires_at).toLocaleDateString()}                  </p>                )}              </div>            </div>          ) : (            <div className="bg-muted/30 border border-border/60 rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted-foreground">              <div className="flex items-center gap-2">                <Info className="w-4 h-4 text-primary shrink-0" />                <span>                  Authorize your LinkedIn account to publish AI-generated posts directly to your profile feed.                </span>              </div>              <Button                variant="link"                size="sm"                onClick={handleConnectLinkedIn}                className="text-[#0A66C2] p-0 h-auto font-medium hover:underline text-xs"              >                Authorize Now &rarr;              </Button>            </div>          )}        </CardContent>      </Card>      {/* Brand Guidelines Collapsible Bar */}      <Card className="border-border/60 shadow-sm">        <div          className="p-4 flex items-center justify-between cursor-pointer hover:bg-muted/30 transition-colors"          onClick={() => setShowBrandConfig(!showBrandConfig)}        >          <div className="flex items-center gap-2.5">            <Globe className="w-4 h-4 text-primary" />            <div>              <p className="text-sm font-medium">Brand & Audience Guidelines</p>              <p className="text-xs text-muted-foreground">                {companyName || brandName ? `${brandName || companyName} GÇó ${industry} GÇó ${tone}` : "Configure tone of voice, target audience, and brand defaults"}              </p>            </div>          </div>          <div className="flex items-center gap-2">            <Badge variant="outline" className="text-xs font-normal">              {showBrandConfig ? "Hide Settings" : "Configure Defaults"}            </Badge>            {showBrandConfig ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}          </div>        </div>        {showBrandConfig && (          <CardContent className="pt-0 border-t border-border/40 mt-3 pt-4">            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">              <div className="space-y-1.5">                <Label htmlFor="companyName" className="text-xs">Company Name</Label>                <Input                  id="companyName"                  placeholder="e.g. Acme Corp"                  value={companyName}                  onChange={(e) => setCompanyName(e.target.value)}                  className="text-xs"                />              </div>              <div className="space-y-1.5">                <Label htmlFor="brandName" className="text-xs">Brand Name</Label>                <Input                  id="brandName"                  placeholder="e.g. Acme AI"                  value={brandName}                  onChange={(e) => setBrandName(e.target.value)}                  className="text-xs"                />              </div>              <div className="space-y-1.5">                <Label htmlFor="industry" className="text-xs">Industry</Label>                <Input                  id="industry"                  placeholder="e.g. B2B SaaS / FinTech"                  value={industry}                  onChange={(e) => setIndustry(e.target.value)}                  className="text-xs"                />              </div>              <div className="space-y-1.5">                <Label htmlFor="targetAudience" className="text-xs">Target Audience</Label>                <Input                  id="targetAudience"                  placeholder="e.g. CTOs, Founders, HR Heads"                  value={targetAudience}                  onChange={(e) => setTargetAudience(e.target.value)}                  className="text-xs"                />              </div>              <div className="space-y-1.5">                <Label htmlFor="tone" className="text-xs">Tone of Voice</Label>                <Select value={tone} onValueChange={setTone}>                  <SelectTrigger id="tone" className="text-xs">                    <SelectValue placeholder="Select tone" />                  </SelectTrigger>                  <SelectContent>                    <SelectItem value="Professional">Professional</SelectItem>                    <SelectItem value="Thought Leadership">Thought Leadership</SelectItem>                    <SelectItem value="Inspirational">Inspirational</SelectItem>                    <SelectItem value="Storytelling">Storytelling</SelectItem>                    <SelectItem value="Analytical">Analytical / Data-Driven</SelectItem>                    <SelectItem value="Conversational">Conversational</SelectItem>                  </SelectContent>                </Select>              </div>              <div className="flex items-end">                <Button size="sm" onClick={handleSaveBrandConfig} className="w-full text-xs">                  Save Brand Defaults                </Button>              </div>            </div>          </CardContent>        )}      </Card>      {/* 2-Column Main Workspace: Composer vs Live Preview & Editor */}      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">        {/* Left Column: AI Post Generator Controls (5 cols) */}        <div className="lg:col-span-5 space-y-6">          <Card className="border-border/80 shadow-sm">            <CardHeader className="pb-3">              <CardTitle className="text-base font-semibold flex items-center gap-2">                <Sparkles className="w-4 h-4 text-purple-600" />                AI Post Composer              </CardTitle>              <CardDescription className="text-xs">                Craft compelling LinkedIn posts optimized for algorithmic reach and engagement.              </CardDescription>            </CardHeader>            <CardContent className="space-y-4">              <div className="space-y-1.5">                <Label htmlFor="topic" className="text-xs font-medium">Post Topic / Core Concept *</Label>                <Textarea                  id="topic"                  placeholder="e.g. How we scaled customer retention by 40% with automated onboarding workflows..."                  value={topic}                  onChange={(e) => setTopic(e.target.value)}                  rows={3}                  className="text-xs resize-none"                />              </div>              <div className="space-y-1.5">                <Label htmlFor="keyPoints" className="text-xs font-medium">Key Points / Takeaways (Optional)</Label>                <Textarea                  id="keyPoints"                  placeholder="GÇó Faster implementation&#10;GÇó Reduced manual errors&#10;GÇó 3x ROI in 60 days"                  value={keyPoints}                  onChange={(e) => setKeyPoints(e.target.value)}                  rows={2}                  className="text-xs resize-none font-mono"                />              </div>              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">                <div className="space-y-1.5">                  <Label htmlFor="template" className="text-xs">Post Format</Label>                  <Select value={template} onValueChange={setTemplate}>                    <SelectTrigger id="template" className="text-xs">                      <SelectValue placeholder="Format" />                    </SelectTrigger>                    <SelectContent>                      <SelectItem value="Thought Leadership">Thought Leadership</SelectItem>                      <SelectItem value="How-To / Framework">How-To / Framework</SelectItem>                      <SelectItem value="Case Study / Results">Case Study / Results</SelectItem>                      <SelectItem value="Industry Insight">Industry Insight</SelectItem>                      <SelectItem value="Question & Engagement">Question & Engagement</SelectItem>                    </SelectContent>                  </Select>                </div>                <div className="space-y-1.5">                  <Label htmlFor="goal" className="text-xs">Campaign Goal</Label>                  <Select value={goal} onValueChange={setGoal}>                    <SelectTrigger id="goal" className="text-xs">                      <SelectValue placeholder="Goal" />                    </SelectTrigger>                    <SelectContent>                      <SelectItem value="Brand Awareness">Brand Awareness</SelectItem>                      <SelectItem value="Lead Generation">Lead Generation</SelectItem>                      <SelectItem value="Engagement">Engagement & Comments</SelectItem>                      <SelectItem value="Talent & Hiring">Talent & Hiring</SelectItem>                      <SelectItem value="Product Launch">Product Launch</SelectItem>                    </SelectContent>                  </Select>                </div>              </div>              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">                <div className="space-y-1.5">                  <Label htmlFor="desiredLength" className="text-xs">Length</Label>                  <Select value={desiredLength} onValueChange={setDesiredLength}>                    <SelectTrigger id="desiredLength" className="text-xs">                      <SelectValue placeholder="Length" />                    </SelectTrigger>                    <SelectContent>                      <SelectItem value="Short">Short (&lt; 150 words)</SelectItem>                      <SelectItem value="Medium">Medium (150 - 300 words)</SelectItem>                      <SelectItem value="Long">Long Form (&gt; 300 words)</SelectItem>                    </SelectContent>                  </Select>                </div>                <div className="space-y-1.5">                  <Label htmlFor="hashtagCount" className="text-xs">Hashtags</Label>                  <Select value={hashtagCount} onValueChange={setHashtagCount}>                    <SelectTrigger id="hashtagCount" className="text-xs">                      <SelectValue placeholder="Count" />                    </SelectTrigger>                    <SelectContent>                      <SelectItem value="3">3 Hashtags</SelectItem>                      <SelectItem value="5">5 Hashtags (Recommended)</SelectItem>                      <SelectItem value="8">8 Hashtags</SelectItem>                      <SelectItem value="0">None</SelectItem>                    </SelectContent>                  </Select>                </div>              </div>              <div className="space-y-1.5">                <Label htmlFor="callToAction" className="text-xs">Call to Action (Optional)</Label>                <Input                  id="callToAction"                  placeholder="e.g. DM me for the playbook or share your thoughts below!"                  value={callToAction}                  onChange={(e) => setCallToAction(e.target.value)}                  className="text-xs"                />              </div>              <Button                onClick={handleGeneratePost}                disabled={isGenerating || !topic.trim()}                className="w-full bg-[#0A66C2] hover:bg-[#084e96] text-white gap-2 text-xs font-semibold py-5 shadow-sm"              >                {isGenerating ? (                  <>                    <Loader2 className="w-4 h-4 animate-spin" />                    Generating LinkedIn Post...                  </>                ) : (                  <>                    <Sparkles className="w-4 h-4" />                    Generate LinkedIn Post with AI                  </>                )}              </Button>            </CardContent>          </Card>        </div>        {/* Right Column: Editor & Live LinkedIn Feed Preview (7 cols) */}        <div className="lg:col-span-7 space-y-6">          <Card className="border-border/80 shadow-sm">            <CardHeader className="pb-3 flex flex-row items-center justify-between">              <div>                <CardTitle className="text-base font-semibold">Post Editor & Live Feed Preview</CardTitle>                <CardDescription className="text-xs">                  Review, edit, and publish directly to your LinkedIn feed.                </CardDescription>              </div>              <div className="flex items-center gap-1.5">                {generatedText && (                  <>                    <Button variant="ghost" size="sm" onClick={handleCopyPost} className="h-8 px-2 text-xs gap-1">                      {isCopied ? <CheckCircle className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}                      {isCopied ? "Copied" : "Copy"}                    </Button>                    <Button variant="ghost" size="sm" onClick={handleDownloadTxt} className="h-8 px-2 text-xs gap-1">                      <Download className="w-3.5 h-3.5" />                      Save                    </Button>                    <Button variant="ghost" size="sm" onClick={handleClear} className="h-8 px-2 text-xs text-muted-foreground hover:text-rose-500">                      <Trash2 className="w-3.5 h-3.5" />                    </Button>                  </>                )}              </div>            </CardHeader>            <CardContent className="space-y-4">              {/* Editable Text Area */}              <div className="space-y-1.5">                <div className="flex items-center justify-between text-xs text-muted-foreground">                  <Label htmlFor="postEditor" className="text-xs font-medium">Post Content</Label>                  <span>{generatedText.length} characters GÇó ~{Math.ceil(generatedText.split(/\s+/).filter(Boolean).length)} words</span>                </div>                <Textarea                  id="postEditor"                  placeholder="Generated LinkedIn post will appear here for you to review and edit..."                  value={generatedText}                  onChange={(e) => setGeneratedText(e.target.value)}                  rows={8}                  className="text-xs font-sans leading-relaxed resize-y border-border/80 focus-visible:ring-1"                />              </div>              {/* Hashtag Badges */}              {generatedHashtags.length > 0 && (                <div className="p-3 bg-muted/30 rounded-lg border border-border/50 flex flex-wrap items-center justify-between gap-2">                  <div className="flex flex-wrap items-center gap-1.5">                    <span className="text-xs font-medium text-muted-foreground mr-1">Hashtags:</span>                    {generatedHashtags.map((tag, idx) => (                      <Badge key={idx} variant="secondary" className="text-[11px] font-mono bg-[#0A66C2]/10 text-[#0A66C2] hover:bg-[#0A66C2]/20">                        {tag}                      </Badge>                    ))}                  </div>                  <Button variant="ghost" size="sm" onClick={handleCopyHashtags} className="h-7 px-2 text-[11px] gap-1 text-muted-foreground">                    {isHashtagsCopied ? <CheckCircle className="w-3 h-3 text-emerald-500" /> : <Copy className="w-3 h-3" />}                    Copy Tags                  </Button>                </div>              )}              {/* Realistic LinkedIn Feed Mock Preview */}              <div className="space-y-1.5">                <Label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">                  <Share2 className="w-3.5 h-3.5 text-[#0A66C2]" />                  Live LinkedIn Feed Preview                </Label>                <div className="border border-border/80 rounded-xl p-4 bg-card shadow-sm space-y-3">                  {/* Mock Post Author */}                  <div className="flex items-center gap-3">                    {connection?.profile_picture ? (                      <img                        src={connection.profile_picture}                        alt="Profile"                        className="w-10 h-10 rounded-full object-cover border"                      />                    ) : (                      <div className="w-10 h-10 rounded-full bg-[#0A66C2] text-white flex items-center justify-center font-bold text-sm">                        {connection?.member_name ? connection.member_name.charAt(0).toUpperCase() : "IN"}                      </div>                    )}                    <div>                      <p className="font-semibold text-xs text-foreground">                        {connection?.member_name || "Your Name"}                      </p>                      <p className="text-[11px] text-muted-foreground leading-tight">                        {brandName || companyName || "Founder & Leader"} GÇó Just now GÇó =ƒîÉ                      </p>                    </div>                  </div>                  {/* Post Content */}                  <div className="text-xs text-foreground leading-relaxed whitespace-pre-wrap font-sans">                    {generatedText || (                      <span className="text-muted-foreground italic">                        Your post content preview will render here in real-time...                      </span>                    )}                  </div>                  {/* Mock Social Interactions */}                  <div className="border-t border-border/50 pt-2 flex items-center justify-between text-muted-foreground text-xs">                    <div className="flex items-center gap-1">                      <span className="flex -space-x-1">                        <span className="w-4 h-4 rounded-full bg-[#0A66C2] text-white flex items-center justify-center text-[8px]">=ƒæì</span>                        <span className="w-4 h-4 rounded-full bg-red-500 text-white flex items-center justify-center text-[8px]">G¥ñn+Å</span>                        <span className="w-4 h-4 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[8px]">=ƒÆí</span>                      </span>                      <span className="text-[11px] text-muted-foreground/80 ml-1">42 reactions</span>                    </div>                    <span className="text-[11px] text-muted-foreground/80">8 comments GÇó 2 reposts</span>                  </div>                  <div className="border-t border-border/50 pt-2 grid grid-cols-4 gap-1 text-center text-xs text-muted-foreground">                    <div className="flex items-center justify-center gap-1 py-1 rounded hover:bg-muted/50 cursor-pointer">                      <ThumbsUp className="w-3.5 h-3.5" /> Like                    </div>                    <div className="flex items-center justify-center gap-1 py-1 rounded hover:bg-muted/50 cursor-pointer">                      <MessageSquare className="w-3.5 h-3.5" /> Comment                    </div>                    <div className="flex items-center justify-center gap-1 py-1 rounded hover:bg-muted/50 cursor-pointer">                      <Repeat className="w-3.5 h-3.5" /> Repost                    </div>                    <div className="flex items-center justify-center gap-1 py-1 rounded hover:bg-muted/50 cursor-pointer">                      <Send className="w-3.5 h-3.5" /> Send                    </div>                  </div>                </div>              </div>              {/* Publish Action Button */}              <div className="pt-2">                {connection?.connected ? (                  <Button                    onClick={() => setIsPublishConfirmOpen(true)}                    disabled={isPublishing || !generatedText.trim()}                    className="w-full bg-[#0A66C2] hover:bg-[#084e96] text-white gap-2 text-xs font-semibold py-5 shadow-sm"                  >                    {isPublishing ? (                      <>                        <Loader2 className="w-4 h-4 animate-spin" />                        Publishing to LinkedIn...                      </>                    ) : (                      <>                        <Send className="w-4 h-4" />                        Publish to LinkedIn Now                      </>                    )}                  </Button>                ) : (                  <Button                    onClick={handleConnectLinkedIn}                    disabled={isConnecting}                    className="w-full bg-muted hover:bg-muted/80 text-foreground border border-border gap-2 text-xs py-5"                  >                    <ExternalLink className="w-4 h-4 text-[#0A66C2]" />                    Connect LinkedIn Account to Enable Direct Publishing                  </Button>                )}              </div>            </CardContent>          </Card>        </div>      </div>      {/* 3. Publishing History Table */}      <Card className="border-border/80 shadow-sm">        <CardHeader className="pb-3 flex flex-row items-center justify-between">          <div>            <CardTitle className="text-base font-semibold flex items-center gap-2">              <Clock className="w-4 h-4 text-[#0A66C2]" />              Publishing Audit History            </CardTitle>            <CardDescription className="text-xs">              History of posts published from your account with verified LinkedIn URN tracking.            </CardDescription>          </div>          <Badge variant="outline" className="text-xs font-normal">            {history.length} {history.length === 1 ? "Record" : "Records"}          </Badge>        </CardHeader>        <CardContent>          {isLoadingHistory ? (            <div className="py-10 text-center text-xs text-muted-foreground flex items-center justify-center gap-2">              <Loader2 className="w-4 h-4 animate-spin" />              Loading publishing history...            </div>          ) : history.length === 0 ? (            <div className="py-10 text-center text-xs text-muted-foreground">              <p>No posts published yet. Generate a post and publish it directly to your LinkedIn feed!</p>            </div>          ) : (            <div className="overflow-x-auto">              <table className="w-full text-xs text-left border-collapse">                <thead>                  <tr className="border-b border-border/80 text-muted-foreground font-medium">                    <th className="pb-2 pl-2">Status</th>                    <th className="pb-2">Topic</th>                    <th className="pb-2">Content Preview</th>                    <th className="pb-2">LinkedIn Post URN</th>                    <th className="pb-2">Date</th>                    <th className="pb-2 pr-2 text-right">Actions</th>                  </tr>                </thead>                <tbody className="divide-y divide-border/40">                  {history.map((item) => (                    <tr key={item.id} className="hover:bg-muted/30 transition-colors">                      <td className="py-3 pl-2">                        {item.status === "published" ? (                          <Badge className="bg-emerald-500/15 text-emerald-600 border-emerald-500/20 text-[10px] gap-1">                            <CheckCircle2 className="w-3 h-3" />                            Published                          </Badge>                        ) : item.status === "failed" ? (                          <Badge variant="destructive" className="text-[10px] gap-1">                            <AlertCircle className="w-3 h-3" />                            Failed                          </Badge>                        ) : (                          <Badge variant="outline" className="text-[10px]">                            {item.status}                          </Badge>                        )}                      </td>                      <td className="py-3 font-medium text-foreground max-w-[140px] truncate">                        {item.topic || "LinkedIn Post"}                      </td>                      <td className="py-3 text-muted-foreground max-w-[280px] truncate">                        {item.content}                      </td>                      <td className="py-3 font-mono text-[11px] text-muted-foreground">                        {item.post_urn ? (                          <span className="bg-muted px-1.5 py-0.5 rounded text-[10px]">                            {item.post_urn}                          </span>                        ) : (                          "GÇö"                        )}                      </td>                      <td className="py-3 text-muted-foreground text-[11px] whitespace-nowrap">                        {item.published_at                          ? new Date(item.published_at).toLocaleDateString()                          : item.created_at                          ? new Date(item.created_at).toLocaleDateString()                          : "GÇö"}                      </td>                      <td className="py-3 pr-2 text-right">                        <Button                          variant="ghost"                          size="sm"                          onClick={() => handleLoadFromHistory(item)}                          className="h-7 px-2 text-[11px] text-primary hover:text-primary hover:bg-primary/10"                        >                          Load in Editor                        </Button>                      </td>                    </tr>                  ))}                </tbody>              </table>            </div>          )}        </CardContent>      </Card>      {/* Disconnect Confirmation Dialog */}      <Dialog open={isDisconnectOpen} onOpenChange={setIsDisconnectOpen}>        <DialogContent className="sm:max-w-[425px]">          <DialogHeader>            <DialogTitle className="text-base flex items-center gap-2 text-rose-600">              <Unlink className="w-4 h-4" />              Disconnect LinkedIn Account?            </DialogTitle>            <DialogDescription className="text-xs">              This will revoke your active session tokens and disconnect {connection?.member_name || "your account"} from Saadhyam Store. You can reconnect at any time.            </DialogDescription>          </DialogHeader>          <DialogFooter className="gap-2 sm:gap-0">            <Button              variant="outline"              size="sm"              onClick={() => setIsDisconnectOpen(false)}              disabled={isDisconnecting}              className="text-xs"            >              Cancel            </Button>            <Button              variant="destructive"              size="sm"              onClick={handleDisconnectLinkedIn}              disabled={isDisconnecting}              className="text-xs gap-1.5"            >              {isDisconnecting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Unlink className="w-3.5 h-3.5" />}              Yes, Disconnect            </Button>          </DialogFooter>        </DialogContent>      </Dialog>      {/* Publish Confirmation Dialog */}      <Dialog open={isPublishConfirmOpen} onOpenChange={setIsPublishConfirmOpen}>        <DialogContent className="sm:max-w-[500px]">          <DialogHeader>            <DialogTitle className="text-base flex items-center gap-2">              <Send className="w-4 h-4 text-[#0A66C2]" />              Confirm LinkedIn Post Publication            </DialogTitle>            <DialogDescription className="text-xs">              This will publish the post live to your verified LinkedIn account ({connection?.member_name || "Connected Profile"}) using the official LinkedIn Posts API.            </DialogDescription>          </DialogHeader>          <div className="max-h-[220px] overflow-y-auto p-3 bg-muted/40 rounded-lg text-xs leading-relaxed border border-border/60 whitespace-pre-wrap font-sans">            {generatedText}          </div>          <DialogFooter className="gap-2 sm:gap-0">            <Button              variant="outline"              size="sm"              onClick={() => setIsPublishConfirmOpen(false)}              disabled={isPublishing}              className="text-xs"            >              Back to Editor            </Button>            <Button              onClick={handlePublishPost}              disabled={isPublishing}              className="bg-[#0A66C2] hover:bg-[#084e96] text-white text-xs gap-1.5"            >              {isPublishing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}              Confirm & Publish Live            </Button>          </DialogFooter>        </DialogContent>      </Dialog>    </div>  );}
+import { useState, useEffect } from "react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import {
+  ArrowLeft,
+  Sparkles,
+  Loader2,
+  Copy,
+  CheckCircle,
+  Download,
+  Trash2,
+  Clock,
+  Info,
+  CheckCircle2,
+  AlertCircle,
+  Send,
+  ExternalLink,
+  RefreshCw,
+  Share2,
+  ThumbsUp,
+  MessageSquare,
+  Repeat,
+  ShoppingBag,
+  Unlink,
+  Globe,
+  Settings,
+  ChevronDown,
+  ChevronUp,
+  Shield,
+  KeyRound,
+  Lock,
+  Save,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { toast } from "sonner";
+import { useAuthContext } from "@/lib/AuthContext";
+import {
+  getLinkedInConnectionStatus,
+  getLinkedInAuthorizationUrl,
+  disconnectLinkedIn,
+  publishLinkedInPost,
+  getLinkedInPostHistory,
+  generateLinkedInPost,
+  getLinkedInPluginConfig,
+  saveLinkedInPluginConfig,
+  LinkedInConnectionStatus,
+  LinkedInPostHistoryItem,
+  LinkedInPluginConfigStatus,
+} from "@/lib/storeApi";
+
+export const Route = createFileRoute("/dashboard/store/linkedin-marketing")({
+  head: () => ({
+    meta: [{ title: "Store Î“Ã‡Ã¶ LinkedIn Marketing Î“Ã‡Ã¶ Saadhyam AI" }],
+  }),
+  component: StoreLinkedInMarketingPage,
+});
+
+export function StoreLinkedInMarketingPage() {
+  const { user } = useAuthContext();
+  const isAdmin =
+    user?.role === "ADMIN" ||
+    user?.role === "SUPER_ADMIN" ||
+    (typeof user?.role === "string" && user.role.toUpperCase() === "ADMIN");
+
+  // Connection states
+  const [connection, setConnection] = useState<LinkedInConnectionStatus | null>(null);
+  const [isCheckingConnection, setIsCheckingConnection] = useState(true);
+  const [isConnecting, setIsConnecting] = useState(false);
+  const [isDisconnecting, setIsDisconnecting] = useState(false);
+  const [isDisconnectOpen, setIsDisconnectOpen] = useState(false);
+
+  // Admin OAuth Application Config states (Admin Only)
+  const [adminConfig, setAdminConfig] = useState<LinkedInPluginConfigStatus | null>(null);
+  const [isAdminConfigLoading, setIsAdminConfigLoading] = useState(false);
+  const [isAdminSaving, setIsAdminSaving] = useState(false);
+  const [showAdminConfig, setShowAdminConfig] = useState(false);
+  const [adminClientId, setAdminClientId] = useState("");
+  const [adminClientSecret, setAdminClientSecret] = useState("");
+  const [adminRedirectUri, setAdminRedirectUri] = useState("http://localhost:8000/api/linkedin/oauth/callback");
+  const [adminIsActive, setAdminIsActive] = useState(true);
+
+  // Brand Configuration states
+  const [showBrandConfig, setShowBrandConfig] = useState(false);
+  const [companyName, setCompanyName] = useState("");
+  const [brandName, setBrandName] = useState("");
+  const [industry, setIndustry] = useState("Technology / B2B");
+  const [targetAudience, setTargetAudience] = useState("B2B Decision Makers & Leaders");
+  const [tone, setTone] = useState("Professional");
+
+  // Post Generator & Composer states
+  const [topic, setTopic] = useState("");
+  const [keyPoints, setKeyPoints] = useState("");
+  const [callToAction, setCallToAction] = useState("");
+  const [desiredLength, setDesiredLength] = useState("Medium");
+  const [goal, setGoal] = useState("Brand Awareness");
+  const [template, setTemplate] = useState("Thought Leadership");
+  const [hashtagCount, setHashtagCount] = useState<string>("5");
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  // Editor states
+  const [generatedText, setGeneratedText] = useState("");
+  const [generatedHashtags, setGeneratedHashtags] = useState<string[]>([]);
+  const [isCopied, setIsCopied] = useState(false);
+  const [isHashtagsCopied, setIsHashtagsCopied] = useState(false);
+
+  // Publishing states
+  const [isPublishing, setIsPublishing] = useState(false);
+  const [isPublishConfirmOpen, setIsPublishConfirmOpen] = useState(false);
+
+  // Post History states
+  const [history, setHistory] = useState<LinkedInPostHistoryItem[]>([]);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+
+  // Parse URL query params for OAuth redirect results
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const urlParams = new URLSearchParams(window.location.search);
+      const isConnected = urlParams.get("connected");
+      const errorMsg = urlParams.get("error");
+
+      if (isConnected === "true") {
+        toast.success("LinkedIn account connected successfully!");
+        window.history.replaceState({}, document.title, window.location.pathname);
+      } else if (errorMsg) {
+        toast.error(`LinkedIn connection failed: ${decodeURIComponent(errorMsg)}`);
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    }
+
+    // Load saved brand guidelines from localStorage
+    try {
+      const savedConfig = localStorage.getItem("saadhyam_linkedin_config");
+      if (savedConfig) {
+        const parsed = JSON.parse(savedConfig);
+        if (parsed.companyName) setCompanyName(parsed.companyName);
+        if (parsed.brandName) setBrandName(parsed.brandName);
+        if (parsed.industry) setIndustry(parsed.industry);
+        if (parsed.targetAudience) setTargetAudience(parsed.targetAudience);
+        if (parsed.tone) setTone(parsed.tone);
+      }
+    } catch {
+      // Ignore localStorage errors
+    }
+
+    fetchConnectionStatus();
+    fetchHistory();
+  }, []);
+
+  // Fetch admin config if user has admin role
+  useEffect(() => {
+    if (isAdmin) {
+      fetchAdminConfig();
+    }
+  }, [isAdmin]);
+
+  const fetchAdminConfig = async () => {
+    setIsAdminConfigLoading(true);
+    try {
+      const cfg = await getLinkedInPluginConfig();
+      setAdminConfig(cfg);
+      if (cfg.client_id) setAdminClientId(cfg.client_id);
+      if (cfg.redirect_uri) setAdminRedirectUri(cfg.redirect_uri);
+      setAdminIsActive(cfg.is_active);
+    } catch (err) {
+      console.error("Failed to load LinkedIn admin config:", err);
+    } finally {
+      setIsAdminConfigLoading(false);
+    }
+  };
+
+  const handleSaveAdminConfig = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!adminClientId.trim() || !adminClientSecret.trim()) {
+      toast.error("Please provide both LinkedIn Client ID and Client Secret.");
+      return;
+    }
+    setIsAdminSaving(true);
+    try {
+      const res = await saveLinkedInPluginConfig({
+        client_id: adminClientId.trim(),
+        client_secret: adminClientSecret.trim(),
+        redirect_uri: adminRedirectUri.trim() || "http://localhost:8000/api/linkedin/oauth/callback",
+        is_active: adminIsActive,
+      });
+      setAdminConfig(res);
+      setAdminClientSecret("");
+      toast.success("LinkedIn OAuth application configuration saved securely!");
+      setShowAdminConfig(false);
+    } catch (err: any) {
+      console.error("Failed to save LinkedIn OAuth config:", err);
+      toast.error(err?.message || "Failed to save LinkedIn OAuth configuration.");
+    } finally {
+      setIsAdminSaving(false);
+    }
+  };
+
+  const fetchConnectionStatus = async () => {
+    setIsCheckingConnection(true);
+    try {
+      const status = await getLinkedInConnectionStatus();
+      setConnection(status);
+    } catch (err: any) {
+      console.error("Failed to check LinkedIn status:", err);
+      setConnection({
+        connected: false,
+        is_active: false,
+        member_name: null,
+        member_email: null,
+        member_id: null,
+        profile_picture: null,
+        connected_at: null,
+        expires_at: null,
+        is_expired: false,
+      });
+    } finally {
+      setIsCheckingConnection(false);
+    }
+  };
+
+  const fetchHistory = async () => {
+    setIsLoadingHistory(true);
+    try {
+      const list = await getLinkedInPostHistory(50);
+      setHistory(list);
+    } catch (err) {
+      console.error("Failed to fetch LinkedIn post history:", err);
+    } finally {
+      setIsLoadingHistory(false);
+    }
+  };
+
+  const handleConnectLinkedIn = async () => {
+    setIsConnecting(true);
+    try {
+      const res = await getLinkedInAuthorizationUrl();
+      if (res.success && res.auth_url) {
+        toast.info("Redirecting to LinkedIn for secure authorization...");
+        window.location.href = res.auth_url;
+      } else {
+        toast.error("Failed to retrieve LinkedIn authorization URL.");
+      }
+    } catch (err: any) {
+      console.error("LinkedIn OAuth initiation failed:", err);
+      toast.error(err?.message || "Failed to initiate LinkedIn connection.");
+    } finally {
+      setIsConnecting(false);
+    }
+  };
+
+  const handleDisconnectLinkedIn = async () => {
+    setIsDisconnecting(true);
+    try {
+      await disconnectLinkedIn();
+      toast.success("LinkedIn disconnected successfully.");
+      setIsDisconnectOpen(false);
+      await fetchConnectionStatus();
+    } catch (err: any) {
+      toast.error(err?.message || "Failed to disconnect LinkedIn.");
+    } finally {
+      setIsDisconnecting(false);
+    }
+  };
+
+  const handleSaveBrandConfig = () => {
+    try {
+      const cfg = { companyName, brandName, industry, targetAudience, tone };
+      localStorage.setItem("saadhyam_linkedin_config", JSON.stringify(cfg));
+      toast.success("Brand guidelines saved!");
+      setShowBrandConfig(false);
+    } catch {
+      toast.error("Failed to save brand settings.");
+    }
+  };
+
+  const handleGeneratePost = async () => {
+    if (!topic.trim()) {
+      toast.error("Please enter a topic or concept for your post.");
+      return;
+    }
+
+    setIsGenerating(true);
+    try {
+      const response = await generateLinkedInPost({
+        topic: topic.trim(),
+        goal,
+        tone,
+        company_name: companyName.trim() || undefined,
+        brand_name: brandName.trim() || undefined,
+        industry: industry.trim() || undefined,
+        target_audience: targetAudience.trim() || undefined,
+        key_points: keyPoints.trim() || undefined,
+        call_to_action: callToAction.trim() || undefined,
+        desired_length: desiredLength,
+        template,
+        hashtag_count: parseInt(hashtagCount, 10) || 5,
+      });
+
+      if (response.success && response.formatted_post) {
+        setGeneratedText(response.formatted_post);
+        setGeneratedHashtags(response.hashtags || []);
+        toast.success("LinkedIn post generated successfully!");
+      } else {
+        toast.error(response.message || "Failed to generate post.");
+      }
+    } catch (err: any) {
+      console.error("Failed to generate LinkedIn post:", err);
+      toast.error(err?.message || "An error occurred while generating post.");
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handlePublishPost = async () => {
+    if (!generatedText.trim()) {
+      toast.error("Composer is empty. Please generate or write a post first.");
+      return;
+    }
+
+    if (!connection?.connected) {
+      toast.error("Please connect your LinkedIn account first before publishing.");
+      return;
+    }
+
+    setIsPublishing(true);
+    try {
+      const response = await publishLinkedInPost({
+        content: generatedText.trim(),
+        topic: topic.trim() || "LinkedIn Post",
+        hashtags: generatedHashtags,
+      });
+
+      if (response.success) {
+        toast.success("â‰¡Æ’Ã„Ã« Post published to your LinkedIn profile successfully!");
+        setIsPublishConfirmOpen(false);
+        await fetchHistory();
+      } else {
+        toast.error(response.message || "Failed to publish post.");
+      }
+    } catch (err: any) {
+      console.error("Failed to publish to LinkedIn:", err);
+      toast.error(err?.message || "Failed to publish post to LinkedIn.");
+    } finally {
+      setIsPublishing(false);
+    }
+  };
+
+  const handleCopyPost = () => {
+    if (!generatedText) return;
+    navigator.clipboard.writeText(generatedText);
+    setIsCopied(true);
+    toast.success("Post content copied to clipboard!");
+    setTimeout(() => setIsCopied(false), 2000);
+  };
+
+  const handleCopyHashtags = () => {
+    if (!generatedHashtags.length) return;
+    navigator.clipboard.writeText(generatedHashtags.join(" "));
+    setIsHashtagsCopied(true);
+    toast.success("Hashtags copied to clipboard!");
+    setTimeout(() => setIsHashtagsCopied(false), 2000);
+  };
+
+  const handleDownloadTxt = () => {
+    if (!generatedText) return;
+    try {
+      const element = document.createElement("a");
+      const file = new Blob([generatedText], { type: "text/plain" });
+      element.href = URL.createObjectURL(file);
+      element.download = `linkedin-post-${Date.now()}.txt`;
+      document.body.appendChild(element);
+      element.click();
+      element.remove();
+      URL.revokeObjectURL(element.href);
+      toast.success("Post downloaded as TXT file!");
+    } catch {
+      toast.error("Download failed.");
+    }
+  };
+
+  const handleClear = () => {
+    setGeneratedText("");
+    setGeneratedHashtags([]);
+    toast.info("Composer cleared.");
+  };
+
+  const handleLoadFromHistory = (item: LinkedInPostHistoryItem) => {
+    setGeneratedText(item.content);
+    if (item.topic) setTopic(item.topic);
+    const tags = item.content.match(/#[a-zA-Z0-9_]+/g) || [];
+    setGeneratedHashtags(tags);
+    toast.success("Post loaded into editor!");
+    window.scrollTo({ top: 400, behavior: "smooth" });
+  };
+
+  return (
+    <div className="space-y-6 max-w-7xl mx-auto pb-16 animate-in fade-in duration-200">
+      {/* Breadcrumb Navigation */}
+      <div>
+        <Link
+          to="/dashboard/store"
+          className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors mb-2"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" />
+          Back to Saadhyam Store
+        </Link>
+      </div>
+
+      {/* Main Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border/60 pb-6">
+        <div>
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-2xl bg-[#0A66C2] text-white flex items-center justify-center text-2xl shadow-md shrink-0 font-bold">
+              in
+            </div>
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">LinkedIn Marketing</h1>
+                <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20 text-xs">
+                  <ShoppingBag className="h-3 w-3 mr-1" />
+                  Saadhyam Store Solution
+                </Badge>
+                <Badge variant="secondary" className="bg-purple-100 text-purple-700 dark:bg-purple-950 dark:text-purple-300 border-purple-200 text-xs">
+                  <Sparkles className="h-3 w-3 mr-1" />
+                  AI Powered
+                </Badge>
+              </div>
+              <p className="text-sm text-muted-foreground mt-0.5">
+                Create high-converting B2B LinkedIn posts with AI, research trending hashtags, and publish directly to your verified LinkedIn profile.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 shrink-0">
+          {/* Admin OAuth App Configuration Toggle (Only visible to Admin) */}
+          {isAdmin && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowAdminConfig(!showAdminConfig)}
+              className="gap-1.5 text-xs border-amber-500/30 hover:bg-amber-500/10 text-amber-700 dark:text-amber-300"
+            >
+              <Shield className="w-3.5 h-3.5 text-amber-500" />
+              Admin OAuth App Settings
+              {adminConfig?.configured ? (
+                <Badge className="bg-emerald-500/15 text-emerald-600 border-emerald-500/30 text-[10px] py-0 px-1 ml-1">
+                  Configured
+                </Badge>
+              ) : (
+                <Badge className="bg-amber-500/15 text-amber-600 border-amber-500/30 text-[10px] py-0 px-1 ml-1">
+                  Unconfigured
+                </Badge>
+              )}
+            </Button>
+          )}
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              fetchConnectionStatus();
+              fetchHistory();
+              if (isAdmin) fetchAdminConfig();
+            }}
+            disabled={isCheckingConnection || isLoadingHistory}
+            className="gap-1.5"
+          >
+            <RefreshCw className={`h-4 w-4 ${isCheckingConnection || isLoadingHistory ? "animate-spin" : ""}`} />
+            Refresh
+          </Button>
+        </div>
+      </div>
+
+      {/* Admin-Only OAuth Configuration Panel */}
+      {isAdmin && showAdminConfig && (
+        <Card className="border-amber-500/30 bg-amber-500/[0.02] shadow-sm animate-in slide-in-from-top-2 duration-200">
+          <CardHeader className="pb-3 border-b border-border/40">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Shield className="w-5 h-5 text-amber-500" />
+                <div>
+                  <CardTitle className="text-base font-semibold">LinkedIn OAuth Application Configuration (Admin Only)</CardTitle>
+                  <CardDescription className="text-xs">
+                    Configure the platform LinkedIn Developer App credentials stored securely encrypted in <code className="font-mono text-[11px] bg-muted px-1 py-0.5 rounded">linkedin_plugin_config</code>.
+                  </CardDescription>
+                </div>
+              </div>
+              <Badge variant="outline" className="border-amber-500/40 text-amber-600 text-xs">
+                Platform Credentials
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent className="pt-4">
+            <form onSubmit={handleSaveAdminConfig} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor="admin_client_id" className="text-xs font-medium">LinkedIn Client ID *</Label>
+                  <Input
+                    id="admin_client_id"
+                    placeholder="e.g. 78xxxxxxxxxxxx"
+                    value={adminClientId}
+                    onChange={(e) => setAdminClientId(e.target.value)}
+                    required
+                    className="font-mono text-xs"
+                  />
+                  <p className="text-[11px] text-muted-foreground">Found in your LinkedIn Developer App &gt; Auth tab.</p>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label htmlFor="admin_client_secret" className="text-xs font-medium">
+                    LinkedIn Client Secret * {adminConfig?.is_secret_set && <span className="text-emerald-600 font-normal">(Encrypted Secret Already Set)</span>}
+                  </Label>
+                  <Input
+                    id="admin_client_secret"
+                    type="password"
+                    placeholder={adminConfig?.is_secret_set ? "Î“Ã‡Ã³Î“Ã‡Ã³Î“Ã‡Ã³Î“Ã‡Ã³Î“Ã‡Ã³Î“Ã‡Ã³Î“Ã‡Ã³Î“Ã‡Ã³Î“Ã‡Ã³Î“Ã‡Ã³Î“Ã‡Ã³Î“Ã‡Ã³Î“Ã‡Ã³Î“Ã‡Ã³Î“Ã‡Ã³Î“Ã‡Ã³ (Leave blank to keep existing)" : "Enter LinkedIn Client Secret"}
+                    value={adminClientSecret}
+                    onChange={(e) => setAdminClientSecret(e.target.value)}
+                    required={!adminConfig?.is_secret_set}
+                    className="font-mono text-xs"
+                  />
+                  <p className="text-[11px] text-muted-foreground">Stored encrypted at rest using AES/Fernet encryption.</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor="admin_redirect_uri" className="text-xs font-medium">Authorized Redirect URI</Label>
+                  <Input
+                    id="admin_redirect_uri"
+                    value={adminRedirectUri}
+                    onChange={(e) => setAdminRedirectUri(e.target.value)}
+                    className="font-mono text-xs"
+                  />
+                  <p className="text-[11px] text-muted-foreground">Must be registered in your LinkedIn Developer App &gt; Authorized redirect URLs.</p>
+                </div>
+
+                <div className="flex items-center gap-3 pt-6">
+                  <input
+                    type="checkbox"
+                    id="admin_is_active"
+                    checked={adminIsActive}
+                    onChange={(e) => setAdminIsActive(e.target.checked)}
+                    className="rounded border-gray-300 text-[#0A66C2] focus:ring-[#0A66C2] h-4 w-4"
+                  />
+                  <Label htmlFor="admin_is_active" className="text-xs font-medium cursor-pointer">
+                    Enable LinkedIn OAuth 2.0 Integration for Saadhyam Store
+                  </Label>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-border/40">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowAdminConfig(false)}
+                  className="text-xs"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  size="sm"
+                  disabled={isAdminSaving}
+                  className="gap-1.5 bg-amber-600 hover:bg-amber-700 text-white text-xs"
+                >
+                  {isAdminSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+                  Save OAuth App Configuration
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* 1. LinkedIn Connection Status Card */}
+      <Card className="border-border/80 shadow-sm overflow-hidden">
+        <div className="h-1.5 bg-[#0A66C2]"></div>
+        <CardHeader className="pb-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-[#0A66C2]/10 text-[#0A66C2] flex items-center justify-center font-bold text-lg">
+                in
+              </div>
+              <div>
+                <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                  LinkedIn Account Connection
+                  {isCheckingConnection ? (
+                    <Loader2 className="w-4 h-4 text-muted-foreground animate-spin" />
+                  ) : connection?.connected ? (
+                    <Badge className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20 border-emerald-200 dark:border-emerald-800 text-xs gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                      Connected
+                    </Badge>
+                  ) : (
+                    <Badge variant="outline" className="text-muted-foreground text-xs">
+                      Not Connected
+                    </Badge>
+                  )}
+                </CardTitle>
+                <CardDescription className="text-xs mt-0.5">
+                  Official OAuth 2.0 3-legged connection with <code className="font-mono text-[11px] bg-muted px-1 py-0.5 rounded">w_member_social</code> scope. Tokens are encrypted at rest.
+                </CardDescription>
+              </div>
+            </div>
+
+            <div>
+              {connection?.connected ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsDisconnectOpen(true)}
+                  className="text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/40 border-rose-200 dark:border-rose-900 gap-1.5 text-xs"
+                >
+                  <Unlink className="w-3.5 h-3.5" />
+                  Disconnect Account
+                </Button>
+              ) : (
+                <Button
+                  size="sm"
+                  onClick={handleConnectLinkedIn}
+                  disabled={isConnecting || isCheckingConnection}
+                  className="bg-[#0A66C2] hover:bg-[#084e96] text-white gap-1.5 text-xs shadow-sm"
+                >
+                  {isConnecting ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  )}
+                  Connect LinkedIn
+                </Button>
+              )}
+            </div>
+          </div>
+        </CardHeader>
+
+        <CardContent className="pt-2">
+          {connection?.connected ? (
+            <div className="bg-muted/40 border border-border/60 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                {connection.profile_picture ? (
+                  <img
+                    src={connection.profile_picture}
+                    alt={connection.member_name || "Profile"}
+                    className="w-12 h-12 rounded-full border-2 border-white shadow-sm object-cover"
+                  />
+                ) : (
+                  <div className="w-12 h-12 rounded-full bg-[#0A66C2] text-white flex items-center justify-center font-bold text-lg shadow-sm">
+                    {connection.member_name ? connection.member_name.charAt(0).toUpperCase() : "IN"}
+                  </div>
+                )}
+                <div>
+                  <div className="flex items-center gap-2">
+                    <p className="font-semibold text-sm text-foreground">{connection.member_name || "LinkedIn Member"}</p>
+                    <Badge variant="secondary" className="text-[10px] py-0 px-1.5 bg-emerald-500/10 text-emerald-600">
+                      Verified Member
+                    </Badge>
+                  </div>
+                  {connection.member_email && (
+                    <p className="text-xs text-muted-foreground">{connection.member_email}</p>
+                  )}
+                  {connection.member_id && (
+                    <p className="text-[11px] text-muted-foreground/70 font-mono">ID: {connection.member_id}</p>
+                  )}
+                </div>
+              </div>
+
+              <div className="text-xs text-muted-foreground sm:text-right space-y-1">
+                {connection.connected_at && (
+                  <p className="flex items-center sm:justify-end gap-1">
+                    <Clock className="w-3 h-3 text-muted-foreground" />
+                    Connected on: {new Date(connection.connected_at).toLocaleDateString()}
+                  </p>
+                )}
+                {connection.expires_at && (
+                  <p className="text-[11px]">
+                    Token valid until: {new Date(connection.expires_at).toLocaleDateString()}
+                  </p>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className="bg-muted/30 border border-border/60 rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted-foreground">
+              <div className="flex items-center gap-2">
+                <Info className="w-4 h-4 text-primary shrink-0" />
+                <span>
+                  Authorize your LinkedIn account to publish AI-generated posts directly to your profile feed.
+                </span>
+              </div>
+              <Button
+                variant="link"
+                size="sm"
+                onClick={handleConnectLinkedIn}
+                className="text-[#0A66C2] p-0 h-auto font-medium hover:underline text-xs"
+              >
+                Authorize Now &rarr;
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Brand Guidelines Collapsible Bar */}
+      <Card className="border-border/60 shadow-sm">
+        <div
+          className="p-4 flex items-center justify-between cursor-pointer hover:bg-muted/30 transition-colors"
+          onClick={() => setShowBrandConfig(!showBrandConfig)}
+        >
+          <div className="flex items-center gap-2.5">
+            <Globe className="w-4 h-4 text-primary" />
+            <div>
+              <p className="text-sm font-medium">Brand & Audience Guidelines</p>
+              <p className="text-xs text-muted-foreground">
+                {companyName || brandName ? `${brandName || companyName} Î“Ã‡Ã³ ${industry} Î“Ã‡Ã³ ${tone}` : "Configure tone of voice, target audience, and brand defaults"}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <Badge variant="outline" className="text-xs font-normal">
+              {showBrandConfig ? "Hide Settings" : "Configure Defaults"}
+            </Badge>
+            {showBrandConfig ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
+          </div>
+        </div>
+
+        {showBrandConfig && (
+          <CardContent className="pt-0 border-t border-border/40 mt-3 pt-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="companyName" className="text-xs">Company Name</Label>
+                <Input
+                  id="companyName"
+                  placeholder="e.g. Acme Corp"
+                  value={companyName}
+                  onChange={(e) => setCompanyName(e.target.value)}
+                  className="text-xs"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="brandName" className="text-xs">Brand Name</Label>
+                <Input
+                  id="brandName"
+                  placeholder="e.g. Acme AI"
+                  value={brandName}
+                  onChange={(e) => setBrandName(e.target.value)}
+                  className="text-xs"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="industry" className="text-xs">Industry</Label>
+                <Input
+                  id="industry"
+                  placeholder="e.g. B2B SaaS / FinTech"
+                  value={industry}
+                  onChange={(e) => setIndustry(e.target.value)}
+                  className="text-xs"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="targetAudience" className="text-xs">Target Audience</Label>
+                <Input
+                  id="targetAudience"
+                  placeholder="e.g. CTOs, Founders, HR Heads"
+                  value={targetAudience}
+                  onChange={(e) => setTargetAudience(e.target.value)}
+                  className="text-xs"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="tone" className="text-xs">Tone of Voice</Label>
+                <Select value={tone} onValueChange={setTone}>
+                  <SelectTrigger id="tone" className="text-xs">
+                    <SelectValue placeholder="Select tone" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Professional">Professional</SelectItem>
+                    <SelectItem value="Thought Leadership">Thought Leadership</SelectItem>
+                    <SelectItem value="Inspirational">Inspirational</SelectItem>
+                    <SelectItem value="Storytelling">Storytelling</SelectItem>
+                    <SelectItem value="Analytical">Analytical / Data-Driven</SelectItem>
+                    <SelectItem value="Conversational">Conversational</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex items-end">
+                <Button size="sm" onClick={handleSaveBrandConfig} className="w-full text-xs">
+                  Save Brand Defaults
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        )}
+      </Card>
+
+      {/* 2-Column Main Workspace: Composer vs Live Preview & Editor */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        {/* Left Column: AI Post Generator Controls (5 cols) */}
+        <div className="lg:col-span-5 space-y-6">
+          <Card className="border-border/80 shadow-sm">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base font-semibold flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-purple-600" />
+                AI Post Composer
+              </CardTitle>
+              <CardDescription className="text-xs">
+                Craft compelling LinkedIn posts optimized for algorithmic reach and engagement.
+              </CardDescription>
+            </CardHeader>
+
+            <CardContent className="space-y-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="topic" className="text-xs font-medium">Post Topic / Core Concept *</Label>
+                <Textarea
+                  id="topic"
+                  placeholder="e.g. How we scaled customer retention by 40% with automated onboarding workflows..."
+                  value={topic}
+                  onChange={(e) => setTopic(e.target.value)}
+                  rows={3}
+                  className="text-xs resize-none"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="keyPoints" className="text-xs font-medium">Key Points / Takeaways (Optional)</Label>
+                <Textarea
+                  id="keyPoints"
+                  placeholder="Î“Ã‡Ã³ Faster implementation&#10;Î“Ã‡Ã³ Reduced manual errors&#10;Î“Ã‡Ã³ 3x ROI in 60 days"
+                  value={keyPoints}
+                  onChange={(e) => setKeyPoints(e.target.value)}
+                  rows={2}
+                  className="text-xs resize-none font-mono"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="template" className="text-xs">Post Format</Label>
+                  <Select value={template} onValueChange={setTemplate}>
+                    <SelectTrigger id="template" className="text-xs">
+                      <SelectValue placeholder="Format" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Thought Leadership">Thought Leadership</SelectItem>
+                      <SelectItem value="How-To / Framework">How-To / Framework</SelectItem>
+                      <SelectItem value="Case Study / Results">Case Study / Results</SelectItem>
+                      <SelectItem value="Industry Insight">Industry Insight</SelectItem>
+                      <SelectItem value="Question & Engagement">Question & Engagement</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label htmlFor="goal" className="text-xs">Campaign Goal</Label>
+                  <Select value={goal} onValueChange={setGoal}>
+                    <SelectTrigger id="goal" className="text-xs">
+                      <SelectValue placeholder="Goal" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Brand Awareness">Brand Awareness</SelectItem>
+                      <SelectItem value="Lead Generation">Lead Generation</SelectItem>
+                      <SelectItem value="Engagement">Engagement & Comments</SelectItem>
+                      <SelectItem value="Talent & Hiring">Talent & Hiring</SelectItem>
+                      <SelectItem value="Product Launch">Product Launch</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="desiredLength" className="text-xs">Length</Label>
+                  <Select value={desiredLength} onValueChange={setDesiredLength}>
+                    <SelectTrigger id="desiredLength" className="text-xs">
+                      <SelectValue placeholder="Length" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Short">Short (&lt; 150 words)</SelectItem>
+                      <SelectItem value="Medium">Medium (150 - 300 words)</SelectItem>
+                      <SelectItem value="Long">Long Form (&gt; 300 words)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label htmlFor="hashtagCount" className="text-xs">Hashtags</Label>
+                  <Select value={hashtagCount} onValueChange={setHashtagCount}>
+                    <SelectTrigger id="hashtagCount" className="text-xs">
+                      <SelectValue placeholder="Count" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="3">3 Hashtags</SelectItem>
+                      <SelectItem value="5">5 Hashtags (Recommended)</SelectItem>
+                      <SelectItem value="8">8 Hashtags</SelectItem>
+                      <SelectItem value="0">None</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="callToAction" className="text-xs">Call to Action (Optional)</Label>
+                <Input
+                  id="callToAction"
+                  placeholder="e.g. DM me for the playbook or share your thoughts below!"
+                  value={callToAction}
+                  onChange={(e) => setCallToAction(e.target.value)}
+                  className="text-xs"
+                />
+              </div>
+
+              <Button
+                onClick={handleGeneratePost}
+                disabled={isGenerating || !topic.trim()}
+                className="w-full bg-[#0A66C2] hover:bg-[#084e96] text-white gap-2 text-xs font-semibold py-5 shadow-sm"
+              >
+                {isGenerating ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Generating LinkedIn Post...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-4 h-4" />
+                    Generate LinkedIn Post with AI
+                  </>
+                )}
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Right Column: Editor & Live LinkedIn Feed Preview (7 cols) */}
+        <div className="lg:col-span-7 space-y-6">
+          <Card className="border-border/80 shadow-sm">
+            <CardHeader className="pb-3 flex flex-row items-center justify-between">
+              <div>
+                <CardTitle className="text-base font-semibold">Post Editor & Live Feed Preview</CardTitle>
+                <CardDescription className="text-xs">
+                  Review, edit, and publish directly to your LinkedIn feed.
+                </CardDescription>
+              </div>
+              <div className="flex items-center gap-1.5">
+                {generatedText && (
+                  <>
+                    <Button variant="ghost" size="sm" onClick={handleCopyPost} className="h-8 px-2 text-xs gap-1">
+                      {isCopied ? <CheckCircle className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
+                      {isCopied ? "Copied" : "Copy"}
+                    </Button>
+                    <Button variant="ghost" size="sm" onClick={handleDownloadTxt} className="h-8 px-2 text-xs gap-1">
+                      <Download className="w-3.5 h-3.5" />
+                      Save
+                    </Button>
+                    <Button variant="ghost" size="sm" onClick={handleClear} className="h-8 px-2 text-xs text-muted-foreground hover:text-rose-500">
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </Button>
+                  </>
+                )}
+              </div>
+            </CardHeader>
+
+            <CardContent className="space-y-4">
+              {/* Editable Text Area */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                  <Label htmlFor="postEditor" className="text-xs font-medium">Post Content</Label>
+                  <span>{generatedText.length} characters Î“Ã‡Ã³ ~{Math.ceil(generatedText.split(/\s+/).filter(Boolean).length)} words</span>
+                </div>
+                <Textarea
+                  id="postEditor"
+                  placeholder="Generated LinkedIn post will appear here for you to review and edit..."
+                  value={generatedText}
+                  onChange={(e) => setGeneratedText(e.target.value)}
+                  rows={8}
+                  className="text-xs font-sans leading-relaxed resize-y border-border/80 focus-visible:ring-1"
+                />
+              </div>
+
+              {/* Hashtag Badges */}
+              {generatedHashtags.length > 0 && (
+                <div className="p-3 bg-muted/30 rounded-lg border border-border/50 flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <span className="text-xs font-medium text-muted-foreground mr-1">Hashtags:</span>
+                    {generatedHashtags.map((tag, idx) => (
+                      <Badge key={idx} variant="secondary" className="text-[11px] font-mono bg-[#0A66C2]/10 text-[#0A66C2] hover:bg-[#0A66C2]/20">
+                        {tag}
+                      </Badge>
+                    ))}
+                  </div>
+                  <Button variant="ghost" size="sm" onClick={handleCopyHashtags} className="h-7 px-2 text-[11px] gap-1 text-muted-foreground">
+                    {isHashtagsCopied ? <CheckCircle className="w-3 h-3 text-emerald-500" /> : <Copy className="w-3 h-3" />}
+                    Copy Tags
+                  </Button>
+                </div>
+              )}
+
+              {/* Realistic LinkedIn Feed Mock Preview */}
+              <div className="space-y-1.5">
+                <Label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+                  <Share2 className="w-3.5 h-3.5 text-[#0A66C2]" />
+                  Live LinkedIn Feed Preview
+                </Label>
+                <div className="border border-border/80 rounded-xl p-4 bg-card shadow-sm space-y-3">
+                  {/* Mock Post Author */}
+                  <div className="flex items-center gap-3">
+                    {connection?.profile_picture ? (
+                      <img
+                        src={connection.profile_picture}
+                        alt="Profile"
+                        className="w-10 h-10 rounded-full object-cover border"
+                      />
+                    ) : (
+                      <div className="w-10 h-10 rounded-full bg-[#0A66C2] text-white flex items-center justify-center font-bold text-sm">
+                        {connection?.member_name ? connection.member_name.charAt(0).toUpperCase() : "IN"}
+                      </div>
+                    )}
+                    <div>
+                      <p className="font-semibold text-xs text-foreground">
+                        {connection?.member_name || "Your Name"}
+                      </p>
+                      <p className="text-[11px] text-muted-foreground leading-tight">
+                        {brandName || companyName || "Founder & Leader"} Î“Ã‡Ã³ Just now Î“Ã‡Ã³ â‰¡Æ’Ã®Ã‰
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Post Content */}
+                  <div className="text-xs text-foreground leading-relaxed whitespace-pre-wrap font-sans">
+                    {generatedText || (
+                      <span className="text-muted-foreground italic">
+                        Your post content preview will render here in real-time...
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Mock Social Interactions */}
+                  <div className="border-t border-border/50 pt-2 flex items-center justify-between text-muted-foreground text-xs">
+                    <div className="flex items-center gap-1">
+                      <span className="flex -space-x-1">
+                        <span className="w-4 h-4 rounded-full bg-[#0A66C2] text-white flex items-center justify-center text-[8px]">â‰¡Æ’Ã¦Ã¬</span>
+                        <span className="w-4 h-4 rounded-full bg-red-500 text-white flex items-center justify-center text-[8px]">Î“Â¥Ã±âˆ©â••Ã…</span>
+                        <span className="w-4 h-4 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[8px]">â‰¡Æ’Ã†Ã­</span>
+                      </span>
+                      <span className="text-[11px] text-muted-foreground/80 ml-1">42 reactions</span>
+                    </div>
+                    <span className="text-[11px] text-muted-foreground/80">8 comments Î“Ã‡Ã³ 2 reposts</span>
+                  </div>
+
+                  <div className="border-t border-border/50 pt-2 grid grid-cols-4 gap-1 text-center text-xs text-muted-foreground">
+                    <div className="flex items-center justify-center gap-1 py-1 rounded hover:bg-muted/50 cursor-pointer">
+                      <ThumbsUp className="w-3.5 h-3.5" /> Like
+                    </div>
+                    <div className="flex items-center justify-center gap-1 py-1 rounded hover:bg-muted/50 cursor-pointer">
+                      <MessageSquare className="w-3.5 h-3.5" /> Comment
+                    </div>
+                    <div className="flex items-center justify-center gap-1 py-1 rounded hover:bg-muted/50 cursor-pointer">
+                      <Repeat className="w-3.5 h-3.5" /> Repost
+                    </div>
+                    <div className="flex items-center justify-center gap-1 py-1 rounded hover:bg-muted/50 cursor-pointer">
+                      <Send className="w-3.5 h-3.5" /> Send
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Publish Action Button */}
+              <div className="pt-2">
+                {connection?.connected ? (
+                  <Button
+                    onClick={() => setIsPublishConfirmOpen(true)}
+                    disabled={isPublishing || !generatedText.trim()}
+                    className="w-full bg-[#0A66C2] hover:bg-[#084e96] text-white gap-2 text-xs font-semibold py-5 shadow-sm"
+                  >
+                    {isPublishing ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Publishing to LinkedIn...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-4 h-4" />
+                        Publish to LinkedIn Now
+                      </>
+                    )}
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={handleConnectLinkedIn}
+                    disabled={isConnecting}
+                    className="w-full bg-muted hover:bg-muted/80 text-foreground border border-border gap-2 text-xs py-5"
+                  >
+                    <ExternalLink className="w-4 h-4 text-[#0A66C2]" />
+                    Connect LinkedIn Account to Enable Direct Publishing
+                  </Button>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+      {/* 3. Publishing History Table */}
+      <Card className="border-border/80 shadow-sm">
+        <CardHeader className="pb-3 flex flex-row items-center justify-between">
+          <div>
+            <CardTitle className="text-base font-semibold flex items-center gap-2">
+              <Clock className="w-4 h-4 text-[#0A66C2]" />
+              Publishing Audit History
+            </CardTitle>
+            <CardDescription className="text-xs">
+              History of posts published from your account with verified LinkedIn URN tracking.
+            </CardDescription>
+          </div>
+          <Badge variant="outline" className="text-xs font-normal">
+            {history.length} {history.length === 1 ? "Record" : "Records"}
+          </Badge>
+        </CardHeader>
+
+        <CardContent>
+          {isLoadingHistory ? (
+            <div className="py-10 text-center text-xs text-muted-foreground flex items-center justify-center gap-2">
+              <Loader2 className="w-4 h-4 animate-spin" />
+              Loading publishing history...
+            </div>
+          ) : history.length === 0 ? (
+            <div className="py-10 text-center text-xs text-muted-foreground">
+              <p>No posts published yet. Generate a post and publish it directly to your LinkedIn feed!</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-border/80 text-muted-foreground font-medium">
+                    <th className="pb-2 pl-2">Status</th>
+                    <th className="pb-2">Topic</th>
+                    <th className="pb-2">Content Preview</th>
+                    <th className="pb-2">LinkedIn Post URN</th>
+                    <th className="pb-2">Date</th>
+                    <th className="pb-2 pr-2 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border/40">
+                  {history.map((item) => (
+                    <tr key={item.id} className="hover:bg-muted/30 transition-colors">
+                      <td className="py-3 pl-2">
+                        {item.status === "published" ? (
+                          <Badge className="bg-emerald-500/15 text-emerald-600 border-emerald-500/20 text-[10px] gap-1">
+                            <CheckCircle2 className="w-3 h-3" />
+                            Published
+                          </Badge>
+                        ) : item.status === "failed" ? (
+                          <Badge variant="destructive" className="text-[10px] gap-1">
+                            <AlertCircle className="w-3 h-3" />
+                            Failed
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="text-[10px]">
+                            {item.status}
+                          </Badge>
+                        )}
+                      </td>
+                      <td className="py-3 font-medium text-foreground max-w-[140px] truncate">
+                        {item.topic || "LinkedIn Post"}
+                      </td>
+                      <td className="py-3 text-muted-foreground max-w-[280px] truncate">
+                        {item.content}
+                      </td>
+                      <td className="py-3 font-mono text-[11px] text-muted-foreground">
+                        {item.post_urn ? (
+                          <span className="bg-muted px-1.5 py-0.5 rounded text-[10px]">
+                            {item.post_urn}
+                          </span>
+                        ) : (
+                          "Î“Ã‡Ã¶"
+                        )}
+                      </td>
+                      <td className="py-3 text-muted-foreground text-[11px] whitespace-nowrap">
+                        {item.published_at
+                          ? new Date(item.published_at).toLocaleDateString()
+                          : item.created_at
+                          ? new Date(item.created_at).toLocaleDateString()
+                          : "Î“Ã‡Ã¶"}
+                      </td>
+                      <td className="py-3 pr-2 text-right">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleLoadFromHistory(item)}
+                          className="h-7 px-2 text-[11px] text-primary hover:text-primary hover:bg-primary/10"
+                        >
+                          Load in Editor
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Disconnect Confirmation Dialog */}
+      <Dialog open={isDisconnectOpen} onOpenChange={setIsDisconnectOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="text-base flex items-center gap-2 text-rose-600">
+              <Unlink className="w-4 h-4" />
+              Disconnect LinkedIn Account?
+            </DialogTitle>
+            <DialogDescription className="text-xs">
+              This will revoke your active session tokens and disconnect {connection?.member_name || "your account"} from Saadhyam Store. You can reconnect at any time.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsDisconnectOpen(false)}
+              disabled={isDisconnecting}
+              className="text-xs"
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={handleDisconnectLinkedIn}
+              disabled={isDisconnecting}
+              className="text-xs gap-1.5"
+            >
+              {isDisconnecting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Unlink className="w-3.5 h-3.5" />}
+              Yes, Disconnect
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Publish Confirmation Dialog */}
+      <Dialog open={isPublishConfirmOpen} onOpenChange={setIsPublishConfirmOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle className="text-base flex items-center gap-2">
+              <Send className="w-4 h-4 text-[#0A66C2]" />
+              Confirm LinkedIn Post Publication
+            </DialogTitle>
+            <DialogDescription className="text-xs">
+              This will publish the post live to your verified LinkedIn account ({connection?.member_name || "Connected Profile"}) using the official LinkedIn Posts API.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="max-h-[220px] overflow-y-auto p-3 bg-muted/40 rounded-lg text-xs leading-relaxed border border-border/60 whitespace-pre-wrap font-sans">
+            {generatedText}
+          </div>
+
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsPublishConfirmOpen(false)}
+              disabled={isPublishing}
+              className="text-xs"
+            >
+              Back to Editor
+            </Button>
+            <Button
+              onClick={handlePublishPost}
+              disabled={isPublishing}
+              className="bg-[#0A66C2] hover:bg-[#084e96] text-white text-xs gap-1.5"
+            >
+              {isPublishing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
+              Confirm & Publish Live
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}

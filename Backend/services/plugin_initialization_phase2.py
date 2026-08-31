@@ -89,7 +89,7 @@ async def register_ecommerce_plugins(db: AsyncSession):
     # Order Management
     await plugin_manager.register_plugin(
         db=db,
-        plugin_key="ecommerce_order_management",
+        plugin_key="sales_order_management",
         name="📋 Order Management",
         category=PluginCategory.ECOMMERCE,
         description="Centralized order processing across all sales channels",

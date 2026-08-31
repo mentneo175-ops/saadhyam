@@ -1,1 +1,307 @@
-"""Dedicated Store AI Email Assistant Router & Service.Completely independent from the legacy plugins system and /api/plugins/execute.Uses Hugging Face model: likhitha7274/saadhyam_email_flan_t5_base"""import reimport jsonimport asyncioimport loggingfrom functools import lru_cachefrom typing import List, Optionalfrom pydantic import BaseModel, Fieldfrom fastapi import APIRouter, HTTPException, statuslogger = logging.getLogger("store_email_assistant")router = APIRouter(prefix="/store/email-assistant", tags=["Store AI Email Assistant"])HF_STORE_EMAIL_MODEL_ID = "likhitha7274/saadhyam_email_flan_t5_base"class StoreEmailGenerateRequest(BaseModel):    recipient: str = Field(..., description="Recipient or audience name / role")    subject: str = Field(..., description="Email subject line")    purpose: Optional[str] = Field("General", description="Purpose or context")    tone: Optional[str] = Field("Professional", description="Tone of the email")    length: Optional[str] = Field("Medium", description="Desired email length")    key_points: Optional[List[str]] = Field(default_factory=list, description="Mandatory key points to include")    signature: Optional[str] = Field("The Saadhyam Team", description="Email signature")class StoreEmailGenerateResponse(BaseModel):    success: bool    subject: str    body: str    word_count: int    template_type: str    message: Optional[str] = None    error: Optional[str] = None@lru_cache(maxsize=1)def _load_store_hf_pipeline():    """Load and cache local transformers model and tokenizer for Store Email Assistant."""    from transformers import AutoTokenizer, AutoModelForSeq2SeqLM    logger.info(        f"[STORE EMAIL ASSISTANT] Loading local cached model for {HF_STORE_EMAIL_MODEL_ID}..."    )    try:        tokenizer = AutoTokenizer.from_pretrained(            HF_STORE_EMAIL_MODEL_ID,            local_files_only=True,        )        logger.info("[STORE EMAIL ASSISTANT] Local tokenizer loaded.")        model = AutoModelForSeq2SeqLM.from_pretrained(            HF_STORE_EMAIL_MODEL_ID,            local_files_only=True,            low_cpu_mem_usage=False,        )        if hasattr(model, "generation_config") and model.generation_config is not None:            model.generation_config.max_length = None            model.generation_config.min_length = None        logger.info("[STORE EMAIL ASSISTANT] Local model loaded.")    except Exception as e:        logger.error(            f"[STORE EMAIL ASSISTANT] Failed to load local model files for {HF_STORE_EMAIL_MODEL_ID}: {e}"        )        raise RuntimeError(            f"Store AI Email Assistant local model files are not available locally for '{HF_STORE_EMAIL_MODEL_ID}'. "            f"Please ensure the model is downloaded to the local Hugging Face cache: {e}"        ) from e    logger.info(        "[STORE EMAIL ASSISTANT] Local model and tokenizer loaded successfully."    )    return tokenizer, modeldef _run_store_hf_inference_sync(prompt_text: str) -> str:    """Run Store AI Email Assistant using local FLAN-T5 model only."""    logger.info(        f"[STORE EMAIL ASSISTANT] Running local FLAN-T5 inference with {HF_STORE_EMAIL_MODEL_ID}..."    )    tokenizer, model = _load_store_hf_pipeline()    inputs = tokenizer(        prompt_text,        return_tensors="pt",        truncation=True,        max_length=512,    )    outputs = model.generate(        **inputs,        max_new_tokens=350,        min_new_tokens=35,        do_sample=False,    )    decoded = tokenizer.decode(        outputs[0],        skip_special_tokens=True,    ).strip()    if not decoded:        raise RuntimeError(            "FLAN-T5 generated an empty response."        )    logger.info(        f"[STORE EMAIL ASSISTANT] Local inference successful. Output length={len(decoded)}"    )    return decodeddef _parse_store_generated_email(    raw_text: str,    default_subject: str,    recipient: str,    signature: str,    template_type: str = "General",) -> tuple[str, str, int]:    """    Parse model output and structure into:    Subject    Greeting    Body Paragraphs (preserving all key points)    Closing    Signature    """    text = raw_text.strip()    # 1. JSON output check    start = text.find("{")    end = text.rfind("}")    if start != -1 and end != -1 and end > start:        try:            payload = json.loads(text[start : end + 1])            if isinstance(payload, dict):                subj = str(payload.get("subject") or default_subject).strip()                b = str(payload.get("body") or payload.get("email") or payload.get("content") or "").strip()                if b:                    return subj, b, len(b.split())        except Exception:            pass    # 2. Subject extraction    subject = default_subject    remainder = text    if text.startswith("Subject:"):        m = re.match(            r"^Subject:\s*(.*?)(?=(?:\r?\n|Dear\b|Hi\b|Hello\b|Hey\b|Good\s+(?:morning|afternoon|evening)|Body:|$))",            text,            re.IGNORECASE,        )        if m:            extracted_s = m.group(1).strip().rstrip(" ,-:")            if extracted_s and len(extracted_s.split()) <= 12:                subject = extracted_s                remainder = text[m.end() :].strip()            elif default_subject and text[len("Subject:") :].strip().lower().startswith(default_subject.lower()):                subject = default_subject                remainder = text[len("Subject:") :].strip()[len(default_subject) :].lstrip(" :-,\t\n")            else:                subject = default_subject                remainder = text[len("Subject:") :].strip()        else:            remainder = text[len("Subject:") :].strip()    # Strip any leading 'Body:' label or punctuation    remainder = re.sub(r"^Body:\s*", "", remainder, flags=re.IGNORECASE).strip()    remainder = re.sub(r"^[,\s:-]+", "", remainder).strip()    # 3. Greeting extraction or fallback    greeting_match = re.match(        r"^(Dear\s+[^,\n]+,|Hi\s+[^,\n]+,|Hello\s+[^,\n]+,|Hey\s+[^,\n]+,|Good\s+(?:morning|afternoon|evening)[^,\n]*,?)",        remainder,        re.IGNORECASE,    )    if greeting_match:        greeting = greeting_match.group(1).strip()        recip_name = recipient.split(",")[0].strip() if recipient else ""        if recip_name and (recip_name.lower() not in greeting.lower() or greeting.lower() in ["dear team,", "dear colleague,"]):            greeting = f"Dear {recip_name},"        body_content = remainder[greeting_match.end() :].strip()    else:        recip_name = recipient.split(",")[0].strip() if recipient else "Team"        greeting = f"Dear {recip_name},"        body_content = remainder.strip()    # 4. Closing & Signature extraction from the end    closing_match = re.search(        r"([,\s\n]+)(Best regards|Warm regards|Kind regards|Regards|Sincerely|Thanks and regards|Yours sincerely|With regards)[,\s]*(.*)$",        body_content,        re.IGNORECASE,    )    if closing_match:        closing = closing_match.group(2).capitalize() + ","        model_sign = closing_match.group(3).strip()        main_body = body_content[: closing_match.start()].strip()    else:        closing = "Regards,"        model_sign = ""        main_body = body_content.strip()    # 5. Clean up main body paragraphs    main_body = re.sub(r"^[,\s:-]+", "", main_body).strip()    # Strip redundant leading subject repetitions (e.g. "Update - August Progress - ")    if default_subject:        subj_clean = re.sub(r"^(?:Project\s+|Email\s+)?", "", default_subject, flags=re.IGNORECASE).strip()        main_body = re.sub(rf"^(?:Update\s*-\s*)?{re.escape(subj_clean)}\s*[:-]\s*", "", main_body, flags=re.IGNORECASE).strip()        main_body = re.sub(rf"^{re.escape(default_subject)}\s*[:-]\s*", "", main_body, flags=re.IGNORECASE).strip()    # Split sentences and transitional phrases into clean paragraphs    main_body = re.sub(r"([.!?])\s*([A-Z])", r"\1\n\n\2", main_body)    main_body = re.sub(        r"\n*\s*(Thank you for|Please let me know|Feel free to|If you have any questions|I wanted to|We expect to|Backend integration)",        r"\n\n\1",        main_body,        flags=re.IGNORECASE,    )    raw_paragraphs = [p.strip() for p in re.split(r"\n\s*\n+", main_body) if p.strip()]    cleaned_paragraphs = []    for p in raw_paragraphs:        cleaned_p = re.sub(r"\s*-\s*$", "", p).strip()        cleaned_p = re.sub(r"^[,\s:-]+", "", cleaned_p).strip()        if cleaned_p:            cleaned_paragraphs.append(cleaned_p)    formatted_body_content = "\n\n".join(cleaned_paragraphs) if cleaned_paragraphs else main_body    # 6. Final Signature resolution    final_sig = signature.strip() if signature and signature.strip() else (model_sign or "The Saadhyam Team")    full_email = f"{greeting}\n\n{formatted_body_content}\n\n{closing}\n{final_sig}"    word_count = len(full_email.split())    return subject, full_email, word_count@router.post("/generate", response_model=StoreEmailGenerateResponse)async def generate_store_email(request: StoreEmailGenerateRequest):    """    Dedicated endpoint for Store AI Email Assistant.    Generates emails using FLAN-T5 (likhitha7274/saadhyam_email_flan_t5_base).    """    logger.info(f"[STORE EMAIL ASSISTANT] request received for recipient={request.recipient}")    logger.info(f"[STORE EMAIL ASSISTANT] model selected: {HF_STORE_EMAIL_MODEL_ID}")    if not request.subject.strip():        raise HTTPException(            status_code=status.HTTP_400_BAD_REQUEST,            detail="Subject is required to compose email."        )    # Build prompt using fields supported by the trained model (Audience, Context, Tone, Length, Subject, Request)    prompt_parts = [        f"Audience: {request.recipient}",        f"Context: {request.purpose}",        f"Tone: {request.tone}",        f"Length: {request.length}",        f"Subject: {request.subject}",    ]    if request.key_points:        pts_str = ". ".join(p.strip().rstrip(".") for p in request.key_points if p.strip())        if pts_str:            prompt_parts.append(f"Key Points: {pts_str}")    prompt_parts.append(f"Request: Compose a {request.tone.lower()} email regarding {request.purpose}")    prompt_text = " | ".join(prompt_parts)    logger.info(f"[STORE EMAIL ASSISTANT] prompt constructed: {prompt_text[:120]}...")    try:        raw_output = await asyncio.to_thread(_run_store_hf_inference_sync, prompt_text)        logger.info(f"[STORE EMAIL ASSISTANT] generation completed, raw length={len(raw_output)}")        subject, body, word_count = _parse_store_generated_email(            raw_text=raw_output,            default_subject=request.subject,            recipient=request.recipient,            signature=request.signature or "The Saadhyam Team",            template_type=request.purpose or "General",        )        logger.info(f"[STORE EMAIL ASSISTANT] parsed subject='{subject}', body length={len(body)}, word count={word_count}")        return StoreEmailGenerateResponse(            success=True,            subject=subject,            body=body,            word_count=word_count,            template_type=request.purpose or "General",            message="Email draft generated successfully by Store AI Email Assistant."        )    except Exception as e:        logger.error(f"[STORE EMAIL ASSISTANT] Error generating email: {e}", exc_info=True)        raise HTTPException(            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,            detail=f"Store email generation failed: {str(e)}"        )
+"""
+Dedicated Store AI Email Assistant Router & Service.
+Completely independent from the legacy plugins system and /api/plugins/execute.
+Uses Hugging Face model: likhitha7274/saadhyam_email_flan_t5_base
+"""
+
+import re
+import json
+import asyncio
+import logging
+from functools import lru_cache
+from typing import List, Optional
+from pydantic import BaseModel, Field
+from fastapi import APIRouter, HTTPException, status
+
+logger = logging.getLogger("store_email_assistant")
+router = APIRouter(prefix="/store/email-assistant", tags=["Store AI Email Assistant"])
+
+HF_STORE_EMAIL_MODEL_ID = "likhitha7274/saadhyam_email_flan_t5_base"
+
+
+class StoreEmailGenerateRequest(BaseModel):
+    recipient: str = Field(..., description="Recipient or audience name / role")
+    subject: str = Field(..., description="Email subject line")
+    purpose: Optional[str] = Field("General", description="Purpose or context")
+    tone: Optional[str] = Field("Professional", description="Tone of the email")
+    length: Optional[str] = Field("Medium", description="Desired email length")
+    key_points: Optional[List[str]] = Field(default_factory=list, description="Mandatory key points to include")
+    signature: Optional[str] = Field("The Saadhyam Team", description="Email signature")
+
+
+class StoreEmailGenerateResponse(BaseModel):
+    success: bool
+    subject: str
+    body: str
+    word_count: int
+    template_type: str
+    message: Optional[str] = None
+    error: Optional[str] = None
+
+
+@lru_cache(maxsize=1)
+def _load_store_hf_pipeline():
+    """Load and cache local transformers model and tokenizer for Store Email Assistant."""
+    from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
+
+    logger.info(
+        f"[STORE EMAIL ASSISTANT] Loading local cached model for {HF_STORE_EMAIL_MODEL_ID}..."
+    )
+    try:
+        tokenizer = AutoTokenizer.from_pretrained(
+            HF_STORE_EMAIL_MODEL_ID,
+            local_files_only=True,
+        )
+        logger.info("[STORE EMAIL ASSISTANT] Local tokenizer loaded.")
+
+        model = AutoModelForSeq2SeqLM.from_pretrained(
+            HF_STORE_EMAIL_MODEL_ID,
+            local_files_only=True,
+            low_cpu_mem_usage=False,
+        )
+        if hasattr(model, "generation_config") and model.generation_config is not None:
+            model.generation_config.max_length = None
+            model.generation_config.min_length = None
+        logger.info("[STORE EMAIL ASSISTANT] Local model loaded.")
+    except Exception as e:
+        logger.error(
+            f"[STORE EMAIL ASSISTANT] Failed to load local model files for {HF_STORE_EMAIL_MODEL_ID}: {e}"
+        )
+        raise RuntimeError(
+            f"Store AI Email Assistant local model files are not available locally for '{HF_STORE_EMAIL_MODEL_ID}'. "
+            f"Please ensure the model is downloaded to the local Hugging Face cache: {e}"
+        ) from e
+
+    logger.info(
+        "[STORE EMAIL ASSISTANT] Local model and tokenizer loaded successfully."
+    )
+    return tokenizer, model
+
+
+def _run_store_hf_inference_sync(prompt_text: str) -> str:
+    """Run Store AI Email Assistant using local FLAN-T5 model only."""
+
+    logger.info(
+        f"[STORE EMAIL ASSISTANT] Running local FLAN-T5 inference with {HF_STORE_EMAIL_MODEL_ID}..."
+    )
+
+    tokenizer, model = _load_store_hf_pipeline()
+
+    inputs = tokenizer(
+        prompt_text,
+        return_tensors="pt",
+        truncation=True,
+        max_length=512,
+    )
+
+    outputs = model.generate(
+        **inputs,
+        max_new_tokens=350,
+        min_new_tokens=35,
+        do_sample=False,
+    )
+
+    decoded = tokenizer.decode(
+        outputs[0],
+        skip_special_tokens=True,
+    ).strip()
+
+    if not decoded:
+        raise RuntimeError(
+            "FLAN-T5 generated an empty response."
+        )
+
+    logger.info(
+        f"[STORE EMAIL ASSISTANT] Local inference successful. Output length={len(decoded)}"
+    )
+
+    return decoded
+
+
+def _parse_store_generated_email(
+    raw_text: str,
+    default_subject: str,
+    recipient: str,
+    signature: str,
+    template_type: str = "General",
+) -> tuple[str, str, int]:
+    """
+    Parse model output and structure into:
+    Subject
+    Greeting
+    Body Paragraphs (preserving all key points)
+    Closing
+    Signature
+    """
+    text = raw_text.strip()
+
+    # 1. JSON output check
+    start = text.find("{")
+    end = text.rfind("}")
+    if start != -1 and end != -1 and end > start:
+        try:
+            payload = json.loads(text[start : end + 1])
+            if isinstance(payload, dict):
+                subj = str(payload.get("subject") or default_subject).strip()
+                b = str(payload.get("body") or payload.get("email") or payload.get("content") or "").strip()
+                if b:
+                    return subj, b, len(b.split())
+        except Exception:
+            pass
+
+    # 2. Subject extraction
+    subject = default_subject
+    remainder = text
+
+    if text.startswith("Subject:"):
+        m = re.match(
+            r"^Subject:\s*(.*?)(?=(?:\r?\n|Dear\b|Hi\b|Hello\b|Hey\b|Good\s+(?:morning|afternoon|evening)|Body:|$))",
+            text,
+            re.IGNORECASE,
+        )
+        if m:
+            extracted_s = m.group(1).strip().rstrip(" ,-:")
+            if extracted_s and len(extracted_s.split()) <= 12:
+                subject = extracted_s
+                remainder = text[m.end() :].strip()
+            elif default_subject and text[len("Subject:") :].strip().lower().startswith(default_subject.lower()):
+                subject = default_subject
+                remainder = text[len("Subject:") :].strip()[len(default_subject) :].lstrip(" :-,\t\n")
+            else:
+                subject = default_subject
+                remainder = text[len("Subject:") :].strip()
+        else:
+            remainder = text[len("Subject:") :].strip()
+
+    # Strip any leading 'Body:' label or punctuation
+    remainder = re.sub(r"^Body:\s*", "", remainder, flags=re.IGNORECASE).strip()
+    remainder = re.sub(r"^[,\s:-]+", "", remainder).strip()
+
+    # 3. Greeting extraction or fallback
+    greeting_match = re.match(
+        r"^(Dear\s+[^,\n]+,|Hi\s+[^,\n]+,|Hello\s+[^,\n]+,|Hey\s+[^,\n]+,|Good\s+(?:morning|afternoon|evening)[^,\n]*,?)",
+        remainder,
+        re.IGNORECASE,
+    )
+    if greeting_match:
+        greeting = greeting_match.group(1).strip()
+        recip_name = recipient.split(",")[0].strip() if recipient else ""
+        if recip_name and (recip_name.lower() not in greeting.lower() or greeting.lower() in ["dear team,", "dear colleague,"]):
+            greeting = f"Dear {recip_name},"
+        body_content = remainder[greeting_match.end() :].strip()
+    else:
+        recip_name = recipient.split(",")[0].strip() if recipient else "Team"
+        greeting = f"Dear {recip_name},"
+        body_content = remainder.strip()
+
+    # 4. Closing & Signature extraction from the end
+    closing_match = re.search(
+        r"([,\s\n]+)(Best regards|Warm regards|Kind regards|Regards|Sincerely|Thanks and regards|Yours sincerely|With regards)[,\s]*(.*)$",
+        body_content,
+        re.IGNORECASE,
+    )
+    if closing_match:
+        closing = closing_match.group(2).capitalize() + ","
+        model_sign = closing_match.group(3).strip()
+        main_body = body_content[: closing_match.start()].strip()
+    else:
+        closing = "Regards,"
+        model_sign = ""
+        main_body = body_content.strip()
+
+    # 5. Clean up main body paragraphs
+    main_body = re.sub(r"^[,\s:-]+", "", main_body).strip()
+
+    # Strip redundant leading subject repetitions (e.g. "Update - August Progress - ")
+    if default_subject:
+        subj_clean = re.sub(r"^(?:Project\s+|Email\s+)?", "", default_subject, flags=re.IGNORECASE).strip()
+        main_body = re.sub(rf"^(?:Update\s*-\s*)?{re.escape(subj_clean)}\s*[:-]\s*", "", main_body, flags=re.IGNORECASE).strip()
+        main_body = re.sub(rf"^{re.escape(default_subject)}\s*[:-]\s*", "", main_body, flags=re.IGNORECASE).strip()
+
+    # Split sentences and transitional phrases into clean paragraphs
+    main_body = re.sub(r"([.!?])\s*([A-Z])", r"\1\n\n\2", main_body)
+    main_body = re.sub(
+        r"\n*\s*(Thank you for|Please let me know|Feel free to|If you have any questions|I wanted to|We expect to|Backend integration)",
+        r"\n\n\1",
+        main_body,
+        flags=re.IGNORECASE,
+    )
+
+    raw_paragraphs = [p.strip() for p in re.split(r"\n\s*\n+", main_body) if p.strip()]
+    cleaned_paragraphs = []
+    for p in raw_paragraphs:
+        cleaned_p = re.sub(r"\s*-\s*$", "", p).strip()
+        cleaned_p = re.sub(r"^[,\s:-]+", "", cleaned_p).strip()
+        if cleaned_p:
+            cleaned_paragraphs.append(cleaned_p)
+
+    formatted_body_content = "\n\n".join(cleaned_paragraphs) if cleaned_paragraphs else main_body
+
+    # 6. Final Signature resolution
+    final_sig = signature.strip() if signature and signature.strip() else (model_sign or "The Saadhyam Team")
+
+    full_email = f"{greeting}\n\n{formatted_body_content}\n\n{closing}\n{final_sig}"
+    word_count = len(full_email.split())
+    return subject, full_email, word_count
+
+
+@router.post("/generate", response_model=StoreEmailGenerateResponse)
+async def generate_store_email(request: StoreEmailGenerateRequest):
+    """
+    Dedicated endpoint for Store AI Email Assistant.
+    Generates emails using FLAN-T5 (likhitha7274/saadhyam_email_flan_t5_base).
+    """
+    logger.info(f"[STORE EMAIL ASSISTANT] request received for recipient={request.recipient}")
+    logger.info(f"[STORE EMAIL ASSISTANT] model selected: {HF_STORE_EMAIL_MODEL_ID}")
+
+    if not request.subject.strip():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Subject is required to compose email."
+        )
+
+    # Build prompt using fields supported by the trained model (Audience, Context, Tone, Length, Subject, Request)
+    prompt_parts = [
+        f"Audience: {request.recipient}",
+        f"Context: {request.purpose}",
+        f"Tone: {request.tone}",
+        f"Length: {request.length}",
+        f"Subject: {request.subject}",
+    ]
+    if request.key_points:
+        pts_str = ". ".join(p.strip().rstrip(".") for p in request.key_points if p.strip())
+        if pts_str:
+            prompt_parts.append(f"Key Points: {pts_str}")
+    prompt_parts.append(f"Request: Compose a {request.tone.lower()} email regarding {request.purpose}")
+
+    prompt_text = " | ".join(prompt_parts)
+    logger.info(f"[STORE EMAIL ASSISTANT] prompt constructed: {prompt_text[:120]}...")
+
+    try:
+        raw_output = await asyncio.to_thread(_run_store_hf_inference_sync, prompt_text)
+        logger.info(f"[STORE EMAIL ASSISTANT] generation completed, raw length={len(raw_output)}")
+
+        subject, body, word_count = _parse_store_generated_email(
+            raw_text=raw_output,
+            default_subject=request.subject,
+            recipient=request.recipient,
+            signature=request.signature or "The Saadhyam Team",
+            template_type=request.purpose or "General",
+        )
+
+        logger.info(f"[STORE EMAIL ASSISTANT] parsed subject='{subject}', body length={len(body)}, word count={word_count}")
+
+        return StoreEmailGenerateResponse(
+            success=True,
+            subject=subject,
+            body=body,
+            word_count=word_count,
+            template_type=request.purpose or "General",
+            message="Email draft generated successfully by Store AI Email Assistant."
+        )
+    except Exception as e:
+        logger.error(f"[STORE EMAIL ASSISTANT] Error generating email: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Store email generation failed: {str(e)}"
+        )

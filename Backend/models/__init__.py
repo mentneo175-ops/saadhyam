@@ -70,6 +70,21 @@ from models.voice_command import VoiceCommandLog
 from models.user_api_keys import UserAPIKeys
 from models.plugins import Plugin, UserPlugin, PluginAnalytics, PluginCategory, PluginStatus
 
+# Order Management Plugin Models
+from models.order import (
+    Order,
+    OrderItem,
+    OrderStatus,
+    PaymentStatus,
+)
+
+# LinkedIn Store Solution Models
+from models.linkedin import (
+    LinkedInConnection,
+    LinkedInPostHistory,
+    LinkedInPostStatus,
+)
+
 __all__ = [
     "User",
     "SocialAccount",
@@ -115,4 +130,13 @@ __all__ = [
     "PluginAnalytics",
     "PluginCategory",
     "PluginStatus",
+    # Order Management
+    "Order",
+    "OrderItem",
+    "OrderStatus",
+    "PaymentStatus",
+    # LinkedIn
+    "LinkedInConnection",
+    "LinkedInPostHistory",
+    "LinkedInPostStatus",
 ]

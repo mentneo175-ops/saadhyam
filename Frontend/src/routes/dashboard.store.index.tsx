@@ -1,1 +1,11 @@
-import { createFileRoute } from "@tanstack/react-router";import { StoreView } from "@/components/store/StoreView";export const Route = createFileRoute("/dashboard/store/")({  head: () => ({ meta: [{ title: "Store GÇö Saadhyam AI" }] }),  component: StoreIndexPage,});function StoreIndexPage() {  return <StoreView />;}
+import { createFileRoute } from "@tanstack/react-router";
+import { StoreView } from "@/components/store/StoreView";
+
+export const Route = createFileRoute("/dashboard/store/")({
+  head: () => ({ meta: [{ title: "Store Î“Ã‡Ã¶ Saadhyam AI" }] }),
+  component: StoreIndexPage,
+});
+
+function StoreIndexPage() {
+  return <StoreView />;
+}

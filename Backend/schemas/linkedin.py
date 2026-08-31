@@ -92,4 +92,3 @@ class LinkedInPluginConfigResponse(BaseModel):
     is_secret_set: bool = False
     updated_at: Optional[str] = None
     message: Optional[str] = None
-

@@ -513,6 +513,39 @@ except Exception as e:
     plugins_available = False
 
 try:
+    from routes.order_management import router as order_management_router
+    order_management_available = True
+    logging.info("✅ Order Management router imported successfully")
+except Exception as e:
+    logging.warning(f"Order Management router not available: {e}")
+    order_management_available = False
+
+try:
+    from routes.store_email_assistant import router as store_email_assistant_router
+    store_email_assistant_available = True
+    logging.info("✅ Store AI Email Assistant router imported successfully")
+except Exception as e:
+    logging.warning(f"Store AI Email Assistant router not available: {e}")
+    store_email_assistant_available = False
+
+try:
+    from routes.store_email_marketing import router as store_email_marketing_router
+    store_email_marketing_available = True
+    logging.info("✅ Store Email Marketing router imported successfully")
+except Exception as e:
+    logging.warning(f"Store Email Marketing router not available: {e}")
+    store_email_marketing_available = False
+
+try:
+    from routes.linkedin import router as linkedin_router
+    linkedin_available = True
+    logging.info("✅ LinkedIn Store router imported successfully")
+except Exception as e:
+    logging.warning(f"LinkedIn Store router not available: {e}")
+    linkedin_available = False
+
+
+try:
     from ai_models.website_ai.app.api.v1.routes import generation as website_ai_generation
     from ai_models.website_ai.app.api.v1.routes import jobs as website_ai_jobs
     from ai_models.website_ai.app.api.v1.routes import websites as website_ai_websites
@@ -645,6 +678,10 @@ async def lifespan(app: FastAPI):
             migrate_add_user_api_keys_tables()
             from migrations.add_plugin_tables import migrate_add_plugin_tables
             migrate_add_plugin_tables()
+            from migrations.add_linkedin_tables import migrate_add_linkedin_tables
+            migrate_add_linkedin_tables()
+            from migrations.add_order_management_tables import migrate_add_order_management_tables
+            migrate_add_order_management_tables()
             logger.info("✅ Migrations completed")
         except Exception as _all_mig_err:
             logger.warning(f"⚠️ Migrations skipped (sync DB unavailable): {_all_mig_err}")
@@ -1177,6 +1214,18 @@ if dashboard_analytics_available:
 if plugins_available:
     app.include_router(plugins_router, prefix="/api")
     logging.info("✅ Plugins router included in app")
+if store_email_assistant_available:
+    app.include_router(store_email_assistant_router, prefix="/api")
+    logging.info("✅ Store AI Email Assistant router included in app")
+if store_email_marketing_available:
+    app.include_router(store_email_marketing_router, prefix="/api")
+    logging.info("✅ Store Email Marketing router included in app")
+if order_management_available:
+    app.include_router(order_management_router)
+    logging.info("✅ Order Management router included in app")
+if linkedin_available:
+    app.include_router(linkedin_router)
+    logging.info("✅ LinkedIn Store router included in app")
 if website_ai_available:
     app.include_router(
         website_ai_generation.router,

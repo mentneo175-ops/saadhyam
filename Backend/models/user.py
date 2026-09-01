@@ -17,25 +17,25 @@ class User(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String(255), unique=True, index=True, nullable=False)
-    
+
     # Firebase Authentication Fields
     firebase_uid = Column(String(255), unique=True, index=True, nullable=True)
     auth_provider = Column(String(50), default="email", nullable=False)  # 'email', 'google', or 'both'
     profile_picture = Column(String(500), nullable=True)
-    
+
     # Legacy password field (nullable for Firebase users)
     hashed_password = Column(String(255), nullable=True)
-    
+
     name = Column(String(255), nullable=True)  # User's full name
     is_active = Column(Boolean, default=True, nullable=False)  # Account active status
     is_suspended = Column(Boolean, default=False, nullable=False)
-    
+
     # Session Tracking Fields (for single-session enforcement)
     active_session_token = Column(String(500), nullable=True)  # Current active session token
     session_created_at = Column(DateTime, nullable=True)  # When session was created
     session_ip_address = Column(String(45), nullable=True)  # IP address of active session
     session_user_agent = Column(Text, nullable=True)  # Browser/device info
-    
+
     # Business Profile Fields
     business_name = Column(String(255), nullable=True)
     business_type = Column(String(100), nullable=True)
@@ -45,11 +45,11 @@ class User(Base):
     business_description = Column(Text, nullable=True)
     business_services = Column(Text, nullable=True)
     business_setup_completed = Column(Boolean, default=False, nullable=False)
-    
+
     # Business Input Sources (for edit functionality)
     pdf_file_url = Column(Text, nullable=True)  # Path to uploaded PDF
     website_url = Column(Text, nullable=True)  # Imported website URL
-    
+
     # Selected plan / subscription fields
     selected_plan_key = Column(String(50), nullable=True)
     selected_plan_name = Column(String(255), nullable=True)
@@ -63,16 +63,16 @@ class User(Base):
 
     # Generated Website
     last_generated_website_id = Column(String(36), nullable=True)  # UUID of last generated website
-    
+
     # Wallet & Dialer Provisioning
     wallet_balance = Column(Float, default=0.00, nullable=False)
     leased_phone_number = Column(String(50), nullable=True)
-    
+
     # Privacy & Sharing Controls
     analysis_sharing = Column(String(50), default="private", nullable=False)  # 'private' | 'anonymous' | 'public'
     share_business_data = Column(Boolean, default=False, nullable=False)  # Allow sharing with similar businesses
     role = Column(String(50), default="USER", nullable=True)  # 'USER', 'ADMIN', 'SUPER_ADMIN'
-    
+
     created_at = Column(DateTime, server_default=func.now(), nullable=False)
     updated_at = Column(
         DateTime, server_default=func.now(), onupdate=func.now(), nullable=False
@@ -86,8 +86,8 @@ class User(Base):
         "ScheduledPost", back_populates="user", cascade="all, delete-orphan"
     )
     instagram_business_accounts = relationship(
-        "InstagramBusinessAccount", 
-        back_populates="user", 
+        "InstagramBusinessAccount",
+        back_populates="user",
         cascade="all, delete-orphan",
         lazy="select"
     )
@@ -117,6 +117,12 @@ class User(Base):
     )
     business_events = relationship(
         "BusinessEvent", back_populates="user", cascade="all, delete-orphan"
+    )
+    business_entities = relationship(
+        "BusinessEntity", back_populates="user", cascade="all, delete-orphan"
+    )
+    connector_sync_states = relationship(
+        "ConnectorSyncState", back_populates="user", cascade="all, delete-orphan"
     )
 
     def __repr__(self):

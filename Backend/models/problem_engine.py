@@ -425,3 +425,97 @@ class BusinessEvent(Base):
 
     def __repr__(self):
         return f"<BusinessEvent(id={self.id}, user_id={self.user_id}, event='{self.event_name}', source='{self.source}')>"
+
+
+class BusinessEntity(Base):
+    """
+    Normalized business entity reference layer indexing records across
+    existing domain subsystems (orders, leads, calls, interviews, tasks, etc.).
+    """
+    __tablename__ = "business_entities"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+
+    entity_type = Column(String(50), nullable=False, index=True)      # order, lead, customer, campaign, interview, task, etc.
+    entity_key = Column(String(150), nullable=False, index=True)      # e.g. "order:101", "lead:45"
+    source_system = Column(String(50), nullable=False, index=True)    # orders, voice, interview_scheduler, task_tracking, etc.
+    source_record_id = Column(String(100), nullable=False, index=True)
+
+    display_name = Column(String(255), nullable=True)
+    status = Column(String(50), nullable=True, index=True)
+    properties = Column(JSON, nullable=False, default=dict)
+
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+
+    # Relationships
+    user = relationship("User", back_populates="business_entities")
+    outgoing_relationships = relationship(
+        "BusinessEntityRelationship",
+        foreign_keys="BusinessEntityRelationship.from_entity_id",
+        back_populates="from_entity",
+        cascade="all, delete-orphan",
+    )
+    incoming_relationships = relationship(
+        "BusinessEntityRelationship",
+        foreign_keys="BusinessEntityRelationship.to_entity_id",
+        back_populates="to_entity",
+        cascade="all, delete-orphan",
+    )
+
+    def __repr__(self):
+        return f"<BusinessEntity(id={self.id}, user_id={self.user_id}, key='{self.entity_key}', type='{self.entity_type}', source='{self.source_system}')>"
+
+
+class BusinessEntityRelationship(Base):
+    """
+    Directional relationship between two normalized business entities
+    powering the Business Context Graph.
+    """
+    __tablename__ = "business_entity_relationships"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+
+    from_entity_id = Column(Integer, ForeignKey("business_entities.id", ondelete="CASCADE"), nullable=False, index=True)
+    to_entity_id = Column(Integer, ForeignKey("business_entities.id", ondelete="CASCADE"), nullable=False, index=True)
+    relationship_type = Column(String(50), nullable=False, index=True)  # placed, contains, assigned_to, generated, etc.
+
+    metadata_json = Column(JSON, nullable=True, default=dict)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+    # Relationships
+    from_entity = relationship("BusinessEntity", foreign_keys=[from_entity_id], back_populates="outgoing_relationships")
+    to_entity = relationship("BusinessEntity", foreign_keys=[to_entity_id], back_populates="incoming_relationships")
+
+    def __repr__(self):
+        return f"<BusinessEntityRelationship(id={self.id}, from={self.from_entity_id}, to={self.to_entity_id}, type='{self.relationship_type}')>"
+
+
+class ConnectorSyncState(Base):
+    """
+    Observable sync state and health telemetry for data connectors per tenant.
+    """
+    __tablename__ = "connector_sync_states"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+
+    connector_key = Column(String(50), nullable=False, index=True)
+    sync_status = Column(String(30), default="IDLE", nullable=False, index=True)  # IDLE, SYNCING, SUCCESS, PARTIAL, FAILED
+    last_sync_at = Column(DateTime(timezone=True), nullable=True)
+
+    records_processed = Column(Integer, default=0, nullable=False)
+    entities_created = Column(Integer, default=0, nullable=False)
+    events_created = Column(Integer, default=0, nullable=False)
+    error_message = Column(Text, nullable=True)
+
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+
+    # Relationships
+    user = relationship("User", back_populates="connector_sync_states")
+
+    def __repr__(self):
+        return f"<ConnectorSyncState(id={self.id}, user_id={self.user_id}, connector='{self.connector_key}', status='{self.sync_status}')>"

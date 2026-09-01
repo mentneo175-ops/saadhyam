@@ -163,7 +163,7 @@ try:
 except Exception as e:
     logging.error(f"CRUD router not available: {e}", exc_info=True)
     crud_available = False
-    
+
 
 try:
     from routes.ai import router as ai_router, check_model_server_health
@@ -577,6 +577,22 @@ except Exception as e:
     logging.warning(f"LinkedIn Store router not available: {e}")
     linkedin_available = False
 
+try:
+    from routes.problem_context import router as problem_context_router
+    problem_context_available = True
+    logging.info("✅ Problem Context router imported successfully")
+except Exception as e:
+    logging.warning(f"Problem Context router not available: {e}")
+    problem_context_available = False
+
+try:
+    from routes.problem_detection import router as problem_detection_router
+    problem_detection_available = True
+    logging.info("✅ Problem Detection router imported successfully")
+except Exception as e:
+    logging.warning(f"Problem Detection router not available: {e}")
+    problem_detection_available = False
+
 
 try:
     from ai_models.website_ai.app.api.v1.routes import generation as website_ai_generation
@@ -604,7 +620,7 @@ async def lifespan(app: FastAPI):
     logger.info("=" * 60)
     logger.info("🚀 Starting Saadhyam AI Backend")
     logger.info("=" * 60)
-    
+
     # Check Firebase status
     logger.info("🔥 Firebase Authentication Status:")
     if firebase_initialized:
@@ -617,7 +633,7 @@ async def lifespan(app: FastAPI):
         logger.error("   ❌ Google OAuth: NOT AVAILABLE")
         logger.error("   ❌ Please check FIREBASE_SETUP.md for configuration")
     logger.info("=" * 60)
-    
+
     # Real-time service status
     logger.info("🔌 Real-time Communication Status:")
     logger.info("   ✅ Socket.IO Server: INITIALIZED")
@@ -626,13 +642,13 @@ async def lifespan(app: FastAPI):
     logger.info("   ✅ Online presence: ENABLED")
     logger.info("   ✅ Live updates: ENABLED")
     logger.info("=" * 60)
-    
+
     try:
         # Initialize database
         logger.info("[*] Initializing database...")
         await init_db()
         logger.info("[OK] Database initialized")
-        
+
         # Start feature flags poller
         logger.info("🔄 Starting feature flags poller...")
         try:
@@ -642,7 +658,7 @@ async def lifespan(app: FastAPI):
         except Exception as e:
             logger.error(f"❌ Failed to start feature flags poller: {e}")
 
-        
+
         # Run migrations
         logger.info("[*] Skipping migrations (disabled for faster startup)...")
         # migrate_add_name_column()
@@ -715,12 +731,19 @@ async def lifespan(app: FastAPI):
             migrate_add_linkedin_tables()
             from migrations.add_order_management_tables import migrate_add_order_management_tables
             migrate_add_order_management_tables()
+            try:
+                from migrations.add_problem_engine_tables import migrate_add_problem_engine_tables
+                migrate_add_problem_engine_tables()
+                from migrations.add_problem_engine_phase2_tables import migrate_add_problem_engine_phase2_tables
+                migrate_add_problem_engine_phase2_tables()
+            except Exception as _pe_err:
+                logger.warning(f"⚠️ Problem engine migrations skipped: {_pe_err}")
             logger.info("✅ Migrations completed")
 
         except Exception as _all_mig_err:
             logger.warning(f"⚠️ Migrations skipped (sync DB unavailable): {_all_mig_err}")
             logger.warning("⚠️ API will still function normally via async engine")
-        
+
         # Start scheduler for processing scheduled Instagram posts
         logger.info("🔄 Starting Instagram post scheduler...")
         try:
@@ -730,7 +753,7 @@ async def lifespan(app: FastAPI):
         except Exception as e:
             logger.error(f"❌ Failed to start scheduler: {e}")
             logger.warning("⚠️  Scheduled posts will not be automatically processed")
-        
+
         # Start token refresh scheduler
         logger.info("🔄 Starting Instagram token refresh scheduler...")
         try:
@@ -740,7 +763,7 @@ async def lifespan(app: FastAPI):
         except Exception as e:
             logger.error(f"❌ Failed to start token refresh scheduler: {e}")
             logger.warning("⚠️  Tokens will not be automatically refreshed")
-        
+
         # Initialize Plugin System in background to avoid blocking server startup
         logger.info("🔌 Starting comprehensive plugin system in background...")
         try:
@@ -748,7 +771,7 @@ async def lifespan(app: FastAPI):
             from services.master_plugin_initialization import initialize_complete_plugin_system
             from config.database import async_engine
             from sqlalchemy.ext.asyncio import AsyncSession
-            
+
             async def run_plugin_init():
                 try:
                     logger.info("🔌 Background: Starting plugin system initialization...")
@@ -757,12 +780,12 @@ async def lifespan(app: FastAPI):
                     logger.info("✅ Background: Plugin system initialized successfully")
                 except Exception as e:
                     logger.error(f"❌ Background: Failed to initialize plugin system: {e}")
-            
+
             asyncio.create_task(run_plugin_init())
         except Exception as e:
             logger.error(f"❌ Failed to start plugin system background task: {e}")
             logger.warning("⚠️  Plugin marketplace may not be available")
-        
+
         # NOTE: AI models configuration:
         # - Review Reply AI: TinyLlama loaded in main backend (port 8000)
         # - Business Analysis: Gemini API with Google Search grounding (comprehensive analysis)
@@ -770,14 +793,14 @@ async def lifespan(app: FastAPI):
         logger.info("   - Main Backend (port 8000): TinyLlama for review replies")
         logger.info("   - Business Analysis: Gemini API with Google Search grounding")
         logger.info("   - Expected inference: 2-5 seconds per request (review replies)")
-        
+
         # Load TinyLlama for review replies in background (non-blocking)
         if settings.LOAD_TINYLLAMA_ON_STARTUP:
             logger.info("🔄 TinyLlama will load in background (non-blocking startup)...")
             try:
                 import threading
                 from ai_models.review_reply_ai.model_loader import load_model, is_model_loaded
-                
+
                 def load_model_background():
                     try:
                         logger.info("🔄 Background: Loading TinyLlama model...")
@@ -788,36 +811,36 @@ async def lifespan(app: FastAPI):
                             logger.warning("⚠️  Background: TinyLlama may not have loaded properly")
                     except Exception as e:
                         logger.error(f"❌ Background: Failed to load TinyLlama: {e}")
-                
+
                 # Start loading in background thread
                 model_thread = threading.Thread(target=load_model_background, daemon=True)
                 model_thread.start()
                 logger.info("✅ TinyLlama loading started in background")
-                
+
             except Exception as e:
                 logger.error(f"❌ Failed to start TinyLlama background loading: {e}")
                 logger.warning("⚠️  Continuing without AI model - fallback responses will be used")
         else:
             logger.info("⏭️  TinyLlama loading skipped (LOAD_TINYLLAMA_ON_STARTUP=False)")
             logger.info("   Model will load on first use if needed")
-        
+
         logger.info("✅ Model architecture configured")
-        
+
         logger.info("=" * 60)
         logger.info("✅ Application startup complete")
         logger.info("=" * 60)
-        
+
     except Exception as e:
         logger.error(f"❌ Startup error: {e}", exc_info=True)
         raise
-    
+
     yield
-    
+
     # Shutdown
     logger.info("=" * 60)
     logger.info("🛑 Shutting down Saadhyam AI Backend")
     logger.info("=" * 60)
-    
+
     try:
         # Stop scheduler
         logger.info("🔄 Stopping Instagram post scheduler...")
@@ -827,7 +850,7 @@ async def lifespan(app: FastAPI):
             logger.info("✅ Scheduler stopped")
         except Exception as e:
             logger.error(f"❌ Error stopping scheduler: {e}")
-        
+
         # Stop token refresh scheduler
         logger.info("🔄 Stopping token refresh scheduler...")
         try:
@@ -836,12 +859,12 @@ async def lifespan(app: FastAPI):
             logger.info("✅ Token refresh scheduler stopped")
         except Exception as e:
             logger.error(f"❌ Error stopping token refresh scheduler: {e}")
-        
+
         # Close database
         logger.info("🔄 Closing database connections...")
         await close_db()
         logger.info("✅ Database connections closed")
-        
+
         # Stop feature flags poller
         logger.info("🔄 Stopping feature flags poller...")
         try:
@@ -851,11 +874,11 @@ async def lifespan(app: FastAPI):
         except Exception as e:
             logger.error(f"❌ Error stopping feature flags poller: {e}")
 
-        
+
         logger.info("=" * 60)
         logger.info("✅ Application shutdown complete")
         logger.info("=" * 60)
-        
+
     except Exception as e:
         logger.error(f"❌ Shutdown error: {e}", exc_info=True)
 
@@ -929,7 +952,7 @@ async def global_exception_handler(request, exc):
         logger.error(f"❌ Exception group with {len(exc.exceptions)} exceptions")
         for i, sub_exc in enumerate(exc.exceptions):
             logger.error(f"  Sub-exception {i+1}: {type(sub_exc).__name__}: {sub_exc}")
-        
+
         # Return error for the first exception
         first_exc = exc.exceptions[0] if exc.exceptions else exc
         return JSONResponse(
@@ -940,17 +963,17 @@ async def global_exception_handler(request, exc):
             },
             headers=cors_headers
         )
-    
+
     # Check if it's an h11 protocol error
     if "h11" in str(type(exc).__module__) or "LocalProtocolError" in str(type(exc).__name__):
         logger.error(f"❌ HTTP protocol error: {exc}")
         # Don't try to send response if connection is already in error state
         # Just log and return None to prevent further errors
         return None
-    
+
     # Log other unhandled exceptions
     logger.error(f"❌ Unhandled exception: {exc}", exc_info=True)
-    
+
     try:
         return JSONResponse(
             status_code=500,
@@ -1083,7 +1106,7 @@ except Exception as e:
     print(f"[FAIL] FAILED TO INCLUDE AUTH ROUTER: {e}")
     import traceback
     traceback.print_exc()
-    
+
 try:
     if protected_available:
         app.include_router(protected_router)
@@ -1271,6 +1294,12 @@ if order_management_available:
 if linkedin_available:
     app.include_router(linkedin_router)
     logging.info("✅ LinkedIn Store router included in app")
+if problem_context_available:
+    app.include_router(problem_context_router)
+    logging.info("✅ Problem Context router included in app")
+if problem_detection_available:
+    app.include_router(problem_detection_router)
+    logging.info("✅ Problem Detection router included in app")
 
 
 if public_live_chat_available:
@@ -1384,7 +1413,7 @@ async def debug_imports():
     """Debug route to get full traceback of failed imports"""
     import traceback
     results = {}
-    
+
     # Try importing routes.auth
     try:
         import routes.auth
@@ -1395,7 +1424,7 @@ async def debug_imports():
             "type": type(e).__name__,
             "traceback": traceback.format_exc()
         }
-        
+
     # Try importing routes.profile
     try:
         import routes.profile
@@ -1406,7 +1435,7 @@ async def debug_imports():
             "type": type(e).__name__,
             "traceback": traceback.format_exc()
         }
-        
+
     # Check what routers loaded successfully according to global flags
     global_vars = globals()
     router_status = {}
@@ -1414,7 +1443,7 @@ async def debug_imports():
         if var_name.endswith("_available"):
             router_status[var_name] = var_val
     results["router_status_flags"] = router_status
-    
+
     return results
 
 
@@ -1440,7 +1469,7 @@ async def api_broadcast_notification(payload: dict, db: AsyncSession = Depends(g
         for key, value in payload.items()
         if key not in {"title", "message", "type", "user_id", "email", "target_type", "created_by", "extra_data"}
     }
-    
+
     if not title or not message:
         return {"ok": False, "error": "Title and message are required"}
 
@@ -1513,7 +1542,7 @@ app = sio_asgi_app
 
 if __name__ == "__main__":
     import uvicorn
-    
+
     # Run Socket.IO ASGI app for real-time WebSocket support
     uvicorn.run(
         "main:sio_asgi_app",  # Use Socket.IO wrapper for WebSocket support

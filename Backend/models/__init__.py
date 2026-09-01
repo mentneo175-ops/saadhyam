@@ -55,6 +55,12 @@ from models.chat import (
     ConnectionRequest,
 )
 
+# WhatsApp Models
+from models.whatsapp_account import WhatsAppAccount
+from models.whatsapp_campaign import WhatsAppCampaign
+from models.whatsapp_message import WhatsAppMessage
+from models.whatsapp_automation import WhatsAppAutomation
+
 # Google Business Profile Models
 from models.google_business import (
     GoogleBusinessAccount,
@@ -112,6 +118,9 @@ from models.problem_engine import (
     SolutionExecutionPlan,
     ProblemOutcome,
     BusinessEvent,
+    BusinessEntity,
+    BusinessEntityRelationship,
+    ConnectorSyncState,
     ProblemStatus,
     ProblemSeverity,
     ProblemCategory,
@@ -170,6 +179,11 @@ __all__ = [
     "PluginAnalytics",
     "PluginCategory",
     "PluginStatus",
+    # WhatsApp
+    "WhatsAppAccount",
+    "WhatsAppCampaign",
+    "WhatsAppMessage",
+    "WhatsAppAutomation",
     # Live Chat
     "LiveChatVisitor",
     "LiveChatConversation",
@@ -199,6 +213,9 @@ __all__ = [
     "SolutionExecutionPlan",
     "ProblemOutcome",
     "BusinessEvent",
+    "BusinessEntity",
+    "BusinessEntityRelationship",
+    "ConnectorSyncState",
     "ProblemStatus",
     "ProblemSeverity",
     "ProblemCategory",

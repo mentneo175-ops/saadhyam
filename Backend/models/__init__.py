@@ -87,6 +87,43 @@ from models.interview_scheduler import (
     InterviewStatus,
 )
 
+# Order Management Plugin Models
+from models.order import (
+    Order,
+    OrderItem,
+    OrderStatus,
+    PaymentStatus,
+)
+
+# LinkedIn Store Solution Models
+from models.linkedin import (
+    LinkedInConnection,
+    LinkedInPostHistory,
+    LinkedInPostStatus,
+)
+
+# Problem Discovery & Resolution Engine Models
+from models.problem_engine import (
+    Problem,
+    ProblemObservation,
+    ProblemEvidence,
+    ProblemRootCause,
+    ProblemSolution,
+    SolutionExecutionPlan,
+    ProblemOutcome,
+    BusinessEvent,
+    ProblemStatus,
+    ProblemSeverity,
+    ProblemCategory,
+    TimeSensitivity,
+    EvidenceType,
+    StrategyType,
+    RiskLevel,
+    ApprovalStatus,
+    ExecutionState,
+    OutcomeStatus,
+)
+
 __all__ = [
     "User",
     "SocialAccount",
@@ -144,4 +181,32 @@ __all__ = [
     "Interview",
     "InterviewSlot",
     "InterviewStatus",
+    # Order Management
+    "Order",
+    "OrderItem",
+    "OrderStatus",
+    "PaymentStatus",
+    # LinkedIn
+    "LinkedInConnection",
+    "LinkedInPostHistory",
+    "LinkedInPostStatus",
+    # Problem Engine
+    "Problem",
+    "ProblemObservation",
+    "ProblemEvidence",
+    "ProblemRootCause",
+    "ProblemSolution",
+    "SolutionExecutionPlan",
+    "ProblemOutcome",
+    "BusinessEvent",
+    "ProblemStatus",
+    "ProblemSeverity",
+    "ProblemCategory",
+    "TimeSensitivity",
+    "EvidenceType",
+    "StrategyType",
+    "RiskLevel",
+    "ApprovalStatus",
+    "ExecutionState",
+    "OutcomeStatus",
 ]

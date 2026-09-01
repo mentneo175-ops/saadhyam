@@ -38,6 +38,7 @@ import {
   LifeBuoy,
   Radio,
   Puzzle,
+  ShoppingBag,
   Lock,
 } from "lucide-react";
 
@@ -57,6 +58,7 @@ type NavItem = {
 
 const items: NavItem[] = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard, exact: true },
+  { to: "/dashboard/problems", label: "Problem Discovery", icon: Zap },
   { to: "/dashboard/business-analysis", label: "Business Analysis", icon: Sparkles },
   { to: "/dashboard/radar", label: "Radar AI", icon: Radio },
   { to: "/dashboard/agents", label: "AI Agents", icon: Bot },
@@ -81,6 +83,7 @@ const items: NavItem[] = [
   { to: "/dashboard/website", label: "Website AI", icon: FileText },
   { to: "/dashboard/review-reply", label: "Review Reply", icon: MessageSquare },
   { to: "/dashboard/plugins", label: "Plugins Store", icon: Puzzle },
+  { to: "/dashboard/store", label: "Store", icon: ShoppingBag },
   { to: "/dashboard/pricing", label: "Pricing", icon: DollarSign },
   // { to: "/dashboard/automation", label: "Automation", icon: Workflow },
   { to: "/dashboard/settings", label: "Settings", icon: Settings },
@@ -105,6 +108,7 @@ function getFeatureKeyFromPath(pathname: string): string | null {
   if (path.includes("/dashboard/youtube")) return "youtube_manager";
   if (path.includes("/dashboard/review-reply")) return "review_reply";
   if (path.includes("/dashboard/plugins")) return "plugins_store";
+  if (path.includes("/dashboard/store")) return "store";
   if (path.includes("/dashboard/reports") || path.includes("/dashboard/insights") || path.includes("/dashboard/growth")) return "reports_insights";
   if (path.includes("/dashboard/assistant")) return "assistant";
   return null;
@@ -149,7 +153,7 @@ export function Sidebar() {
 
     if (item.children) {
       const isOpen = openMenus[item.label];
-      const isAnyChildActive = item.children.some((child) => 
+      const isAnyChildActive = item.children.some((child) =>
         pathname === child.to || pathname.startsWith(child.to + "/")
       );
 
@@ -172,14 +176,14 @@ export function Sidebar() {
             {!isMinimized && (
               <>
                 <span className="flex-1 text-left">{item.label}</span>
-                <ChevronRight 
-                  size={14} 
-                  className={`text-gray-400 transition-transform duration-200 ${isOpen ? 'rotate-90 text-purple-600' : ''}`} 
+                <ChevronRight
+                  size={14}
+                  className={`text-gray-400 transition-transform duration-200 ${isOpen ? 'rotate-90 text-purple-600' : ''}`}
                 />
               </>
             )}
           </button>
-          
+
           {isOpen && !isMinimized && (
             <div className="pl-6 space-y-1 transition-all duration-200 animate-slide-down">
               {item.children.map((child) => {
@@ -238,7 +242,7 @@ export function Sidebar() {
     const active = item.exact
       ? pathname === item.to
       : pathname === item.to || (item.to && pathname.startsWith(item.to + "/"));
-    
+
     // CHECK FEATURE GATING
     const routeKey = item.to ? getFeatureKeyFromPath(item.to) : null;
     const featureFlag = routeKey ? features.find(f => f.key === routeKey) : null;
@@ -309,11 +313,11 @@ export function Sidebar() {
             className="p-2 rounded-lg hover:bg-sidebar-accent transition-colors"
             title={isMinimized ? "Expand sidebar" : "Minimize sidebar"}
           >
-            <ChevronLeft 
-              size={16} 
+            <ChevronLeft
+              size={16}
               className={`text-sidebar-foreground transition-transform duration-300 ${
                 isMinimized ? 'rotate-180' : ''
-              }`} 
+              }`}
               />
           </button>
         </div>
@@ -331,13 +335,13 @@ export function Sidebar() {
         isMobileMenuOpen ? 'visible' : 'invisible'
       }`}>
         {/* Backdrop */}
-        <div 
+        <div
           className={`absolute inset-0 bg-black transition-opacity duration-300 ${
             isMobileMenuOpen ? 'opacity-50' : 'opacity-0'
           }`}
           onClick={closeMobileMenu}
         />
-        
+
         {/* Mobile Sidebar Panel (Slides from left-0 instead of right-0) */}
         <aside className={`app-sidebar absolute left-0 top-0 h-full w-64 bg-sidebar border-r border-sidebar-border sidebar-transition ${
           isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'

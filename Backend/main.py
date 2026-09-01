@@ -521,12 +521,12 @@ except Exception as e:
     problem_context_available = False
 
 try:
-    from routes.problem_detection import router as problem_detection_router
-    problem_detection_available = True
-    logging.info("✅ Problem Detection router imported successfully")
+    from routes.problems import router as problems_router
+    problems_available = True
+    logging.info("✅ Problem Engine Complete router imported successfully")
 except Exception as e:
-    logging.warning(f"Problem Detection router not available: {e}")
-    problem_detection_available = False
+    logging.warning(f"Problem Engine Complete router not available: {e}")
+    problems_available = False
 
 try:
     from ai_models.website_ai.app.api.v1.routes import generation as website_ai_generation
@@ -1203,9 +1203,9 @@ if plugins_available:
 if problem_context_available:
     app.include_router(problem_context_router)
     logging.info("✅ Problem Context router included in app")
-if problem_detection_available:
-    app.include_router(problem_detection_router)
-    logging.info("✅ Problem Detection router included in app")
+if problems_available:
+    app.include_router(problems_router)
+    logging.info("✅ Problem Engine Complete router included in app")
 if website_ai_available:
     app.include_router(
         website_ai_generation.router,

@@ -70,6 +70,28 @@ from models.voice_command import VoiceCommandLog
 from models.user_api_keys import UserAPIKeys
 from models.plugins import Plugin, UserPlugin, PluginAnalytics, PluginCategory, PluginStatus
 
+# Problem Discovery & Resolution Engine Models
+from models.problem_engine import (
+    Problem,
+    ProblemObservation,
+    ProblemEvidence,
+    ProblemRootCause,
+    ProblemSolution,
+    SolutionExecutionPlan,
+    ProblemOutcome,
+    BusinessEvent,
+    ProblemStatus,
+    ProblemSeverity,
+    ProblemCategory,
+    TimeSensitivity,
+    EvidenceType,
+    StrategyType,
+    RiskLevel,
+    ApprovalStatus,
+    ExecutionState,
+    OutcomeStatus,
+)
+
 __all__ = [
     "User",
     "SocialAccount",
@@ -115,4 +137,23 @@ __all__ = [
     "PluginAnalytics",
     "PluginCategory",
     "PluginStatus",
+    # Problem Engine
+    "Problem",
+    "ProblemObservation",
+    "ProblemEvidence",
+    "ProblemRootCause",
+    "ProblemSolution",
+    "SolutionExecutionPlan",
+    "ProblemOutcome",
+    "BusinessEvent",
+    "ProblemStatus",
+    "ProblemSeverity",
+    "ProblemCategory",
+    "TimeSensitivity",
+    "EvidenceType",
+    "StrategyType",
+    "RiskLevel",
+    "ApprovalStatus",
+    "ExecutionState",
+    "OutcomeStatus",
 ]

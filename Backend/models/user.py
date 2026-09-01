@@ -106,17 +106,17 @@ class User(Base):
     user_plugins = relationship(
         "UserPlugin", back_populates="user", cascade="all, delete-orphan"
     )
-    linkedin_connection = relationship(
-        "LinkedInConnection", back_populates="user", uselist=False, cascade="all, delete-orphan"
-    )
-    linkedin_posts = relationship(
-        "LinkedInPostHistory", back_populates="user", cascade="all, delete-orphan"
-    )
     problems = relationship(
         "Problem", back_populates="user", cascade="all, delete-orphan"
     )
     business_events = relationship(
         "BusinessEvent", back_populates="user", cascade="all, delete-orphan"
+    )
+    business_entities = relationship(
+        "BusinessEntity", back_populates="user", cascade="all, delete-orphan"
+    )
+    connector_sync_states = relationship(
+        "ConnectorSyncState", back_populates="user", cascade="all, delete-orphan"
     )
 
     def __repr__(self):

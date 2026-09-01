@@ -513,6 +513,22 @@ except Exception as e:
     plugins_available = False
 
 try:
+    from routes.problem_context import router as problem_context_router
+    problem_context_available = True
+    logging.info("✅ Problem Context router imported successfully")
+except Exception as e:
+    logging.warning(f"Problem Context router not available: {e}")
+    problem_context_available = False
+
+try:
+    from routes.problem_detection import router as problem_detection_router
+    problem_detection_available = True
+    logging.info("✅ Problem Detection router imported successfully")
+except Exception as e:
+    logging.warning(f"Problem Detection router not available: {e}")
+    problem_detection_available = False
+
+try:
     from ai_models.website_ai.app.api.v1.routes import generation as website_ai_generation
     from ai_models.website_ai.app.api.v1.routes import jobs as website_ai_jobs
     from ai_models.website_ai.app.api.v1.routes import websites as website_ai_websites
@@ -645,6 +661,13 @@ async def lifespan(app: FastAPI):
             migrate_add_user_api_keys_tables()
             from migrations.add_plugin_tables import migrate_add_plugin_tables
             migrate_add_plugin_tables()
+            try:
+                from migrations.add_problem_engine_tables import migrate_add_problem_engine_tables
+                migrate_add_problem_engine_tables()
+                from migrations.add_problem_engine_phase2_tables import migrate_add_problem_engine_phase2_tables
+                migrate_add_problem_engine_phase2_tables()
+            except Exception as _pe_err:
+                logger.warning(f"⚠️ Problem engine migrations skipped: {_pe_err}")
             logger.info("✅ Migrations completed")
         except Exception as _all_mig_err:
             logger.warning(f"⚠️ Migrations skipped (sync DB unavailable): {_all_mig_err}")
@@ -1177,6 +1200,12 @@ if dashboard_analytics_available:
 if plugins_available:
     app.include_router(plugins_router, prefix="/api")
     logging.info("✅ Plugins router included in app")
+if problem_context_available:
+    app.include_router(problem_context_router)
+    logging.info("✅ Problem Context router included in app")
+if problem_detection_available:
+    app.include_router(problem_detection_router)
+    logging.info("✅ Problem Detection router included in app")
 if website_ai_available:
     app.include_router(
         website_ai_generation.router,

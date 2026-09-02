@@ -6,7 +6,7 @@ updating sync telemetry states and persisting normalized context.
 
 import logging
 from typing import Dict, Any, List, Optional
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy import select, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 from models.problem_engine import ConnectorSyncState, BusinessEntity
@@ -57,18 +57,19 @@ class BusinessDataSyncService:
         """
         connector = connector_registry.get(connector_key)
         if not connector:
-            return {"status": "FAILED", "error": f"Connector '{connector_key}' not found"}
+            return {"connector": connector_key, "status": "FAILED", "error": f"Connector '{connector_key}' not found"}
 
-        state = await cls.get_or_create_sync_state(db, user_id, connector_key)
-        state.sync_status = "SYNCING"
-        await db.commit()
-
-        since = state.last_sync_at if incremental else None
         entities_created_count = 0
         events_created_count = 0
         records_processed = 0
 
         try:
+            state = await cls.get_or_create_sync_state(db, user_id, connector_key)
+            state.sync_status = "SYNCING"
+            await db.commit()
+
+            since = state.last_sync_at if incremental else None
+
             # 1. Ingest Entities
             raw_entities = await connector.fetch_entities(db, user_id, since=since)
             records_processed += len(raw_entities)
@@ -132,7 +133,7 @@ class BusinessDataSyncService:
                         )
 
             state.sync_status = "SUCCESS"
-            state.last_sync_at = datetime.utcnow()
+            state.last_sync_at = datetime.now(timezone.utc)
             state.records_processed += records_processed
             state.entities_created += entities_created_count
             state.events_created += events_created_count
@@ -149,9 +150,20 @@ class BusinessDataSyncService:
 
         except Exception as e:
             logger.error(f"❌ Error syncing connector '{connector_key}' for user {user_id}: {e}", exc_info=True)
-            state.sync_status = "FAILED"
-            state.error_message = str(e)
-            await db.commit()
+            try:
+                await db.rollback()
+                # Record failure status in a clean transaction
+                fail_state = await cls.get_or_create_sync_state(db, user_id, connector_key)
+                fail_state.sync_status = "FAILED"
+                fail_state.error_message = str(e)
+                await db.commit()
+            except Exception as rollback_err:
+                logger.warning(f"⚠️ Failed to persist error state for connector '{connector_key}': {rollback_err}")
+                try:
+                    await db.rollback()
+                except Exception:
+                    pass
+
             return {"connector": connector_key, "status": "FAILED", "error": str(e)}
 
     @classmethod

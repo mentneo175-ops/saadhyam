@@ -8,7 +8,7 @@ from typing import Dict, Any, List, Optional
 from datetime import datetime
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from services.problem_engine.connectors.base import BaseBusinessConnector
+from services.problem_engine.connectors.base import BaseBusinessConnector, to_naive_utc
 
 logger = logging.getLogger(__name__)
 
@@ -47,9 +47,10 @@ class InterviewConnector(BaseBusinessConnector):
     ) -> List[Dict[str, Any]]:
         from models.interview_scheduler import Interview
 
+        since_dt = to_naive_utc(since)
         stmt = select(Interview).where(Interview.user_id == user_id)
-        if since:
-            stmt = stmt.where(Interview.updated_at >= since)
+        if since_dt:
+            stmt = stmt.where(Interview.updated_at >= since_dt)
         result = await db.execute(stmt)
         interviews = result.scalars().all()
 
@@ -84,9 +85,10 @@ class InterviewConnector(BaseBusinessConnector):
     ) -> List[Dict[str, Any]]:
         from models.interview_scheduler import Interview
 
+        since_dt = to_naive_utc(since)
         stmt = select(Interview).where(Interview.user_id == user_id)
-        if since:
-            stmt = stmt.where(Interview.created_at >= since)
+        if since_dt:
+            stmt = stmt.where(Interview.created_at >= since_dt)
         result = await db.execute(stmt)
         interviews = result.scalars().all()
 

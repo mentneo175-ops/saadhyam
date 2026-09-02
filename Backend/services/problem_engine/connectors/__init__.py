@@ -3,7 +3,12 @@ Connectors Package Initialization
 Registers default adapters into the global ConnectorRegistry.
 """
 
-from services.problem_engine.connectors.base import BaseBusinessConnector, sanitize_sensitive_data
+from services.problem_engine.connectors.base import (
+    BaseBusinessConnector,
+    sanitize_sensitive_data,
+    to_naive_utc,
+    to_aware_utc,
+)
 from services.problem_engine.connectors.registry import ConnectorRegistry, connector_registry
 from services.problem_engine.connectors.adapters.orders import OrderConnector
 from services.problem_engine.connectors.adapters.voice_leads import VoiceLeadConnector
@@ -25,6 +30,8 @@ __all__ = [
     "ConnectorRegistry",
     "connector_registry",
     "sanitize_sensitive_data",
+    "to_naive_utc",
+    "to_aware_utc",
     "OrderConnector",
     "VoiceLeadConnector",
     "InterviewConnector",

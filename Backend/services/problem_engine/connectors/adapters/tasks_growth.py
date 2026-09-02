@@ -8,7 +8,7 @@ from typing import Dict, Any, List, Optional
 from datetime import datetime
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from services.problem_engine.connectors.base import BaseBusinessConnector
+from services.problem_engine.connectors.base import BaseBusinessConnector, to_naive_utc
 
 logger = logging.getLogger(__name__)
 
@@ -47,12 +47,13 @@ class TaskGrowthConnector(BaseBusinessConnector):
     ) -> List[Dict[str, Any]]:
         from models.task_tracking import DailyTask, GrowthMetric
 
+        since_dt = to_naive_utc(since)
         entities = []
 
         # 1. Daily Tasks
         task_stmt = select(DailyTask).where(DailyTask.user_id == user_id)
-        if since:
-            task_stmt = task_stmt.where(DailyTask.updated_at >= since)
+        if since_dt:
+            task_stmt = task_stmt.where(DailyTask.updated_at >= since_dt)
         task_res = await db.execute(task_stmt)
         for t in task_res.scalars().all():
             status_str = "COMPLETED" if t.is_completed else "PENDING"
@@ -77,8 +78,8 @@ class TaskGrowthConnector(BaseBusinessConnector):
 
         # 2. Growth Metrics
         metric_stmt = select(GrowthMetric).where(GrowthMetric.user_id == user_id)
-        if since:
-            metric_stmt = metric_stmt.where(GrowthMetric.created_at >= since)
+        if since_dt:
+            metric_stmt = metric_stmt.where(GrowthMetric.created_at >= since_dt)
         metric_res = await db.execute(metric_stmt)
         for m in metric_res.scalars().all():
             entities.append({
@@ -108,10 +109,11 @@ class TaskGrowthConnector(BaseBusinessConnector):
     ) -> List[Dict[str, Any]]:
         from models.task_tracking import DailyTask, GrowthMetric
 
+        since_dt = to_naive_utc(since)
         events = []
         task_stmt = select(DailyTask).where(DailyTask.user_id == user_id)
-        if since:
-            task_stmt = task_stmt.where(DailyTask.updated_at >= since)
+        if since_dt:
+            task_stmt = task_stmt.where(DailyTask.updated_at >= since_dt)
         task_res = await db.execute(task_stmt)
         for t in task_res.scalars().all():
             if t.is_completed:
@@ -124,8 +126,8 @@ class TaskGrowthConnector(BaseBusinessConnector):
                 })
 
         metric_stmt = select(GrowthMetric).where(GrowthMetric.user_id == user_id)
-        if since:
-            metric_stmt = metric_stmt.where(GrowthMetric.created_at >= since)
+        if since_dt:
+            metric_stmt = metric_stmt.where(GrowthMetric.created_at >= since_dt)
         metric_res = await db.execute(metric_stmt)
         for m in metric_res.scalars().all():
             rate = float(m.completion_rate or 0.0)

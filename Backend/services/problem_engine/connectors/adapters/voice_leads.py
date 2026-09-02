@@ -8,7 +8,7 @@ from typing import Dict, Any, List, Optional
 from datetime import datetime
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from services.problem_engine.connectors.base import BaseBusinessConnector
+from services.problem_engine.connectors.base import BaseBusinessConnector, to_naive_utc
 
 logger = logging.getLogger(__name__)
 
@@ -47,12 +47,13 @@ class VoiceLeadConnector(BaseBusinessConnector):
     ) -> List[Dict[str, Any]]:
         from models.voice_agent import Lead, Campaign, CallSession
 
+        since_dt = to_naive_utc(since)
         entities = []
 
         # 1. Fetch Leads
         lead_stmt = select(Lead).where(Lead.user_id == user_id)
-        if since:
-            lead_stmt = lead_stmt.where(Lead.created_at >= since)
+        if since_dt:
+            lead_stmt = lead_stmt.where(Lead.created_at >= since_dt)
         lead_res = await db.execute(lead_stmt)
         leads = lead_res.scalars().all()
 
@@ -80,8 +81,8 @@ class VoiceLeadConnector(BaseBusinessConnector):
 
         # 2. Fetch Campaigns
         camp_stmt = select(Campaign).where(Campaign.user_id == user_id)
-        if since:
-            camp_stmt = camp_stmt.where(Campaign.created_at >= since)
+        if since_dt:
+            camp_stmt = camp_stmt.where(Campaign.created_at >= since_dt)
         camp_res = await db.execute(camp_stmt)
         campaigns = camp_res.scalars().all()
 
@@ -138,16 +139,17 @@ class VoiceLeadConnector(BaseBusinessConnector):
     ) -> List[Dict[str, Any]]:
         from models.voice_agent import Lead, Campaign, CallSession
 
+        since_dt = to_naive_utc(since)
         events = []
 
         # Lead Events
         lead_stmt = select(Lead).where(Lead.user_id == user_id)
-        if since:
-            lead_stmt = lead_stmt.where(Lead.created_at >= since)
+        if since_dt:
+            lead_stmt = lead_stmt.where(Lead.created_at >= since_dt)
         lead_res = await db.execute(lead_stmt)
         leads = lead_res.scalars().all()
 
-        for l in lead_res.scalars().all():
+        for l in leads:
             events.append({
                 "event_name": "lead.created",
                 "source": "voice_crm",

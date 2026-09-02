@@ -182,5 +182,10 @@ async def run_phase5_tests():
     print("\nSUCCESS: All Phase 5 Execution, Approval & Outcome Verification tests passed!")
 
 
+def test_phase5_execution_outcome():
+    """Pytest entrypoint for Phase 5 Execution, Approval & Outcome tests."""
+    asyncio.run(run_phase5_tests())
+
+
 if __name__ == "__main__":
     asyncio.run(run_phase5_tests())

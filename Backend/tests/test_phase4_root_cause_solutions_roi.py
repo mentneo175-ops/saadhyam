@@ -160,5 +160,10 @@ async def run_phase4_tests():
     print("\nSUCCESS: All Phase 4 Root Cause, Solutions & ROI tests passed!")
 
 
+def test_phase4_root_cause_solutions_roi():
+    """Pytest entrypoint for Phase 4 Root Cause, Solutions & ROI tests."""
+    asyncio.run(run_phase4_tests())
+
+
 if __name__ == "__main__":
     asyncio.run(run_phase4_tests())

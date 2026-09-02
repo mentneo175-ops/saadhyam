@@ -217,5 +217,10 @@ async def run_phase6_tests():
     print("\nSUCCESS: All Phase 6 Backend API Integration tests passed!")
 
 
+def test_phase6_backend_api():
+    """Pytest entrypoint for Phase 6 Backend REST API tests."""
+    asyncio.run(run_phase6_tests())
+
+
 if __name__ == "__main__":
     asyncio.run(run_phase6_tests())

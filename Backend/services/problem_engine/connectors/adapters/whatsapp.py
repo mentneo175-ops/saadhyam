@@ -8,7 +8,7 @@ from typing import Dict, Any, List, Optional
 from datetime import datetime
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from services.problem_engine.connectors.base import BaseBusinessConnector
+from services.problem_engine.connectors.base import BaseBusinessConnector, to_naive_utc
 
 logger = logging.getLogger(__name__)
 
@@ -54,9 +54,10 @@ class WhatsAppConnector(BaseBusinessConnector):
         from models.whatsapp_automation import WhatsAppAutomation  # noqa: F401
         from models.whatsapp_campaign import WhatsAppCampaign
 
+        since_dt = to_naive_utc(since)
         stmt = select(WhatsAppCampaign).where(WhatsAppCampaign.user_id == user_id)
-        if since:
-            stmt = stmt.where(WhatsAppCampaign.created_at >= since)
+        if since_dt:
+            stmt = stmt.where(WhatsAppCampaign.created_at >= since_dt)
         result = await db.execute(stmt)
         campaigns = result.scalars().all()
 
@@ -90,9 +91,10 @@ class WhatsAppConnector(BaseBusinessConnector):
         from models.whatsapp_automation import WhatsAppAutomation  # noqa: F401
         from models.whatsapp_campaign import WhatsAppCampaign
 
+        since_dt = to_naive_utc(since)
         stmt = select(WhatsAppCampaign).where(WhatsAppCampaign.user_id == user_id)
-        if since:
-            stmt = stmt.where(WhatsAppCampaign.created_at >= since)
+        if since_dt:
+            stmt = stmt.where(WhatsAppCampaign.created_at >= since_dt)
         result = await db.execute(stmt)
         campaigns = result.scalars().all()
 

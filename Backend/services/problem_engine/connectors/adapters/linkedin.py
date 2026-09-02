@@ -8,7 +8,7 @@ from typing import Dict, Any, List, Optional
 from datetime import datetime
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from services.problem_engine.connectors.base import BaseBusinessConnector
+from services.problem_engine.connectors.base import BaseBusinessConnector, to_aware_utc
 
 logger = logging.getLogger(__name__)
 
@@ -47,27 +47,28 @@ class LinkedInConnector(BaseBusinessConnector):
     ) -> List[Dict[str, Any]]:
         from models.linkedin import LinkedInPostHistory
 
+        since_dt = to_aware_utc(since)
         stmt = select(LinkedInPostHistory).where(LinkedInPostHistory.user_id == user_id)
-        if since:
-            stmt = stmt.where(LinkedInPostHistory.created_at >= since)
+        if since_dt:
+            stmt = stmt.where(LinkedInPostHistory.created_at >= since_dt)
         result = await db.execute(stmt)
         posts = result.scalars().all()
 
         entities = []
         for p in posts:
             status_val = str(p.status.value if hasattr(p.status, "value") else p.status).upper()
+            topic_str = getattr(p, "topic", None) or "Post"
             entities.append({
                 "entity_type": "social_post",
                 "entity_key": f"linkedin_post:{p.id}",
                 "source_record_id": str(p.id),
-                "display_name": f"LinkedIn Post #{p.id} ({p.post_type})",
+                "display_name": f"LinkedIn Post #{p.id} ({topic_str})",
                 "status": status_val,
                 "properties": self.sanitize({
-                    "post_type": p.post_type,
+                    "topic": topic_str,
                     "content_excerpt": (p.content[:120] + "...") if p.content and len(p.content) > 120 else p.content,
-                    "media_urls": p.media_urls,
                     "status": status_val,
-                    "metrics": p.metrics_json,
+                    "error_message": getattr(p, "error_message", None),
                 }),
                 "created_at": p.created_at or datetime.utcnow(),
                 "updated_at": p.published_at or p.created_at or datetime.utcnow(),
@@ -80,9 +81,10 @@ class LinkedInConnector(BaseBusinessConnector):
     ) -> List[Dict[str, Any]]:
         from models.linkedin import LinkedInPostHistory
 
+        since_dt = to_aware_utc(since)
         stmt = select(LinkedInPostHistory).where(LinkedInPostHistory.user_id == user_id)
-        if since:
-            stmt = stmt.where(LinkedInPostHistory.created_at >= since)
+        if since_dt:
+            stmt = stmt.where(LinkedInPostHistory.created_at >= since_dt)
         result = await db.execute(stmt)
         posts = result.scalars().all()
 
@@ -96,7 +98,7 @@ class LinkedInConnector(BaseBusinessConnector):
                     "entity_id": str(p.id),
                     "payload": self.sanitize({
                         "post_id": p.id,
-                        "post_type": p.post_type,
+                        "topic": getattr(p, "topic", None),
                     }),
                     "occurred_at": p.published_at or p.created_at or datetime.utcnow(),
                 })
@@ -107,7 +109,7 @@ class LinkedInConnector(BaseBusinessConnector):
                     "entity_id": str(p.id),
                     "payload": self.sanitize({
                         "post_id": p.id,
-                        "error": p.error_message,
+                        "error": getattr(p, "error_message", None),
                     }),
                     "occurred_at": p.created_at or datetime.utcnow(),
                 })

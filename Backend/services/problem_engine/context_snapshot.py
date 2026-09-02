@@ -6,7 +6,7 @@ events, active data sources, and connector sync states.
 
 import logging
 from typing import Dict, Any, List
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from sqlalchemy import select, func, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 from models.problem_engine import (
@@ -51,7 +51,7 @@ class BusinessContextSnapshotService:
         total_events = sum(events_by_source.values())
 
         # 3. Events in last 24 hours and 7 days
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         t24h = now - timedelta(hours=24)
         t7d = now - timedelta(days=7)
 

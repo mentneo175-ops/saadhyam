@@ -25,6 +25,7 @@ export function ProblemsCommandCenter() {
   const [loading, setLoading] = useState<boolean>(true);
   const [scanning, setScanning] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const [viewMode, setViewMode] = useState<"ALL" | "PROBLEMS" | "OPPORTUNITIES">("ALL");
   const [selectedSeverity, setSelectedSeverity] = useState<string>("ALL");
   const [selectedStatus, setSelectedStatus] = useState<string>("ALL");
   const [selectedCategory, setSelectedCategory] = useState<string>("ALL");
@@ -51,10 +52,10 @@ export function ProblemsCommandCenter() {
       toast.info("Ingesting multi-channel business context & evaluating detection rules...");
       await problemsApi.syncContext();
       const res = await problemsApi.detectProblems();
-      toast.success(`Scan complete! ${res.problems_created} business problem(s) detected.`);
+      toast.success(`Scan complete! ${res.problems_created} insight(s) discovered.`);
       await loadProblems();
     } catch (err: any) {
-      toast.error(err.message || "Problem discovery scan failed");
+      toast.error(err.message || "Discovery scan failed");
     } finally {
       setScanning(false);
     }
@@ -67,16 +68,25 @@ export function ProblemsCommandCenter() {
     const high = problems.filter((p) => p.severity === "HIGH").length;
     const active = problems.filter((p) => !["SOLVED", "PARTIALLY_SOLVED"].includes(p.status)).length;
     const solved = problems.filter((p) => p.status === "SOLVED").length;
+    const opportunitiesCount = problems.filter((p) => p.is_opportunity).length;
+    const problemsCount = problems.filter((p) => !p.is_opportunity).length;
     const totalImpact = problems
-      .filter((p) => p.status !== "SOLVED" && p.estimated_impact_inr)
+      .filter((p) => !p.is_opportunity && p.status !== "SOLVED" && p.estimated_impact_inr)
       .reduce((sum, p) => sum + (p.estimated_impact_inr || 0), 0);
+    const totalOpportunityVal = problems
+      .filter((p) => p.is_opportunity && p.status !== "SOLVED")
+      .reduce((sum, p) => sum + (p.estimated_impact_inr || p.recovery_amount_inr || 0), 0);
 
-    return { total, critical, high, active, solved, totalImpact };
+    return { total, critical, high, active, solved, totalImpact, opportunitiesCount, problemsCount, totalOpportunityVal };
   }, [problems]);
 
   // Filtered List
   const filteredProblems = useMemo(() => {
     return problems.filter((p) => {
+      // Tab view mode filter
+      if (viewMode === "PROBLEMS" && p.is_opportunity) return false;
+      if (viewMode === "OPPORTUNITIES" && !p.is_opportunity) return false;
+
       const matchSearch =
         searchQuery.trim() === "" ||
         p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -89,7 +99,7 @@ export function ProblemsCommandCenter() {
 
       return matchSearch && matchSeverity && matchStatus && matchCategory;
     });
-  }, [problems, searchQuery, selectedSeverity, selectedStatus, selectedCategory]);
+  }, [problems, viewMode, searchQuery, selectedSeverity, selectedStatus, selectedCategory]);
 
   const getSeverityBadge = (severity: ProblemSeverity) => {
     switch (severity) {
@@ -213,78 +223,126 @@ export function ProblemsCommandCenter() {
       </div>
 
       {/* Filter & Search Bar */}
-      <div className="p-4 rounded-2xl bg-zinc-900/60 border border-zinc-800 mb-6 flex flex-col md:flex-row gap-3 items-center justify-between">
-        <div className="relative w-full md:w-80">
-          <Search className="absolute left-3 top-2.5 w-4 h-4 text-zinc-500" />
-          <input
-            type="text"
-            placeholder="Search problems or symptoms..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 text-sm bg-zinc-950 border border-zinc-800 rounded-xl text-zinc-200 focus:outline-none focus:border-indigo-500"
-          />
+      <div className="p-4 rounded-2xl bg-zinc-900/60 border border-zinc-800 mb-6 flex flex-col gap-4">
+        {/* Segmented View Mode Tabs */}
+        <div className="flex flex-wrap items-center gap-2 border-b border-zinc-800 pb-3">
+          <button
+            onClick={() => setViewMode("ALL")}
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+              viewMode === "ALL"
+                ? "bg-zinc-100 text-zinc-900 shadow-sm"
+                : "bg-zinc-800/60 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800"
+            }`}
+          >
+            All Insights ({kpis.total})
+          </button>
+          <button
+            onClick={() => setViewMode("PROBLEMS")}
+            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+              viewMode === "PROBLEMS"
+                ? "bg-rose-500/20 text-rose-300 border border-rose-500/40 shadow-sm"
+                : "bg-zinc-800/60 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800"
+            }`}
+          >
+            <ShieldAlert className="w-3.5 h-3.5 text-rose-400" />
+            Problems & Risks ({kpis.problemsCount})
+          </button>
+          <button
+            onClick={() => setViewMode("OPPORTUNITIES")}
+            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+              viewMode === "OPPORTUNITIES"
+                ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-sm"
+                : "bg-zinc-800/60 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800"
+            }`}
+          >
+            <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+            Growth Opportunities ({kpis.opportunitiesCount})
+          </button>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
-          {/* Severity filter */}
-          <select
-            value={selectedSeverity}
-            onChange={(e) => setSelectedSeverity(e.target.value)}
-            className="px-3 py-2 text-xs bg-zinc-950 border border-zinc-800 rounded-xl text-zinc-300 focus:outline-none focus:border-indigo-500"
-          >
-            <option value="ALL">All Severities</option>
-            <option value="CRITICAL">Critical</option>
-            <option value="HIGH">High</option>
-            <option value="MEDIUM">Medium</option>
-            <option value="LOW">Low</option>
-          </select>
+        <div className="flex flex-col md:flex-row gap-3 items-center justify-between">
+          <div className="relative w-full md:w-80">
+            <Search className="absolute left-3 top-2.5 w-4 h-4 text-zinc-500" />
+            <input
+              type="text"
+              placeholder="Search problems, opportunities, symptoms..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-9 pr-4 py-2 text-sm bg-zinc-950 border border-zinc-800 rounded-xl text-zinc-200 focus:outline-none focus:border-indigo-500"
+            />
+          </div>
 
-          {/* Status filter */}
-          <select
-            value={selectedStatus}
-            onChange={(e) => setSelectedStatus(e.target.value)}
-            className="px-3 py-2 text-xs bg-zinc-950 border border-zinc-800 rounded-xl text-zinc-300 focus:outline-none focus:border-indigo-500"
-          >
-            <option value="ALL">All Statuses</option>
-            <option value="DETECTED">Detected</option>
-            <option value="INVESTIGATING">Investigating</option>
-            <option value="PLANNING">Planning</option>
-            <option value="WAITING_FOR_APPROVAL">Waiting Approval</option>
-            <option value="EXECUTING">Executing</option>
-            <option value="VERIFYING">Verifying</option>
-            <option value="SOLVED">Solved</option>
-          </select>
+          <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
+            {/* Severity filter */}
+            <select
+              value={selectedSeverity}
+              onChange={(e) => setSelectedSeverity(e.target.value)}
+              className="px-3 py-2 text-xs bg-zinc-950 border border-zinc-800 rounded-xl text-zinc-300 focus:outline-none focus:border-indigo-500"
+            >
+              <option value="ALL">All Severities</option>
+              <option value="CRITICAL">Critical</option>
+              <option value="HIGH">High</option>
+              <option value="MEDIUM">Medium</option>
+              <option value="LOW">Low</option>
+            </select>
 
-          {/* Category filter */}
-          <select
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-            className="px-3 py-2 text-xs bg-zinc-950 border border-zinc-800 rounded-xl text-zinc-300 focus:outline-none focus:border-indigo-500"
-          >
-            <option value="ALL">All Categories</option>
-            <option value="REVENUE_LEAKAGE">Revenue Leakage</option>
-            <option value="CUSTOMER_CHURN">Customer Churn</option>
-            <option value="BOTTLENECK">Bottleneck</option>
-            <option value="PRODUCTIVITY">Productivity</option>
-            <option value="ANOMALY">Anomaly</option>
-            <option value="RISK">Risk</option>
-            <option value="GOAL_DEVIATION">Goal Deviation</option>
-          </select>
+            {/* Status filter */}
+            <select
+              value={selectedStatus}
+              onChange={(e) => setSelectedStatus(e.target.value)}
+              className="px-3 py-2 text-xs bg-zinc-950 border border-zinc-800 rounded-xl text-zinc-300 focus:outline-none focus:border-indigo-500"
+            >
+              <option value="ALL">All Statuses</option>
+              <option value="DETECTED">Detected</option>
+              <option value="INVESTIGATING">Investigating</option>
+              <option value="PLANNING">Planning</option>
+              <option value="WAITING_FOR_APPROVAL">Waiting Approval</option>
+              <option value="EXECUTING">Executing</option>
+              <option value="VERIFYING">Verifying</option>
+              <option value="SOLVED">Solved</option>
+            </select>
+
+            {/* Category filter */}
+            <select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className="px-3 py-2 text-xs bg-zinc-950 border border-zinc-800 rounded-xl text-zinc-300 focus:outline-none focus:border-indigo-500"
+            >
+              <option value="ALL">All Categories</option>
+              <optgroup label="Problems & Risks">
+                <option value="REVENUE_LEAKAGE">Revenue Leakage</option>
+                <option value="CUSTOMER_CHURN">Customer Churn</option>
+                <option value="BOTTLENECK">Bottleneck</option>
+                <option value="PRODUCTIVITY">Productivity</option>
+                <option value="ANOMALY">Anomaly</option>
+                <option value="RISK">Risk</option>
+                <option value="GOAL_DEVIATION">Goal Deviation</option>
+              </optgroup>
+              <optgroup label="Growth Opportunities">
+                <option value="REVENUE_GROWTH">Revenue Growth</option>
+                <option value="CUSTOMER_RETENTION">Customer Retention</option>
+                <option value="SALES_OPPORTUNITY">Sales Opportunity</option>
+                <option value="ENGAGEMENT_EXPANSION">Engagement Expansion</option>
+                <option value="COST_SAVING">Cost Saving</option>
+                <option value="OPERATIONAL_EFFICIENCY">Operational Efficiency</option>
+              </optgroup>
+            </select>
+          </div>
         </div>
       </div>
 
-      {/* Problem Cards List */}
+      {/* Problem & Opportunity Cards List */}
       {loading ? (
         <div className="py-20 text-center">
           <RefreshCw className="w-8 h-8 mx-auto text-indigo-400 animate-spin" />
-          <p className="mt-3 text-sm text-zinc-400">Loading business problem discovery pipeline...</p>
+          <p className="mt-3 text-sm text-zinc-400">Loading discovery pipeline...</p>
         </div>
       ) : filteredProblems.length === 0 ? (
         <div className="p-12 text-center rounded-2xl bg-zinc-900/30 border border-dashed border-zinc-800">
           <CheckCircle2 className="w-10 h-10 mx-auto text-emerald-400" />
-          <h3 className="mt-3 text-lg font-semibold text-zinc-200">No active business problems match your filter</h3>
+          <h3 className="mt-3 text-lg font-semibold text-zinc-200">No active items match your filter</h3>
           <p className="mt-1 text-sm text-zinc-500">
-            Click "Scan & Discover Problems" to analyze your connected data streams.
+            Click "Scan & Discover" to analyze your connected data streams.
           </p>
         </div>
       ) : (
@@ -293,11 +351,26 @@ export function ProblemsCommandCenter() {
             <Link
               key={prob.id}
               to={`/dashboard/problems/${prob.id}` as any}
-              className="group p-5 rounded-2xl bg-zinc-900/70 border border-zinc-800/90 hover:border-indigo-500/50 hover:bg-zinc-900 transition-all shadow-md block"
+              className={`group p-5 rounded-2xl border transition-all shadow-md block ${
+                prob.is_opportunity
+                  ? "bg-gradient-to-r from-zinc-900/90 via-emerald-950/20 to-zinc-900/90 border-emerald-900/40 hover:border-emerald-500/50"
+                  : "bg-zinc-900/70 border-zinc-800/90 hover:border-indigo-500/50 hover:bg-zinc-900"
+              }`}
             >
               <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                 <div className="space-y-2 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
+                    {prob.is_opportunity ? (
+                      <span className="flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                        <Sparkles className="w-3 h-3 text-emerald-400" />
+                        Opportunity
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-rose-500/15 text-rose-300 border border-rose-500/30">
+                        <AlertTriangle className="w-3 h-3 text-rose-400" />
+                        Problem
+                      </span>
+                    )}
                     <span
                       className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-full border ${getSeverityBadge(
                         prob.severity
@@ -330,7 +403,11 @@ export function ProblemsCommandCenter() {
                     <div className="flex items-center gap-2 mt-0.5">
                       <div className="w-16 h-2 bg-zinc-800 rounded-full overflow-hidden">
                         <div
-                          className="h-full bg-gradient-to-r from-amber-500 to-rose-500 rounded-full"
+                          className={`h-full rounded-full ${
+                            prob.is_opportunity
+                              ? "bg-gradient-to-r from-emerald-500 to-teal-400"
+                              : "bg-gradient-to-r from-amber-500 to-rose-500"
+                          }`}
                           style={{ width: `${prob.priority_score}%` }}
                         />
                       </div>
@@ -338,11 +415,13 @@ export function ProblemsCommandCenter() {
                     </div>
                   </div>
 
-                  {/* Impact INR if available */}
+                  {/* Impact or Opportunity Value INR */}
                   {prob.estimated_impact_inr && prob.estimated_impact_inr > 0 ? (
                     <div className="text-right">
-                      <div className="text-xs text-zinc-500">Est. Impact</div>
-                      <div className="text-sm font-bold text-rose-400">
+                      <div className="text-xs text-zinc-500">
+                        {prob.is_opportunity ? "Potential ROI" : "Est. Impact"}
+                      </div>
+                      <div className={`text-sm font-bold ${prob.is_opportunity ? "text-emerald-400" : "text-rose-400"}`}>
                         ₹{prob.estimated_impact_inr.toLocaleString("en-IN")}
                       </div>
                     </div>

@@ -150,8 +150,8 @@ async def run_phase3_tests():
 
         print("[4/7] Testing Detection Rule Evaluation & Signal Generation...")
         rules = get_default_detection_rules()
-        assert len(rules) == 8, f"Expected 8 default detection rules, got {len(rules)}"
-        print(f"  -> Loaded 8 detection rules: {[r.rule_id for r in rules]}")
+        assert len(rules) >= 8, f"Expected at least 8 default detection rules, got {len(rules)}"
+        print(f"  -> Loaded {len(rules)} detection rules: {[r.rule_id for r in rules]}")
 
         detect_engine = ProblemDetectionEngine(rules=rules)
         detect_res = await detect_engine.detect_problems(db, user_a.id)

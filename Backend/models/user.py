@@ -118,6 +118,18 @@ class User(Base):
     connector_sync_states = relationship(
         "ConnectorSyncState", back_populates="user", cascade="all, delete-orphan"
     )
+    problem_lifecycle_audits = relationship(
+        "ProblemLifecycleAudit", back_populates="user", cascade="all, delete-orphan"
+    )
+    problem_learning_records = relationship(
+        "ProblemLearningRecord", back_populates="user", cascade="all, delete-orphan"
+    )
+    linkedin_connection = relationship(
+        "LinkedInConnection", back_populates="user", cascade="all, delete-orphan"
+    )
+    linkedin_posts = relationship(
+        "LinkedInPostHistory", back_populates="user", cascade="all, delete-orphan"
+    )
 
     def __repr__(self):
         return f"<User(id={self.id}, email='{self.email}', name='{self.name}', business='{self.business_name}', provider='{self.auth_provider}')>"

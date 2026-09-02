@@ -93,3 +93,58 @@ class ProblemScoringEngine:
             base += min(0.10, (len(evidence_items) - 1) * 0.05)
 
         return round(max(0.1, min(1.0, base)), 2)
+
+    @staticmethod
+    def calculate_opportunity_score(
+        estimated_roi_inr: Optional[float] = None,
+        confidence: float = 0.75,
+        time_sensitivity: TimeSensitivity = TimeSensitivity.MEDIUM,
+        effort_level: str = "MEDIUM",
+        affected_customers_count: int = 0,
+        evidence_count: int = 1,
+    ) -> int:
+        """
+        Calculates opportunity priority score (0-100) based on:
+        - Potential ROI / Gain Magnitude (0-35 points)
+        - Confidence Factor (0-25 points)
+        - Time Sensitivity / Urgency (0-20 points)
+        - Effort Inverse (0-15 points: LOW effort -> 15, MEDIUM -> 10, HIGH -> 5)
+        - Evidence Strength (0-5 points)
+        """
+        score = 0.0
+
+        # 1. Potential ROI magnitude (up to 35 points on log scale)
+        if estimated_roi_inr and estimated_roi_inr > 0:
+            roi_points = min(35.0, max(5.0, math.log10(estimated_roi_inr) * 7.0))
+            score += roi_points
+        else:
+            score += 10.0
+
+        # 2. Confidence factor (up to 25 points)
+        score += min(25.0, max(0.0, confidence * 25.0))
+
+        # 3. Urgency / Time sensitivity (up to 20 points)
+        urgency_points = {
+            TimeSensitivity.URGENT: 20.0,
+            TimeSensitivity.HIGH: 15.0,
+            TimeSensitivity.MEDIUM: 10.0,
+            TimeSensitivity.LOW: 5.0,
+        }
+        score += urgency_points.get(time_sensitivity, 10.0)
+
+        # 4. Effort inverse (lower effort = higher score, up to 15 points)
+        effort_upper = str(effort_level).upper()
+        if effort_upper == "LOW":
+            score += 15.0
+        elif effort_upper == "HIGH":
+            score += 5.0
+        else:
+            score += 10.0
+
+        # 5. Evidence & customer impact factor (up to 5 points)
+        if affected_customers_count > 0:
+            score += min(3.0, math.log10(affected_customers_count + 1) * 2.0)
+        if evidence_count > 1:
+            score += min(2.0, (evidence_count - 1) * 1.0)
+
+        return max(0, min(100, int(round(score))))

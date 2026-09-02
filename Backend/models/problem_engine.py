@@ -59,7 +59,8 @@ class ProblemSeverity(str, enum.Enum):
 
 
 class ProblemCategory(str, enum.Enum):
-    """7 core problem detection categories."""
+    """Core problem and opportunity detection categories."""
+    # Problem & Risk Categories
     ANOMALY = "ANOMALY"
     BOTTLENECK = "BOTTLENECK"
     REVENUE_LEAKAGE = "REVENUE_LEAKAGE"
@@ -67,6 +68,13 @@ class ProblemCategory(str, enum.Enum):
     PRODUCTIVITY = "PRODUCTIVITY"
     GOAL_DEVIATION = "GOAL_DEVIATION"
     RISK = "RISK"
+    # Opportunity Categories (Phase 9)
+    REVENUE_GROWTH = "REVENUE_GROWTH"
+    CUSTOMER_RETENTION = "CUSTOMER_RETENTION"
+    SALES_OPPORTUNITY = "SALES_OPPORTUNITY"
+    ENGAGEMENT_EXPANSION = "ENGAGEMENT_EXPANSION"
+    COST_SAVING = "COST_SAVING"
+    OPERATIONAL_EFFICIENCY = "OPERATIONAL_EFFICIENCY"
 
 
 class TimeSensitivity(str, enum.Enum):
@@ -130,6 +138,19 @@ class OutcomeStatus(str, enum.Enum):
     FAILED = "FAILED"
 
 
+class AuditEventType(str, enum.Enum):
+    """Lifecycle audit event types for proactive and event-driven problem engine."""
+    EVENT_RECEIVED = "EVENT_RECEIVED"
+    OBSERVATION_CREATED = "OBSERVATION_CREATED"
+    DETECTION_EXECUTED = "DETECTION_EXECUTED"
+    PROBLEM_CREATED = "PROBLEM_CREATED"
+    PROBLEM_UPDATED = "PROBLEM_UPDATED"
+    PRIORITY_RECALCULATED = "PRIORITY_RECALCULATED"
+    RETRY_ATTEMPT = "RETRY_ATTEMPT"
+    SCAN_COMPLETED = "SCAN_COMPLETED"
+    FAILURE = "FAILURE"
+
+
 # ===========================================================================
 # Core Models
 # ===========================================================================
@@ -183,6 +204,7 @@ class Problem(Base):
 
     is_opportunity = Column(Boolean, default=False, nullable=False, index=True)
     is_risk = Column(Boolean, default=False, nullable=False, index=True)
+    fingerprint = Column(String(128), nullable=True, index=True)
 
     detected_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     solved_at = Column(DateTime(timezone=True), nullable=True)
@@ -198,6 +220,8 @@ class Problem(Base):
     solutions = relationship("ProblemSolution", back_populates="problem", cascade="all, delete-orphan")
     execution_plans = relationship("SolutionExecutionPlan", back_populates="problem", cascade="all, delete-orphan")
     outcome = relationship("ProblemOutcome", back_populates="problem", uselist=False, cascade="all, delete-orphan")
+    lifecycle_audits = relationship("ProblemLifecycleAudit", back_populates="problem", cascade="all, delete-orphan")
+    learning_records = relationship("ProblemLearningRecord", back_populates="problem", cascade="all, delete-orphan")
 
     def __repr__(self):
         return f"<Problem(id={self.id}, user_id={self.user_id}, title='{self.title}', status='{self.status}', priority={self.priority_score})>"
@@ -519,3 +543,70 @@ class ConnectorSyncState(Base):
 
     def __repr__(self):
         return f"<ConnectorSyncState(id={self.id}, user_id={self.user_id}, connector='{self.connector_key}', status='{self.sync_status}')>"
+
+
+class ProblemLifecycleAudit(Base):
+    """
+    Audit ledger recording all state transitions, event ingestions,
+    and background detection actions for full observability and traceability.
+    """
+    __tablename__ = "problem_lifecycle_audits"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    problem_id = Column(Integer, ForeignKey("problems.id", ondelete="CASCADE"), nullable=True, index=True)
+
+    event_type = Column(
+        SQLEnum(AuditEventType, values_callable=lambda x: [e.value for e in x]),
+        nullable=False,
+        index=True
+    )
+    details = Column(JSON, nullable=False, default=dict)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False, index=True)
+
+    # Relationships
+    user = relationship("User", back_populates="problem_lifecycle_audits")
+    problem = relationship("Problem", back_populates="lifecycle_audits")
+
+    def __repr__(self):
+        return f"<ProblemLifecycleAudit(id={self.id}, user_id={self.user_id}, event='{self.event_type}', problem_id={self.problem_id})>"
+
+
+class ProblemLearningRecord(Base):
+    """
+    Closed-Loop Learning Record (Phase 11)
+    Stores empirical learnings, prediction variances, and strategy effectiveness
+    signals derived from verified real-world outcomes.
+    """
+    __tablename__ = "problem_learning_records"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    problem_id = Column(Integer, ForeignKey("problems.id", ondelete="CASCADE"), nullable=False, index=True)
+    solution_id = Column(Integer, ForeignKey("problem_solutions.id", ondelete="SET NULL"), nullable=True, index=True)
+    execution_plan_id = Column(Integer, ForeignKey("solution_execution_plans.id", ondelete="SET NULL"), nullable=True, index=True)
+
+    predicted_impact_inr = Column(Float, nullable=True)
+    actual_verified_impact_inr = Column(Float, nullable=True)
+    prediction_error_pct = Column(Float, default=0.0, nullable=False)
+
+    outcome_status = Column(
+        SQLEnum(OutcomeStatus, values_callable=lambda x: [e.value for e in x]),
+        nullable=False,
+        index=True
+    )
+    is_successful = Column(Boolean, default=False, nullable=False, index=True)
+    learned_signals = Column(JSON, nullable=False, default=dict)
+    replan_triggered = Column(Boolean, default=False, nullable=False, index=True)
+
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+
+    # Relationships
+    user = relationship("User", back_populates="problem_learning_records")
+    problem = relationship("Problem", back_populates="learning_records")
+    solution = relationship("ProblemSolution")
+    execution_plan = relationship("SolutionExecutionPlan")
+
+    def __repr__(self):
+        return f"<ProblemLearningRecord(id={self.id}, problem_id={self.problem_id}, outcome='{self.outcome_status}', success={self.is_successful}, error={self.prediction_error_pct}%)>"

@@ -529,6 +529,14 @@ except Exception as e:
     problems_available = False
 
 try:
+    from routes.opportunities import router as opportunities_router
+    opportunities_available = True
+    logging.info("✅ Opportunities Complete router imported successfully")
+except Exception as e:
+    logging.warning(f"Opportunities Complete router not available: {e}")
+    opportunities_available = False
+
+try:
     from ai_models.website_ai.app.api.v1.routes import generation as website_ai_generation
     from ai_models.website_ai.app.api.v1.routes import jobs as website_ai_jobs
     from ai_models.website_ai.app.api.v1.routes import websites as website_ai_websites
@@ -666,6 +674,8 @@ async def lifespan(app: FastAPI):
                 migrate_add_problem_engine_tables()
                 from migrations.add_problem_engine_phase2_tables import migrate_add_problem_engine_phase2_tables
                 migrate_add_problem_engine_phase2_tables()
+                from migrations.add_problem_engine_learning_tables import migrate_add_problem_engine_learning_tables
+                migrate_add_problem_engine_learning_tables()
             except Exception as _pe_err:
                 logger.warning(f"⚠️ Problem engine migrations skipped: {_pe_err}")
             logger.info("✅ Migrations completed")
@@ -1206,6 +1216,9 @@ if problem_context_available:
 if problems_available:
     app.include_router(problems_router)
     logging.info("✅ Problem Engine Complete router included in app")
+if opportunities_available:
+    app.include_router(opportunities_router)
+    logging.info("✅ Opportunities Complete router included in app")
 if website_ai_available:
     app.include_router(
         website_ai_generation.router,

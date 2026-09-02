@@ -34,6 +34,10 @@ class ProblemDetectionEngine:
         """Register an additional detection rule."""
         self.rules.append(rule)
 
+    def get_registered_rules(self) -> List[BaseDetectionRule]:
+        """Return currently registered detection rules."""
+        return list(self.rules)
+
     async def detect_problems(
         self, db: AsyncSession, user_id: int
     ) -> Dict[str, Any]:
@@ -112,6 +116,7 @@ class ProblemDetectionEngine:
                     time_sensitivity=sig.time_sensitivity,
                     is_opportunity=sig.is_opportunity,
                     is_risk=sig.is_risk,
+                    fingerprint=getattr(sig, "fingerprint", None),
                     detected_at=datetime.utcnow(),
                     created_at=datetime.utcnow(),
                     updated_at=datetime.utcnow(),

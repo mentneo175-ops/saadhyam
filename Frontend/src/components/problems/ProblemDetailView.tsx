@@ -21,6 +21,10 @@ import {
   Activity,
   Check,
   X,
+  HelpCircle,
+  MessageSquare,
+  Send,
+  RefreshCw,
 } from "lucide-react";
 import { toast } from "sonner";
 import { problemsApi } from "@/lib/problemsApi";
@@ -31,6 +35,8 @@ import {
   SolutionExecutionPlan,
   ProblemOutcome,
   ROIAssessment,
+  InvestigationResult,
+  ProblemLearningRecord,
 } from "@/types/problems";
 
 interface ProblemDetailViewProps {
@@ -46,6 +52,15 @@ export function ProblemDetailView({ problemId }: ProblemDetailViewProps) {
   const [rejectReason, setRejectReason] = useState<string>("");
   const [showRejectModal, setShowRejectModal] = useState<number | null>(null);
 
+  // Phase 10: Natural-Language Investigation State
+  const [investigationQuestion, setInvestigationQuestion] = useState<string>("");
+  const [investigationResult, setInvestigationResult] = useState<InvestigationResult | null>(null);
+  const [investigating, setInvestigating] = useState<boolean>(false);
+
+  // Phase 11: Closed-Loop Learning State
+  const [learningRecord, setLearningRecord] = useState<ProblemLearningRecord | null>(null);
+  const [replanLoading, setReplanLoading] = useState<boolean>(false);
+
   const loadData = async () => {
     try {
       setLoading(true);
@@ -57,6 +72,15 @@ export function ProblemDetailView({ problemId }: ProblemDetailViewProps) {
         setRoi(roiRes);
       } catch (e) {
         // ROI optional or computed later
+      }
+
+      try {
+        const learnRes = await problemsApi.getProblemLearning(problemId);
+        if (learnRes.has_learning_record && learnRes.learning_record) {
+          setLearningRecord(learnRes.learning_record);
+        }
+      } catch (e) {
+        // Learning record optional
       }
     } catch (err: any) {
       toast.error(err.message || "Failed to fetch problem detail");
@@ -167,6 +191,42 @@ export function ProblemDetailView({ problemId }: ProblemDetailViewProps) {
       toast.error(err.message || "Failed to verify outcome");
     } finally {
       setBusyAction(null);
+    }
+  };
+
+  const handleAskQuestion = async (presetQuestion?: string) => {
+    const q = presetQuestion || investigationQuestion;
+    if (!q || !q.trim()) {
+      toast.error("Please enter a question to investigate.");
+      return;
+    }
+
+    try {
+      setInvestigating(true);
+      if (presetQuestion) {
+        setInvestigationQuestion(presetQuestion);
+      }
+      const res = await problemsApi.investigateProblem(problemId, q.trim());
+      setInvestigationResult(res.investigation);
+      toast.success("Investigation complete.");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to complete investigation");
+    } finally {
+      setInvestigating(false);
+    }
+  };
+
+  const handleReplan = async () => {
+    try {
+      setReplanLoading(true);
+      toast.info("Synthesizing closed-loop replanning with historical outcome weights...");
+      const res = await problemsApi.replanProblem(problemId);
+      toast.success(`Replanning synthesized ${res.revised_solutions_count} solution(s) in PENDING approval status.`);
+      await loadData();
+    } catch (err: any) {
+      toast.error(err.message || "Failed to replan problem");
+    } finally {
+      setReplanLoading(false);
     }
   };
 
@@ -332,6 +392,154 @@ export function ProblemDetailView({ problemId }: ProblemDetailViewProps) {
                 <p className="text-xs text-zinc-500 italic">No evidence items attached.</p>
               )}
             </div>
+          </div>
+
+          {/* Section 2.5: Natural-Language Investigation (Phase 10) */}
+          <div className="p-5 rounded-2xl bg-gradient-to-br from-indigo-950/20 via-zinc-900/80 to-zinc-900/90 border border-indigo-500/30 space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-sm font-semibold text-zinc-200">
+                <MessageSquare className="w-4 h-4 text-indigo-400" />
+                <h3>Natural-Language Investigation</h3>
+              </div>
+              <span className="text-[11px] text-indigo-300 font-medium">Zero-Fabrication Evidence Grounding</span>
+            </div>
+
+            {/* Quick Presets */}
+            <div className="flex flex-wrap gap-1.5">
+              {[
+                "Why did this happen?",
+                "What evidence supports this?",
+                "Which customers/orders are affected?",
+                "What changed recently?",
+                "What should we do next?",
+                "What evidence is missing?",
+                "What would happen if we execute this solution?",
+              ].map((preset) => (
+                <button
+                  key={preset}
+                  onClick={() => handleAskQuestion(preset)}
+                  disabled={investigating}
+                  className="px-2.5 py-1 rounded-lg bg-zinc-800/80 hover:bg-indigo-900/50 hover:border-indigo-500/50 border border-zinc-700/50 text-[11px] text-zinc-300 transition-all disabled:opacity-50"
+                >
+                  {preset}
+                </button>
+              ))}
+            </div>
+
+            {/* Question Input */}
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                value={investigationQuestion}
+                onChange={(e) => setInvestigationQuestion(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleAskQuestion()}
+                placeholder="Ask an investigation question grounded in real system telemetry..."
+                className="flex-1 px-3.5 py-2 bg-zinc-950/80 border border-zinc-800 rounded-xl text-xs text-zinc-200 focus:outline-none focus:border-indigo-500 transition-all"
+              />
+              <button
+                onClick={() => handleAskQuestion()}
+                disabled={investigating || !investigationQuestion.trim()}
+                className="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold shadow disabled:opacity-50 transition-all"
+              >
+                {investigating ? (
+                  <RotateCcw className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <Send className="w-3.5 h-3.5" />
+                )}
+                {investigating ? "Auditing..." : "Investigate"}
+              </button>
+            </div>
+
+            {/* Structured Investigation Findings */}
+            {investigationResult && (
+              <div className="p-4 rounded-xl bg-zinc-950/80 border border-indigo-500/30 space-y-3 mt-3 animate-in fade-in duration-200">
+                <div className="flex items-center justify-between pb-2 border-b border-zinc-800">
+                  <div className="text-xs font-semibold text-zinc-300 flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
+                    <span>Findings: "{investigationResult.question}"</span>
+                  </div>
+                  <span
+                    className={`px-2 py-0.5 rounded text-[10px] font-bold font-mono ${
+                      investigationResult.certainty_tier === "MEASURED_FACT"
+                        ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
+                        : investigationResult.certainty_tier === "CALCULATED"
+                        ? "bg-blue-500/20 text-blue-400 border border-blue-500/30"
+                        : investigationResult.certainty_tier === "ESTIMATED"
+                        ? "bg-purple-500/20 text-purple-400 border border-purple-500/30"
+                        : "bg-amber-500/20 text-amber-400 border border-amber-500/30"
+                    }`}
+                  >
+                    {investigationResult.certainty_tier}
+                  </span>
+                </div>
+
+                {/* Direct Answer */}
+                <div className="p-3 rounded-lg bg-indigo-950/30 border border-indigo-900/40 text-xs text-indigo-200 font-medium">
+                  {investigationResult.direct_answer}
+                </div>
+
+                {/* Observed Facts */}
+                {investigationResult.observed_facts && investigationResult.observed_facts.length > 0 && (
+                  <div className="space-y-1 text-xs">
+                    <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">Observed Facts:</span>
+                    <ul className="list-disc list-inside space-y-0.5 text-zinc-300">
+                      {investigationResult.observed_facts.map((fact, idx) => (
+                        <li key={idx}>{fact}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Calculated Metrics */}
+                {investigationResult.calculated_metrics && investigationResult.calculated_metrics.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 pt-1">
+                    {investigationResult.calculated_metrics.map((metric, idx) => (
+                      <span key={idx} className="px-2 py-0.5 rounded bg-zinc-900 text-zinc-300 font-mono text-[10px] border border-zinc-800">
+                        📊 {metric}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                {/* Estimates and Hypotheses */}
+                {investigationResult.estimates_and_hypotheses && investigationResult.estimates_and_hypotheses.length > 0 && (
+                  <div className="space-y-1 text-xs pt-1 border-t border-zinc-800/60">
+                    <span className="text-[11px] font-bold text-purple-400 uppercase tracking-wider">Working Hypotheses & Projections:</span>
+                    <ul className="list-disc list-inside space-y-0.5 text-zinc-400 italic">
+                      {investigationResult.estimates_and_hypotheses.map((hypo, idx) => (
+                        <li key={idx}>{hypo}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Recommendations */}
+                {investigationResult.recommendations && investigationResult.recommendations.length > 0 && (
+                  <div className="space-y-1 text-xs pt-1 border-t border-zinc-800/60">
+                    <span className="text-[11px] font-bold text-emerald-400 uppercase tracking-wider">Recommended Next Actions:</span>
+                    <ul className="list-disc list-inside space-y-0.5 text-emerald-300">
+                      {investigationResult.recommendations.map((rec, idx) => (
+                        <li key={idx}>{rec}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Missing Evidence */}
+                {investigationResult.missing_evidence_notes && investigationResult.missing_evidence_notes.length > 0 && (
+                  <div className="p-2.5 rounded-lg bg-amber-950/20 border border-amber-500/30 text-xs text-amber-300 space-y-1">
+                    <span className="font-bold flex items-center gap-1">
+                      <AlertTriangle className="w-3.5 h-3.5" /> Missing Evidence Disclaimers:
+                    </span>
+                    <ul className="list-disc list-inside space-y-0.5 text-amber-400/90 text-[11px]">
+                      {investigationResult.missing_evidence_notes.map((note, idx) => (
+                        <li key={idx}>{note}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Section 3: Root Cause Diagnosis */}
@@ -699,6 +907,91 @@ export function ProblemDetailView({ problemId }: ProblemDetailViewProps) {
                 >
                   Verify post-execution outcome
                 </button>
+              </div>
+            )}
+          </div>
+
+          {/* Closed-Loop Learning & Replanning Card (Phase 11) */}
+          <div className="p-5 rounded-2xl bg-zinc-900/70 border border-zinc-800 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5 text-sm font-semibold text-zinc-200">
+                <RefreshCw className="w-4 h-4 text-emerald-400" />
+                <h3>Closed-Loop Learning</h3>
+              </div>
+              {learningRecord && (
+                <span
+                  className={`text-[10px] font-bold px-2 py-0.5 rounded ${
+                    learningRecord.is_successful
+                      ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
+                      : "bg-rose-500/20 text-rose-400 border border-rose-500/30"
+                  }`}
+                >
+                  {learningRecord.is_successful ? "STRATEGY PROVEN" : "STRATEGY UNDERPERFORMED"}
+                </span>
+              )}
+            </div>
+
+            {learningRecord ? (
+              <div className="space-y-3 pt-1 text-xs">
+                <div className="grid grid-cols-2 gap-2 p-2.5 rounded-xl bg-zinc-950/80 border border-zinc-800">
+                  <div>
+                    <span className="text-[10px] text-zinc-500 block">Predicted Impact</span>
+                    <span className="font-bold text-zinc-200">
+                      ₹{(learningRecord.predicted_impact_inr || 0).toLocaleString("en-IN")}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-zinc-500 block">Verified Recovery</span>
+                    <span className="font-bold text-emerald-400">
+                      ₹{(learningRecord.actual_verified_impact_inr || 0).toLocaleString("en-IN")}
+                    </span>
+                  </div>
+                  <div className="col-span-2 pt-1 border-t border-zinc-800/80 flex justify-between items-center text-[11px]">
+                    <span className="text-zinc-400">Prediction Variance:</span>
+                    <span
+                      className={`font-mono font-bold ${
+                        learningRecord.prediction_error_pct >= 0 ? "text-emerald-400" : "text-amber-400"
+                      }`}
+                    >
+                      {learningRecord.prediction_error_pct > 0 ? "+" : ""}
+                      {learningRecord.prediction_error_pct}%
+                    </span>
+                  </div>
+                </div>
+
+                {learningRecord.learned_signals?.key_takeaway && (
+                  <div className="p-2.5 rounded-xl bg-indigo-950/30 border border-indigo-900/40 text-[11px] text-indigo-200">
+                    <span className="font-bold block text-indigo-300 mb-0.5">Learned Insight:</span>
+                    {learningRecord.learned_signals.key_takeaway}
+                  </div>
+                )}
+
+                {/* Replan Trigger if not 100% solved */}
+                {problem.status !== "SOLVED" && (
+                  <div className="pt-2 border-t border-zinc-800 space-y-2">
+                    <div className="flex items-center justify-between text-[11px] text-zinc-400">
+                      <span>Requires Adaptive Strategy?</span>
+                      {learningRecord.replan_triggered && (
+                        <span className="text-amber-400 font-medium">Replan Active</span>
+                      )}
+                    </div>
+                    <button
+                      onClick={handleReplan}
+                      disabled={replanLoading}
+                      className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white rounded-xl text-xs font-bold transition-all disabled:opacity-50 shadow"
+                    >
+                      <RefreshCw className={`w-3.5 h-3.5 ${replanLoading ? "animate-spin" : ""}`} />
+                      {replanLoading ? "Re-synthesizing..." : "Trigger Closed-Loop Replanning"}
+                    </button>
+                    <p className="text-[10px] text-zinc-500 text-center">
+                      Applies empirical weight penalties & synthesizes alternatives with approval guardrails.
+                    </p>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="text-center py-2 text-xs text-zinc-500 space-y-1">
+                <p>Learning record will be synthesized upon outcome verification.</p>
               </div>
             )}
           </div>

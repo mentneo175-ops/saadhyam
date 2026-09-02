@@ -199,6 +199,90 @@ class SolutionGenerator:
                 "is_recommended": True,
             })
 
+        # --- Opportunity Solution Templates (Phase 9) ---
+        elif problem.category in (ProblemCategory.REVENUE_GROWTH, ProblemCategory.SALES_OPPORTUNITY):
+            candidates_data.append({
+                "title": "Personalized VIP WhatsApp Catalog & Exclusive Loyalty Incentive",
+                "description": "Trigger personalized VIP catalog links with exclusive 10% loyalty perks for verified repeat buyers via WhatsApp.",
+                "strategy_type": StrategyType.AUTOMATION,
+                "risk_level": RiskLevel.LOW,
+                "expected_impact": "HIGH",
+                "estimated_cost_inr": 200.0,
+                "expected_roi_multiplier": 6.5,
+                "implementation_time_hours": 0.5,
+                "confidence": 0.92,
+                "required_plugin_keys": ["whatsapp", "store"],
+                "required_agent_ids": ["growth_marketing_agent"],
+                "required_voice_usage": False,
+                "is_recommended": True,
+            })
+            candidates_data.append({
+                "title": "Voice AI VIP Concierge Outreach",
+                "description": "Deploy autonomous Voice AI assistant to offer personalized product recommendations and early access incentives to top buyers.",
+                "strategy_type": StrategyType.VOICE_AI,
+                "risk_level": RiskLevel.LOW,
+                "expected_impact": "HIGH",
+                "estimated_cost_inr": 350.0,
+                "expected_roi_multiplier": 5.0,
+                "implementation_time_hours": 1.0,
+                "confidence": 0.88,
+                "required_plugin_keys": ["voice_agent"],
+                "required_agent_ids": ["voice_sales_agent"],
+                "required_voice_usage": True,
+                "is_recommended": False,
+            })
+
+        elif problem.category == ProblemCategory.CUSTOMER_RETENTION:
+            candidates_data.append({
+                "title": "1-Click WhatsApp Abandoned Cart Win-Back Sequence",
+                "description": "Send personalized WhatsApp recovery messages with pre-filled payment links and a 5% incentive token within 30 minutes of checkout drop-off.",
+                "strategy_type": StrategyType.AUTOMATION,
+                "risk_level": RiskLevel.LOW,
+                "expected_impact": "HIGH",
+                "estimated_cost_inr": 150.0,
+                "expected_roi_multiplier": 8.0,
+                "implementation_time_hours": 0.5,
+                "confidence": 0.95,
+                "required_plugin_keys": ["whatsapp", "orders"],
+                "required_agent_ids": ["recovery_bot"],
+                "required_voice_usage": False,
+                "is_recommended": True,
+            })
+
+        elif problem.category in (ProblemCategory.OPERATIONAL_EFFICIENCY, ProblemCategory.COST_SAVING):
+            candidates_data.append({
+                "title": "Autonomous Voice AI Lead Qualification & Task Dispatch",
+                "description": "Deploy Voice AI inbound screener to qualify leads instantly and auto-assign scheduled appointments to calendar slots.",
+                "strategy_type": StrategyType.VOICE_AI,
+                "risk_level": RiskLevel.LOW,
+                "expected_impact": "HIGH",
+                "estimated_cost_inr": 100.0,
+                "expected_roi_multiplier": 4.5,
+                "implementation_time_hours": 0.5,
+                "confidence": 0.90,
+                "required_plugin_keys": ["voice_agent", "hr_interview_scheduler"],
+                "required_agent_ids": ["voice_assistant"],
+                "required_voice_usage": True,
+                "is_recommended": True,
+            })
+
+        elif problem.category == ProblemCategory.ENGAGEMENT_EXPANSION:
+            candidates_data.append({
+                "title": "Viral Social-to-Store Traffic Conversion Funnel",
+                "description": "Automatically append trackable store discount links to top-performing Instagram reels and YouTube videos.",
+                "strategy_type": StrategyType.PLUGIN_ACTION,
+                "risk_level": RiskLevel.LOW,
+                "expected_impact": "MEDIUM",
+                "estimated_cost_inr": 50.0,
+                "expected_roi_multiplier": 5.0,
+                "implementation_time_hours": 0.5,
+                "confidence": 0.85,
+                "required_plugin_keys": ["instagram", "youtube"],
+                "required_agent_ids": ["social_growth_agent"],
+                "required_voice_usage": False,
+                "is_recommended": True,
+            })
+
         else:
             candidates_data.append({
                 "title": "Operational Process Review & Standard Operating Procedure Update",

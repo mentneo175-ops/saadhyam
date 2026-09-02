@@ -24,8 +24,9 @@ from services.problem_engine.solutions.generator import SolutionGenerator
 from services.problem_engine.roi.calculator import ROICalculator
 from services.problem_engine.execution.planner import ExecutionPlanner
 from services.problem_engine.execution.workflow import ApprovalWorkflowService
-from services.problem_engine.execution.engine import ExecutionEngine
 from services.problem_engine.execution.outcome import OutcomeVerifier
+from services.problem_engine.investigation.service import ProblemInvestigationService
+from services.problem_engine.learning.service import ProblemLearningService
 
 __all__ = [
     "BaseBusinessConnector",
@@ -50,4 +51,6 @@ __all__ = [
     "ApprovalWorkflowService",
     "ExecutionEngine",
     "OutcomeVerifier",
+    "ProblemInvestigationService",
+    "ProblemLearningService",
 ]

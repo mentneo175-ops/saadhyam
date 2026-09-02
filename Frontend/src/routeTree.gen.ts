@@ -59,8 +59,10 @@ import { Route as DashboardAgentsRouteImport } from './routes/dashboard.agents'
 import { Route as DashboardAeoGeoRouteImport } from './routes/dashboard.aeo-geo'
 import { Route as DashboardActionsRouteImport } from './routes/dashboard.actions'
 import { Route as DashboardVoiceAgentIndexRouteImport } from './routes/dashboard.voice-agent.index'
+import { Route as DashboardProblemsIndexRouteImport } from './routes/dashboard.problems.index'
 import { Route as DashboardAgentsIndexRouteImport } from './routes/dashboard.agents.index'
 import { Route as DashboardSettingsApiKeysRouteImport } from './routes/dashboard.settings.api-keys'
+import { Route as DashboardProblemsProblemIdRouteImport } from './routes/dashboard.problems.$problemId'
 import { Route as DashboardInstagramAnalyticsPostsRouteImport } from './routes/dashboard.instagram-analytics.posts'
 import { Route as DashboardAgentsPartnershipRouteImport } from './routes/dashboard.agents.partnership'
 import { Route as DashboardAgentsCustomerRetentionRouteImport } from './routes/dashboard.agents.customer-retention'
@@ -321,6 +323,11 @@ const DashboardVoiceAgentIndexRoute =
     path: '/voice-agent/',
     getParentRoute: () => DashboardRoute,
   } as any)
+const DashboardProblemsIndexRoute = DashboardProblemsIndexRouteImport.update({
+  id: '/problems/',
+  path: '/problems/',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardAgentsIndexRoute = DashboardAgentsIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -331,6 +338,12 @@ const DashboardSettingsApiKeysRoute =
     id: '/api-keys',
     path: '/api-keys',
     getParentRoute: () => DashboardSettingsRoute,
+  } as any)
+const DashboardProblemsProblemIdRoute =
+  DashboardProblemsProblemIdRouteImport.update({
+    id: '/problems/$problemId',
+    path: '/problems/$problemId',
+    getParentRoute: () => DashboardRoute,
   } as any)
 const DashboardInstagramAnalyticsPostsRoute =
   DashboardInstagramAnalyticsPostsRouteImport.update({
@@ -404,8 +417,10 @@ export interface FileRoutesByFullPath {
   '/dashboard/agents/customer-retention': typeof DashboardAgentsCustomerRetentionRoute
   '/dashboard/agents/partnership': typeof DashboardAgentsPartnershipRoute
   '/dashboard/instagram-analytics/posts': typeof DashboardInstagramAnalyticsPostsRoute
+  '/dashboard/problems/$problemId': typeof DashboardProblemsProblemIdRoute
   '/dashboard/settings/api-keys': typeof DashboardSettingsApiKeysRoute
   '/dashboard/agents/': typeof DashboardAgentsIndexRoute
+  '/dashboard/problems/': typeof DashboardProblemsIndexRoute
   '/dashboard/voice-agent/': typeof DashboardVoiceAgentIndexRoute
 }
 export interface FileRoutesByTo {
@@ -459,8 +474,10 @@ export interface FileRoutesByTo {
   '/dashboard/agents/customer-retention': typeof DashboardAgentsCustomerRetentionRoute
   '/dashboard/agents/partnership': typeof DashboardAgentsPartnershipRoute
   '/dashboard/instagram-analytics/posts': typeof DashboardInstagramAnalyticsPostsRoute
+  '/dashboard/problems/$problemId': typeof DashboardProblemsProblemIdRoute
   '/dashboard/settings/api-keys': typeof DashboardSettingsApiKeysRoute
   '/dashboard/agents': typeof DashboardAgentsIndexRoute
+  '/dashboard/problems': typeof DashboardProblemsIndexRoute
   '/dashboard/voice-agent': typeof DashboardVoiceAgentIndexRoute
 }
 export interface FileRoutesById {
@@ -517,8 +534,10 @@ export interface FileRoutesById {
   '/dashboard/agents/customer-retention': typeof DashboardAgentsCustomerRetentionRoute
   '/dashboard/agents/partnership': typeof DashboardAgentsPartnershipRoute
   '/dashboard/instagram-analytics/posts': typeof DashboardInstagramAnalyticsPostsRoute
+  '/dashboard/problems/$problemId': typeof DashboardProblemsProblemIdRoute
   '/dashboard/settings/api-keys': typeof DashboardSettingsApiKeysRoute
   '/dashboard/agents/': typeof DashboardAgentsIndexRoute
+  '/dashboard/problems/': typeof DashboardProblemsIndexRoute
   '/dashboard/voice-agent/': typeof DashboardVoiceAgentIndexRoute
 }
 export interface FileRouteTypes {
@@ -576,8 +595,10 @@ export interface FileRouteTypes {
     | '/dashboard/agents/customer-retention'
     | '/dashboard/agents/partnership'
     | '/dashboard/instagram-analytics/posts'
+    | '/dashboard/problems/$problemId'
     | '/dashboard/settings/api-keys'
     | '/dashboard/agents/'
+    | '/dashboard/problems/'
     | '/dashboard/voice-agent/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -631,8 +652,10 @@ export interface FileRouteTypes {
     | '/dashboard/agents/customer-retention'
     | '/dashboard/agents/partnership'
     | '/dashboard/instagram-analytics/posts'
+    | '/dashboard/problems/$problemId'
     | '/dashboard/settings/api-keys'
     | '/dashboard/agents'
+    | '/dashboard/problems'
     | '/dashboard/voice-agent'
   id:
     | '__root__'
@@ -688,8 +711,10 @@ export interface FileRouteTypes {
     | '/dashboard/agents/customer-retention'
     | '/dashboard/agents/partnership'
     | '/dashboard/instagram-analytics/posts'
+    | '/dashboard/problems/$problemId'
     | '/dashboard/settings/api-keys'
     | '/dashboard/agents/'
+    | '/dashboard/problems/'
     | '/dashboard/voice-agent/'
   fileRoutesById: FileRoutesById
 }
@@ -1061,6 +1086,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardVoiceAgentIndexRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/problems/': {
+      id: '/dashboard/problems/'
+      path: '/problems'
+      fullPath: '/dashboard/problems/'
+      preLoaderRoute: typeof DashboardProblemsIndexRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/agents/': {
       id: '/dashboard/agents/'
       path: '/'
@@ -1074,6 +1106,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/dashboard/settings/api-keys'
       preLoaderRoute: typeof DashboardSettingsApiKeysRouteImport
       parentRoute: typeof DashboardSettingsRoute
+    }
+    '/dashboard/problems/$problemId': {
+      id: '/dashboard/problems/$problemId'
+      path: '/problems/$problemId'
+      fullPath: '/dashboard/problems/$problemId'
+      preLoaderRoute: typeof DashboardProblemsProblemIdRouteImport
+      parentRoute: typeof DashboardRoute
     }
     '/dashboard/instagram-analytics/posts': {
       id: '/dashboard/instagram-analytics/posts'
@@ -1178,6 +1217,8 @@ interface DashboardRouteChildren {
   DashboardWhatsappSalesRoute: typeof DashboardWhatsappSalesRoute
   DashboardYoutubeRoute: typeof DashboardYoutubeRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
+  DashboardProblemsProblemIdRoute: typeof DashboardProblemsProblemIdRoute
+  DashboardProblemsIndexRoute: typeof DashboardProblemsIndexRoute
   DashboardVoiceAgentIndexRoute: typeof DashboardVoiceAgentIndexRoute
 }
 
@@ -1219,6 +1260,8 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardWhatsappSalesRoute: DashboardWhatsappSalesRoute,
   DashboardYoutubeRoute: DashboardYoutubeRoute,
   DashboardIndexRoute: DashboardIndexRoute,
+  DashboardProblemsProblemIdRoute: DashboardProblemsProblemIdRoute,
+  DashboardProblemsIndexRoute: DashboardProblemsIndexRoute,
   DashboardVoiceAgentIndexRoute: DashboardVoiceAgentIndexRoute,
 }
 

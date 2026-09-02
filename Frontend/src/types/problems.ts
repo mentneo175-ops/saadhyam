@@ -12,7 +12,13 @@ export type ProblemCategory =
   | "GOAL_DEVIATION"
   | "ANOMALY"
   | "RISK"
-  | "COST_OVERRUN";
+  | "COST_OVERRUN"
+  | "REVENUE_GROWTH"
+  | "CUSTOMER_RETENTION"
+  | "SALES_OPPORTUNITY"
+  | "ENGAGEMENT_EXPANSION"
+  | "COST_SAVING"
+  | "OPERATIONAL_EFFICIENCY";
 
 export type ProblemSeverity = "CRITICAL" | "HIGH" | "MEDIUM" | "LOW";
 
@@ -190,7 +196,7 @@ export interface ROIAssessment {
   problem_id: number;
   solution_id?: number | null;
   solution_title?: string | null;
-  data_certainty: "ACTUAL" | "ESTIMATED" | "UNKNOWN";
+  data_certainty: "ACTUAL" | "ESTIMATED" | "ESTIMATED_OPPORTUNITY" | "UNKNOWN";
   total_impact_inr?: number | null;
   recoverable_amount_inr?: number | null;
   implementation_cost_inr?: number | null;
@@ -198,4 +204,53 @@ export interface ROIAssessment {
   roi_percentage?: number | null;
   roi_multiplier?: number | null;
   explanation: string;
+}
+
+export interface EvidenceReference {
+  id: number;
+  source_system: string;
+  evidence_type: string;
+  metric_name?: string | null;
+  value_before?: string | null;
+  value_current?: string | null;
+  description: string;
+  raw_data?: Record<string, any> | null;
+}
+
+export interface InvestigationResult {
+  question: string;
+  problem_id: number;
+  is_opportunity: boolean;
+  intent: string;
+  certainty_tier: "MEASURED_FACT" | "CALCULATED" | "ESTIMATED" | "HYPOTHESIS" | "INSUFFICIENT_DATA";
+  direct_answer: string;
+  observed_facts: string[];
+  calculated_metrics: string[];
+  estimates_and_hypotheses: string[];
+  recommendations: string[];
+  evidence_references: EvidenceReference[];
+  missing_evidence_notes: string[];
+}
+
+export interface ProblemLearningRecord {
+  id: number;
+  predicted_impact_inr?: number | null;
+  actual_verified_impact_inr?: number | null;
+  prediction_error_pct: number;
+  outcome_status: OutcomeStatus;
+  is_successful: boolean;
+  replan_triggered: boolean;
+  learned_signals: {
+    strategy_type?: string;
+    solution_title?: string;
+    effectiveness_tier?: string;
+    weight_bias?: number;
+    measured_improvement_pct?: number;
+    prediction_variance_pct?: number;
+    hours_saved?: number;
+    key_takeaway?: string;
+    recorded_at?: string;
+  };
+  created_at?: string;
+  updated_at?: string;
 }

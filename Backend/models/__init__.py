@@ -70,6 +70,23 @@ from models.voice_command import VoiceCommandLog
 from models.user_api_keys import UserAPIKeys
 from models.plugins import Plugin, UserPlugin, PluginAnalytics, PluginCategory, PluginStatus
 
+from models.linkedin import (
+    LinkedInPluginConfig,
+    LinkedInConnection,
+    LinkedInPostHistory,
+    LinkedInPostStatus,
+)
+from models.interview_scheduler import Interview, InterviewStatus
+
+# WhatsApp Models
+from models.whatsapp_account import WhatsAppAccount
+from models.whatsapp_message import WhatsAppMessage
+from models.whatsapp_campaign import WhatsAppCampaign
+from models.whatsapp_automation import WhatsAppAutomation
+
+# Order Models
+from models.order import Order, OrderItem, OrderStatus, PaymentStatus
+
 # Problem Discovery & Resolution Engine Models
 from models.problem_engine import (
     Problem,
@@ -83,6 +100,8 @@ from models.problem_engine import (
     BusinessEntity,
     BusinessEntityRelationship,
     ConnectorSyncState,
+    ProblemLifecycleAudit,
+    ProblemLearningRecord,
     ProblemStatus,
     ProblemSeverity,
     ProblemCategory,
@@ -93,6 +112,7 @@ from models.problem_engine import (
     ApprovalStatus,
     ExecutionState,
     OutcomeStatus,
+    AuditEventType,
 )
 
 __all__ = [
@@ -118,6 +138,12 @@ __all__ = [
     "TaskTemplate",
     "UserNotification",
     "Influencer",
+    "LinkedInPluginConfig",
+    "LinkedInConnection",
+    "LinkedInPostHistory",
+    "LinkedInPostStatus",
+    "Interview",
+    "InterviewStatus",
     "YouTubeChannel",
     "YouTubeVideo",
     "YouTubeAnalytics",
@@ -140,6 +166,14 @@ __all__ = [
     "PluginAnalytics",
     "PluginCategory",
     "PluginStatus",
+    "WhatsAppAccount",
+    "WhatsAppMessage",
+    "WhatsAppCampaign",
+    "WhatsAppAutomation",
+    "Order",
+    "OrderItem",
+    "OrderStatus",
+    "PaymentStatus",
     # Problem Engine
     "Problem",
     "ProblemObservation",
@@ -152,6 +186,8 @@ __all__ = [
     "BusinessEntity",
     "BusinessEntityRelationship",
     "ConnectorSyncState",
+    "ProblemLifecycleAudit",
+    "ProblemLearningRecord",
     "ProblemStatus",
     "ProblemSeverity",
     "ProblemCategory",
@@ -162,4 +198,5 @@ __all__ = [
     "ApprovalStatus",
     "ExecutionState",
     "OutcomeStatus",
+    "AuditEventType",
 ]

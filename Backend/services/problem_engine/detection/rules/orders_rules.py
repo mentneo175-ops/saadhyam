@@ -83,6 +83,14 @@ class OrderPaymentFailureRule(BaseDetectionRule):
         ev_res = await db.execute(ev_stmt)
         failed_events = ev_res.scalars().all()
 
+        if not failed_orders and failed_events:
+            for fe in failed_events:
+                try:
+                    amt = float(fe.payload.get("amount", 0.0) or 0.0)
+                    total_leaked_inr += amt
+                except (ValueError, TypeError):
+                    pass
+
         if failed_orders or failed_events:
             cust_count = max(len(affected_customers), 1 if failed_orders or failed_events else 0)
             order_count = max(len(failed_orders), len(failed_events))

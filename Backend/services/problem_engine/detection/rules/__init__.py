@@ -9,6 +9,11 @@ from services.problem_engine.detection.rules.voice_lead_rules import VoiceCallFa
 from services.problem_engine.detection.rules.interview_rules import InterviewNoShowRule
 from services.problem_engine.detection.rules.tasks_growth_rules import TaskExecutionBottleneckRule, GrowthMetricDropRule
 from services.problem_engine.detection.rules.messaging_rules import WhatsAppCampaignFailureRule, LinkedInPublishFailureRule
+from services.problem_engine.detection.rules.opportunity_rules import (
+    RepeatCustomerUpsellOpportunityRule,
+    AbandonedCheckoutRecoveryOpportunityRule,
+    OperationalEfficiencyOpportunityRule,
+)
 
 
 def get_default_detection_rules() -> List[BaseDetectionRule]:
@@ -22,6 +27,9 @@ def get_default_detection_rules() -> List[BaseDetectionRule]:
         GrowthMetricDropRule(),
         WhatsAppCampaignFailureRule(),
         LinkedInPublishFailureRule(),
+        RepeatCustomerUpsellOpportunityRule(),
+        AbandonedCheckoutRecoveryOpportunityRule(),
+        OperationalEfficiencyOpportunityRule(),
     ]
 
 
@@ -35,4 +43,7 @@ __all__ = [
     "GrowthMetricDropRule",
     "WhatsAppCampaignFailureRule",
     "LinkedInPublishFailureRule",
+    "RepeatCustomerUpsellOpportunityRule",
+    "AbandonedCheckoutRecoveryOpportunityRule",
+    "OperationalEfficiencyOpportunityRule",
 ]

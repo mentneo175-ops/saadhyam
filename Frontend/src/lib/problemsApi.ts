@@ -160,4 +160,127 @@ export const problemsApi = {
     if (!res.ok) throw new Error("Failed to verify outcome");
     return res.json();
   },
+
+  // ==========================================
+  // Opportunities API (Phase 9)
+  // ==========================================
+
+  // List Opportunities
+  async listOpportunities(params?: {
+    category?: string;
+    status?: string;
+    min_priority?: number;
+    limit?: number;
+    offset?: number;
+  }): Promise<{ success: boolean; count: number; opportunities: ProblemSummaryItem[] }> {
+    const query = new URLSearchParams();
+    if (params?.category) query.append("category", params.category);
+    if (params?.status) query.append("status", params.status);
+    if (params?.min_priority !== undefined) query.append("min_priority", params.min_priority.toString());
+    if (params?.limit) query.append("limit", params.limit.toString());
+    if (params?.offset) query.append("offset", params.offset.toString());
+
+    const url = `${API_URL}/api/opportunities${query.toString() ? `?${query.toString()}` : ""}`;
+    const res = await fetch(url, { headers: getAuthHeaders() });
+    if (!res.ok) throw new Error("Failed to fetch opportunities");
+    return res.json();
+  },
+
+  // Detect Opportunities
+  async detectOpportunities(): Promise<{ success: boolean; count: number; opportunities: any[] }> {
+    const res = await fetch(`${API_URL}/api/opportunities/detect`, {
+      method: "POST",
+      headers: getAuthHeaders(),
+    });
+    if (!res.ok) throw new Error("Failed to detect opportunities");
+    return res.json();
+  },
+
+  // Get Opportunity Detail
+  async getOpportunityDetail(oppId: number): Promise<{ success: boolean; opportunity: ProblemDetail }> {
+    const res = await fetch(`${API_URL}/api/opportunities/${oppId}`, {
+      headers: getAuthHeaders(),
+    });
+    if (!res.ok) throw new Error(`Failed to fetch opportunity #${oppId}`);
+    return res.json();
+  },
+
+  // Generate Opportunity Solutions
+  async generateOpportunitySolutions(oppId: number): Promise<{ success: boolean; solutions: ProblemSolution[] }> {
+    const res = await fetch(`${API_URL}/api/opportunities/${oppId}/solutions`, {
+      method: "POST",
+      headers: getAuthHeaders(),
+    });
+    if (!res.ok) throw new Error("Failed to generate opportunity solutions");
+    return res.json();
+  },
+
+  // Calculate Opportunity ROI
+  async getOpportunityROI(oppId: number, solutionId?: number): Promise<{ success: boolean; roi_assessment: ROIAssessment }> {
+    const query = solutionId ? `?solution_id=${solutionId}` : "";
+    const res = await fetch(`${API_URL}/api/opportunities/${oppId}/roi${query}`, {
+      headers: getAuthHeaders(),
+    });
+    if (!res.ok) throw new Error("Failed to calculate opportunity ROI");
+    return res.json();
+  },
+
+  // ==========================================
+  // Phase 10: Natural-Language Investigation
+  // ==========================================
+
+  // Investigate Problem
+  async investigateProblem(problemId: number, question: string): Promise<{ success: boolean; investigation: any }> {
+    const res = await fetch(`${API_URL}/api/problems/${problemId}/investigate`, {
+      method: "POST",
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ question }),
+    });
+    if (!res.ok) throw new Error("Failed to run problem investigation");
+    return res.json();
+  },
+
+  // Investigate Opportunity
+  async investigateOpportunity(oppId: number, question: string): Promise<{ success: boolean; investigation: any }> {
+    const res = await fetch(`${API_URL}/api/opportunities/${oppId}/investigate`, {
+      method: "POST",
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ question }),
+    });
+    if (!res.ok) throw new Error("Failed to run opportunity investigation");
+    return res.json();
+  },
+
+  // ==========================================
+  // Phase 11: Closed-Loop Learning & Replanning
+  // ==========================================
+
+  // Get Learning Record
+  async getProblemLearning(problemId: number): Promise<{ success: boolean; has_learning_record: boolean; learning_record?: any; message?: string }> {
+    const res = await fetch(`${API_URL}/api/problems/${problemId}/learning`, {
+      headers: getAuthHeaders(),
+    });
+    if (!res.ok) throw new Error("Failed to fetch problem learning record");
+    return res.json();
+  },
+
+  // Replan Problem
+  async replanProblem(problemId: number): Promise<{ success: boolean; problem_id: number; revised_solutions_count: number; recommended_solution: any; safety_notice: string }> {
+    const res = await fetch(`${API_URL}/api/problems/${problemId}/replan`, {
+      method: "POST",
+      headers: getAuthHeaders(),
+    });
+    if (!res.ok) throw new Error("Failed to trigger closed-loop replanning");
+    return res.json();
+  },
+
+  // Get Learning Insights
+  async getLearningInsights(category?: string): Promise<{ success: boolean; insights: any }> {
+    const query = category ? `?category=${category}` : "";
+    const res = await fetch(`${API_URL}/api/problems/learning/insights${query}`, {
+      headers: getAuthHeaders(),
+    });
+    if (!res.ok) throw new Error("Failed to fetch learning insights");
+    return res.json();
+  },
 };

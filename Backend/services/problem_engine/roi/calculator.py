@@ -58,9 +58,14 @@ class ROICalculator:
 
         # Determine financial certainty tier
         if impact_inr is not None and impact_inr > 0:
-            data_certainty = "ACTUAL" if problem.category.value == "REVENUE_LEAKAGE" else "ESTIMATED"
-            recovery_rate = 0.65  # Conservative estimated recovery benchmark (65%)
-            recoverable_amount = round(impact_inr * recovery_rate, 2)
+            if problem.is_opportunity:
+                data_certainty = "ESTIMATED_OPPORTUNITY"
+                recoverable_amount = round(impact_inr, 2)
+            else:
+                data_certainty = "ACTUAL" if problem.category.value == "REVENUE_LEAKAGE" else "ESTIMATED"
+                recovery_rate = 0.65  # Conservative estimated recovery benchmark (65%)
+                recoverable_amount = round(impact_inr * recovery_rate, 2)
+
             net_benefit = round(recoverable_amount - cost_inr, 2)
 
             if cost_inr > 0:
@@ -69,6 +74,12 @@ class ROICalculator:
             else:
                 roi_pct = 100.0
                 roi_multiplier = round(recoverable_amount / max(cost_inr, 1.0), 2)
+
+            explanation = (
+                f"Projected opportunity value of INR {recoverable_amount:,.2f} with estimated implementation cost of INR {cost_inr:,.2f}, delivering net benefit of INR {net_benefit:,.2f}."
+                if problem.is_opportunity
+                else f"Based on {data_certainty.lower()} revenue leakage of INR {impact_inr:,.2f}, targeted recovery is estimated at INR {recoverable_amount:,.2f} with an implementation cost of INR {cost_inr:,.2f} yielding a net benefit of INR {net_benefit:,.2f}."
+            )
 
             return {
                 "problem_id": problem.id,
@@ -81,7 +92,7 @@ class ROICalculator:
                 "net_benefit_inr": net_benefit,
                 "roi_percentage": roi_pct,
                 "roi_multiplier": roi_multiplier,
-                "explanation": f"Based on {data_certainty.lower()} revenue leakage of INR {impact_inr:,.2f}, targeted recovery is estimated at INR {recoverable_amount:,.2f} with an implementation cost of INR {cost_inr:,.2f} yielding a net benefit of INR {net_benefit:,.2f}.",
+                "explanation": explanation,
             }
         else:
             # Financial data not available in domain context -> return UNKNOWN without fabricating numbers

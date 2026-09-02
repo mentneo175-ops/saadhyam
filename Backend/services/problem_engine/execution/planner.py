@@ -61,6 +61,13 @@ class ExecutionPlanner:
 
         solution = next((s for s in problem.solutions if s.id == solution_id), None)
         if not solution:
+            sol_stmt = select(ProblemSolution).where(
+                and_(ProblemSolution.id == solution_id, ProblemSolution.problem_id == problem_id)
+            )
+            sol_res = await db.execute(sol_stmt)
+            solution = sol_res.scalar_one_or_none()
+
+        if not solution:
             raise ValueError(f"Solution #{solution_id} not found for problem #{problem_id}")
 
         # Build step-by-step execution actions based on strategy type

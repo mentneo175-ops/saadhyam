@@ -38,6 +38,10 @@ from services.problem_engine.execution.planner import ExecutionPlanner
 from services.problem_engine.execution.workflow import ApprovalWorkflowService
 from services.problem_engine.execution.engine import ExecutionEngine
 from services.problem_engine.execution.outcome import OutcomeVerifier
+from services.problem_engine.proactive.service import ProactiveDiscoveryService
+from services.problem_engine.proactive.audit import ProblemAuditLogger
+from services.problem_engine.investigation.service import ProblemInvestigationService
+from services.problem_engine.learning.service import ProblemLearningService
 
 logger = logging.getLogger(__name__)
 
@@ -66,12 +70,13 @@ async def list_problems(
     category: Optional[str] = Query(None, description="Filter by category"),
     severity: Optional[str] = Query(None, description="Filter by severity"),
     status: Optional[str] = Query(None, description="Filter by status"),
+    is_opportunity: Optional[bool] = Query(None, description="Filter by opportunity flag"),
     limit: int = Query(50, ge=1, le=100),
     offset: int = Query(0, ge=0),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """List business problems for current tenant with filtering and pagination."""
+    """List business problems and opportunities for current tenant with filtering and pagination."""
     try:
         stmt = (
             select(Problem)
@@ -84,6 +89,8 @@ async def list_problems(
             stmt = stmt.where(Problem.severity == severity)
         if status:
             stmt = stmt.where(Problem.status == status)
+        if is_opportunity is not None:
+            stmt = stmt.where(Problem.is_opportunity == is_opportunity)
 
         stmt = stmt.offset(offset).limit(limit)
         result = await db.execute(stmt)
@@ -122,6 +129,118 @@ async def list_problems(
     except Exception as e:
         logger.error(f"Error listing problems for user {current_user.id}: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Failed to list problems")
+
+
+# ===========================================================================
+# Phase 8: Proactive Discovery, Event Ingestion & Lifecycle Auditing
+# ===========================================================================
+
+@router.post("/events/ingest")
+async def ingest_business_event(
+    payload: Dict[str, Any] = Body(...),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Ingest a real-time business event from connectors/webhooks and proactively evaluate detection rules.
+    """
+    event_name = payload.get("event_name")
+    source = payload.get("source", "custom_connector")
+    entity_id = payload.get("entity_id")
+    event_payload = payload.get("payload", {})
+    trigger_detection = payload.get("trigger_detection", True)
+
+    if not event_name:
+        raise HTTPException(status_code=400, detail="event_name is required")
+
+    try:
+        result = await ProactiveDiscoveryService.ingest_event(
+            db=db,
+            user_id=current_user.id,
+            event_name=event_name,
+            source=source,
+            entity_id=entity_id,
+            payload=event_payload,
+            trigger_detection=trigger_detection,
+        )
+        return result
+    except Exception as e:
+        logger.error(f"Error ingesting event for user {current_user.id}: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to ingest business event")
+
+
+@router.post("/scheduler/scan")
+async def trigger_scheduled_discovery_scan(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Trigger scheduled periodic synchronization across connectors followed by proactive discovery.
+    """
+    try:
+        return await ProactiveDiscoveryService.run_scheduled_discovery(db, current_user.id)
+    except Exception as e:
+        logger.error(f"Error running scheduled scan for user {current_user.id}: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to execute scheduled discovery scan")
+
+
+@router.get("/audit-logs")
+async def get_tenant_audit_logs(
+    limit: int = Query(50, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Retrieve chronological lifecycle audit logs for the current tenant.
+    """
+    try:
+        logs = await ProblemAuditLogger.get_audit_logs(
+            db=db, user_id=current_user.id, limit=limit, offset=offset
+        )
+        return {
+            "success": True,
+            "count": len(logs),
+            "logs": [
+                {
+                    "id": log.id,
+                    "problem_id": log.problem_id,
+                    "event_type": log.event_type.value if hasattr(log.event_type, "value") else str(log.event_type),
+                    "details": log.details,
+                    "created_at": log.created_at.isoformat() if log.created_at else None,
+                }
+                for log in logs
+            ],
+        }
+    except Exception as e:
+        logger.error(f"Error fetching audit logs for user {current_user.id}: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to fetch audit logs")
+
+
+@router.get("/learning/insights")
+async def get_learning_insights(
+    category: Optional[str] = Query(None, description="Optional problem category filter"),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Retrieve tenant-wide closed-loop strategy effectiveness and learning signals.
+    """
+    cat_enum = None
+    if category:
+        try:
+            cat_enum = ProblemCategory[category.upper()]
+        except KeyError:
+            pass
+
+    try:
+        data = await ProblemLearningService.get_strategy_effectiveness(
+            db=db, user_id=current_user.id, category=cat_enum
+        )
+        return {"success": True, "insights": data}
+    except Exception as e:
+        logger.error(f"Error fetching learning insights for user {current_user.id}: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to fetch learning insights")
 
 
 @router.get("/{problem_id}")
@@ -358,6 +477,33 @@ async def analyze_problem_root_cause(
     except Exception as e:
         logger.error(f"Error analyzing root cause for problem {problem_id}: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Failed to run root cause analysis")
+
+
+@router.post("/{problem_id}/investigate")
+async def investigate_problem(
+    problem_id: int,
+    payload: Dict[str, Any] = Body(...),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Investigate a problem using evidence-grounded natural-language question answering.
+    Strictly adheres to the Zero-Fabrication Rule.
+    """
+    question = payload.get("question")
+    if not question or not str(question).strip():
+        raise HTTPException(status_code=400, detail="Field 'question' is required.")
+
+    try:
+        investigation_result = await ProblemInvestigationService.investigate_problem(
+            db, current_user.id, problem_id, question
+        )
+        return {"success": True, "investigation": investigation_result}
+    except ValueError as ve:
+        raise HTTPException(status_code=404, detail=str(ve))
+    except Exception as e:
+        logger.error(f"Error investigating problem {problem_id}: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to run natural language investigation")
 
 
 # ===========================================================================
@@ -708,3 +854,117 @@ async def verify_outcome(
     except Exception as e:
         logger.error(f"Error verifying outcome for problem {problem_id}: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Failed to verify outcome")
+
+
+@router.get("/{problem_id}/audit-logs")
+async def get_problem_audit_logs(
+    problem_id: int,
+    limit: int = Query(50, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Retrieve lifecycle audit logs for a specific problem.
+    """
+    # Verify problem belongs to current user
+    stmt = select(Problem.id).where(
+        and_(Problem.id == problem_id, Problem.user_id == current_user.id)
+    )
+    res = await db.execute(stmt)
+    if not res.scalar_one_or_none():
+        raise HTTPException(status_code=404, detail="Problem not found")
+
+    logs = await ProblemAuditLogger.get_audit_logs(
+        db=db, user_id=current_user.id, problem_id=problem_id, limit=limit, offset=offset
+    )
+    return {
+        "success": True,
+        "problem_id": problem_id,
+        "count": len(logs),
+        "logs": [
+            {
+                "id": log.id,
+                "problem_id": log.problem_id,
+                "event_type": log.event_type.value if hasattr(log.event_type, "value") else str(log.event_type),
+                "details": log.details,
+                "created_at": log.created_at.isoformat() if log.created_at else None,
+            }
+            for log in logs
+        ],
+    }
+
+
+# ===========================================================================
+# Phase 11: Closed-Loop Learning & Replanning Endpoints
+# ===========================================================================
+
+@router.get("/{problem_id}/learning")
+async def get_problem_learning_record(
+    problem_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Retrieve closed-loop learning record and prediction variance for a problem.
+    """
+    # Verify ownership
+    stmt = select(Problem).where(
+        and_(Problem.id == problem_id, Problem.user_id == current_user.id)
+    ).options(selectinload(Problem.outcome))
+    res = await db.execute(stmt)
+    problem = res.scalar_one_or_none()
+
+    if not problem:
+        raise HTTPException(status_code=404, detail="Problem not found")
+
+    if not problem.outcome:
+        return {
+            "success": True,
+            "problem_id": problem_id,
+            "has_learning_record": False,
+            "message": "Problem outcome has not been verified yet. Run outcome verification to generate learning signals.",
+        }
+
+    try:
+        record = await ProblemLearningService.record_outcome_learning(db, current_user.id, problem_id)
+        return {
+            "success": True,
+            "problem_id": problem_id,
+            "has_learning_record": True,
+            "learning_record": {
+                "id": record.id,
+                "predicted_impact_inr": record.predicted_impact_inr,
+                "actual_verified_impact_inr": record.actual_verified_impact_inr,
+                "prediction_error_pct": record.prediction_error_pct,
+                "outcome_status": record.outcome_status.value if hasattr(record.outcome_status, "value") else str(record.outcome_status),
+                "is_successful": record.is_successful,
+                "replan_triggered": record.replan_triggered,
+                "learned_signals": record.learned_signals,
+                "created_at": record.created_at.isoformat() if record.created_at else None,
+                "updated_at": record.updated_at.isoformat() if record.updated_at else None,
+            },
+        }
+    except Exception as e:
+        logger.error(f"Error fetching learning record for problem {problem_id}: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to fetch learning record")
+
+
+@router.post("/{problem_id}/replan")
+async def trigger_problem_replanning(
+    problem_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Trigger closed-loop replanning for an unresolved or partially solved problem.
+    Uses historical outcome learnings to adjust candidate strategy weights with full approval safety.
+    """
+    try:
+        replan_result = await ProblemLearningService.replan_problem(db, current_user.id, problem_id)
+        return replan_result
+    except ValueError as ve:
+        raise HTTPException(status_code=404, detail=str(ve))
+    except Exception as e:
+        logger.error(f"Error replanning problem {problem_id}: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to execute closed-loop replanning")
